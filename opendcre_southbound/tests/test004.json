@@ -1,0 +1,30 @@
+{
+  "boards": [
+    {
+      "board_id": 1,
+      "firmware_version" : "Version Response 1",
+      "ports" : [
+        {
+          "port_index": 1,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        },
+        {
+          "port_index": 12,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 657 ]
+            }
+        }
+      ]
+    }
+  ]
+}

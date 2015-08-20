@@ -1,0 +1,162 @@
+{
+  "boards": [
+    {
+      "board_id": 1,
+      "firmware_version" : "OpenDCRE Emulator v1.0.0",
+      "ports" : [
+        {
+          "port_index": 1,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                0
+              ]
+            }
+        },
+        {
+          "port_index": 2,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 3,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 4,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 32768 ]
+            }
+        },
+        {
+          "port_index": 5,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 6,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 7,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 65535 ]
+            }
+        },
+        {
+          "port_index": 8,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 65534 ]
+            }
+        },
+        {
+          "port_index": 9,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 10,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 11,
+          "device_id": 255,
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [1, 56, 1, 156, 1, 1, 255, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 108, 4] ]
+            }
+        },
+        {
+          "port_index": 12,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 13,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 14,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "port_index": 15,
+          "device_id": 255,
+          "device_type": "none",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        }
+      ]
+    }
+  ]
+}
