@@ -171,7 +171,7 @@ class ScanTestCase(unittest.TestCase):
             except:
                 pass
             try:
-		subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
 	    except:
 		pass
 
@@ -294,7 +294,7 @@ class VersionTestCase(unittest.TestCase):
             except:
                 pass
             try:
-		subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
 	    except:
 		pass
 
@@ -418,7 +418,7 @@ class DeviceReadTestCase(unittest.TestCase):
             except:
                 pass
             try:
-		subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
 	    except:
 		pass
 
@@ -488,7 +488,7 @@ class EnduranceTestCase(unittest.TestCase):
             except:
                 pass
             try:
-		subprocess.call(["/bin/kill", "kill -s TERM `cat /var/run/nginx.pid`"])
+		        subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
 	    except:
 		pass
 
@@ -646,7 +646,7 @@ class PowerTestCase(unittest.TestCase):
             except:
                 pass
             try:
-		subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+		        subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
 	    except:
 		pass
 
