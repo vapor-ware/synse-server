@@ -143,15 +143,17 @@ def main(emulatorDevice):
                         if (port["port_index"] == rc.port_id) and (port["device_type"] == devicebus.get_device_type_name(rc.device_type)):
                             # now we can craft a response
                             responses_length = len(port["read"]["responses"])
-                            if responses_length > 0 and read_i < responses_length:
+			    # get the responses counter
+			    _count = port["read"]["_count"] if "_count" in port["read"] else 0
+			    if responses_length > 0 and _count < responses_length:
                                 if (isinstance(
-                                    port["read"]["responses"][read_i], list)):
+                                    port["read"]["responses"][_count], list)):
                                     # we are sending raw bytes
                                     emulator.write(port["read"]["responses"][read_i])
                                     emulator.flush()
-                                elif port["read"]["responses"][read_i] is not None:
+                                elif port["read"]["responses"][_count] is not None:
                                     # we are sending back a device reading
-                                    reading = [ord(x) for x in str(port["read"]["responses"][read_i])]
+                                    reading = [ord(x) for x in str(port["read"]["responses"][_count])]
                                     rr = devicebus.DeviceReadResponse(
                                         device_reading=reading)
                                     emulator.write(rr.serialize())
@@ -161,9 +163,10 @@ def main(emulatorDevice):
                                     pass
                                 # now increment index into our responses, and wrap it if
                                 # we are repeatable
-                                read_i += 1
+                                _count += 1
                                 if port["read"]["repeatable"]:
-                                    read_i %= len(port["read"]["responses"])
+                                    _count %= len(port["read"]["responses"])
+				port["read"]["_count"] = _count
                                 pass
 
         elif cmd == 'P':
@@ -179,15 +182,18 @@ def main(emulatorDevice):
                     for port in board["ports"]:
                         if (port["port_index"] == pc.port_id) and (port["device_type"] == devicebus.get_device_type_name(pc.device_type)):
                             responses_length = len(port["power"]["responses"])
-                            if responses_length > 0 and read_i < responses_length:
+			    # get the responses counter
+			    _count = port["power"]["_count"] if "_count" in port["power"] else 0
+
+			    if responses_length > 0 and _count < responses_length:
                                 if (isinstance(
-                                    port["power"]["responses"][read_i], list)):
+                                    port["power"]["responses"][_count], list)):
                                     # we are sending raw bytes
-                                    emulator.write(port["power"]["responses"][read_i])
+                                    emulator.write(port["power"]["responses"][_count])
                                     emulator.flush()
-                                elif port["power"]["responses"][read_i] is not None:
+                                elif port["power"]["responses"][_count] is not None:
                                     # we are sending back a device reading
-                                    powerStatus = [ord(x) for x in str(port["power"]["responses"][read_i])]
+                                    powerStatus = [ord(x) for x in str(port["power"]["responses"][_count])]
                                     pr = devicebus.PowerControlResponse(
                                         data=powerStatus)
                                     emulator.write(pr.serialize())
@@ -197,9 +203,10 @@ def main(emulatorDevice):
                                     pass
                                 # now increment index into our responses, and wrap it if
                                 # we are repeatable
-                                read_i += 1
+                                _count += 1
                                 if port["power"]["repeatable"]:
-                                    read_i %= len(port["power"]["responses"])
+                                    _count %= len(port["power"]["responses"])
+				port["power"]["_count"] = _count
                                 pass
 
         # otherwise, no response

@@ -650,4 +650,278 @@ class PowerTestCase(unittest.TestCase):
 	    except:
 		pass
 
+################################################################################
+class EmulatorCounterTestCase(unittest.TestCase):
+    """
+        Tests to ensure the emulator counter behaves as is expected and does
+        not get changed erroneously.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            # use the test006.json emulator configuration for this test
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test006.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            socatarg1 = "PTY,link="+self.emulatortty+",mode=666"
+            socatarg2 = "PTY,link="+self.endpointtty+",mode=666"
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)   # wait for flask to be ready
+
+    def test_001_read_same_board_same_port(self):
+        """
+            Test reading a single thermistor device repeatedly to make sure it
+            increments sequentially.
+        """
+        r = requests.get(PREFIX+"/read/thermistor/1/1")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 100)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/1")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 101)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/1")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 102)
+
+    def test_002_read_same_board_diff_port(self):
+        """
+            Test reading thermistor devices on the same board but different ports,
+            where both devices have the same length of responses and repeatable=true.
+            One device being tested does not start at the first response since
+            previous tests have incremented its counter.
+        """
+        r = requests.get(PREFIX+"/read/thermistor/1/1")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 103)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/3")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 200)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/1")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 104)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/3")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 201)
+
+    def test_003_read_diff_board_diff_port(self):
+        """
+            Test reading thermistor devices on different boards, where both
+            devices have the same length of responses and repeatable=true. One
+            device being tested does not start at the first response since
+            previous tests have incremented its counter.
+        """
+        r = requests.get(PREFIX+"/read/thermistor/1/3")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 202)
+
+        r = requests.get(PREFIX+"/read/thermistor/3/2")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 800)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/3")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 203)
+
+        r = requests.get(PREFIX+"/read/thermistor/3/2")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 801)
+
+    def test_004_read_until_wraparound(self):
+        """
+            Test incrementing the counter on alternating devices (humidity
+            and thermistor), both where repeatable=true, but where the length
+            of the responses list differ.
+        """
+        r = requests.get(PREFIX+"/read/humidity/1/12")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 600)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/10")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 500)
+
+        r = requests.get(PREFIX+"/read/humidity/1/12")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 601)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/10")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 501)
+
+        r = requests.get(PREFIX+"/read/humidity/1/12")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 602)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/10")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 502)
+
+        r = requests.get(PREFIX+"/read/humidity/1/12")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 603)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/10")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 503)
+
+        # counter should wrap back around here, since len(responses) has
+        # been exceeded.
+        r = requests.get(PREFIX+"/read/humidity/1/12")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 600)
+
+        # counter should not wrap around for this device, since len(responses)
+        # has not been exceeded
+        r = requests.get(PREFIX+"/read/thermistor/1/10")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 504)
+
+        r = requests.get(PREFIX+"/read/humidity/1/12")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 601)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/10")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 505)
+
+    def test_005_power_same_board_diff_port(self):
+        """
+            Test incrementing the counter on alternating power devices,
+            one where repeatable=true, and one where repeatable=false
+        """
+        r = requests.get(PREFIX+"/power/status/1/6")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+
+        r = requests.get(PREFIX+"/power/status/1/7")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+
+        r = requests.get(PREFIX+"/power/status/1/6")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "64,0,0,0")
+
+        r = requests.get(PREFIX+"/power/status/1/7")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "64,0,0,0")
+
+        r = requests.get(PREFIX+"/power/status/1/6")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
+
+        r = requests.get(PREFIX+"/power/status/1/7")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
+
+        # repeatable=true, so the counter should cycle back around
+        r = requests.get(PREFIX+"/power/status/1/6")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+
+        # repeatable=false, so should not the counter back around
+        r = requests.get(PREFIX+"/power/status/1/7")
+        self.assertEqual(r.status_code, 500)
+
+    def test_006_power_read_alternation(self):
+        """
+           Test incrementing the counter alternating between a power cmd and
+           a read cmd, both where repeatable=true.
+        """
+        # perform three requests on the thermistor to get the count different from
+        # the start count of the power
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 300)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 301)
+
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 302)
+
+        # start alternating between power and thermistor
+        r = requests.get(PREFIX+"/power/status/1/5")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 303)
+
+        r = requests.get(PREFIX+"/power/status/1/5")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "64,0,0,0")
+
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 304)
+
+        r = requests.get(PREFIX+"/power/status/1/5")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
+
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 305)
+
+        r = requests.get(PREFIX+"/power/status/1/5")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(response["pmbus_raw"], "2056,0,0,0")
+
+        r = requests.get(PREFIX+"/read/thermistor/1/8")
+        response = json.loads(r.text)
+        self.assertEqual(response["device_raw"], 306)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+            print " * SB-TEST: Cleaning up!"
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
 unittest.main()
