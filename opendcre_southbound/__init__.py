@@ -56,6 +56,21 @@ import logging
 app = Flask(__name__)
 logger = logging.getLogger()
 
+
+def __count(start=0x00, step=0x01):
+    """ Generator whose next() method returns consecutive values until it
+        reaches 0xff, then wraps back to 0x00.
+    """
+    n = start
+    while True:
+        yield n
+        n += step
+        n %= 0xff
+
+# define a module-level counter, incremented for DeviceBusPacket sequences
+_count = __count(start=0x01, step=0x01)
+
+
 @app.route(PREFIX+__api_version__+"/test", methods=['GET', 'POST'])
 def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
@@ -80,7 +95,7 @@ def get_board_version(boardNum):
     #       returning results.  this could be tidied up.
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        vc = devicebus.VersionCommand(board_id=boardNum, sequence=0x01)
+        vc = devicebus.VersionCommand(board_id=boardNum, sequence=next(_count))
         bus.write(vc.serialize())
 
         logger.debug(" * FLASK>>: " + str([hex(x) for x in vc.serialize()]))
@@ -113,7 +128,7 @@ def get_board_ports(boardNum):
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
         response_dict = {"boards" : []}
-        dc = devicebus.DumpCommand(board_id=boardNum, sequence=0x01)
+        dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
         bus.write(dc.serialize())
 
         logger.debug(" * FLASK>>: " + str([hex(x) for x in dc.serialize()]))
@@ -202,7 +217,7 @@ def read_device(deviceType, boardNum, portNum):
     """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=0x01,
+        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count),
                     port_id=portNum,
                     device_type=devicebus.get_device_type_code(deviceType.lower()),
                     device_id=0xFF)
@@ -283,22 +298,22 @@ def power_control(powerAction, boardNum, portNum):
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
         if powerAction.lower() == "status":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=0x01,
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
                         port_id=portNum,
                         device_type=devicebus.get_device_type_code("power"),
                         device_id=0xFF, power_status=True)
         elif powerAction.lower() == "on":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=0x01,
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
                         port_id=portNum,
                         device_type=devicebus.get_device_type_code("power"),
                         device_id=0xFF, power_on=True)
         elif powerAction.lower() == "off":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=0x01,
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
                         port_id=portNum,
                         device_type=devicebus.get_device_type_code("power"),
                         device_id=0xFF, power_off=True)
         elif powerAction.lower() == "cycle":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=0x01,
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
                         port_id=portNum,
                         device_type=devicebus.get_device_type_code("power"),
                         device_id=0xFF, power_cycle=True)
