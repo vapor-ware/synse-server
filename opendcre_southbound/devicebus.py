@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
    OpenDCRE Device Bus Module
    Author:  andrew, steven
    Date:    4/13/2015
@@ -25,27 +25,27 @@
     You should have received a copy of the GNU General Public License
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
+
+import logging
 
 import serial
-import sys
-import logging
 
 DEBUG = False
 logger = logging.getLogger()
 
-#==============================================================================#
-#                     Begin DeviceBusPacket Definition                         #
-#==============================================================================#
+# ============================================================================== #
+#                     Begin DeviceBusPacket Definition                           #
+# ============================================================================== #
+
 
 class DeviceBusPacket(object):
     """
     DeviceBusPacket is a representation of a single packet that travels the
     device bus.
     """
-    def __init__(self, serial_reader=None, bytes=None, sequence=0x01,
-                    device_type=0xFF, board_id=0xFF, port_id=0xFF,
-                    device_id=0xFF, data=None):
+    def __init__(self, serial_reader=None, bytes=None, sequence=0x01, device_type=0xFF,
+                 board_id=0xFF, port_id=0xFF, device_id=0xFF, data=None):
         """
         Construct a new DeviceBusPacket. There are three real ways to do this -
         either via the bytes parameter, or via the individual fields of
@@ -67,9 +67,9 @@ class DeviceBusPacket(object):
                 # read one byte for trailer
                 serialbytes.append(ord(serial_reader.read(1)))
                 # now make the packet
-                #print [hex(x) for x in bytes]
+                # print [hex(x) for x in bytes]
                 self.deserialize(serialbytes)
-            except Exception, e:
+            except Exception:
                 # yes, this is a catchall exception, however:
                 # if something bad happened, it is related to reading
                 # junk or nothing at all from the bus.  in either case, we can
@@ -79,29 +79,27 @@ class DeviceBusPacket(object):
         elif bytes is not None:
             # if we have a raw packet to build off of,
             # populate our fields with the deserialized result
-            #self.packetBytes=packetBytes       # ABC: removed, not needed
+            # self.packetBytes=packetBytes       # ABC: removed, not needed
             self.deserialize(bytes)
         else:
             # otherwise, we populate our fields as provided by the user
-            self.sequence=sequence
-            self.device_type=device_type
-            self.board_id=board_id
-            self.port_id=port_id
-            self.device_id=device_id
-            if (isinstance(data, list)):
-                self.data=data
+            self.sequence = sequence
+            self.device_type = device_type
+            self.board_id = board_id
+            self.port_id = port_id
+            self.device_id = device_id
+            if isinstance(data, list):
+                self.data = data
             else:
                 self.data = [data]
 
-    def serialize(self, sequence=None, device_type=None, board_id=None,
-                    port_id=None, device_id=None, data=None):
+    def serialize(self, sequence=None, device_type=None, board_id=None, port_id=None, device_id=None, data=None):
         """
         Generate a serialized byte representation of the given packet, or of a
         packet created on the fly using the provided parameters.  If a
-        paraeterized serialization is desired, then ALL of the packet fields
+        parametrized serialization is desired, then ALL of the packet fields
         must be specified.  Otherwise, if none of the fields are specified, then
         the fields of this packet instance are serialized.
-
         """
         if not sequence and not device_type and not board_id and not port_id and not device_id and not data:
             sequence = self.sequence
@@ -130,16 +128,16 @@ class DeviceBusPacket(object):
         """
         Populate the fields of a DeviceBusPacket instance
         """
-        #check length to make sure we have at minimum the min packet length
-        if (len(packetBytes) < 9):
+        # check length to make sure we have at minimum the min packet length
+        if len(packetBytes) < 9:
             raise BusDataException("Invalid packet byte stream length of " + str(len(packetBytes)))
 
         # check header byte - if invalid, toss
-        if (packetBytes[0] != 0x01):
+        if packetBytes[0] != 0x01:
             raise BusDataException("No header byte found in incoming packet.")
 
         # check length - if packetBytes len doesn't match, toss
-        if (packetBytes[1] != len(packetBytes)-3):
+        if packetBytes[1] != len(packetBytes) - 3:
             raise BusDataException("Invalid length from incoming packet.")
 
         # get sequence num
@@ -159,22 +157,20 @@ class DeviceBusPacket(object):
 
         # get data (up to 32 bytes) - todo multi-packet transmissions
         self.data = []
-        for x in packetBytes[7:len(packetBytes)-2]:
+        for x in packetBytes[7:len(packetBytes) - 2]:
             self.data.append(x)
 
         # get the checksum and verify it - toss if no good
-        if (self.generateChecksum(self.sequence, self.device_type,
-                    self.board_id, self.port_id, self.device_id, self.data) !=
-                    packetBytes[len(packetBytes)-2]):
+        if (self.generateChecksum(self.sequence, self.device_type, self.board_id,
+                                  self.port_id, self.device_id, self.data) != packetBytes[len(packetBytes) - 2]):
             raise BusDataException("Invalid checksum in incoming packet.")
 
         # get the trailer byte - toss if no good
-        if (packetBytes[len(packetBytes)-1] != 0x04):
+        if packetBytes[len(packetBytes) - 1] != 0x04:
             raise BusDataException("Invalid trailer byte found in incoming packet.")
         # if we make it here, the packet successfully was deserialized!
 
-    def generateChecksum(self, sequence, device_type, board_id, port_id,
-                            device_id, data):
+    def generateChecksum(self, sequence, device_type, board_id, port_id, device_id, data):
         """
         Generate and return packet checksum given its fields.  Twos complement
         of 0xFF & the sum of bytes from devicetype to data end.
@@ -184,10 +180,13 @@ class DeviceBusPacket(object):
             checksum = checksum + x
         twoscomp = ((~checksum) + 1) & 0xFF
         return twoscomp
-#==============================================================================#
-#                   End DeviceBusPacket Definition                             #
-#                           Begin Commands                                     #
-#==============================================================================#
+
+
+# ============================================================================== #
+#                   End DeviceBusPacket Definition                               #
+#                           Begin Commands                                       #
+# ============================================================================== #
+
 
 class DumpCommand(DeviceBusPacket):
     """
@@ -200,47 +199,45 @@ class DumpCommand(DeviceBusPacket):
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator).  Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a DumpCommand may be constructed from a
+        of the object.  Finally, a DumpCommand may be constructed from a
         board_id and sequence number - this is what is most likely to be used
         by a client application (e.g. the flask server).
         """
         if serial_reader is not None:
-            super(DumpCommand,self).__init__(serial_reader=serial_reader)
+            super(DumpCommand, self).__init__(serial_reader=serial_reader)
         elif bytes is not None:
-            super(DumpCommand,self).__init__(bytes=bytes)
+            super(DumpCommand, self).__init__(bytes=bytes)
         else:
-            super(DumpCommand,self).__init__(sequence=sequence,
-                            device_type=0xFF, board_id=board_id,
-                            port_id=0xFF, device_id=0xFF, data=[ord('D')])
+            super(DumpCommand, self).__init__(sequence=sequence, device_type=0xFF,
+                            board_id=board_id, port_id=0xFF, device_id=0xFF, data=[ord('D')])
+
 
 class DumpResponse(DeviceBusPacket):
     """
     DumpResponse is a special DeviceBusPacket that has a data field
     containing a record for a device port on a given board.
     """
-    def __init__(self, serial_reader=None, board_id=0x00, bytes=None,
-                    sequence=0x01, port_id=0x00, device_id=0x00,
-                    device_type=0x00, data=None):
+    def __init__(self, serial_reader=None, board_id=0x00, bytes=None, sequence=0x01,
+                 port_id=0x00, device_id=0x00, device_type=0x00, data=None):
         """
         Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a DumpResponse may be constructed from a
+        of the object.  Finally, a DumpResponse may be constructed from a
         board_id, sequence number, port_id, device_id, device_type and data -
         this is what is most likely to be used when simulating responses
         (e.g. in the emulator).
         """
         if serial_reader is not None:
-            super(DumpResponse,self).__init__(serial_reader=serial_reader)
+            super(DumpResponse, self).__init__(serial_reader=serial_reader)
         elif bytes is not None:
-            super(DumpResponse,self).__init__(bytes=bytes)
+            super(DumpResponse, self).__init__(bytes=bytes)
         else:
-            super(DumpResponse,self).__init__(board_id=board_id,
-                            sequence=sequence, port_id=port_id,
-                            device_id=device_id, device_type=device_type,
-                            data=data)
+            super(DumpResponse, self).__init__(board_id=board_id, sequence=sequence, port_id=port_id,
+                            device_id=device_id, device_type=device_type, data=data)
+
 
 class VersionCommand(DeviceBusPacket):
     """
@@ -253,18 +250,18 @@ class VersionCommand(DeviceBusPacket):
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator).  Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a VersionCommand may be constructed from a
+        of the object.  Finally, a VersionCommand may be constructed from a
         board_id and sequence number - this is what is most likely to be used
         by a client application (e.g. the flask server).
         """
         if serial_reader is not None:
-            super(VersionCommand,self).__init__(serial_reader=serial_reader)
+            super(VersionCommand, self).__init__(serial_reader=serial_reader)
         elif bytes is not None:
-            super(VersionCommand,self).__init__(bytes=bytes)
+            super(VersionCommand, self).__init__(bytes=bytes)
         else:
-            super(VersionCommand,self).__init__(sequence=sequence,
-                            device_type=0xFF, board_id=board_id,
-                            port_id=0xFF, device_id=0xFF, data=[ord('V')])
+            super(VersionCommand, self).__init__(sequence=sequence, device_type=0xFF,
+                            board_id=board_id, port_id=0xFF, device_id=0xFF, data=[ord('V')])
+
 
 class VersionResponse(DeviceBusPacket):
     """
@@ -278,27 +275,28 @@ class VersionResponse(DeviceBusPacket):
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a VersionResponse may be constructed from a
+        of the object.  Finally, a VersionResponse may be constructed from a
         board_id, sequence number and versionString - this is what is most
         likely to be used when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
-            super(VersionResponse,self).__init__(serial_reader=serial_reader)
+            super(VersionResponse, self).__init__(serial_reader=serial_reader)
             self.versionString = ""
             for x in self.data:
-                self.versionString+=chr(x)
+                self.versionString += chr(x)
         elif bytes is not None:
-            super(VersionResponse,self).__init__(bytes=bytes)
+            super(VersionResponse, self).__init__(bytes=bytes)
             self.versionString = ""
             for x in self.data:
-                self.versionString+=chr(x)
+                self.versionString += chr(x)
         elif versionString is not None:
             data = [ord(x) for x in versionString]
-            super(VersionResponse,self).__init__(sequence=sequence, device_type=0xFF,
+            super(VersionResponse, self).__init__(sequence=sequence, device_type=0xFF,
                         board_id=board_id, port_id=0xFF, device_id=0xFF, data=data)
             self.versionString = versionString
         else:
             raise BusDataException("VersionResponse requires serial_reader, bytes, or a versionString.")
+
 
 class DeviceReadCommand(DeviceBusPacket):
     """
@@ -306,27 +304,26 @@ class DeviceReadCommand(DeviceBusPacket):
     and is used to retrieve the reading of a given board_id,port_id,device_id,
     device_type combination.
     """
-    def __init__(self, serial_reader=None, board_id=0x00, bytes=None,
-            sequence=0x01, device_type=0xFF, port_id=0xFF, device_id=0xFF):
+    def __init__(self, serial_reader=None, board_id=0x00, bytes=None, sequence=0x01,
+                 device_type=0xFF, port_id=0xFF, device_id=0xFF):
         """
         Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator).  Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a DeviceReadCommand may be constructed from a
+        of the object.  Finally, a DeviceReadCommand may be constructed from a
         board_id, port_id, device_type and device_id (and sequence number) -
         this is what is most likely to be used by a client application
         (e.g. the flask server).
         """
         if serial_reader is not None:
-            super(DeviceReadCommand,self).__init__(serial_reader=serial_reader)
+            super(DeviceReadCommand, self).__init__(serial_reader=serial_reader)
         elif bytes is not None:
-            super(DeviceReadCommand,self).__init__(bytes=bytes)
+            super(DeviceReadCommand, self).__init__(bytes=bytes)
         else:
-            super(DeviceReadCommand,self).__init__(sequence=sequence,
-                                device_type=device_type, board_id=board_id,
-                                port_id=port_id, device_id=device_id,
-                                data=[ord('R')])
+            super(DeviceReadCommand, self).__init__(sequence=sequence, device_type=device_type,
+                                board_id=board_id, port_id=port_id, device_id=device_id, data=[ord('R')])
+
 
 class DeviceReadResponse(DeviceBusPacket):
     """
@@ -334,29 +331,29 @@ class DeviceReadResponse(DeviceBusPacket):
     containing the device/ data returned for a given board, port and
     device_id.
     """
-    def __init__(self, serial_reader=None, board_id=0x00, bytes=None,
-                    sequence=0x01, device_type=0xFF, port_id=0xFF,
-                    device_id=0xFF, device_reading=None):
+    def __init__(self, serial_reader=None, board_id=0x00, bytes=None, sequence=0x01,
+                 device_type=0xFF, port_id=0xFF, device_id=0xFF, device_reading=None):
         """
         Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a DeviceReadResponse may be constructed from a
+        of the object.  Finally, a DeviceReadResponse may be constructed from a
         board_id, sequence number and device_reading - this is what is most
         likely to be used when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
-            super(DeviceReadResponse,self).__init__(serial_reader=serial_reader)
+            super(DeviceReadResponse, self).__init__(serial_reader=serial_reader)
         elif device_reading is not None:
-            super(DeviceReadResponse,self).__init__(sequence=sequence,
+            super(DeviceReadResponse, self).__init__(sequence=sequence,
                     device_type=device_type, board_id=board_id, port_id=port_id,
                     device_id=device_id, data=device_reading)
         elif bytes is not None:
-            super(DeviceReadResponse,self).__init__(bytes=bytes)
+            super(DeviceReadResponse, self).__init__(bytes=bytes)
         else:
             raise BusDataException("DeviceReadResponse requires serial_reader, bytes or device_reading.")
+
 
 class PowerControlCommand(DeviceBusPacket):
     """
@@ -364,30 +361,29 @@ class PowerControlCommand(DeviceBusPacket):
     'P0' or 'P1', and is used to control the power state of a given board_id,
     port_id, device_id, combination.
     """
-    def __init__(self, serial_reader=None, board_id=0x00, bytes=None,
-            sequence=0x01, device_type=0xFF, port_id=0xFF, device_id=0xFF,
-            power_on=False, power_off=False, power_cycle=False,
-            power_status=False):
+    def __init__(self, serial_reader=None, board_id=0x00, bytes=None, sequence=0x01,
+                 device_type=0xFF, port_id=0xFF, device_id=0xFF, power_on=False,
+                 power_off=False, power_cycle=False, power_status=False):
         """
         Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator).  Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a PowerStatusCommand may be constructed from a
+        of the object.  Finally, a PowerStatusCommand may be constructed from a
         board_id, port_id, and device_id (and sequence number) -
         this is what is most likely to be used by a client application
         (e.g. the flask server).
         Either power_on, power_off or power_cycle may be specified as True.
         If power_on is specified as True, then a power_on command is sent.
         If power_off is specified as True, then a power_off command is sent.
-        If power_cycle is specified as True, then a power_cycle comamnd is sent.
+        If power_cycle is specified as True, then a power_cycle command is sent.
         If power_status is specified as True, then a power_status command is
         sent.
         """
         if serial_reader is not None:
-            super(PowerControlCommand,self).__init__(serial_reader=serial_reader)
+            super(PowerControlCommand, self).__init__(serial_reader=serial_reader)
         elif bytes is not None:
-            super(PowerControlCommand,self).__init__(bytes=bytes)
+            super(PowerControlCommand, self).__init__(bytes=bytes)
         else:
             dataVal = [ord('P')]
             if power_on is True and power_off is False and power_cycle is False and power_status is False:
@@ -400,10 +396,9 @@ class PowerControlCommand(DeviceBusPacket):
                 dataVal.append(ord('?'))
             else:
                 raise BusDataException("Only one power control action may be specified as True.")
-            super(PowerControlCommand,self).__init__(sequence=sequence,
-                                device_type=device_type, board_id=board_id,
-                                port_id=port_id, device_id=device_id,
-                                data=dataVal)
+            super(PowerControlCommand, self).__init__(sequence=sequence, device_type=device_type,
+                                board_id=board_id, port_id=port_id, device_id=device_id, data=dataVal)
+
 
 class PowerControlResponse(DeviceBusPacket):
     """
@@ -411,34 +406,34 @@ class PowerControlResponse(DeviceBusPacket):
     containing the result of a power control action for a given board, port and
     device_id.
     """
-    def __init__(self, serial_reader=None, board_id=0x00, bytes=None,
-                    sequence=0x01, device_type=0xFF, port_id=0xFF,
-                    device_id=0xFF, data=None):
+    def __init__(self, serial_reader=None, board_id=0x00, bytes=None, sequence=0x01, device_type=0xFF,
+                 port_id=0xFF, device_id=0xFF, data=None):
         """
         Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
-        of the obect.  Finally, a PowerControlResponse may be constructed from a
+        of the object.  Finally, a PowerControlResponse may be constructed from a
         board_id, sequence number and data - this is what is most
         likely to be used when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
-            super(PowerControlResponse,self).__init__(serial_reader=serial_reader)
+            super(PowerControlResponse, self).__init__(serial_reader=serial_reader)
         elif data is not None:
-            super(PowerControlResponse,self).__init__(sequence=sequence,
-                    device_type=device_type, board_id=board_id, port_id=port_id,
-                    device_id=device_id, data=data)
+            super(PowerControlResponse, self).__init__(sequence=sequence, device_type=device_type,
+                            board_id=board_id, port_id=port_id, device_id=device_id, data=data)
         elif bytes is not None:
-            super(PowerControlResponse,self).__init__(bytes=bytes)
+            super(PowerControlResponse, self).__init__(bytes=bytes)
         else:
             raise BusDataException("PowerControlResponse requires serial_reader, bytes or data.")
 
-#==============================================================================#
-#                                   End Commands                               #
-#                        Begin Support Objects and Methods                     #
-#==============================================================================#
+
+# ============================================================================== #
+#                                   End Commands                                 #
+#                        Begin Support Objects and Methods                       #
+# ============================================================================== #
+
 
 class BusTimeoutException(Exception):
     """
@@ -449,11 +444,13 @@ class BusTimeoutException(Exception):
     """
     pass
 
+
 class BusDataException(Exception):
     """
     Exception raised when something sent over the bus does not look right.
     """
     pass
+
 
 def initialize(serial_device, speed=9600, timeout=0.25):
     """ initialize - get serial connection on given serial port.
@@ -482,6 +479,7 @@ device_name_codes = {
     "none"          : 0xFF
 }
 
+
 def get_device_type_code(device_type):
     """ get_device_type_code - gets a numeric value corresponding to a string
                                 value describing a device type.
@@ -497,6 +495,7 @@ def get_device_type_code(device_type):
     else:
         return device_name_codes["none"]
 
+
 def get_device_type_name(device_code):
     """ get_device_type_name - gets a string value corresponding to a numeric
                                 code representing a device type.
@@ -511,6 +510,7 @@ def get_device_type_name(device_code):
             return name
     return "none"
 
+
 def convertThermistor(adc):
     """convertThermistor - calculates a real world value from the raw data.
 
@@ -519,20 +519,21 @@ def convertThermistor(adc):
     Returns: the thermistor temperature value, in Celsius
 
     """
-    if (adc >= 65535):
+    if adc >= 65535:
         raise BusDataException("Thermistor value > 0xFFFF received.")
     else:
-        if (adc > 745):
+        if adc > 745:
             temperature = (adc * -0.131) + 118.638
-        elif (adc > 542):
+        elif adc > 542:
             temperature = (adc * -0.0985) + 93.399
-        elif (adc > 354):
+        elif adc > 354:
             temperature = (adc * -0.106) + 97.66
-        elif (adc > 218):
+        elif adc > 218:
             temperature = (adc * -0.147) + 112.046
         else:
             temperature = (adc * -0.235) + 131.294
         return float('%.2f' % round(temperature, 2))
+
 
 def convertDirectPmbus(raw, reading_type, rSense=1.0):
     """
@@ -566,4 +567,4 @@ def convertDirectPmbus(raw, reading_type, rSense=1.0):
         raise BusDataException(
             "Invalid reading_type specified for PMBUS direct conversion.")
 
-    return ((1.0/m) * (raw * 10.0**(-r) - b))
+    return (1.0 / m) * (raw * 10.0 ** (-r) - b)

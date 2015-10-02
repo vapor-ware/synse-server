@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
    OpenDCRE Device Bus Test Emulator
    Author:  andrew
    Date:    4/16/2015
@@ -25,13 +25,12 @@
     You should have received a copy of the GNU General Public License
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
-import os
+"""
 import sys
-import serial
-import devicebus
 import logging
 import json
+
+import devicebus
 
 DEBUG = False                   # set to true for more console logging
 logger = logging.getLogger()
@@ -104,9 +103,9 @@ def main(emulatorDevice):
                                     port_id=port["port_index"],
                                     device_id=port["device_id"],
                                     device_type=devicebus.get_device_type_code(port["device_type"]),
-                                    data = [devicebus.get_device_type_code(port["device_type"])]
+                                    data=[devicebus.get_device_type_code(port["device_type"])]
                                 )
-                                #logger.debug(" * EMULATOR<<: " + str([hex(x) for x in srp.serialize()]))
+                                # logger.debug(" * EMULATOR<<: " + str([hex(x) for x in srp.serialize()]))
                                 emulator.write(srp.serialize())
                                 emulator.flush()
                             # we have sent everything from this board
@@ -122,8 +121,8 @@ def main(emulatorDevice):
             vc = devicebus.VersionCommand(bytes=packet.serialize())
             for board in configuration["boards"]:
                 if board["board_id"] == vc.board_id:
-                    if (isinstance(board["firmware_version"], list)):
-                        #sending raw bytes
+                    if isinstance(board["firmware_version"], list):
+                        # sending raw bytes
                         emulator.write(board["firmware_version"])
                         emulator.flush()
                     else:
@@ -143,19 +142,17 @@ def main(emulatorDevice):
                         if (port["port_index"] == rc.port_id) and (port["device_type"] == devicebus.get_device_type_name(rc.device_type)):
                             # now we can craft a response
                             responses_length = len(port["read"]["responses"])
-			    # get the responses counter
-			    _count = port["read"]["_count"] if "_count" in port["read"] else 0
-			    if responses_length > 0 and _count < responses_length:
-                                if (isinstance(
-                                    port["read"]["responses"][_count], list)):
+                            # get the responses counter
+                            _count = port["read"]["_count"] if "_count" in port["read"] else 0
+                            if responses_length > 0 and _count < responses_length:
+                                if isinstance(port["read"]["responses"][_count], list):
                                     # we are sending raw bytes
                                     emulator.write(port["read"]["responses"][read_i])
                                     emulator.flush()
                                 elif port["read"]["responses"][_count] is not None:
                                     # we are sending back a device reading
                                     reading = [ord(x) for x in str(port["read"]["responses"][_count])]
-                                    rr = devicebus.DeviceReadResponse(
-                                        device_reading=reading)
+                                    rr = devicebus.DeviceReadResponse(device_reading=reading)
                                     emulator.write(rr.serialize())
                                     emulator.flush()
                                 else:
@@ -166,7 +163,7 @@ def main(emulatorDevice):
                                 _count += 1
                                 if port["read"]["repeatable"]:
                                     _count %= len(port["read"]["responses"])
-				port["read"]["_count"] = _count
+                                port["read"]["_count"] = _count
                                 pass
 
         elif cmd == 'P':
@@ -182,12 +179,11 @@ def main(emulatorDevice):
                     for port in board["ports"]:
                         if (port["port_index"] == pc.port_id) and (port["device_type"] == devicebus.get_device_type_name(pc.device_type)):
                             responses_length = len(port["power"]["responses"])
-			    # get the responses counter
-			    _count = port["power"]["_count"] if "_count" in port["power"] else 0
+                            # get the responses counter
+                            _count = port["power"]["_count"] if "_count" in port["power"] else 0
 
-			    if responses_length > 0 and _count < responses_length:
-                                if (isinstance(
-                                    port["power"]["responses"][_count], list)):
+                            if responses_length > 0 and _count < responses_length:
+                                if isinstance(port["power"]["responses"][_count], list):
                                     # we are sending raw bytes
                                     emulator.write(port["power"]["responses"][_count])
                                     emulator.flush()
@@ -206,7 +202,7 @@ def main(emulatorDevice):
                                 _count += 1
                                 if port["power"]["repeatable"]:
                                     _count %= len(port["power"]["responses"])
-				port["power"]["_count"] = _count
+                                port["power"]["_count"] = _count
                                 pass
 
         # otherwise, no response
@@ -214,7 +210,8 @@ def main(emulatorDevice):
             # ======================> UNKNOWN <======================
             pass
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
     if DEBUG is True:
         logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(message)s")

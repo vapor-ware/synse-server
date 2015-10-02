@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
    OpenDCRE Southbound API Endpoint
    Author:  andrew
    Date:    4/8/2015
@@ -29,29 +29,23 @@
 
     You should have received a copy of the GNU General Public License
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
-
-'''
-
-PREFIX = "/opendcre/"               # URL prefix for REST access
-SERIAL_DEFAULT = "/dev/ttyAMA0"      # default serial device to use for bus
-DEBUG = False                        # set to False to disable extra logging
-LOCKFILE = "/tmp/OpenDCRE.lock"     # to prevent chaos on the serial bus
-
-from version import __version__      # full opendcre version
-from version import __api_version__  # major.minor API version
+"""
+import sys
+import logging
 
 from flask import Flask
 from flask import jsonify
 from flask import abort
+from lockfile import LockFile  # for sync on the serial bus
 
-# for sync on the serial bus
-from lockfile import LockFile
-
+from version import __version__  # full opendcre version
+from version import __api_version__  # major.minor API version
 import devicebus
-import serial
-import sys
-import time
-import logging
+
+PREFIX = "/opendcre/"  # URL prefix for REST access
+SERIAL_DEFAULT = "/dev/ttyAMA0"  # default serial device to use for bus
+DEBUG = False  # set to False to disable extra logging
+LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
 
 app = Flask(__name__)
 logger = logging.getLogger()
@@ -71,14 +65,15 @@ def __count(start=0x00, step=0x01):
 _count = __count(start=0x01, step=0x01)
 
 
-@app.route(PREFIX+__api_version__+"/test", methods=['GET', 'POST'])
+@app.route(PREFIX + __api_version__ + "/test", methods=['GET', 'POST'])
 def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
         relying on the serial bus layer.
     """
-    return jsonify({"status":"ok"})
+    return jsonify({"status": "ok"})
 
-@app.route(PREFIX+__api_version__+"/version/<int:boardNum>", methods=['GET'])
+
+@app.route(PREFIX + __api_version__ + "/version/<int:boardNum>", methods=['GET'])
 def get_board_version(boardNum):
     """ Get board version given the specified board number.
 
@@ -89,7 +84,6 @@ def get_board_version(boardNum):
     Raises:   Returns a 500 error if the scan command fails.
 
     """
-
     # TODO: this is a very aggressive locking strategy.  we could release
     #       the lockfile once we've gotten our response back, prior to
     #       returning results.  this could be tidied up.
@@ -107,12 +101,12 @@ def get_board_version(boardNum):
 
         logger.debug(" * FLASK<<: " + str([hex(x) for x in vr.serialize()]))
 
-        return jsonify({"firmware_version":vr.versionString,
-            "opendcre_version":__version__,
-            "api_version":__api_version__})
+        return jsonify({"firmware_version": vr.versionString,
+                        "opendcre_version": __version__,
+                        "api_version": __api_version__})
 
 
-@app.route(PREFIX+__api_version__+"/scan/<int:boardNum>", methods=['GET'])
+@app.route(PREFIX + __api_version__ + "/scan/<int:boardNum>", methods=['GET'])
 def get_board_ports(boardNum):
     """ Query a specific board, given the board id, and provide the
         active devices on that board.
@@ -127,7 +121,7 @@ def get_board_ports(boardNum):
     """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        response_dict = {"boards" : []}
+        response_dict = {"boards": []}
         dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
         bus.write(dc.serialize())
 
@@ -156,7 +150,7 @@ def get_board_ports(boardNum):
         # keep reading while we have bytes left in the buffer
         # this allows for multiple response packets to arrive
         # so long as the board is not lollygagging returning results
-        while (True):
+        while True:
             try:
                 dr = devicebus.DumpResponse(serial_reader=bus)
             except devicebus.BusTimeoutException:
@@ -179,7 +173,7 @@ def get_board_ports(boardNum):
                             "device_type": devicebus.get_device_type_name(dr.data[0])
                         }
                     )
-                    break;
+                    break
             if not boardExists:
                 response_dict["boards"].append(
                     {
@@ -197,9 +191,7 @@ def get_board_ports(boardNum):
         return jsonify(response_dict)
 
 
-@app.route(PREFIX + __api_version__ +
-           "/read/<string:deviceType>/<int:boardNum>/<int:portNum>",
-           methods=['GET'])
+@app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<int:boardNum>/<int:portNum>", methods=['GET'])
 def read_device(deviceType, boardNum, portNum):
     """ Get a device reading for the given board and port and device type.
 
@@ -217,10 +209,8 @@ def read_device(deviceType, boardNum, portNum):
     """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count),
-                    port_id=portNum,
-                    device_type=devicebus.get_device_type_code(deviceType.lower()),
-                    device_id=0xFF)
+        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count), port_id=portNum, device_id=0xFF,
+                                          device_type=devicebus.get_device_type_code(deviceType.lower()))
         bus.write(src.serialize())
 
         logger.debug(" * FLASK>>: " + str([hex(x) for x in src.serialize()]))
@@ -239,14 +229,14 @@ def read_device(deviceType, boardNum, portNum):
                 device_raw += chr(x)
             device_raw = int(device_raw)
         except:
-            abort(500)      # if we cannot convert the reading from bytes to
-                            # an integer, we cannot move forward
+            abort(500)  # if we cannot convert the reading from bytes to
+                        # an integer, we cannot move forward
 
         # convert raw value and jsonify the device reading
         if deviceType.lower() == "thermistor":
             try:
                 converted_value = devicebus.convertThermistor(device_raw)
-                return jsonify({"device_raw":device_raw, "temperature_c":converted_value})
+                return jsonify({"device_raw": device_raw, "temperature_c": converted_value})
             except devicebus.BusDataException:
                 # if we saw an invalid value...
                 abort(500)
@@ -254,11 +244,10 @@ def read_device(deviceType, boardNum, portNum):
             # for anything we don't convert, send back raw data
             # for invalid device types / device mismatches, that gets
             # caught when the request is sent over the bus
-            return jsonify({"device_raw":device_raw})
+            return jsonify({"device_raw": device_raw})
 
-@app.route(PREFIX + __api_version__ +
-           "/write/<string:deviceType>/<int:boardNum>/<int:portNum>",
-           methods=['GET'])
+
+@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<int:boardNum>/<int:portNum>", methods=['GET'])
 def write_device(deviceType, boardNum, portNum):
     """ Write a value to a given device (so long as the device is writeable).
 
@@ -274,15 +263,12 @@ def write_device(deviceType, boardNum, portNum):
     Raises:   Returns a 500 error if the write command fails.
 
     """
-
     # not currently implemented.  we may need for the demo, but until then,
     # left undone
-
     abort(501)
 
-@app.route(PREFIX + __api_version__ +
-           "/power/<string:powerAction>/<int:boardNum>/<int:portNum>",
-           methods=['GET'])
+
+@app.route(PREFIX + __api_version__ + "/power/<string:powerAction>/<int:boardNum>/<int:portNum>", methods=['GET'])
 def power_control(powerAction, boardNum, portNum):
     """ Power on/off/cycle/status for the given board and port and device.
 
@@ -298,25 +284,17 @@ def power_control(powerAction, boardNum, portNum):
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
         if powerAction.lower() == "status":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"),
-                        device_id=0xFF, power_status=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
+                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_status=True)
         elif powerAction.lower() == "on":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"),
-                        device_id=0xFF, power_on=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
+                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_on=True)
         elif powerAction.lower() == "off":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"),
-                        device_id=0xFF, power_off=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
+                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_off=True)
         elif powerAction.lower() == "cycle":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"),
-                        device_id=0xFF, power_cycle=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
+                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_cycle=True)
         else:
             abort(500)  # powerAction is invalid
 
@@ -344,11 +322,11 @@ def power_control(powerAction, boardNum, portNum):
             voltage_raw = int(pmbus_values[2])
             current_raw = int(pmbus_values[3])
         except:
-            abort(500)      # if we cannot convert the reading from bytes to
-                            # an integer, we cannot move forward
+            abort(500)  # if we cannot convert the reading from bytes to
+                        # an integer, we cannot move forward
 
         def convert_power_status(raw):
-            if (raw>>6 & 0x01) == 0x01:
+            if (raw >> 6 & 0x01) == 0x01:
                 return "off"
             else:
                 return "on"
@@ -361,17 +339,18 @@ def power_control(powerAction, boardNum, portNum):
 
         # now, convert raw reading into subfields
         status_converted = {
-            "pmbus_raw":pmbus_raw,
-            "power_status":convert_power_status(status_raw),
-            "power_ok":not bit_to_bool((status_raw>>11) & 0x01),
-            "over_current":bit_to_bool((status_raw>>4) & 0x01),
-            "under_voltage":bit_to_bool((status_raw)>>3 & 0x01),
-            "input_power":devicebus.convertDirectPmbus(power_raw, "power"),
-            "input_voltage":devicebus.convertDirectPmbus(voltage_raw, "voltage"),
-            "output_current":devicebus.convertDirectPmbus(current_raw, "current")
+            "pmbus_raw": pmbus_raw,
+            "power_status": convert_power_status(status_raw),
+            "power_ok": not bit_to_bool((status_raw >> 11) & 0x01),
+            "over_current": bit_to_bool((status_raw >> 4) & 0x01),
+            "under_voltage": bit_to_bool((status_raw) >> 3 & 0x01),
+            "input_power": devicebus.convertDirectPmbus(power_raw, "power"),
+            "input_voltage": devicebus.convertDirectPmbus(voltage_raw, "voltage"),
+            "output_current": devicebus.convertDirectPmbus(current_raw, "current")
         }
 
         return jsonify(status_converted)
+
 
 def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
     """ Main method to run the flask server.
@@ -392,7 +371,8 @@ def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
     if __name__ == '__main__':
         app.run(host="0.0.0.0")
 
-if (len(sys.argv)>1):
+
+if len(sys.argv) > 1:
     main(sys.argv[1])
 else:
     main()

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
    OpenDCRE Server Runner - Used to launch OpenDCRE from package
    via flask/nginx
 
@@ -26,12 +26,12 @@
     You should have received a copy of the GNU General Public License
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
-from opendcre_southbound import main
-from opendcre_southbound import app
+"""
 import sys
 
-if (len(sys.argv)>1):
+from opendcre_southbound import main
+
+if len(sys.argv) > 1:
     main(sys.argv[1])
 else:
     main()

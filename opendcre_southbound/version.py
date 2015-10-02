@@ -1,5 +1,5 @@
 #!/usr/bin/python
-'''
+"""
    OpenDCRE Centralized Version Configuration
    *** Version information should be updated here for each new build***
 
@@ -26,7 +26,7 @@
     You should have received a copy of the GNU General Public License
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 __version_major__ = "1"
 __version_minor__ = "0"
 __version_micro__ = "0"
