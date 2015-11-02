@@ -29,7 +29,7 @@
 """
 import sys
 
-from opendcre_southbound import main
+from opendcre_southbound import main, app
 
 if len(sys.argv) > 1:
     main(sys.argv[1])
