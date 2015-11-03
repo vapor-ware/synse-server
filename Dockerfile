@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     nginx \
     python-dev \
     python-pip \
+    python-setuptools \
     python-virtualenv \
     socat \
     --no-install-recommends && \
@@ -31,6 +32,8 @@ ADD . /opendcre
 WORKDIR /opendcre
 
 RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf
+
+RUN cd / && tar xzvf /opendcre/Vapor_IPMI-1.0.linux-armv7l.tar.gz
 
 # expose our API endpoint port
 EXPOSE 5000
