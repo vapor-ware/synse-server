@@ -65,6 +65,68 @@ def __count(start=0x00, step=0x01):
 _count = __count(start=0x01, step=0x01)
 
 
+def board_id_to_hex_string(hex_value):
+    return '{0:08x}'.format(hex_value)
+
+
+def device_id_to_hex_string(hex_value):
+    return '{0:04x}'.format(hex_value)
+
+
+def opendcre_scan(bus):
+    response_dict = {'boards': []}
+
+    try:
+        dr = devicebus.DumpResponse(serial_reader=bus)
+    except devicebus.BusTimeoutException:
+        abort(500)
+    else:
+        response_dict['boards'].append(
+            {
+                'board_id': board_id_to_hex_string(dr.board_id),
+                'ports': [
+                    {
+                        'device_id': device_id_to_hex_string(dr.device_id),
+                        'device_type': devicebus.get_device_type_name(dr.data[0])
+                    }
+                ]
+            }
+        )
+        logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+
+    while True:
+        try:
+            dr = devicebus.DumpResponse(serial_reader=bus)
+        except devicebus.BusTimeoutException:
+            break
+        else:
+            board_exists = False
+
+            for board in response_dict['boards']:
+                if int(board['board_id'], 16) == dr.board_id:
+                    board_exists = True
+                    board['ports'].append(
+                        {
+                            'device_id': device_id_to_hex_string(dr.device_id),
+                            'device_type': devicebus.get_device_type_name(dr.data[0])
+                        }
+                    )
+                    break
+
+            if not board_exists:
+                response_dict['boards'].append(
+                    {
+                        'board_id': board_id_to_hex_string(dr.board_id),
+                        'ports': [{
+                            'device_id': device_id_to_hex_string(dr.device_id),
+                            'device_type': devicebus.get_device_type_name(dr.data[0])
+                        }]
+                    }
+                )
+            logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+    return response_dict
+
+
 @app.route(PREFIX + __api_version__ + "/test", methods=['GET', 'POST'])
 def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
@@ -73,7 +135,7 @@ def test_routine():
     return jsonify({"status": "ok"})
 
 
-@app.route(PREFIX + __api_version__ + "/version/<int:boardNum>", methods=['GET'])
+@app.route(PREFIX + __api_version__ + "/version/<string:boardNum>", methods=['GET'])
 def get_board_version(boardNum):
     """ Get board version given the specified board number.
 
@@ -84,6 +146,11 @@ def get_board_version(boardNum):
     Raises:   Returns a 500 error if the scan command fails.
 
     """
+    try:
+        boardNum = int(boardNum, 16)
+    except ValueError:
+        abort(500)
+
     # TODO: this is a very aggressive locking strategy.  we could release
     #       the lockfile once we've gotten our response back, prior to
     #       returning results.  this could be tidied up.
@@ -92,21 +159,32 @@ def get_board_version(boardNum):
         vc = devicebus.VersionCommand(board_id=boardNum, sequence=next(_count))
         bus.write(vc.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in vc.serialize()]))
+        logger.debug(" * FLASK (version) >>: " + str([hex(x) for x in vc.serialize()]))
 
         try:
             vr = devicebus.VersionResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
             abort(500)
 
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in vr.serialize()]))
+        logger.debug(" * FLASK (version) <<: " + str([hex(x) for x in vr.serialize()]))
 
         return jsonify({"firmware_version": vr.versionString,
                         "opendcre_version": __version__,
                         "api_version": __api_version__})
 
 
-@app.route(PREFIX + __api_version__ + "/scan/<int:boardNum>", methods=['GET'])
+@app.route(PREFIX + __api_version__ + "/scan", methods=['GET'])
+def scan_all():
+    with LockFile(LOCKFILE):
+        bus = devicebus.initialize(app.config["SERIAL"])
+        dc = devicebus.DumpCommand(board_id=0xff000000, sequence=next(_count))
+        bus.write(dc.serialize())
+
+        response_dict = opendcre_scan(bus)
+        return jsonify(response_dict)
+
+
+@app.route(PREFIX + __api_version__ + "/scan/<string:boardNum>", methods=['GET'])
 def get_board_ports(boardNum):
     """ Query a specific board, given the board id, and provide the
         active devices on that board.
@@ -119,80 +197,22 @@ def get_board_ports(boardNum):
     Raises:   Returns a 500 error if the scan command fails.
 
     """
+    try:
+        boardNum = int(boardNum, 16)
+    except ValueError:
+        abort(500)
+
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        response_dict = {"boards": []}
         dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
         bus.write(dc.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in dc.serialize()]))
-
-        try:
-            dr = devicebus.DumpResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
-            # in this case, we cannot move further
-            abort(500)
-
-        # add the initial board/port record to the response
-        response_dict["boards"].append(
-            {
-                "board_id": dr.board_id,
-                "ports": [{
-                    "port_index": dr.port_id,
-                    "device_id": dr.device_id,
-                    "device_type": devicebus.get_device_type_name(dr.data[0])
-                }]
-            }
-        )
-
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in dr.serialize()]))
-
-        # keep reading while we have bytes left in the buffer
-        # this allows for multiple response packets to arrive
-        # so long as the board is not lollygagging returning results
-        while True:
-            try:
-                dr = devicebus.DumpResponse(serial_reader=bus)
-            except devicebus.BusTimeoutException:
-                # in this case, we cannot move further
-                break
-
-            boardExists = False
-
-            # iterate through the boards to locate the board record
-            # corresponding with the board_id from the response
-            # if it does not exist, set a flag, so we can add the board
-            # and in both cases we add a port record for the relevant board/port
-            for board in response_dict["boards"]:
-                if board["board_id"] == dr.board_id:
-                    boardExists = True
-                    board["ports"].append(
-                        {
-                            "port_index": dr.port_id,
-                            "device_id": dr.device_id,
-                            "device_type": devicebus.get_device_type_name(dr.data[0])
-                        }
-                    )
-                    break
-            if not boardExists:
-                response_dict["boards"].append(
-                    {
-                        "board_id": dr.board_id,
-                        "ports": [{
-                            "port_index": dr.port_id,
-                            "device_id": dr.device_id,
-                            "device_type": devicebus.get_device_type_name(dr.data[0])
-                        }]
-                    }
-                )
-
-            logger.debug(" * FLASK<<: " + str([hex(x) for x in dr.serialize()]))
-
+        response_dict = opendcre_scan(bus)
         return jsonify(response_dict)
 
 
-@app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<int:boardNum>/<int:portNum>", methods=['GET'])
-def read_device(deviceType, boardNum, portNum):
+@app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
+def read_device(deviceType, boardNum, deviceNum):
     """ Get a device reading for the given board and port and device type.
 
     Args:  the deviceType corresponds to the type of device to get a reading
@@ -207,20 +227,26 @@ def read_device(deviceType, boardNum, portNum):
     Raises:   Returns a 500 error if the scan command fails.
 
     """
+    try:
+        boardNum = int(boardNum, 16)
+        deviceNum = int(deviceNum, 16)
+    except ValueError:
+        abort(500)
+
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count), port_id=portNum, device_id=0xFF,
+        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
                                           device_type=devicebus.get_device_type_code(deviceType.lower()))
         bus.write(src.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in src.serialize()]))
+        logger.debug(" * FLASK (read) >>: " + str([hex(x) for x in src.serialize()]))
 
         try:
             srr = devicebus.DeviceReadResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
             abort(500)
 
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in srr.serialize()]))
+        logger.debug(" * FLASK (read) <<: " + str([hex(x) for x in srr.serialize()]))
 
         # get raw value as number
         device_raw = ""
@@ -247,8 +273,8 @@ def read_device(deviceType, boardNum, portNum):
             return jsonify({"device_raw": device_raw})
 
 
-@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<int:boardNum>/<int:portNum>", methods=['GET'])
-def write_device(deviceType, boardNum, portNum):
+@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
+def write_device(deviceType, boardNum, deviceNum):
     """ Write a value to a given device (so long as the device is writeable).
 
     Args:  the deviceType corresponds to the type of device to write to
@@ -268,8 +294,8 @@ def write_device(deviceType, boardNum, portNum):
     abort(501)
 
 
-@app.route(PREFIX + __api_version__ + "/power/<string:powerAction>/<int:boardNum>/<int:portNum>", methods=['GET'])
-def power_control(powerAction, boardNum, portNum):
+@app.route(PREFIX + __api_version__ + "/power/<string:powerAction>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
+def power_control(powerAction, boardNum, deviceNum):
     """ Power on/off/cycle/status for the given board and port and device.
 
     Args:  powerAction may be on/off/cycle/status and corresponds to the action
@@ -281,33 +307,39 @@ def power_control(powerAction, boardNum, portNum):
     Raises:   Returns a 500 error if the power command fails.
 
     """
+    try:
+        boardNum = int(boardNum, 16)
+        deviceNum = int(deviceNum, 16)
+    except ValueError:
+        abort(500)
+
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
         if powerAction.lower() == "status":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_status=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
+                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_status=True)
         elif powerAction.lower() == "on":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_on=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
+                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_on=True)
         elif powerAction.lower() == "off":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_off=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
+                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_off=True)
         elif powerAction.lower() == "cycle":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_cycle=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
+                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_cycle=True)
         else:
             abort(500)  # powerAction is invalid
 
         bus.write(pcc.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in pcc.serialize()]))
+        logger.debug(" * FLASK (power) >>: " + str([hex(x) for x in pcc.serialize()]))
 
         try:
             pcr = devicebus.PowerControlResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
             abort(500)
 
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in pcr.serialize()]))
+        logger.debug(" * FLASK (power) <<: " + str([hex(x) for x in pcr.serialize()]))
 
         # get raw value as string
         pmbus_raw = ""

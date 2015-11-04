@@ -31,6 +31,7 @@ import signal
 import time
 import json
 import random
+import devicebus
 
 import requests
 
@@ -70,7 +71,7 @@ class ScanTestCase(unittest.TestCase):
         """
             Test for many boards (24 to be exact)
         """
-        r = requests.get(PREFIX + "/scan/255")
+        r = requests.get(PREFIX + "/scan/ff")
         # response = json.loads(r.text)
         # self.assertEqual(len(response["boards"]), 24)
         self.assertEqual(r.status_code, 500)  # currently not enabled in firmware
@@ -79,7 +80,7 @@ class ScanTestCase(unittest.TestCase):
         """
             Test for one board.
         """
-        r = requests.get(PREFIX + "/scan/1")
+        r = requests.get(PREFIX + "/scan/00000001")
         response = json.loads(r.text)
         self.assertEqual(len(response["boards"]), 1)
 
@@ -87,21 +88,21 @@ class ScanTestCase(unittest.TestCase):
         """
             Test for no boards.
         """
-        r = requests.get(PREFIX + "/scan/200")
+        r = requests.get(PREFIX + "/scan/000000c8")
         self.assertEqual(r.status_code, 500)
 
     def test_004_no_ports(self):
         """
             Test for one board no ports.
         """
-        r = requests.get(PREFIX + "/scan/2")
+        r = requests.get(PREFIX + "/scan/00000002")
         self.assertEqual(r.status_code, 500)  # should this really be so?
 
     def test_005_many_ports(self):
         """
             Test for one board many ports.
         """
-        r = requests.get(PREFIX + "/scan/3")
+        r = requests.get(PREFIX + "/scan/00000003")
         response = json.loads(r.text)
         self.assertEqual(len(response["boards"][0]["ports"]), 25)
 
@@ -110,7 +111,7 @@ class ScanTestCase(unittest.TestCase):
             Test for one board many times.  Too many cooks.
         """
         for x in range(5):
-            r = requests.get(PREFIX + "/scan/1")
+            r = requests.get(PREFIX + "/scan/00000001")
             response = json.loads(r.text)
             self.assertEqual(len(response["boards"]), 1)
 
@@ -119,7 +120,7 @@ class ScanTestCase(unittest.TestCase):
             Get a valid packet but with a boxload of data.
             We should be happy and drop the extra data on the floor.
         """
-        r = requests.get(PREFIX + "/scan/99")
+        r = requests.get(PREFIX + "/scan/00000063")
         self.assertEqual(r.status_code, 200)
 
     def test_008_invalid_data(self):
@@ -127,11 +128,11 @@ class ScanTestCase(unittest.TestCase):
             Get a valid packet but with bad data - checksum, trailer.
         """
         # BAD TRAILER
-        r = requests.get(PREFIX + "/scan/100")
+        r = requests.get(PREFIX + "/scan/00000064")
         self.assertEqual(r.status_code, 500)
 
         # BAD CHECKSUM
-        r = requests.get(PREFIX + "/scan/101")
+        r = requests.get(PREFIX + "/scan/00000065")
         self.assertEqual(r.status_code, 500)
 
     def test_009_no_data(self):
@@ -139,7 +140,7 @@ class ScanTestCase(unittest.TestCase):
             Get no packet in return.
         """
         # TIMEOUT
-        r = requests.get(PREFIX + "/scan/102")
+        r = requests.get(PREFIX + "/scan/00000066")
         self.assertEqual(r.status_code, 500)
 
     def test_010_bad_url(self):
@@ -206,7 +207,7 @@ class VersionTestCase(unittest.TestCase):
         """
             Test simple version (valid board, valid version)
         """
-        r = requests.get(PREFIX + "/version/1")
+        r = requests.get(PREFIX + "/version/00000001")
         response = json.loads(r.text)
         self.assertEqual(response["firmware_version"], "Version Response 1")
 
@@ -216,14 +217,14 @@ class VersionTestCase(unittest.TestCase):
             Technically > 32 bytes will split stuff into multiple
             packets.
         """
-        r = requests.get(PREFIX + "/version/2")
+        r = requests.get(PREFIX + "/version/00000002")
         self.assertEqual(r.status_code, 500)
 
     def test_003_empty_version(self):
         """
             Test empty version (valid board, empty version)
         """
-        r = requests.get(PREFIX + "/version/3")
+        r = requests.get(PREFIX + "/version/00000003")
         response = json.loads(r.text)
         self.assertEqual(response["firmware_version"], "")
 
@@ -240,7 +241,7 @@ class VersionTestCase(unittest.TestCase):
         """
             Data > 32 bytes (should be multiple packets but we cheat currently)
         """
-        r = requests.get(PREFIX + "/version/9")
+        r = requests.get(PREFIX + "/version/00000009")
         response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
         self.assertEqual(response["firmware_version"], "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
@@ -250,11 +251,11 @@ class VersionTestCase(unittest.TestCase):
             Bad checksum, bad trailer.
         """
         # bad trailer
-        r = requests.get(PREFIX + "/version/10")
+        r = requests.get(PREFIX + "/version/0000000a")
         self.assertEqual(r.status_code, 500)
 
         # bad checksum
-        r = requests.get(PREFIX + "/version/11")
+        r = requests.get(PREFIX + "/version/0000000b")
         self.assertEqual(r.status_code, 500)
 
     def test_007_no_data(self):
@@ -262,7 +263,7 @@ class VersionTestCase(unittest.TestCase):
             Timeout.
         """
         # timeout
-        r = requests.get(PREFIX + "/version/200")
+        r = requests.get(PREFIX + "/version/000000c8")
         self.assertEqual(r.status_code, 500)
 
     def test_008_bad_url(self):
@@ -329,46 +330,46 @@ class DeviceReadTestCase(unittest.TestCase):
         """
             Get a zero value for each supported conversion method
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/1")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 0)
         self.assertEqual(response["temperature_c"], 131.29)
 
-        r = requests.get(PREFIX + "/read/none/1/3")
+        r = requests.get(PREFIX + "/read/none/00000001/03ff")
         self.assertEqual(r.status_code, 500)
 
     def test_002_read_mid(self):
         """
             Get a midpoint value for each supported conversion method
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/4")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/04ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 32768)
         self.assertEqual(response["temperature_c"], -4173.97)
 
-        r = requests.get(PREFIX + "/read/none/1/6")
+        r = requests.get(PREFIX + "/read/none/00000001/06ff")
         self.assertEqual(r.status_code, 500)
 
     def test_003_read_8byte_max(self):
         """
             Get a max value for each supported conversion method
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/7")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/07ff")
         self.assertEqual(r.status_code, 500)  # 65535 was the value
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 65534)
         self.assertAlmostEqual(response["temperature_c"], -8466.32, 1)
 
-        r = requests.get(PREFIX + "/read/none/1/10")
+        r = requests.get(PREFIX + "/read/none/00000001/0aff")
         self.assertEqual(r.status_code, 500)
 
     def test_004_weird_data(self):
         """
             What happens when a lot of integer data are returned?
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/11")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0bff")
         self.assertEqual(r.status_code, 500)  # we read something super weird for thermistor, so error
 
     def test_005_bad_data(self):
@@ -377,15 +378,15 @@ class DeviceReadTestCase(unittest.TestCase):
             when there's a bad checksum or trailer?
         """
         # bad bytes
-        r = requests.get(PREFIX + "/read/thermistor/1/13")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0dff")
         self.assertEqual(r.status_code, 500)
 
         # bad trailer
-        r = requests.get(PREFIX + "/read/thermistor/1/14")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0eff")
         self.assertEqual(r.status_code, 500)
 
         # bad checksum
-        r = requests.get(PREFIX + "/read/thermistor/1/15")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0fff")
         self.assertEqual(r.status_code, 500)
 
     def test_006_no_data(self):
@@ -393,7 +394,7 @@ class DeviceReadTestCase(unittest.TestCase):
             Timeout.
         """
         # timeout
-        r = requests.get(PREFIX + "/read/none/1/16")
+        r = requests.get(PREFIX + "/read/none/00000001/10ff")
         self.assertEqual(r.status_code, 500)
 
     @classmethod
@@ -451,9 +452,9 @@ class EnduranceTestCase(unittest.TestCase):
 
     def test_001_random_good_requests(self):
         request_urls = [
-            PREFIX + "/scan/1",
-            PREFIX + "/version/1",
-            PREFIX + "/read/thermistor/1/1"
+            PREFIX + "/scan/00000001",
+            PREFIX + "/version/00000001",
+            PREFIX + "/read/thermistor/00000001/01ff"
         ]
         for x in range(100):
             r = requests.get(request_urls[random.randint(0, len(request_urls) - 1)])
@@ -461,9 +462,9 @@ class EnduranceTestCase(unittest.TestCase):
 
     def test_002_device_reads(self):
         for x in range(100):
-            r = requests.get(PREFIX + "/read/thermistor/1/1")
+            r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
             self.assertEqual(r.status_code, 200)
-            r = requests.get(PREFIX + "/read/thermistor/1/12")
+            r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
             self.assertEqual(r.status_code, 200)
 
     @classmethod
@@ -520,7 +521,7 @@ class PowerTestCase(unittest.TestCase):
 
     def test_001_get_power_status(self):
         # expected raw 0
-        r = requests.get(PREFIX + "/power/status/1/1")
+        r = requests.get(PREFIX + "/power/status/00000001/01ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "0,0,0,0")
@@ -531,7 +532,7 @@ class PowerTestCase(unittest.TestCase):
 
         # expected raw 64 (0x40) - when off, power_ok and under_voltage
         # and under_current don't have any meaning
-        r = requests.get(PREFIX + "/power/status/1/1")
+        r = requests.get(PREFIX + "/power/status/00000001/01ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "64,0,0,0")
@@ -542,7 +543,7 @@ class PowerTestCase(unittest.TestCase):
 
         # expected raw 2048 (0x800) - power problem but not
         # something related to under voltage or over current condition
-        r = requests.get(PREFIX + "/power/status/1/1")
+        r = requests.get(PREFIX + "/power/status/00000001/01ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
@@ -552,7 +553,7 @@ class PowerTestCase(unittest.TestCase):
         self.assertEqual(response["under_voltage"], False)
 
         # expected raw 2048+8=2056 (0x1010) - power problem due to under voltage
-        r = requests.get(PREFIX + "/power/status/1/1")
+        r = requests.get(PREFIX + "/power/status/00000001/01ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2056,0,0,0")
@@ -562,7 +563,7 @@ class PowerTestCase(unittest.TestCase):
         self.assertEqual(response["under_voltage"], True)
 
         # expected raw 2048+16=2064 (0x1020) - power problem due to over current
-        r = requests.get(PREFIX + "/power/status/1/1")
+        r = requests.get(PREFIX + "/power/status/00000001/01ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2064,0,0,0")
@@ -572,7 +573,7 @@ class PowerTestCase(unittest.TestCase):
         self.assertEqual(response["under_voltage"], False)
 
         # expected raw 2072 (0x1030)
-        r = requests.get(PREFIX + "/power/status/1/1")
+        r = requests.get(PREFIX + "/power/status/00000001/01ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2072,0,0,0")
@@ -582,47 +583,47 @@ class PowerTestCase(unittest.TestCase):
         self.assertEqual(response["under_voltage"], True)
 
     def test_002_power_on(self):
-        r = requests.get(PREFIX + "/power/on/1/1")
+        r = requests.get(PREFIX + "/power/on/00000001/01ff")
         self.assertEqual(r.status_code, 200)
 
     def test_003_power_cycle(self):
-        r = requests.get(PREFIX + "/power/cycle/1/1")
+        r = requests.get(PREFIX + "/power/cycle/00000001/01ff")
         self.assertEqual(r.status_code, 200)
 
     def test_004_power_off(self):
-        r = requests.get(PREFIX + "/power/off/1/1")
+        r = requests.get(PREFIX + "/power/off/00000001/01ff")
         self.assertEqual(r.status_code, 200)
 
     def test_005_valid_port_invalid_type(self):
-        r = requests.get(PREFIX + "/power/status/1/2")
+        r = requests.get(PREFIX + "/power/status/00000001/02ff")
         self.assertEqual(r.status_code, 500)
 
     def test_006_invalid_port(self):
-        r = requests.get(PREFIX + "/power/status/1/3")
+        r = requests.get(PREFIX + "/power/status/00000001/03ff")
         self.assertEqual(r.status_code, 500)
 
     def test_007_invalid_command(self):
-        r = requests.get(PREFIX + "/power/invalid/1/1")
+        r = requests.get(PREFIX + "/power/invalid/00000001/01ff")
         self.assertEqual(r.status_code, 500)
 
-        r = requests.get(PREFIX + "/power/cyle/1/1")
+        r = requests.get(PREFIX + "/power/cyle/00000001/01ff")
         self.assertEqual(r.status_code, 500)
 
-        r = requests.get(PREFIX + "/power/xxx/1/1")
+        r = requests.get(PREFIX + "/power/xxx/00000001/01ff")
         self.assertEqual(r.status_code, 500)
 
     def test_008_no_power_data(self):
-        r = requests.get(PREFIX + "/power/status/1/3")
+        r = requests.get(PREFIX + "/power/status/00000001/03ff")
         self.assertEqual(r.status_code, 500)
 
-        r = requests.get(PREFIX + "/power/status/1/4")
+        r = requests.get(PREFIX + "/power/status/00000001/04ff")
         self.assertEqual(r.status_code, 500)
 
     def test_010_weird_data(self):
-        r = requests.get(PREFIX + "/power/status/1/5")
+        r = requests.get(PREFIX + "/power/status/00000001/05ff")
         self.assertEqual(r.status_code, 500)
 
-        r = requests.get(PREFIX + "/power/status/1/6")
+        r = requests.get(PREFIX + "/power/status/00000001/06ff")
         self.assertEqual(r.status_code, 500)
 
     @classmethod
@@ -683,15 +684,15 @@ class EmulatorCounterTestCase(unittest.TestCase):
             Test reading a single thermistor device repeatedly to make sure it
             increments sequentially.
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/1")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 100)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/1")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 101)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/1")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 102)
 
@@ -702,19 +703,19 @@ class EmulatorCounterTestCase(unittest.TestCase):
             One device being tested does not start at the first response since
             previous tests have incremented its counter.
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/1")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 103)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/3")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 200)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/1")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 104)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/3")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 201)
 
@@ -725,77 +726,77 @@ class EmulatorCounterTestCase(unittest.TestCase):
             device being tested does not start at the first response since
             previous tests have incremented its counter.
         """
-        r = requests.get(PREFIX + "/read/thermistor/1/3")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 202)
 
-        r = requests.get(PREFIX + "/read/thermistor/3/2")
+        r = requests.get(PREFIX + "/read/thermistor/00000003/02ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 800)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/3")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 203)
 
-        r = requests.get(PREFIX + "/read/thermistor/3/2")
+        r = requests.get(PREFIX + "/read/thermistor/00000003/02ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 801)
 
     def test_004_read_until_wraparound(self):
         """
-            Test incrementing the counter on alternating devices (humidity
-            and thermistor), both where repeatable=true, but where the length
+            Test incrementing the counter on alternating devices (two
+            thermistors), both where repeatable=true, but where the length
             of the responses list differ.
         """
-        r = requests.get(PREFIX + "/read/humidity/1/12")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 600)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/10")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 500)
 
-        r = requests.get(PREFIX + "/read/humidity/1/12")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 601)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/10")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 501)
 
-        r = requests.get(PREFIX + "/read/humidity/1/12")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 602)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/10")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 502)
 
-        r = requests.get(PREFIX + "/read/humidity/1/12")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 603)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/10")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 503)
 
         # counter should wrap back around here, since len(responses) has
         # been exceeded.
-        r = requests.get(PREFIX + "/read/humidity/1/12")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 600)
 
         # counter should not wrap around for this device, since len(responses)
         # has not been exceeded
-        r = requests.get(PREFIX + "/read/thermistor/1/10")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 504)
 
-        r = requests.get(PREFIX + "/read/humidity/1/12")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 601)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/10")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 505)
 
@@ -804,44 +805,44 @@ class EmulatorCounterTestCase(unittest.TestCase):
             Test incrementing the counter on alternating power devices,
             one where repeatable=true, and one where repeatable=false
         """
-        r = requests.get(PREFIX + "/power/status/1/6")
+        r = requests.get(PREFIX + "/power/status/00000001/06ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "0,0,0,0")
 
-        r = requests.get(PREFIX + "/power/status/1/7")
+        r = requests.get(PREFIX + "/power/status/00000001/07ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "0,0,0,0")
 
-        r = requests.get(PREFIX + "/power/status/1/6")
+        r = requests.get(PREFIX + "/power/status/00000001/06ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "64,0,0,0")
 
-        r = requests.get(PREFIX + "/power/status/1/7")
+        r = requests.get(PREFIX + "/power/status/00000001/07ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "64,0,0,0")
 
-        r = requests.get(PREFIX + "/power/status/1/6")
+        r = requests.get(PREFIX + "/power/status/00000001/06ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
 
-        r = requests.get(PREFIX + "/power/status/1/7")
+        r = requests.get(PREFIX + "/power/status/00000001/07ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
 
         # repeatable=true, so the counter should cycle back around
-        r = requests.get(PREFIX + "/power/status/1/6")
+        r = requests.get(PREFIX + "/power/status/00000001/06ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "0,0,0,0")
 
         # repeatable=false, so should not the counter back around
-        r = requests.get(PREFIX + "/power/status/1/7")
+        r = requests.get(PREFIX + "/power/status/00000001/07ff")
         self.assertEqual(r.status_code, 500)
 
     def test_006_power_read_alternation(self):
@@ -851,52 +852,52 @@ class EmulatorCounterTestCase(unittest.TestCase):
         """
         # perform three requests on the thermistor to get the count different from
         # the start count of the power
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 300)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 301)
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 302)
 
         # start alternating between power and thermistor
-        r = requests.get(PREFIX + "/power/status/1/5")
+        r = requests.get(PREFIX + "/power/status/00000001/05ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "0,0,0,0")
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 303)
 
-        r = requests.get(PREFIX + "/power/status/1/5")
+        r = requests.get(PREFIX + "/power/status/00000001/05ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "64,0,0,0")
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 304)
 
-        r = requests.get(PREFIX + "/power/status/1/5")
+        r = requests.get(PREFIX + "/power/status/00000001/05ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 305)
 
-        r = requests.get(PREFIX + "/power/status/1/5")
+        r = requests.get(PREFIX + "/power/status/00000001/05ff")
         self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["pmbus_raw"], "2056,0,0,0")
 
-        r = requests.get(PREFIX + "/read/thermistor/1/8")
+        r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 306)
 
@@ -925,6 +926,346 @@ class EmulatorCounterTestCase(unittest.TestCase):
                 subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
             except:
                 pass
+
+
+class ByteProtocolTestCase(unittest.TestCase):
+    def test_001_board_id_to_bytes(self):
+        """ Test converting a board_id to bytes.
+        """
+        board_id = 0xf1e2d3c4
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0xf1, 0xe2, 0xd3, 0xc4])
+
+        board_id = 0x1
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x1])
+
+        board_id = 0x00000000
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x00])
+
+        board_id = 0xffffffff
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0xff, 0xff, 0xff, 0xff])
+
+        board_id = 0x123
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x01, 0x23])
+
+    def test_002_board_id_to_bytes(self):
+        """ Test converting a board_id long to bytes.
+        """
+        board_id = long(0x00)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x00])
+
+        board_id = long(0x01)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x01])
+
+        board_id = long(0x12345678)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x12, 0x34, 0x56, 0x78])
+
+        board_id = long(0xffff)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0xff, 0xff])
+
+        board_id = long(0xfabfab)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0xfa, 0xbf, 0xab])
+
+        board_id = long(0x8d231a66)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x8d, 0x23, 0x1a, 0x66])
+
+    def test_003_board_id_to_bytes(self):
+        """ Test converting a board_id string to bytes.
+        """
+        board_id = '{0:08x}'.format(0xf1e2d3c4)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0xf1, 0xe2, 0xd3, 0xc4])
+
+        board_id = '{0:08x}'.format(0xffffffff)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0xff, 0xff, 0xff, 0xff])
+
+        board_id = '{0:08x}'.format(0x00000000)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x00])
+
+        board_id = '{0:08x}'.format(0xbeef)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0xbe, 0xef])
+
+        board_id = '{0:04x}'.format(0x123)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x01, 0x23])
+
+        board_id = '{0:02x}'.format(0x42)
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x42])
+
+    def test_004_board_id_to_bytes(self):
+        """ Test converting a board_id unicode to bytes.
+        """
+        board_id = unicode('{0:08x}'.format(0xf1e2d3c4))
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0xf1, 0xe2, 0xd3, 0xc4])
+
+        board_id = unicode('{0:08x}'.format(0xffffffff))
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0xff, 0xff, 0xff, 0xff])
+
+        board_id = unicode('{0:08x}'.format(0x00000000))
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x00])
+
+        board_id = unicode('{0:08x}'.format(0xbeef))
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0xbe, 0xef])
+
+        board_id = unicode('{0:04x}'.format(0x123))
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x01, 0x23])
+
+        board_id = unicode('{0:02x}'.format(0x42))
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id_bytes, [0x00, 0x00, 0x00, 0x42])
+
+    def test_005_board_id_to_bytes(self):
+        """ Test converting a board_id list to bytes.
+        """
+        board_id = [0x01, 0x02, 0x03, 0x04]
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id, board_id_bytes)
+
+        board_id = [0xff, 0xff, 0xff, 0xff]
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id, board_id_bytes)
+
+        board_id = [0x00, 0x00, 0x00, 0x00]
+        board_id_bytes = devicebus.board_id_to_bytes(board_id)
+        self.assertEqual(board_id, board_id_bytes)
+
+    def test_006_board_id_to_bytes(self):
+        """ Test converting a board_id invalid type to bytes.
+        """
+        board_id = [0x01, 0x02, 0x03]
+        with self.assertRaises(TypeError):
+            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+
+        board_id = (0x01, 0x02, 0x03, 0x04)
+        with self.assertRaises(TypeError):
+            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+
+        board_id = float(0xf)
+        with self.assertRaises(TypeError):
+            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+
+        board_id = {0x01, 0x02, 0x03, 0x04}
+        with self.assertRaises(TypeError):
+            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+
+    def test_007_board_id_join_bytes(self):
+        """ Test converting a list of board_id bytes into its original value.
+        """
+        board_id_bytes = [0x00, 0x00, 0x00, 0x00]
+        board_id = devicebus.board_id_join_bytes(board_id_bytes)
+        self.assertEquals(board_id, 0x00000000)
+
+        board_id_bytes = [0xff, 0xff, 0xff, 0xff]
+        board_id = devicebus.board_id_join_bytes(board_id_bytes)
+        self.assertEquals(board_id, 0xffffffff)
+
+        board_id_bytes = [0x00, 0x00, 0x43, 0x21]
+        board_id = devicebus.board_id_join_bytes(board_id_bytes)
+        self.assertEquals(board_id, 0x4321)
+
+        board_id_bytes = [0x00, 0x00, 0x00, 0x01]
+        board_id = devicebus.board_id_join_bytes(board_id_bytes)
+        self.assertEquals(board_id, 0x1)
+
+        board_id_bytes = [0xa7, 0x2b, 0x11, 0x0e]
+        board_id = devicebus.board_id_join_bytes(board_id_bytes)
+        self.assertEquals(board_id, 0xa72b110e)
+
+        board_id_bytes = [0xbe, 0xef, 0x00, 0x00]
+        board_id = devicebus.board_id_join_bytes(board_id_bytes)
+        self.assertEquals(board_id, 0xbeef0000)
+
+    def test_008_board_id_join_bytes(self):
+        """ Test converting a list of board_id bytes into its original value.
+        """
+        board_id_bytes = []
+        with self.assertRaises(ValueError):
+            devicebus.board_id_join_bytes(board_id_bytes)
+
+        board_id_bytes = [0x12, 0x34, 0x56]
+        with self.assertRaises(ValueError):
+            devicebus.board_id_join_bytes(board_id_bytes)
+
+        board_id_bytes = [0x12, 0x34, 0x56, 0x78, 0x90]
+        with self.assertRaises(ValueError):
+            devicebus.board_id_join_bytes(board_id_bytes)
+
+        board_id_bytes = 0x12345678
+        with self.assertRaises(ValueError):
+            devicebus.board_id_join_bytes(board_id_bytes)
+
+    def test_009_device_id_to_bytes(self):
+        """ Test converting a device_id to bytes.
+        """
+        device_id = 0xf1e2
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xf1, 0xe2])
+
+        device_id = 0x1
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x1])
+
+        device_id = 0x0000
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x00])
+
+        device_id = 0xffff
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xff, 0xff])
+
+        device_id = 0x123
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x01, 0x23])
+
+    def test_010_device_id_to_bytes(self):
+        """ Test converting a device_id to bytes.
+        """
+        device_id = long(0x00)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x00])
+
+        device_id = long(0x0f)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x0f])
+
+        device_id = long(0xffff)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xff, 0xff])
+
+        device_id = long(0xa1b)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x0a, 0x1b])
+
+        device_id = long(0xbeef)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xbe, 0xef])
+
+    def test_011_device_id_to_bytes(self):
+        """ Test converting a device_id to bytes.
+        """
+        device_id = '{0:04x}'.format(0xf1e2)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xf1, 0xe2])
+
+        device_id = '{0:04x}'.format(0x0)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x00])
+
+        device_id = '{0:04x}'.format(0xffff)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xff, 0xff])
+
+        device_id = '{0:04x}'.format(0xabc)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x0a, 0xbc])
+
+        device_id = '{0:02x}'.format(0x12)
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x12])
+
+    def test_012_device_id_to_bytes(self):
+        """ Test converting a device_id to bytes.
+        """
+        device_id = unicode('{0:04x}'.format(0xf1e2))
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xf1, 0xe2])
+
+        device_id = unicode('{0:04x}'.format(0x0))
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x00])
+
+        device_id = unicode('{0:04x}'.format(0xffff))
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0xff, 0xff])
+
+        device_id = unicode('{0:04x}'.format(0xabc))
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x0a, 0xbc])
+
+        device_id = unicode('{0:02x}'.format(0x12))
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id_bytes, [0x00, 0x12])
+
+    def test_013_device_id_to_bytes(self):
+        """ Test converting a device_id to bytes.
+        """
+        device_id = [0x00, 0x00]
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id, device_id_bytes)
+
+        device_id = [0xff, 0xff]
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id, device_id_bytes)
+
+        device_id = [0x12, 0x34]
+        device_id_bytes = devicebus.device_id_to_bytes(device_id)
+        self.assertEqual(device_id, device_id_bytes)
+
+    def test_014_device_id_join_bytes(self):
+        """ Test converting a list of device_id bytes into its original value.
+        """
+        device_id_bytes = [0x00, 0x00]
+        device_id = devicebus.device_id_join_bytes(device_id_bytes)
+        self.assertEquals(device_id, 0x0000)
+
+        device_id_bytes = [0xff, 0xff]
+        device_id = devicebus.device_id_join_bytes(device_id_bytes)
+        self.assertEquals(device_id, 0xffff)
+
+        device_id_bytes = [0x43, 0x21]
+        device_id = devicebus.device_id_join_bytes(device_id_bytes)
+        self.assertEquals(device_id, 0x4321)
+
+        device_id_bytes = [0x00, 0x01]
+        device_id = devicebus.device_id_join_bytes(device_id_bytes)
+        self.assertEquals(device_id, 0x1)
+
+        device_id_bytes = [0xa7, 0x2b]
+        device_id = devicebus.device_id_join_bytes(device_id_bytes)
+        self.assertEquals(device_id, 0xa72b)
+
+        device_id_bytes = [0xef, 0x00]
+        device_id = devicebus.device_id_join_bytes(device_id_bytes)
+        self.assertEquals(device_id, 0xef00)
+
+    def test_015_device_id_join_bytes(self):
+        """ Test converting a list of device_id bytes into its original value.
+        """
+        device_id_bytes = []
+        with self.assertRaises(ValueError):
+            devicebus.device_id_join_bytes(device_id_bytes)
+
+        device_id_bytes = [0x12]
+        with self.assertRaises(ValueError):
+            devicebus.device_id_join_bytes(device_id_bytes)
+
+        device_id_bytes = [0x12, 0x34, 0x56]
+        with self.assertRaises(ValueError):
+            devicebus.device_id_join_bytes(device_id_bytes)
+
+        device_id_bytes = 0x1234
+        with self.assertRaises(ValueError):
+            devicebus.device_id_join_bytes(device_id_bytes)
+
 
 
 unittest.main()
