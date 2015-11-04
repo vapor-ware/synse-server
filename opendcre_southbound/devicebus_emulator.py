@@ -78,10 +78,24 @@ configuration = {}              # where our configuration will live
 # ================================================================================= #
 
 def board_ids_match(config_board, dev_bus_cmd):
+    """ Check that the configuration board id matches the command's board id.
+
+    Convenience method to check that the configuration's board id matches the
+    board id from the devicebus command. this requires a type conversion, since
+    the config's board id is a hex-string and the devicebus command's board id
+    is a hexadecimal value.
+    """
     return int(config_board['board_id'], 16) == dev_bus_cmd.board_id
 
 
 def device_ids_match(config_port, dev_bus_cmd):
+    """ Check that the configuration device id matches the command's device id.
+
+    Convenience method to check that the configuration's device id matches the
+    device id from the devicebus command. this requires a type conversion, since
+    the config's device id is a hex-string and the devicebus command's device id
+    is a hexadecimal value.
+    """
     return int(config_port['device_id'], 16) == dev_bus_cmd.device_id
 
 

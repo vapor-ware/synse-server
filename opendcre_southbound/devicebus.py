@@ -61,7 +61,6 @@ PKT_VALID_HEADER = 0x01
 # valid trailer byte for the packet
 PKT_VALID_TRAILER = 0x04
 
-
 # ============================================================================== #
 #                     Begin DeviceBusPacket Definition                           #
 # ============================================================================== #
@@ -141,14 +140,14 @@ class DeviceBusPacket(object):
         # generate checksum over packet contents
         checksum = self.generateChecksum(self.sequence, self.device_type, board_id_bytes, device_id_bytes, self.data)
         # construct and return packet
-        packet = [0x01, length, self.sequence, self.device_type, board_id_bytes[0], board_id_bytes[1],
+        packet = [PKT_VALID_HEADER, length, self.sequence, self.device_type, board_id_bytes[0], board_id_bytes[1],
                   board_id_bytes[2], board_id_bytes[3], device_id_bytes[0], device_id_bytes[1]]
 
         append = packet.append
         for x in self.data:
             append(x)
         append(checksum)
-        append(0x04)
+        append(PKT_VALID_TRAILER)
         return packet
 
     def deserialize(self, packetBytes):
@@ -233,8 +232,8 @@ class DumpCommand(DeviceBusPacket):
         elif bytes is not None:
             super(DumpCommand, self).__init__(bytes=bytes)
         else:
-            super(DumpCommand, self).__init__(sequence=sequence, device_type=0xFF,
-                            board_id=board_id, device_id=0xFFFF, data=[ord('D')])
+            super(DumpCommand, self).__init__(sequence=sequence, device_type=0xFF, board_id=board_id,
+                                              device_id=0xFFFF, data=[ord('D')])
 
 
 class DumpResponse(DeviceBusPacket):
@@ -260,8 +259,8 @@ class DumpResponse(DeviceBusPacket):
         elif bytes is not None:
             super(DumpResponse, self).__init__(bytes=bytes)
         else:
-            super(DumpResponse, self).__init__(board_id=board_id, sequence=sequence,
-                            device_id=device_id, device_type=device_type, data=data)
+            super(DumpResponse, self).__init__(board_id=board_id, sequence=sequence, device_id=device_id,
+                                               device_type=device_type, data=data)
 
 
 class VersionCommand(DeviceBusPacket):
@@ -284,8 +283,8 @@ class VersionCommand(DeviceBusPacket):
         elif bytes is not None:
             super(VersionCommand, self).__init__(bytes=bytes)
         else:
-            super(VersionCommand, self).__init__(sequence=sequence, device_type=0xFF,
-                            board_id=board_id, device_id=0xFFFF, data=[ord('V')])
+            super(VersionCommand, self).__init__(sequence=sequence, device_type=0xFF, board_id=board_id,
+                                                 device_id=0xFFFF, data=[ord('V')])
 
 
 class VersionResponse(DeviceBusPacket):
@@ -316,8 +315,8 @@ class VersionResponse(DeviceBusPacket):
                 self.versionString += chr(x)
         elif versionString is not None:
             data = [ord(x) for x in versionString]
-            super(VersionResponse, self).__init__(sequence=sequence, device_type=0xFF,
-                        board_id=board_id, device_id=0xFFFF, data=data)
+            super(VersionResponse, self).__init__(sequence=sequence, device_type=0xFF, board_id=board_id,
+                                                  device_id=0xFFFF, data=data)
             self.versionString = versionString
         else:
             raise BusDataException("VersionResponse requires serial_reader, bytes, or a versionString.")
@@ -346,8 +345,8 @@ class DeviceReadCommand(DeviceBusPacket):
         elif bytes is not None:
             super(DeviceReadCommand, self).__init__(bytes=bytes)
         else:
-            super(DeviceReadCommand, self).__init__(sequence=sequence, device_type=device_type,
-                                board_id=board_id, device_id=device_id, data=[ord('R')])
+            super(DeviceReadCommand, self).__init__(sequence=sequence, device_type=device_type, board_id=board_id,
+                                                    device_id=device_id, data=[ord('R')])
 
 
 class DeviceReadResponse(DeviceBusPacket):
@@ -371,9 +370,8 @@ class DeviceReadResponse(DeviceBusPacket):
         if serial_reader is not None:
             super(DeviceReadResponse, self).__init__(serial_reader=serial_reader)
         elif device_reading is not None:
-            super(DeviceReadResponse, self).__init__(sequence=sequence,
-                    device_type=device_type, board_id=board_id,
-                    device_id=device_id, data=device_reading)
+            super(DeviceReadResponse, self).__init__(sequence=sequence, device_type=device_type, board_id=board_id,
+                                                     device_id=device_id, data=device_reading)
         elif bytes is not None:
             super(DeviceReadResponse, self).__init__(bytes=bytes)
         else:
@@ -386,9 +384,8 @@ class PowerControlCommand(DeviceBusPacket):
     'P0' or 'P1', and is used to control the power state of a given board_id,
     port_id, device_id, combination.
     """
-    def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01,
-                 device_type=0xFF, device_id=0xFFFF, power_on=False,
-                 power_off=False, power_cycle=False, power_status=False):
+    def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01, device_type=0xFF,
+                 device_id=0xFFFF, power_on=False, power_off=False, power_cycle=False, power_status=False):
         """
         Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
@@ -421,8 +418,8 @@ class PowerControlCommand(DeviceBusPacket):
                 dataVal.append(ord('?'))
             else:
                 raise BusDataException("Only one power control action may be specified as True.")
-            super(PowerControlCommand, self).__init__(sequence=sequence, device_type=device_type,
-                                board_id=board_id, device_id=device_id, data=dataVal)
+            super(PowerControlCommand, self).__init__(sequence=sequence, device_type=device_type, board_id=board_id,
+                                                      device_id=device_id, data=dataVal)
 
 
 class PowerControlResponse(DeviceBusPacket):
@@ -446,8 +443,8 @@ class PowerControlResponse(DeviceBusPacket):
         if serial_reader is not None:
             super(PowerControlResponse, self).__init__(serial_reader=serial_reader)
         elif data is not None:
-            super(PowerControlResponse, self).__init__(sequence=sequence, device_type=device_type,
-                            board_id=board_id, device_id=device_id, data=data)
+            super(PowerControlResponse, self).__init__(sequence=sequence, device_type=device_type, board_id=board_id,
+                                                       device_id=device_id, data=data)
         elif bytes is not None:
             super(PowerControlResponse, self).__init__(bytes=bytes)
         else:
@@ -461,29 +458,31 @@ class PowerControlResponse(DeviceBusPacket):
 
 
 class BusTimeoutException(Exception):
-    """
-    Exception raised when a command fails to receive
-    a response from the device bus.  This may be for
-    many reasons, which it may be difficult or impossible
-    to pinpoint, so no more specific error is available.
+    """ Exception raised when a command fails to receive a response from the
+    device bus. This may be for many reasons, which it may be difficult or
+    impossible to pinpoint, so no more specific error is available.
     """
     pass
 
 
 class BusDataException(Exception):
-    """
-    Exception raised when something sent over the bus does not look right.
+    """ Exception raised when something sent over the bus does not look right.
     """
     pass
 
 
 def initialize(serial_device, speed=9600, timeout=0.25):
-    """ initialize - get serial connection on given serial port.
+    """ Get serial connection on given serial port.
 
-    Args:  serial_device is the device entry to use in opening/initializing
-    the serial connection.
+    Args:
+        serial_device (str): the device entry to use in opening/initializing
+            the serial connection.
+        speed (int): the baud rate for the serial connection. Default: 9600
+        timeout (float): time (in seconds) for the serial device timeout.
+            Default: 0.25
 
-    Returns:  a pyserial instance to work with.
+    Returns:
+        a pyserial instance to work with.
     """
     ser = serial.Serial(serial_device, speed, timeout=timeout)
     ser.flushInput()
@@ -492,6 +491,22 @@ def initialize(serial_device, speed=9600, timeout=0.25):
 
 
 def board_id_to_bytes(board_id):
+    """ Convert a hexadecimal board_id value into a corresponding list of bytes.
+
+    Given a hex value, will convert the value to a hex string. If the value is
+    not 4 bytes wide, padding will be added to the string to ensure correct size.
+    The string is then split, converted back to a hexadecimal value and the four
+    bytes are returned as a list.
+
+      e.g. 0xAABBCCDD -> [AA, BB, CC, DD]
+           0xFF       -> [00, 00, 00, FF]
+
+    Args:
+        board_id (int): the hexadecimal value representing the id of the board
+
+    Returns:
+        A list, of length 4, comprising the individual bytes of the board id
+    """
     if isinstance(board_id, (int, long)):
         return [int('{0:08x}'.format(board_id)[i:i+2], 16) for i in range(0, 8, 2)]
 
@@ -507,6 +522,18 @@ def board_id_to_bytes(board_id):
 
 
 def board_id_join_bytes(board_id_bytes):
+    """ Convert a list of individual bytes into their corresponding board_id value.
+
+    Given a list of bytes (generated by board_id_to_bytes), joins the bytes into a
+    single value (the original board_id value)
+
+    Args:
+        board_id_bytes (list): a list of bytes (int) of the board id. this list must
+            contain 4 bytes.
+
+    Returns:
+        A board_id value.
+    """
     if not isinstance(board_id_bytes, list) or len(board_id_bytes) != 4:
         raise ValueError('board_id_bytes not of type list / not of length 4')
 
@@ -518,6 +545,22 @@ def board_id_join_bytes(board_id_bytes):
 
 
 def device_id_to_bytes(device_id):
+    """ Convert a hexadecimal device_id value into a corresponding list of bytes.
+
+    Given a hex value, will convert the value to a hex string. If the value is
+    not 4 bytes wide, padding will be added to the string to ensure correct size.
+    The string is then split, converted back to a hexadecimal value and the four
+    bytes are returned as a list.
+
+      e.g. 0xAABB -> [AA, BB]
+           0xFF   -> [00, FF]
+
+    Args:
+        device_id (int): the hexadecimal value representing the id of the device
+
+    Returns:
+        A list, of length 2, comprising the individual bytes of the device id
+    """
     if isinstance(device_id, (int, long)):
         return [int('{0:04x}'.format(device_id)[i:i+2], 16) for i in range(0, 4, 2)]
 
@@ -533,6 +576,18 @@ def device_id_to_bytes(device_id):
 
 
 def device_id_join_bytes(device_id_bytes):
+    """ Convert a list of individual bytes into their corresponding device_id value.
+
+    Given a list of bytes (generated by device_id_to_bytes), joins the bytes into a
+    single value (the original device_id value)
+
+    Args:
+        device_id_bytes (list): a list of bytes (int) of the device id. this list must
+            contain 2 bytes.
+
+    Returns:
+        A device_id value.
+    """
     if not isinstance(device_id_bytes, list) or len(device_id_bytes) != 2:
         raise ValueError('device_id_bytes not of type list / not of length 2')
 

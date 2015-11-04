@@ -52,8 +52,8 @@ logger = logging.getLogger()
 
 
 def __count(start=0x00, step=0x01):
-    """ Generator whose next() method returns consecutive values until it
-        reaches 0xff, then wraps back to 0x00.
+    """ Generator whose next() method returns consecutive values until it reaches
+    0xff, then wraps back to 0x00.
     """
     n = start
     while True:
@@ -66,14 +66,24 @@ _count = __count(start=0x01, step=0x01)
 
 
 def board_id_to_hex_string(hex_value):
+    """ Convenience method to convert a hexadecimal board_id value into its hex
+    string representation, without the '0x' prefix, and with left-padding added
+    if needed (for a 4 byte width)
+    """
     return '{0:08x}'.format(hex_value)
 
 
 def device_id_to_hex_string(hex_value):
+    """ Convenience method to convert a hexadecimal device_id value into its hex
+    string representation, without the '0x' prefix, and with left- padding added
+    if needed (for a 2 byte width)
+    """
     return '{0:04x}'.format(hex_value)
 
 
 def opendcre_scan(bus):
+    """ Query all boards and provide the active devices on each board
+    """
     response_dict = {'boards': []}
 
     try:
