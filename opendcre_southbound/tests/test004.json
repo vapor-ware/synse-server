@@ -1,12 +1,11 @@
 {
   "boards": [
     {
-      "board_id": 1,
+      "board_id": "00000001",
       "firmware_version" : "Version Response 1",
       "ports" : [
         {
-          "port_index": 1,
-          "device_id": 255,
+          "device_id": "01ff",
           "device_type": "thermistor",
           "read":
             {
@@ -15,8 +14,7 @@
             }
         },
         {
-          "port_index": 12,
-          "device_id": 255,
+          "device_id": "0cff",
           "device_type": "thermistor",
           "read":
             {

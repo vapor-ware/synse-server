@@ -24,7 +24,7 @@ To build a custom distribution of OpenDCRE (for example, to include site-specifi
 
 In the simplest case, from the opendcre directory:
 
-```docker build -ti opendcre .```
+```docker build -t opendcre .```
 
 #Running and Testing OpenDCRE
 
@@ -40,7 +40,7 @@ OpenDCRE expects a volume to be exposed for logs (/logs).  Additionally, OpenDCR
 
 <b>To run the OpenDCRE test suite:</b>
 
-```docker run -ti -v /var/log/opendcre:/logs opendcre ./opendcre_southbound/bus-test.py```
+```docker run -v /var/log/opendcre:/logs opendcre ./opendcre_southbound/bus-test.py```
 
 #License
 

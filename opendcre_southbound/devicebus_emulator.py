@@ -72,9 +72,40 @@ configuration = {}              # where our configuration will live
     Enjoy.
 """
 
+
+# ================================================================================= #
+#                         Emulator Convenience Methods                              #
+# ================================================================================= #
+
+def board_ids_match(config_board, dev_bus_cmd):
+    """ Check that the configuration board id matches the command's board id.
+
+    Convenience method to check that the configuration's board id matches the
+    board id from the devicebus command. this requires a type conversion, since
+    the config's board id is a hex-string and the devicebus command's board id
+    is a hexadecimal value.
+    """
+    return int(config_board['board_id'], 16) == dev_bus_cmd.board_id
+
+
+def device_ids_match(config_port, dev_bus_cmd):
+    """ Check that the configuration device id matches the command's device id.
+
+    Convenience method to check that the configuration's device id matches the
+    device id from the devicebus command. this requires a type conversion, since
+    the config's device id is a hex-string and the devicebus command's device id
+    is a hexadecimal value.
+    """
+    return int(config_port['device_id'], 16) == dev_bus_cmd.device_id
+
+
+# ================================================================================= #
+#                                 Emulator Main                                     #
+# ================================================================================= #
+
+
 def main(emulatorDevice):
     emulator = devicebus.initialize(emulatorDevice, timeout=None)
-    read_i = 0
 
     while not TERMINATE:
         # retrieve packet from client
@@ -90,9 +121,9 @@ def main(emulatorDevice):
             # the board_id does not exist, send nothing; if board_id is 0xFF
             # return all boards unless we are emulating early firmware not
             # supporting scan-all-boards, where we instead return nothing
-            if sc.board_id != 0xFF:         # TODO: support scan all (not in fw yet)
+            if (sc.board_id >> 24) != 0xFF:
                 for board in configuration["boards"]:
-                    if board["board_id"] == sc.board_id:
+                    if board_ids_match(board, sc):
                         if "raw_data" in board:
                             emulator.write(board["raw_data"])
                             emulator.flush()
@@ -100,7 +131,6 @@ def main(emulatorDevice):
                             for port in board["ports"]:
                                 srp = devicebus.DumpResponse(
                                     board_id=board["board_id"],
-                                    port_id=port["port_index"],
                                     device_id=port["device_id"],
                                     device_type=devicebus.get_device_type_code(port["device_type"]),
                                     data=[devicebus.get_device_type_code(port["device_type"])]
@@ -110,8 +140,20 @@ def main(emulatorDevice):
                                 emulator.flush()
                             # we have sent everything from this board
             else:
-                # todo - return all boards (scan all) - not supported in FW
-                pass
+                for board in configuration["boards"]:
+                    if "raw_data" in board:
+                        emulator.write(board["raw_data"])
+                        emulator.flush()
+                    else:
+                        for port in board["ports"]:
+                            srp = devicebus.DumpResponse(
+                                board_id=board["board_id"],
+                                device_id=port["device_id"],
+                                device_type=devicebus.get_device_type_code(port["device_type"]),
+                                data=[devicebus.get_device_type_code(port["device_type"])]
+                            )
+                            emulator.write(srp.serialize())
+                            emulator.flush()
             # if we get here, nothing to send
             pass
 
@@ -120,7 +162,7 @@ def main(emulatorDevice):
             # TODO: support a collection of versions in the schema?  maybe.
             vc = devicebus.VersionCommand(bytes=packet.serialize())
             for board in configuration["boards"]:
-                if board["board_id"] == vc.board_id:
+                if board_ids_match(board, vc):
                     if isinstance(board["firmware_version"], list):
                         # sending raw bytes
                         emulator.write(board["firmware_version"])
@@ -137,9 +179,9 @@ def main(emulatorDevice):
             # ======================> READ <======================
             rc = devicebus.DeviceReadCommand(bytes=packet.serialize())
             for board in configuration["boards"]:
-                if board["board_id"] == rc.board_id:
+                if board_ids_match(board, rc):
                     for port in board["ports"]:
-                        if (port["port_index"] == rc.port_id) and (port["device_type"] == devicebus.get_device_type_name(rc.device_type)):
+                        if device_ids_match(port, rc) and (port["device_type"] == devicebus.get_device_type_name(rc.device_type)):
                             # now we can craft a response
                             responses_length = len(port["read"]["responses"])
                             # get the responses counter
@@ -147,7 +189,7 @@ def main(emulatorDevice):
                             if responses_length > 0 and _count < responses_length:
                                 if isinstance(port["read"]["responses"][_count], list):
                                     # we are sending raw bytes
-                                    emulator.write(port["read"]["responses"][read_i])
+                                    emulator.write(port["read"]["responses"][_count])
                                     emulator.flush()
                                 elif port["read"]["responses"][_count] is not None:
                                     # we are sending back a device reading
@@ -175,9 +217,9 @@ def main(emulatorDevice):
             # should design the config tests to match the anticipated sequence
             # of commands/requests
             for board in configuration["boards"]:
-                if board["board_id"] == pc.board_id:
+                if board_ids_match(board, pc):
                     for port in board["ports"]:
-                        if (port["port_index"] == pc.port_id) and (port["device_type"] == devicebus.get_device_type_name(pc.device_type)):
+                        if device_ids_match(port, pc) and (port["device_type"] == devicebus.get_device_type_name(pc.device_type)):
                             responses_length = len(port["power"]["responses"])
                             # get the responses counter
                             _count = port["power"]["_count"] if "_count" in port["power"] else 0

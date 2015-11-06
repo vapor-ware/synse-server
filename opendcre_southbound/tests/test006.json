@@ -1,12 +1,11 @@
 {
   "boards": [
     {
-      "board_id": 1,
-      "firmware_version" : "Vapor CORE Emulator v0.5.1",
+      "board_id": "00000001",
+      "firmware_version" : "OpenDCRE Emulator v1.1.0",
       "ports" : [
         {
-          "port_index": 1,
-          "device_id": 255,
+          "device_id": "01ff",
           "device_type": "thermistor",
           "read":
             {
@@ -37,8 +36,7 @@
             }
         },
         {
-          "port_index": 2,
-          "device_id": 255,
+          "device_id": "02ff",
           "device_type": "none",
           "read":
             {
@@ -47,8 +45,7 @@
             }
         },
         {
-          "port_index": 3,
-          "device_id": 255,
+          "device_id": "03ff",
           "device_type": "thermistor",
           "read":
             {
@@ -79,8 +76,7 @@
             }
         },
         {
-          "port_index": 4,
-          "device_id": 255,
+          "device_id": "04ff",
           "device_type": "none",
           "read":
             {
@@ -89,8 +85,7 @@
             }
         },
         {
-          "port_index": 5,
-          "device_id": 255,
+          "device_id": "05ff",
           "device_type": "power",
           "power":
             {
@@ -99,8 +94,7 @@
             }
         },
         {
-          "port_index": 6,
-          "device_id": 255,
+          "device_id": "06ff",
           "device_type": "power",
           "power":
             {
@@ -109,8 +103,7 @@
             }
         },
         {
-          "port_index": 7,
-          "device_id": 255,
+          "device_id": "07ff",
           "device_type": "power",
           "power":
             {
@@ -119,8 +112,7 @@
             }
         },
         {
-          "port_index": 8,
-          "device_id": 255,
+          "device_id": "08ff",
           "device_type": "thermistor",
           "read":
             {
@@ -151,8 +143,7 @@
             }
         },
         {
-          "port_index": 9,
-          "device_id": 255,
+          "device_id": "09ff",
           "device_type": "thermistor",
           "read":
             {
@@ -183,8 +174,7 @@
             }
         },
         {
-          "port_index": 10,
-          "device_id": 255,
+          "device_id": "0aff",
           "device_type": "thermistor",
           "read":
             {
@@ -215,8 +205,7 @@
             }
         },
         {
-          "port_index": 11,
-          "device_id": 255,
+          "device_id": "0bff",
           "device_type": "none",
           "read":
             {
@@ -225,9 +214,8 @@
             }
         },
         {
-          "port_index": 12,
-          "device_id": 255,
-          "device_type": "humidity",
+          "device_id": "0cff",
+          "device_type": "thermistor",
           "read":
             {
               "repeatable": true,
@@ -242,12 +230,11 @@
       ]
     },
     {
-      "board_id": 3,
-      "firmware_version" : "Vapor CORE Emulator v0.5.1",
+      "board_id": "00000003",
+      "firmware_version" : "OpenDCRE Emulator v1.1.0",
       "ports" : [
         {
-        "port_index": 1,
-        "device_id": 255,
+        "device_id": "01ff",
         "device_type": "none",
         "read":
           {
@@ -256,8 +243,7 @@
           }
         },
         {
-        "port_index": 2,
-        "device_id": 255,
+        "device_id": "02ff",
         "device_type": "thermistor",
         "read":
           {
@@ -288,8 +274,7 @@
           }
         },
         {
-        "port_index": 3,
-        "device_id": 255,
+        "device_id": "03ff",
         "device_type": "none",
         "read":
           {
@@ -298,8 +283,7 @@
           }
         },
         {
-        "port_index": 4,
-        "device_id": 255,
+        "device_id": "04ff",
         "device_type": "thermistor",
         "read":
           {
@@ -330,8 +314,7 @@
           }
         },
         {
-        "port_index": 5,
-        "device_id": 255,
+        "device_id": "05ff",
         "device_type": "none",
         "read":
           {
@@ -340,8 +323,7 @@
           }
         },
         {
-        "port_index": 6,
-        "device_id": 255,
+        "device_id": "06ff",
         "device_type": "none",
         "read":
           {
@@ -350,8 +332,7 @@
           }
         },
         {
-        "port_index": 7,
-        "device_id": 255,
+        "device_id": "07ff",
         "device_type": "none",
         "read":
           {
@@ -360,8 +341,7 @@
           }
         },
         {
-        "port_index": 8,
-        "device_id": 255,
+        "device_id": "08ff",
         "device_type": "none",
         "read":
           {
