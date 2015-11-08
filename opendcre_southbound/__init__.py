@@ -92,7 +92,7 @@ def is_ipmi_board(board_num):
     which case, different processing is to occur.  Returns True if the board
     is an IPMI board, False otherwise.
     """
-    if (board_num >> 30) & 0x01:
+    if board_num == IPMI_BOARD_ID:
         return True
     return False
 
