@@ -9,6 +9,7 @@
                         from stomping all over the bus.
             7/20/2015 - add node information
             7/28/2015 - convert to python package
+            11/6/2015 - add IPMI module support and configuration (v1.1.0)
 
         \\//
          \/apor IO
@@ -32,6 +33,7 @@
 """
 import sys
 import logging
+import json
 
 from flask import Flask
 from flask import jsonify
@@ -40,12 +42,17 @@ from lockfile import LockFile  # for sync on the serial bus
 
 from version import __version__  # full opendcre version
 from version import __api_version__  # major.minor API version
+
 import devicebus
+import vapor_ipmi
 
 PREFIX = "/opendcre/"  # URL prefix for REST access
 SERIAL_DEFAULT = "/dev/ttyAMA0"  # default serial device to use for bus
 DEBUG = False  # set to False to disable extra logging
 LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
+
+IPMIFILE = "bmc_config.json"  # BMC settings for IPMI module
+IPMI_BOARD_ID = 0x40000000    # set bit 6 of upper byte of board_id to 1=IPMI
 
 app = Flask(__name__)
 logger = logging.getLogger()
@@ -80,6 +87,68 @@ def device_id_to_hex_string(hex_value):
     """
     return '{0:04x}'.format(hex_value)
 
+def is_ipmi_board(board_num):
+    """ Convenience method to determine if a board_num is an IPMI board, in
+    which case, different processing is to occur.  Returns True if the board
+    is an IPMI board, False otherwise.
+    """
+    if (board_num >> 30) & 0x01:
+        return True
+    return False
+
+def is_ipmi_device(device_id):
+    """ Convenience method to determine if a device_id is valid BMC or not.
+    Returns True if the device_id maps to a BMC, False otherwise.
+    """
+    for bmc in app.config['bmcs']['bmcs']:
+        if bmc['bmc_device_id'] == device_id:
+            return True
+    return False
+
+def ipmi_get_bmc_info(boardNum, deviceNum):
+    """ Convenience method to get BMC information for a given board and device
+    number. If the BMC does not exist, None is returned, otherwise the BMC
+    record is returned.
+    """
+    if is_ipmi_board(boardNum) and is_ipmi_device(deviceNum):
+        for bmc in app.config['bmcs']['bmcs']:
+            if bmc['bmc_device_id'] == deviceNum:
+                return bmc
+    return None
+
+def ipmi_get_auth_type(auth_string):
+    """ Converts the 'auth_type' field string value to the numeric value used
+    by IPMI and vapor_ipmi.  If auth_type is "NONE", or unable to be determined,
+    AUTH_NONE is returned.
+    """
+    if auth_string == 'MD5':
+        return vapor_ipmi.AUTH_MD5
+    elif auth_string == 'MD2':
+        return vapor_ipmi.AUTH_MD2
+    elif auth_string == 'PASSWORD':
+        return vapor_ipmi.AUTH_PASSWORD
+    else:
+        return vapor_ipmi.AUTH_NONE
+
+def ipmi_scan():
+    """ Return a "board" result based on the BMC configuration loaded at app
+    initialization. If no BMCs are configured, an empty set of devices is
+    returned, otherwise a device entry is returned for each BMC configured.
+    """
+    response_dict = {
+        'board_id': board_id_to_hex_string(IPMI_BOARD_ID),
+        'devices': [ ]
+    }
+
+    for bmc in app.config['bmcs']['bmcs']:
+        response_dict['devices'].append(
+            {
+                'device_id': device_id_to_hex_string(bmc['bmc_device_id']),
+                'device_type': 'power'
+            }
+        )
+
+    return response_dict
 
 def opendcre_scan(bus):
     """ Query all boards and provide the active devices on each board
@@ -94,7 +163,7 @@ def opendcre_scan(bus):
         response_dict['boards'].append(
             {
                 'board_id': board_id_to_hex_string(dr.board_id),
-                'ports': [
+                'devices': [
                     {
                         'device_id': device_id_to_hex_string(dr.device_id),
                         'device_type': devicebus.get_device_type_name(dr.data[0])
@@ -115,7 +184,7 @@ def opendcre_scan(bus):
             for board in response_dict['boards']:
                 if int(board['board_id'], 16) == dr.board_id:
                     board_exists = True
-                    board['ports'].append(
+                    board['devices'].append(
                         {
                             'device_id': device_id_to_hex_string(dr.device_id),
                             'device_type': devicebus.get_device_type_name(dr.data[0])
@@ -127,13 +196,14 @@ def opendcre_scan(bus):
                 response_dict['boards'].append(
                     {
                         'board_id': board_id_to_hex_string(dr.board_id),
-                        'ports': [{
+                        'devices': [{
                             'device_id': device_id_to_hex_string(dr.device_id),
                             'device_type': devicebus.get_device_type_name(dr.data[0])
                         }]
                     }
                 )
             logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+
     return response_dict
 
 
@@ -161,10 +231,14 @@ def get_board_version(boardNum):
     except ValueError:
         abort(500)
 
-    # TODO: this is a very aggressive locking strategy.  we could release
-    #       the lockfile once we've gotten our response back, prior to
-    #       returning results.  this could be tidied up.
     with LockFile(LOCKFILE):
+        # first check if IPMI
+        if is_ipmi_board(boardNum):
+            return jsonify({'firmware_version': 'OpenDCRE IPMI Bridge ' + __version__,
+                            'opendcre_version': __version__,
+                            'api_version': __api_version__})
+
+        # otherwise, hit the bus
         bus = devicebus.initialize(app.config["SERIAL"])
         vc = devicebus.VersionCommand(board_id=boardNum, sequence=next(_count))
         bus.write(vc.serialize())
@@ -191,18 +265,21 @@ def scan_all():
         bus.write(dc.serialize())
 
         response_dict = opendcre_scan(bus)
+
+        # now scan IPMI based on configuration
+        response_dict['boards'].append(ipmi_scan())
         return jsonify(response_dict)
 
 
 @app.route(PREFIX + __api_version__ + "/scan/<string:boardNum>", methods=['GET'])
-def get_board_ports(boardNum):
+def get_board_devices(boardNum):
     """ Query a specific board, given the board id, and provide the
         active devices on that board.
 
     Args:  boardNum is the board number to dump.  If 0xFF then scan
             all boards on the bus.
 
-    Returns:  Active device ports, numbers and types from the given board(s).
+    Returns:  Active devices, numbers and types from the given board(s).
 
     Raises:   Returns a 500 error if the scan command fails.
 
@@ -213,6 +290,9 @@ def get_board_ports(boardNum):
         abort(500)
 
     with LockFile(LOCKFILE):
+        if is_ipmi_board(boardNum):
+            return jsonify({'boards':[ ipmi_scan() ]})
+
         bus = devicebus.initialize(app.config["SERIAL"])
         dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
         bus.write(dc.serialize())
@@ -230,6 +310,9 @@ def read_device(deviceType, boardNum, deviceNum):
     and is used to interpret the raw device reading.  The boardNum specifies
     which Pi hat to get the reading from, while the portNum specifies which port
     of the Pi hat should be polled for device reading.
+
+    We could filter on the upper ID of boardNum in case an unusual board number
+    is provided; however, the bus should simply time out in these cases.
 
     Returns:  Interpreted and raw device reading, based on the specified device
               type.
@@ -299,8 +382,7 @@ def write_device(deviceType, boardNum, deviceNum):
     Raises:   Returns a 500 error if the write command fails.
 
     """
-    # not currently implemented.  we may need for the demo, but until then,
-    # left undone
+    # not currently implemented.
     abort(501)
 
 
@@ -324,6 +406,58 @@ def power_control(powerAction, boardNum, deviceNum):
         abort(500)
 
     with LockFile(LOCKFILE):
+        # first see if we are IPMI, and handle right here if so
+        if is_ipmi_board(boardNum) and is_ipmi_device(deviceNum):
+            bmc_info = ipmi_get_bmc_info(boardNum, deviceNum)
+            if powerAction.lower() == "status" or powerAction.lower() == "on" or powerAction.lower() == "off":
+                try:
+                    status = vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        ipmi_get_auth_type(bmc_info['auth_type']),
+                        bmc_info['bmc_ip'], powerAction.lower())
+
+                    # now, convert raw reading into subfields
+                    status_converted = {
+                        "pmbus_raw": 0,
+                        "power_status": status['power_status'],
+                        "power_ok": status['power_ok'],
+                        "over_current": False,
+                        "under_voltage": False,
+                        "input_power": 0,
+                        "input_voltage": 0,
+                        "output_current": 0
+                    }
+
+                    return jsonify(status_converted)
+                except:
+                    abort(500)  # there is nothing we can do to recover here
+            elif powerAction.lower() == "cycle":
+                try:
+                    vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        ipmi_get_auth_type(bmc_info['auth_type']),
+                        bmc_info['bmc_ip'], "off")
+                    status = vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        ipmi_get_auth_type(bmc_info['auth_type']),
+                        bmc_info['bmc_ip'], "on")
+
+                    # now, convert raw reading into subfields
+                    status_converted = {
+                        "pmbus_raw": 0,
+                        "power_status": status['power_status'],
+                        "power_ok": status['power_ok'],
+                        "over_current": False,
+                        "under_voltage": False,
+                        "input_power": 0,
+                        "input_voltage": 0,
+                        "output_current": 0
+                    }
+
+                    return jsonify(status_converted)
+                except:
+                    abort(500)  # there is nothing we can do here to recover
+            else:
+                abort(500)  # poweraction is invalid
+
+        # otherwise use the bus for power control
         bus = devicebus.initialize(app.config["SERIAL"])
         if powerAction.lower() == "status":
             pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
@@ -406,10 +540,32 @@ def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
     app.debug = True
     if DEBUG is True:
         logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter("%(message)s")
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(message)s")
+        ch.setFormatter(formatter)
         logger.addHandler(ch)
+
+    # read IPMI configuration in at startup
+    try:
+        ipmifile = open(IPMIFILE, "r")
+        app.config['bmcs'] = json.loads(ipmifile.read())
+        # validate schema of each BMC:
+        for bmc in app.config['bmcs']['bmcs']:
+            for key in ['bmc_device_id', 'bmc_ip', 'username', 'password', 'auth_type']:
+                if key not in bmc:
+                    raise Exception('Key ' + key + ' missing from BMC configuration.')
+    except IOError as e:
+        # in this case, there is no config file, or error opening
+        # in which case, we log error and cache no bmcs
+        logger.debug(" * FLASK (scan) : Error opening BMC Config File : " + str(e))
+        app.config['bmcs'] = { 'bmcs': [ ] }
+    except Exception as e:
+        # once again, we do not want to completely kill the endpoint,
+        # so we log the exception and cache no bmcs
+        logger.debug(" * FLASK (scan) : Error reading BMC Config File : " + str(e))
+        app.config['bmcs'] = { 'bmcs': [ ] }
+
     if __name__ == '__main__':
         app.run(host="0.0.0.0")
 

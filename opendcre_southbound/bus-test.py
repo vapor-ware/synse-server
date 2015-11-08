@@ -32,12 +32,16 @@ import time
 import json
 import random
 import devicebus
+import shutil
+
+import vapor_ipmi
 
 import requests
 
 from version import __api_version__
 
 PREFIX = "http://127.0.0.1:5000/opendcre/" + __api_version__
+IPMIBOARD = '40000000'
 EMULATORTTY = "/dev/ttyVapor001"
 ENDPOINTTTY = "/dev/ttyVapor002"
 EMULATOR_ENABLE = True
@@ -91,20 +95,20 @@ class ScanTestCase(unittest.TestCase):
         r = requests.get(PREFIX + "/scan/000000c8")
         self.assertEqual(r.status_code, 500)
 
-    def test_004_no_ports(self):
+    def test_004_no_devices(self):
         """
-            Test for one board no ports.
+            Test for one board with no devices.
         """
         r = requests.get(PREFIX + "/scan/00000002")
         self.assertEqual(r.status_code, 500)  # should this really be so?
 
-    def test_005_many_ports(self):
+    def devices(self):
         """
-            Test for one board many ports.
+            Test for one board with many devices.
         """
         r = requests.get(PREFIX + "/scan/00000003")
         response = json.loads(r.text)
-        self.assertEqual(len(response["boards"][0]["ports"]), 25)
+        self.assertEqual(len(response["boards"][0]["devices"]), 25)
 
     def test_006_many_requests(self):
         """
@@ -159,7 +163,7 @@ class ScanTestCase(unittest.TestCase):
             job of cleaning up.
         """
         if EMULATOR_ENABLE:
-            print " * SB-TEST: Cleaning up!"
+
             try:
                 os.killpg(self.p.pid, signal.SIGTERM)
             except:
@@ -282,7 +286,7 @@ class VersionTestCase(unittest.TestCase):
             job of cleaning up.
         """
         if EMULATOR_ENABLE:
-            print " * SB-TEST: Cleaning up!"
+
             try:
                 os.killpg(self.p.pid, signal.SIGTERM)
             except:
@@ -405,7 +409,7 @@ class DeviceReadTestCase(unittest.TestCase):
             job of cleaning up.
         """
         if EMULATOR_ENABLE:
-            print " * SB-TEST: Cleaning up!"
+
             try:
                 os.killpg(self.p.pid, signal.SIGTERM)
             except:
@@ -475,7 +479,7 @@ class EnduranceTestCase(unittest.TestCase):
             job of cleaning up.
         """
         if EMULATOR_ENABLE:
-            print " * SB-TEST: Cleaning up!"
+
             try:
                 os.killpg(self.p.pid, signal.SIGTERM)
             except:
@@ -634,7 +638,7 @@ class PowerTestCase(unittest.TestCase):
             job of cleaning up.
         """
         if EMULATOR_ENABLE:
-            print " * SB-TEST: Cleaning up!"
+
             try:
                 os.killpg(self.p.pid, signal.SIGTERM)
             except:
@@ -698,7 +702,7 @@ class EmulatorCounterTestCase(unittest.TestCase):
 
     def test_002_read_same_board_diff_port(self):
         """
-            Test reading thermistor devices on the same board but different ports,
+            Test reading thermistor devices on the same board but different ids,
             where both devices have the same length of responses and repeatable=true.
             One device being tested does not start at the first response since
             previous tests have incremented its counter.
@@ -909,7 +913,7 @@ class EmulatorCounterTestCase(unittest.TestCase):
             job of cleaning up.
         """
         if EMULATOR_ENABLE:
-            print " * SB-TEST: Cleaning up!"
+
             try:
                 os.killpg(self.p.pid, signal.SIGTERM)
             except:
@@ -1266,6 +1270,1656 @@ class ByteProtocolTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             devicebus.device_id_join_bytes(device_id_bytes)
 
+################################################################################
+#                                                                              #
+#                           I P M I  T E S T S                                 #
+#                                                                              #
+################################################################################
 
+################################################################################
+class BMCValidConfigTestCase01(unittest.TestCase):
+    """
+        Given valid BMC and vBMC configurations, ensure correct responses
+        received.  In this case, power control should complete and return
+        a status value.  Assumes valid power control as well.  Scan also
+        tested.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that all of the entries are there - by doing a scan.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that all of the entries are there - by doing a scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns a status.
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(response['power_ok'], True)
+
+    def test_005_power_control_loop(self):
+        """
+            Ensure that power control returns a status.
+        """
+        for i in range(0, 5):
+            r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+            response = json.loads(r.text)
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(response['power_ok'], True)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCValidConfigTestCase02(unittest.TestCase):
+    """
+        Given valid configuration, repeat status checking quite a bit.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc016.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_status_loop(self):
+        """
+            Ensure that power control returns a status.
+        """
+        for i in range(0, 500):
+            r = requests.get(PREFIX + '/power/status/' + IPMIBOARD + "/1")
+            response = json.loads(r.text)
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(response['power_ok'], True)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCInValidConfigTestCase01(unittest.TestCase):
+    """
+        Given invalid BMC configuration, ensure that the IPMI board shows up,
+        but does not have any devices.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc008.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as the config was invalid.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 0)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as config was invalid -
+            via scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 0)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCInValidConfigTestCase02(unittest.TestCase):
+    """
+        Given invalid BMC configuration, ensure that the IPMI board shows up,
+        but does not have any devices.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc009.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as the config was invalid.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 0)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as config was invalid -
+            via scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 0)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCInValidConfigTestCase03(unittest.TestCase):
+    """
+        Given invalid BMC configuration, ensure that the IPMI board shows up,
+        but does not have any devices.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc010.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as the config was invalid.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 0)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as config was invalid -
+            via scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 0)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCInValidConfigTestCase04(unittest.TestCase):
+    """
+        Given invalid BMC configuration, which has extra field, we are able to
+        move on without failure, so we should see 1 device returned.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc011.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that one IPMI device is present, as the config was invalid, but
+            not so much so to prevent initialization (extra field ignored).
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 1)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that one IPMI device is present, as the config was invalid, but
+            not so much so to prevent initialization (extra field ignored) -
+            via scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 1)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCInValidConfigTestCase05(unittest.TestCase):
+    """
+        Given invalid BMC configuration, ensure that the IPMI board shows up,
+        but does not have any devices.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc012.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as the config was invalid.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 0)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as config was invalid -
+            via scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 0)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class BMCInValidConfigTestCase06(unittest.TestCase):
+    """
+        In this case, there is no BMC config file provided; ensure that the
+        endpoint comes up, with no BMC devices present.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc012.json'
+            shutil.move('/opendcre/bmc_config.json', '/opendcre/bmc_config.removed')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as the config was invalid.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 0)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that no IPMI devices are present, as config was invalid -
+            via scan all.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 0)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCNoCloseTestCase(unittest.TestCase):
+    """
+        A power control command sequence is sent to the vBMC, which does
+        everything ok, except does not send a response to the close command.
+        In which case, we expect a 500 error back, as IPMI is not behaving
+        reliably.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc008.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 500 as the session will not be closed.
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 500)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCChassisErrorReturnTestCase(unittest.TestCase):
+    """
+        A power control command sequence is sent to the vBMC, which returns an
+        error.
+        In which case, we expect a 500 error back, as IPMI is not behaving
+        reliably.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc009.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 500 as the session will not be closed.
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 500)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+
+################################################################################
+class VBMCChannelAuthCapErrorTestCase(unittest.TestCase):
+    """
+        A connection command sequence is sent to the vBMC, which returns an
+        error to the Get Channel Authentication Capabilities command.
+        In which case, we expect a 500 error back, as IPMI is not behaving
+        reliably.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc010.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 500 as we are unable to continue.
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 500)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCCloseErrorTestCase(unittest.TestCase):
+    """
+        A power control command sequence is sent to the vBMC, which does
+        everything ok, except does gets error as response to the close command.
+        In which case, we expect a 500 error back, as IPMI is not behaving
+        reliably.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc008.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 500 as close session returns error
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 500)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCJunkDataTestCase(unittest.TestCase):
+    """
+        A power control command sequence is sent to the vBMC, which does
+        everything ok, except does gets junk as response to the close command.
+        We are able to survive this event, though it is concerning if it
+        occurs in reality.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc012.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 200 despite close session
+            returning junk data.
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCInvalidSessionTestCase(unittest.TestCase):
+    """
+        A connection command sequence is sent to the vBMC, which does
+        everything ok, except gets junk as session id from activate session
+        command.
+        In this case, we are able to survive despite IPMI not behaving
+        reliably; with a real BMC, using wrong session ID will result in an
+        error code, tested elsewhere.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc013.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 200 - we receive a weird session id
+            but are able to continue - at least with the emulator.
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 200)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCNotEnoughDataTestCase(unittest.TestCase):
+    """
+        A power control command sequence is sent to the vBMC, which does
+        everything ok, except does gets not enough data as response to chassis
+        command.
+        In which case, we expect a 500 error back, as IPMI is not behaving
+        reliably.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc015.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 500 as close session returns error
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 500)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
+
+################################################################################
+class VBMCTooMuchDataTestCase(unittest.TestCase):
+    """
+        A power control command sequence is sent to the vBMC, which does
+        everything ok, except returns too much data to chassis command.
+        In which case, we expect a 500 error back, as IPMI is not behaving
+        reliably.
+
+        No auth used in this test case.
+    """
+    @classmethod
+    def setUpClass(self):
+        """
+            Set up the emulator and endpoint, which run as separate processes.
+            These processes communicate via a virtual serial port.  We sleep
+            for a second to give time for flask to initialize before running
+            the test.
+        """
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            self.vBMCConfig = './opendcre_southbound/tests/vbmc014.json'
+            self.bmcConfig = './opendcre_southbound/tests/bmc007.json'
+            shutil.copy(self.bmcConfig, '/opendcre/bmc_config.json')
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p4 = subprocess.Popen(['./opendcre_southbound/virtualbmc.py', self.vBMCConfig], preexec_fn=os.setsid)
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # wait for flask to be ready
+
+    def test_001_scan(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of BMC devices are present.
+
+        """
+        r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(len(response['boards']), 1)
+        self.assertEqual(len(response['boards'][0]['devices']), 4)
+
+    def test_002_scan_all(self):
+        """
+            Ensure that the configuration file was picked up by the endpoint,
+            and that the correct number of devices show up.
+
+        """
+        r = requests.get(PREFIX + '/scan')
+        response = json.loads(r.text)
+        # there are 6 'boards' in emulator config, but only 3 are valid (the
+        # invalid ones do not have any devices, so are ignored by scan)
+        self.assertEqual(len(response['boards']), 4)
+        hasIpmiBoard = False
+        for board in response['boards']:
+            if board['board_id'] == IPMIBOARD:
+                self.assertEqual(len(board['devices']), 4)
+                hasIpmiBoard = True
+        self.assertTrue(hasIpmiBoard)
+
+    def test_003_version(self):
+        """
+            Ensure that the IPMI module is returning for version.
+
+        """
+        r = requests.get(PREFIX + '/version/' + IPMIBOARD)
+        response = json.loads(r.text)
+        self.assertEqual(r.status_code, 200)
+
+    def test_004_power_control(self):
+        """
+            Ensure that power control returns 500 as close session returns error
+        """
+        r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
+        self.assertEqual(r.status_code, 500)
+
+    @classmethod
+    def tearDownClass(self):
+        """
+            Kill the flask and api endpoint processes upon completion.  If the
+            test fails or crashes, this currently does not do an elegant enough
+            job of cleaning up.
+        """
+        if EMULATOR_ENABLE:
+
+            try:
+                os.killpg(self.p.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p2.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p3.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                os.killpg(self.p4.pid, signal.SIGTERM)
+            except:
+                pass
+            try:
+                subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
+            except:
+                pass
 
 unittest.main()

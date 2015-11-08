@@ -3,7 +3,7 @@
     {
       "board_id": "00000001",
       "firmware_version" : "Version Response 1",
-      "ports" : [
+      "devices" : [
         {
           "device_id": "01ff",
           "device_type": "thermistor",

@@ -3,7 +3,7 @@
     {
       "board_id": "00000001",
       "firmware_version" : "OpenDCRE Emulator v1.1.0",
-      "ports" : [
+      "devices" : [
         {
           "device_id": "01ff",
           "device_type": "thermistor",
@@ -227,12 +227,12 @@
     {
       "board_id": "00000002",
       "firmware_version" : "OpenDCRE Emulator v1.1.0",
-      "ports" : []
+      "devices" : []
     },
     {
       "board_id": "00000003",
       "firmware_version" : "OpenDCRE Emulator v1.1.0",
-      "ports" : [
+      "devices" : [
         {
         "device_id": "01ff",
         "device_type": "none",
