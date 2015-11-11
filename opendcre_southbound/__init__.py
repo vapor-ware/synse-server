@@ -61,6 +61,13 @@ logger = logging.getLogger()
 def __count(start=0x00, step=0x01):
     """ Generator whose next() method returns consecutive values until it reaches
     0xff, then wraps back to 0x00.
+
+    Args:
+        start (int): the value at which to start the count
+        step (int): the amount to increment the count
+
+    Returns:
+        An int representing the next count value.
     """
     n = start
     while True:
@@ -75,7 +82,13 @@ _count = __count(start=0x01, step=0x01)
 def board_id_to_hex_string(hex_value):
     """ Convenience method to convert a hexadecimal board_id value into its hex
     string representation, without the '0x' prefix, and with left-padding added
-    if needed (for a 4 byte width)
+    if needed (for a 4 byte width).
+
+    Args:
+        hex_value (int): hexadecimal board id value.
+
+    Returns:
+        A string representation of the board id.
     """
     return '{0:08x}'.format(hex_value)
 
@@ -83,43 +96,75 @@ def board_id_to_hex_string(hex_value):
 def device_id_to_hex_string(hex_value):
     """ Convenience method to convert a hexadecimal device_id value into its hex
     string representation, without the '0x' prefix, and with left- padding added
-    if needed (for a 2 byte width)
+    if needed (for a 2 byte width).
+
+    Args:
+        hex_value (int): hexadecimal device id value.
+
+    Returns:
+        A string representation of the device id.
     """
     return '{0:04x}'.format(hex_value)
 
-def is_ipmi_board(board_num):
+
+def is_ipmi_board(board_id):
     """ Convenience method to determine if a board_num is an IPMI board, in
-    which case, different processing is to occur.  Returns True if the board
-    is an IPMI board, False otherwise.
+    which case, different processing is to occur.
+
+    Args:
+        board_id (int): hexadecimal board id value.
+
+    Returns:
+        True if the board is an IPMI board, False otherwise.
     """
-    if board_num == IPMI_BOARD_ID:
+    if board_id == IPMI_BOARD_ID:
         return True
     return False
 
+
 def is_ipmi_device(device_id):
     """ Convenience method to determine if a device_id is valid BMC or not.
-    Returns True if the device_id maps to a BMC, False otherwise.
+
+    Args:
+        device_id (int): hexadecimal device id value.
+
+    Returns:
+        True if the device_id maps to a BMC, False otherwise.
     """
     for bmc in app.config['bmcs']['bmcs']:
         if bmc['bmc_device_id'] == device_id:
             return True
     return False
 
-def ipmi_get_bmc_info(boardNum, deviceNum):
+
+def ipmi_get_bmc_info(board_id, device_id):
     """ Convenience method to get BMC information for a given board and device
-    number. If the BMC does not exist, None is returned, otherwise the BMC
-    record is returned.
+    number.
+
+    Args:
+        board_id (int): hexadecimal board id value.
+        device_id (int): hexadecimal device id value.
+
+    Returns:
+        None, if the BMC does not exist, otherwise the BMC record is returned.
     """
-    if is_ipmi_board(boardNum) and is_ipmi_device(deviceNum):
+    if is_ipmi_board(board_id) and is_ipmi_device(device_id):
         for bmc in app.config['bmcs']['bmcs']:
-            if bmc['bmc_device_id'] == deviceNum:
+            if bmc['bmc_device_id'] == device_id:
                 return bmc
     return None
 
+
 def ipmi_get_auth_type(auth_string):
     """ Converts the 'auth_type' field string value to the numeric value used
-    by IPMI and vapor_ipmi.  If auth_type is "NONE", or unable to be determined,
-    AUTH_NONE is returned.
+    by IPMI and vapor_ipmi.
+
+    Args:
+        auth_string (str): string value of the auth type.
+
+    Returns:
+        The numeric value used by IMPI for the given auth string. If auth_type
+        is "NONE", or unable to be determined, AUTH_NONE is returned.
     """
     if auth_string == 'MD5':
         return vapor_ipmi.AUTH_MD5
@@ -130,14 +175,18 @@ def ipmi_get_auth_type(auth_string):
     else:
         return vapor_ipmi.AUTH_NONE
 
+
 def ipmi_scan():
     """ Return a "board" result based on the BMC configuration loaded at app
     initialization. If no BMCs are configured, an empty set of devices is
     returned, otherwise a device entry is returned for each BMC configured.
+
+    Returns:
+        A 'board' result based on the BMC configuration.
     """
     response_dict = {
         'board_id': board_id_to_hex_string(IPMI_BOARD_ID),
-        'devices': [ ]
+        'devices': []
     }
 
     for bmc in app.config['bmcs']['bmcs']:
@@ -150,8 +199,9 @@ def ipmi_scan():
 
     return response_dict
 
+
 def opendcre_scan(bus):
-    """ Query all boards and provide the active devices on each board
+    """ Query all boards and provide the active devices on each board.
     """
     response_dict = {'boards': []}
 
@@ -219,12 +269,14 @@ def test_routine():
 def get_board_version(boardNum):
     """ Get board version given the specified board number.
 
-    Args:  boardNum is the board number to get version for.
+    Args:
+        boardNum (str): the board number to get version for.
 
-    Returns:  The version of the hardware and firmware for the given board.
+    Returns:
+        The version of the hardware and firmware for the given board.
 
-    Raises:   Returns a 500 error if the scan command fails.
-
+    Raises:
+        Returns a 500 error if the scan command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -259,6 +311,14 @@ def get_board_version(boardNum):
 
 @app.route(PREFIX + __api_version__ + "/scan", methods=['GET'])
 def scan_all():
+    """ Query for all boards, and provide the active devices on each board.
+
+    Returns:
+        Active devices, numbers and types from the given board(s).
+
+    Raises:
+        Returns a 500 error if the scan command fails.
+    """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
         dc = devicebus.DumpCommand(board_id=0xff000000, sequence=next(_count))
@@ -273,16 +333,18 @@ def scan_all():
 
 @app.route(PREFIX + __api_version__ + "/scan/<string:boardNum>", methods=['GET'])
 def get_board_devices(boardNum):
-    """ Query a specific board, given the board id, and provide the
-        active devices on that board.
+    """ Query a specific board, given the board id, and provide the active
+    devices on that board.
 
-    Args:  boardNum is the board number to dump.  If 0xFF then scan
-            all boards on the bus.
+    Args:
+        boardNum (str): the board number to dump. If 0xFF then scan all boards
+            on the bus.
 
-    Returns:  Active devices, numbers and types from the given board(s).
+    Returns:
+        Active devices, numbers and types from the given board(s).
 
-    Raises:   Returns a 500 error if the scan command fails.
-
+    Raises:
+        Returns a 500 error if the scan command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -291,7 +353,7 @@ def get_board_devices(boardNum):
 
     with LockFile(LOCKFILE):
         if is_ipmi_board(boardNum):
-            return jsonify({'boards':[ ipmi_scan() ]})
+            return jsonify({'boards': [ipmi_scan()]})
 
         bus = devicebus.initialize(app.config["SERIAL"])
         dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
@@ -305,20 +367,22 @@ def get_board_devices(boardNum):
 def read_device(deviceType, boardNum, deviceNum):
     """ Get a device reading for the given board and port and device type.
 
-    Args:  the deviceType corresponds to the type of device to get a reading
-    for - it must match the actual type of device that is present on the bus,
-    and is used to interpret the raw device reading.  The boardNum specifies
-    which Pi hat to get the reading from, while the portNum specifies which port
-    of the Pi hat should be polled for device reading.
-
     We could filter on the upper ID of boardNum in case an unusual board number
     is provided; however, the bus should simply time out in these cases.
 
-    Returns:  Interpreted and raw device reading, based on the specified device
-              type.
+    Args:
+        deviceType (str): corresponds to the type of device to get a reading for.
+            It must match the actual type of device that is present on the bus,
+            and is used to interpret the raw device reading.
+        boardNum (str): specifies which Pi hat to get the reading from
+        deviceNum (str): specifies which device of the Pi hat should be polled
+            for device reading.
 
-    Raises:   Returns a 500 error if the scan command fails.
+    Returns:
+        Interpreted and raw device reading, based on the specified device type.
 
+    Raises:
+        Returns a 500 error if the scan command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -370,17 +434,21 @@ def read_device(deviceType, boardNum, deviceNum):
 def write_device(deviceType, boardNum, deviceNum):
     """ Write a value to a given device (so long as the device is writeable).
 
-    Args:  the deviceType corresponds to the type of device to write to
-    - it must match the actual type of device that is present on the bus,
-    and may be used to interpret the device data.  The boardNum specifies
-    which Pi hat to write to, while the portNum specifies which port
-    of the Pi hat should be written to.  UNDONE:  this method may change
-    considerably as it has not yet been fleshed out.
+    UNDONE: this method may change considerably as it has not yet been fleshed out.
 
-    Returns:  Depends on device, but if data returned, success.
+    Args:
+        deviceType (str): corresponds to the type of device to write to - it must
+            match the actual type of device that is present on the bus, and may
+            be used to interpret the device data.
+        boardNum (str): specifies which Pi hat to write to.
+        deviceNum (str): specifies which device of the Pi hat should be written
+            to.
 
-    Raises:   Returns a 500 error if the write command fails.
+    Returns:
+        Depends on device, but if data returned, success.
 
+    Raises:
+        Returns a 500 error if the write command fails.
     """
     # not currently implemented.
     abort(501)
@@ -390,14 +458,19 @@ def write_device(deviceType, boardNum, deviceNum):
 def power_control(powerAction, boardNum, deviceNum):
     """ Power on/off/cycle/status for the given board and port and device.
 
-    Args:  powerAction may be on/off/cycle/status and corresponds to the action
-    to take.  The boardNum and portNum must correspond to a device that accepts
-    power control commands.
+    Args:
+        powerAction (str): may be on/off/cycle/status and corresponds to the
+            action to take.
+        boardNum (str): the id of the board which contains the device that
+            accepts power control commands.
+        deviceNum (str): the id of the device which accepts power control
+            commands.
 
-    Returns:  Power status of the given device.
+    Returns:
+        Power status of the given device.
 
-    Raises:   Returns a 500 error if the power command fails.
-
+    Raises:
+        Returns a 500 error if the power command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -460,17 +533,17 @@ def power_control(powerAction, boardNum, deviceNum):
         # otherwise use the bus for power control
         bus = devicebus.initialize(app.config["SERIAL"])
         if powerAction.lower() == "status":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_status=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_status=True)
         elif powerAction.lower() == "on":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_on=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_on=True)
         elif powerAction.lower() == "off":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_off=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_off=True)
         elif powerAction.lower() == "cycle":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count),
-                        device_type=devicebus.get_device_type_code("power"), device_id=deviceNum, power_cycle=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_cycle=True)
         else:
             abort(500)  # powerAction is invalid
 
@@ -531,10 +604,11 @@ def power_control(powerAction, boardNum, deviceNum):
 def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
     """ Main method to run the flask server.
 
-    Args:  serial_port - specify the serial port to use; the default is fine
-    for production, but for testing it is necessary to pass in an emulator
-    port here.  Tcp_port is the TCP port that flask should listen on.
-    Flaskdebug indicates whether debug information is produced by flask.
+    Args:
+        serial_port (str): specify the serial port to use; the default is fine
+            for production, but for testing it is necessary to pass in an emulator
+            port here.
+        flaskdebug (bool): indicates whether debug information is produced by flask.
     """
     app.config["SERIAL"] = serial_port
     app.debug = True
@@ -559,12 +633,12 @@ def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
         # in this case, there is no config file, or error opening
         # in which case, we log error and cache no bmcs
         logger.debug(" * FLASK (scan) : Error opening BMC Config File : " + str(e))
-        app.config['bmcs'] = { 'bmcs': [ ] }
+        app.config['bmcs'] = {'bmcs': []}
     except Exception as e:
         # once again, we do not want to completely kill the endpoint,
         # so we log the exception and cache no bmcs
         logger.debug(" * FLASK (scan) : Error reading BMC Config File : " + str(e))
-        app.config['bmcs'] = { 'bmcs': [ ] }
+        app.config['bmcs'] = {'bmcs': []}
 
     if __name__ == '__main__':
         app.run(host="0.0.0.0")
