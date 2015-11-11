@@ -215,11 +215,11 @@
         },
         {
           "device_id": "0cff",
-          "device_type": "humidity",
+          "device_type": "none",
           "read":
             {
               "repeatable": true,
-              "responses": [ 1486313281, 1486313281 ]
+              "responses": [ ]
             }
         },
         {
