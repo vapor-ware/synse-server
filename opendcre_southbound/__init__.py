@@ -611,7 +611,7 @@ def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
         flaskdebug (bool): indicates whether debug information is produced by flask.
     """
     app.config["SERIAL"] = serial_port
-    app.debug = True
+    #app.debug = True
     if DEBUG is True:
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
