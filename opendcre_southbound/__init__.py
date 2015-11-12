@@ -222,7 +222,7 @@ def opendcre_scan(packet, bus, retry_count=0):
         found on each board.
 
     Raises:
-        BusCommunicationException: if the number of scan retries exceed the set
+        BusCommunicationError: if the number of scan retries exceed the set
             RETRY_LIMIT.
     """
     response_dict = {'boards': []}
@@ -245,7 +245,7 @@ def opendcre_scan(packet, bus, retry_count=0):
         if retry_count < RETRY_LIMIT:
             return opendcre_scan(packet, bus, retry_count=retry_count)
         else:
-            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
     else:
         response_dict['boards'].append({
@@ -278,7 +278,7 @@ def opendcre_scan(packet, bus, retry_count=0):
             if retry_count < RETRY_LIMIT:
                 return opendcre_scan(packet, bus, retry_count=retry_count)
             else:
-                raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+                raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         else:
             board_exists = False
@@ -363,7 +363,7 @@ def get_board_version(boardNum):
             else:
                 break
         else:
-            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         logger.debug(" * FLASK (version) <<: " + str([hex(x) for x in vr.serialize()]))
 
@@ -469,7 +469,7 @@ def read_device(deviceType, boardNum, deviceNum):
             else:
                 break
         else:
-            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         logger.debug(" * FLASK (read) <<: " + str([hex(x) for x in srr.serialize()]))
 
@@ -645,7 +645,7 @@ def power_control(powerAction, boardNum, deviceNum):
             else:
                 break
         else:
-            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         logger.debug(" * FLASK (power) <<: " + str([hex(x) for x in pcr.serialize()]))
 

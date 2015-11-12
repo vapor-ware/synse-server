@@ -46,7 +46,7 @@ class ChecksumException(Exception):
     pass
 
 
-class CommunicationException(Exception):
+class BusCommunicationError(Exception):
     """ Exception raised when multiple retries fail after catching ChecksumExceptions.
 
     Corrupt data may slip through, raising the ChecksumException (which should then

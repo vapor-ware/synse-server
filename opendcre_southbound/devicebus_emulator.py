@@ -30,7 +30,7 @@ import logging
 import json
 
 import devicebus
-from definitions import SCAN_ALL_BIT
+from definitions import SCAN_ALL_BIT, SAVE_BIT
 
 DEBUG = False                   # set to true for more console logging
 logger = logging.getLogger()
@@ -117,6 +117,10 @@ def main(emulatorDevice):
         if cmd == 'D':
             # ======================> SCAN <======================
             sc = devicebus.DumpCommand(bytes=packet.serialize())
+            # if the save bit is enabled in the board_id, do nothing, since we
+            # expect no response back in this case.
+            if (sc.board_id >> SAVE_BIT) == 1:
+                pass
             # match sc.board_id against a board_id in configuration - if
             # the board_id does not exist, send nothing; if board_id is 0xFF
             # return all boards unless we are emulating early firmware not
