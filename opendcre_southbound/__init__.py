@@ -47,6 +47,7 @@ import devicebus
 import vapor_ipmi
 
 from errors import *
+from definitions import *
 
 PREFIX = "/opendcre/"  # URL prefix for REST access
 SERIAL_DEFAULT = "/dev/ttyAMA0"  # default serial device to use for bus
@@ -54,7 +55,6 @@ DEBUG = False  # set to False to disable extra logging
 LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
 
 IPMIFILE = "bmc_config.json"  # BMC settings for IPMI module
-IPMI_BOARD_ID = 0x40000000    # set bit 6 of upper byte of board_id to 1=IPMI
 
 RETRY_LIMIT = 3  # number of times to retry sending a packet if the checksum validation fails
 
@@ -217,8 +217,7 @@ def opendcre_scan(packet, bus):
         except BusTimeoutException:
             abort(500)
         except (ChecksumException, BusDataException):
-            # set shuffle bits, flush the bus, then try again
-
+            packet.board_id = packet.board_id | SHUFFLE_BOARD_ID
             bus.flushInput()
             bus.flushOutput()
             pass
@@ -242,8 +241,9 @@ def opendcre_scan(packet, bus):
             except BusTimeoutException:
                 break
             except (ChecksumException, BusDataException):
-                # set shuffle bits, flush the bus, then try again
-
+                # FIXME - do we set the shuffle bit here again? will this shuffle
+                # the ids for the boards already found? does it matter if it does?
+                packet.board_id = packet.board_id | SHUFFLE_BOARD_ID
                 bus.flushInput()
                 bus.flushOutput()
                 pass
@@ -346,7 +346,7 @@ def scan_all():
     """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        dc = devicebus.DumpCommand(board_id=0xff000000, sequence=next(_count))
+        dc = devicebus.DumpCommand(board_id=SCAN_ALL_BOARD_ID, sequence=next(_count))
         response_dict = opendcre_scan(dc, bus)
 
         # now scan IPMI based on configuration

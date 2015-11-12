@@ -30,6 +30,7 @@ import logging
 import json
 
 import devicebus
+from definitions import SCAN_ALL_BIT
 
 DEBUG = False                   # set to true for more console logging
 logger = logging.getLogger()
@@ -120,7 +121,7 @@ def main(emulatorDevice):
             # the board_id does not exist, send nothing; if board_id is 0xFF
             # return all boards unless we are emulating early firmware not
             # supporting scan-all-boards, where we instead return nothing
-            if (sc.board_id >> 24) != 0xFF:
+            if (sc.board_id >> SCAN_ALL_BIT) != 1:
                 for board in configuration["boards"]:
                     if board_ids_match(board, sc):
                         if "raw_data" in board:
