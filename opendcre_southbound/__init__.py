@@ -46,6 +46,8 @@ from version import __api_version__  # major.minor API version
 import devicebus
 import vapor_ipmi
 
+from errors import *
+
 PREFIX = "/opendcre/"  # URL prefix for REST access
 SERIAL_DEFAULT = "/dev/ttyAMA0"  # default serial device to use for bus
 DEBUG = False  # set to False to disable extra logging
@@ -53,6 +55,8 @@ LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
 
 IPMIFILE = "bmc_config.json"  # BMC settings for IPMI module
 IPMI_BOARD_ID = 0x40000000    # set bit 6 of upper byte of board_id to 1=IPMI
+
+RETRY_LIMIT = 3  # number of times to retry sending a packet if the checksum validation fails
 
 app = Flask(__name__)
 logger = logging.getLogger()
@@ -200,59 +204,71 @@ def ipmi_scan():
     return response_dict
 
 
-def opendcre_scan(bus):
+def opendcre_scan(packet, bus):
     """ Query all boards and provide the active devices on each board.
     """
     response_dict = {'boards': []}
 
-    try:
-        dr = devicebus.DumpResponse(serial_reader=bus)
-    except devicebus.BusTimeoutException:
-        abort(500)
+    for attempt in xrange(RETRY_LIMIT):
+        bus.write(packet.serialize())
+
+        try:
+            response_packet = devicebus.DumpResponse(serial_reader=bus)
+        except BusTimeoutException:
+            abort(500)
+        except (ChecksumException, BusDataException):
+            # set shuffle bits, flush the bus, then try again
+
+            bus.flushInput()
+            bus.flushOutput()
+            pass
+        else:
+            response_dict['boards'].append({
+                'board_id': board_id_to_hex_string(response_packet.board_id),
+                'devices': [{
+                    'device_id': device_id_to_hex_string(response_packet.device_id),
+                    'device_type': devicebus.get_device_type_name(response_packet.data[0])
+                }]
+            })
+            logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
+            break
     else:
-        response_dict['boards'].append(
-            {
-                'board_id': board_id_to_hex_string(dr.board_id),
-                'devices': [
-                    {
-                        'device_id': device_id_to_hex_string(dr.device_id),
-                        'device_type': devicebus.get_device_type_name(dr.data[0])
-                    }
-                ]
-            }
-        )
-        logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+        raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
     while True:
-        try:
-            dr = devicebus.DumpResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
-            break
-        else:
-            board_exists = False
+        for attempt in xrange(RETRY_LIMIT):
+            try:
+                response_packet = devicebus.DumpResponse(serial_reader=bus)
+            except BusTimeoutException:
+                break
+            except (ChecksumException, BusDataException):
+                # set shuffle bits, flush the bus, then try again
 
-            for board in response_dict['boards']:
-                if int(board['board_id'], 16) == dr.board_id:
-                    board_exists = True
-                    board['devices'].append(
-                        {
-                            'device_id': device_id_to_hex_string(dr.device_id),
-                            'device_type': devicebus.get_device_type_name(dr.data[0])
-                        }
-                    )
-                    break
+                bus.flushInput()
+                bus.flushOutput()
+                pass
+            else:
+                board_exists = False
+                for board in response_dict['boards']:
+                    if int(board['board_id'], 16) == response_packet.board_id:
+                        board_exists = True
+                        board['devices'].append({
+                            'device_id': device_id_to_hex_string(response_packet.device_id),
+                            'device_type': devicebus.get_device_type_name(response_packet.data[0])
+                        })
+                        break
 
-            if not board_exists:
-                response_dict['boards'].append(
-                    {
-                        'board_id': board_id_to_hex_string(dr.board_id),
+                if not board_exists:
+                    response_dict['boards'].append({
+                        'board_id': board_id_to_hex_string(response_packet.board_id),
                         'devices': [{
-                            'device_id': device_id_to_hex_string(dr.device_id),
-                            'device_type': devicebus.get_device_type_name(dr.data[0])
+                            'device_id': device_id_to_hex_string(response_packet.device_id),
+                            'device_type': devicebus.get_device_type_name(response_packet.data[0])
                         }]
-                    }
-                )
-            logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+                    })
+                logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
+        else:
+            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
     return response_dict
 
@@ -297,10 +313,19 @@ def get_board_version(boardNum):
 
         logger.debug(" * FLASK (version) >>: " + str([hex(x) for x in vc.serialize()]))
 
-        try:
-            vr = devicebus.VersionResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
-            abort(500)
+        for attempt in xrange(RETRY_LIMIT):
+            try:
+                vr = devicebus.VersionResponse(serial_reader=bus)
+            except BusTimeoutException:
+                abort(500)
+            except (BusDataException, ChecksumException):
+                bus.flushInput()
+                bus.flushOutput()
+                pass
+            else:
+                break
+        else:
+            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         logger.debug(" * FLASK (version) <<: " + str([hex(x) for x in vr.serialize()]))
 
@@ -322,9 +347,7 @@ def scan_all():
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
         dc = devicebus.DumpCommand(board_id=0xff000000, sequence=next(_count))
-        bus.write(dc.serialize())
-
-        response_dict = opendcre_scan(bus)
+        response_dict = opendcre_scan(dc, bus)
 
         # now scan IPMI based on configuration
         response_dict['boards'].append(ipmi_scan())
@@ -357,9 +380,7 @@ def get_board_devices(boardNum):
 
         bus = devicebus.initialize(app.config["SERIAL"])
         dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
-        bus.write(dc.serialize())
-
-        response_dict = opendcre_scan(bus)
+        response_dict = opendcre_scan(dc, bus)
         return jsonify(response_dict)
 
 
@@ -398,10 +419,19 @@ def read_device(deviceType, boardNum, deviceNum):
 
         logger.debug(" * FLASK (read) >>: " + str([hex(x) for x in src.serialize()]))
 
-        try:
-            srr = devicebus.DeviceReadResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
-            abort(500)
+        for attempt in xrange(RETRY_LIMIT):
+            try:
+                srr = devicebus.DeviceReadResponse(serial_reader=bus)
+            except BusTimeoutException:
+                abort(500)
+            except (BusDataException, ChecksumException):
+                bus.flushInput()
+                bus.flushOutput()
+                pass
+            else:
+                break
+        else:
+            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         logger.debug(" * FLASK (read) <<: " + str([hex(x) for x in srr.serialize()]))
 
@@ -411,7 +441,7 @@ def read_device(deviceType, boardNum, deviceNum):
             for x in srr.data:
                 device_raw += chr(x)
             device_raw = int(device_raw)
-        except:
+        except ValueError:
             abort(500)  # if we cannot convert the reading from bytes to
                         # an integer, we cannot move forward
 
@@ -420,7 +450,7 @@ def read_device(deviceType, boardNum, deviceNum):
             try:
                 converted_value = devicebus.convertThermistor(device_raw)
                 return jsonify({"device_raw": device_raw, "temperature_c": converted_value})
-            except devicebus.BusDataException:
+            except BusDataException:
                 # if we saw an invalid value...
                 abort(500)
         else:
@@ -484,9 +514,13 @@ def power_control(powerAction, boardNum, deviceNum):
             bmc_info = ipmi_get_bmc_info(boardNum, deviceNum)
             if powerAction.lower() == "status" or powerAction.lower() == "on" or powerAction.lower() == "off":
                 try:
-                    status = vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                    status = vapor_ipmi.power(
+                        bmc_info['username'],
+                        bmc_info['password'],
                         ipmi_get_auth_type(bmc_info['auth_type']),
-                        bmc_info['bmc_ip'], powerAction.lower())
+                        bmc_info['bmc_ip'],
+                        powerAction.lower()
+                    )
 
                     # now, convert raw reading into subfields
                     status_converted = {
@@ -503,14 +537,24 @@ def power_control(powerAction, boardNum, deviceNum):
                     return jsonify(status_converted)
                 except:
                     abort(500)  # there is nothing we can do to recover here
+
             elif powerAction.lower() == "cycle":
                 try:
-                    vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                    vapor_ipmi.power(
+                        bmc_info['username'],
+                        bmc_info['password'],
                         ipmi_get_auth_type(bmc_info['auth_type']),
-                        bmc_info['bmc_ip'], "off")
-                    status = vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        bmc_info['bmc_ip'],
+                        "off"
+                    )
+
+                    status = vapor_ipmi.power(
+                        bmc_info['username'],
+                        bmc_info['password'],
                         ipmi_get_auth_type(bmc_info['auth_type']),
-                        bmc_info['bmc_ip'], "on")
+                        bmc_info['bmc_ip'],
+                        "on"
+                    )
 
                     # now, convert raw reading into subfields
                     status_converted = {
@@ -551,10 +595,19 @@ def power_control(powerAction, boardNum, deviceNum):
 
         logger.debug(" * FLASK (power) >>: " + str([hex(x) for x in pcc.serialize()]))
 
-        try:
-            pcr = devicebus.PowerControlResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
-            abort(500)
+        for attempts in xrange(RETRY_LIMIT):
+            try:
+                pcr = devicebus.PowerControlResponse(serial_reader=bus)
+            except BusTimeoutException:
+                abort(500)
+            except (BusDataException, ChecksumException):
+                bus.flushInput()
+                bus.flushOutput()
+                pass
+            else:
+                break
+        else:
+            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
         logger.debug(" * FLASK (power) <<: " + str([hex(x) for x in pcr.serialize()]))
 
@@ -570,7 +623,7 @@ def power_control(powerAction, boardNum, deviceNum):
             power_raw = int(pmbus_values[1])
             voltage_raw = int(pmbus_values[2])
             current_raw = int(pmbus_values[3])
-        except:
+        except ValueError:
             abort(500)  # if we cannot convert the reading from bytes to
                         # an integer, we cannot move forward
 

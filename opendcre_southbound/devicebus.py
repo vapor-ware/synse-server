@@ -28,6 +28,8 @@
 import logging
 import serial
 
+from errors import *
+
 DEBUG = False
 logger = logging.getLogger()
 
@@ -92,17 +94,25 @@ class DeviceBusPacket(object):
                 # now make the packet
                 # print [hex(x) for x in bytes]
                 self.deserialize(serialbytes)
+            except (BusDataException, ChecksumException) as e:
+                # we want to surface these exceptions, since they indicate that
+                # invalid/malformed data was read off the bus. these exceptions
+                # should trigger a retry mechanism (and thus we want to raise
+                # them as-is, instead of collecting them under a general failure.
+                raise e
             except Exception:
-                # yes, this is a catchall exception, however:
-                # if something bad happened, it is related to reading
-                # junk or nothing at all from the bus.  in either case, we can
-                # not recover, so our only choice is to pass a
-                # BusTimeoutException up the chain for handling
+                # a catchall exception used to indicate that something bad has
+                # happened - this could be related to errors reading off the bus
+                # or reading nothing at all. in either case, we are unable to
+                # recover, so BusTimeoutException is passed up the chain for
+                # appropriate handling.
                 raise BusTimeoutException("No response from bus.")
+
         elif bytes is not None:
-            # if we have a raw packet to build off of,
-            # populate our fields with the deserialized result
+            # if we have a raw packet to build off of, populate our fields with
+            # the deserialized result
             self.deserialize(bytes)
+
         else:
             # otherwise, we populate our fields as provided by the user
             self.sequence = sequence
@@ -146,7 +156,10 @@ class DeviceBusPacket(object):
 
     def deserialize(self, packetBytes):
         """
-        Populate the fields of a DeviceBusPacket instance
+        Populate the fields of a DeviceBusPacket instance.
+
+        Raises:
+            BusDataException if the
         """
         # check length to make sure we have at minimum the min packet length
         if len(packetBytes) < PKT_MIN_LENGTH:
@@ -176,9 +189,9 @@ class DeviceBusPacket(object):
         self.data = [x for x in packetBytes[10:len(packetBytes)-2]]
 
         # get the checksum and verify it - toss if no good
-        if (self.generateChecksum(self.sequence, self.device_type, self.board_id,
-                                  self.device_id, self.data) != packetBytes[len(packetBytes) - 2]):
-            raise BusDataException("Invalid checksum in incoming packet.")
+        check = self.generateChecksum(self.sequence, self.device_type, self.board_id, self.device_id, self.data)
+        if check != packetBytes[len(packetBytes) - 2]:
+            raise ChecksumException('Invalid checksum in incoming packet.')
 
         # get the trailer byte - toss if no good
         if packetBytes[len(packetBytes) - 1] != PKT_VALID_TRAILER:
@@ -445,20 +458,6 @@ class PowerControlResponse(DeviceBusPacket):
 #                                   End Commands                                 #
 #                        Begin Support Objects and Methods                       #
 # ============================================================================== #
-
-
-class BusTimeoutException(Exception):
-    """ Exception raised when a command fails to receive a response from the
-    device bus. This may be for many reasons, which it may be difficult or
-    impossible to pinpoint, so no more specific error is available.
-    """
-    pass
-
-
-class BusDataException(Exception):
-    """ Exception raised when something sent over the bus does not look right.
-    """
-    pass
 
 
 def initialize(serial_device, speed=9600, timeout=0.25):
