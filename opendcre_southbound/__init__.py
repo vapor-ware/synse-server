@@ -63,7 +63,7 @@ logger = logging.getLogger()
 
 
 def __count(start=0x00, step=0x01):
-    """ Generator whose next() method returns consecutive values until it reaches
+    """ Generator method which returns consecutive values until it reaches
     0xff, then wraps back to 0x00.
 
     Args:
@@ -194,18 +194,36 @@ def ipmi_scan():
     }
 
     for bmc in app.config['bmcs']['bmcs']:
-        response_dict['devices'].append(
-            {
-                'device_id': device_id_to_hex_string(bmc['bmc_device_id']),
-                'device_type': 'power'
-            }
-        )
+        response_dict['devices'].append({
+            'device_id': device_id_to_hex_string(bmc['bmc_device_id']),
+            'device_type': 'power'
+        })
 
     return response_dict
 
 
 def opendcre_scan(packet, bus, retry_count=0):
     """ Query all boards and provide the active devices on each board.
+
+    This methods performs a scan operation by sending a DumpResponsePacket to
+    the bus. Collisions on the bus may occur, or corrupt data may be read off
+    the bus when collecting the responses. In these cases, this method employs
+    a retry mechanism which first clears the bus, then re-sends the request.
+    If failures continue past the configurable RETRY_LIMIT, an exception will
+    be raised, indicating a problem with bus communications.
+
+    Args:
+        packet (DeviceBusPacket): the packet to send over the bus.
+        bus (Serial): the bus connection to send the packet over.
+        retry_count (int): the number of scan retries.
+
+    Returns:
+        A dictionary containing a list of all found boards, and all devices
+        found on each board.
+
+    Raises:
+        BusCommunicationException: if the number of scan retries exceed the set
+            RETRY_LIMIT.
     """
     response_dict = {'boards': []}
     bus.write(packet.serialize)
@@ -243,6 +261,9 @@ def opendcre_scan(packet, bus, retry_count=0):
         try:
             response_packet = devicebus.DumpResponse(serial_reader=bus)
         except BusTimeoutException:
+            # if we get no response back from the bus, the assumption at this point is
+            # that all boards/devices have been returned and there is nothing left to
+            # get, so we break out of the loop and return the found results.
             break
         except (BusDataException, ChecksumException):
             # flush the bus of any corrupt data
@@ -258,7 +279,7 @@ def opendcre_scan(packet, bus, retry_count=0):
                 return opendcre_scan(packet, bus, retry_count=retry_count)
             else:
                 raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
-            
+
         else:
             board_exists = False
             for board in response_dict['boards']:
@@ -279,6 +300,13 @@ def opendcre_scan(packet, bus, retry_count=0):
                     }]
                 })
             logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
+
+    # if we get here, the scan was successful, so we can save the scan state.
+    # we don't expect a response for a save command, so after writing to the
+    # bus, we can return the aggregated scan results.
+    board_id = SCAN_ALL_BOARD_ID | SAVE_BOARD_ID
+    save_packet = devicebus.DumpCommand(board_id=board_id, sequence=next(_count))
+    bus.write(save_packet.serialize())
 
     return response_dict
 
