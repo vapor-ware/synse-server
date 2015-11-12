@@ -66,14 +66,12 @@ PKT_VALID_TRAILER = 0x04
 
 
 class DeviceBusPacket(object):
-    """
-    DeviceBusPacket is a representation of a single packet that travels the
+    """ DeviceBusPacket is a representation of a single packet that travels the
     device bus.
     """
     def __init__(self, serial_reader=None, bytes=None, sequence=0x01, device_type=0xFF,
                  board_id=0x00000000, device_id=0xFFFF, data=None):
-        """
-        Construct a new DeviceBusPacket. There are three real ways to do this -
+        """ Construct a new DeviceBusPacket. There are three real ways to do this -
         either via the bytes parameter, or via the individual fields of the packet
         itself (in that case, the header, length, checksum and trailer are all
         automatically generated). Data must be a list of bytes. The third way is
@@ -92,7 +90,6 @@ class DeviceBusPacket(object):
                 # read one byte for trailer
                 serialbytes.append(ord(serial_reader.read(1)))
                 # now make the packet
-                # print [hex(x) for x in bytes]
                 self.deserialize(serialbytes)
             except (BusDataException, ChecksumException) as e:
                 # we want to surface these exceptions, since they indicate that
@@ -125,11 +122,13 @@ class DeviceBusPacket(object):
                 self.data = [data]
 
     def serialize(self):
-        """
-        Generate a serialized byte representation of the given packet. All of the
+        """ Generate a serialized byte representation of the given packet. All of the
         packet fields must be populated in the DeviceBusPacket instance for the
         serialization to be successful. If any of the fields are missing, serialization
         will fail with a BusDataException.
+
+        Raises:
+            BusDataException: if any of the packet fields are missing.
         """
         if self.sequence is None or self.device_type is None or self.board_id is None or self.device_id is None or self.data is None:
             raise BusDataException("All fields of a packet must be specified in order to be serialized.")
@@ -155,11 +154,15 @@ class DeviceBusPacket(object):
         return packet
 
     def deserialize(self, packetBytes):
-        """
-        Populate the fields of a DeviceBusPacket instance.
+        """ Populate the fields of a DeviceBusPacket instance.
 
         Raises:
-            BusDataException if the
+            BusDataException: if the packet is smaller than the minimum packet
+                size, if the packet has an invalid header byte, if the packet
+                has an invalid trailer byte, or if the length byte in the packet
+                does not match the actual length of the packet.
+            ChecksumException: if checksum validation fails on the packet being
+                deserialized.
         """
         # check length to make sure we have at minimum the min packet length
         if len(packetBytes) < PKT_MIN_LENGTH:
@@ -199,8 +202,7 @@ class DeviceBusPacket(object):
         # if we make it here, the packet successfully was deserialized!
 
     def generateChecksum(self, sequence, device_type, board_id, device_id, data):
-        """
-        Generate and return packet checksum given its fields.  Twos complement
+        """ Generate and return packet checksum given its fields. Twos complement
         of 0xFF & the sum of bytes from devicetype to data end.
         """
         board_id_bytes = board_id_to_bytes(board_id)
@@ -220,13 +222,11 @@ class DeviceBusPacket(object):
 
 
 class DumpCommand(DeviceBusPacket):
-    """
-    DumpCommand is a special DeviceBusPacket that has a data field of 'D' and
+    """ DumpCommand is a special DeviceBusPacket that has a data field of 'D' and
     is used to retrieve board and device info for a given board or all boards.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01):
-        """
-        Three ways to initialize the command - it may be read, when expected,
+        """ Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator). Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
@@ -244,14 +244,12 @@ class DumpCommand(DeviceBusPacket):
 
 
 class DumpResponse(DeviceBusPacket):
-    """
-    DumpResponse is a special DeviceBusPacket that has a data field
-    containing a record for a device port on a given board.
+    """ DumpResponse is a special DeviceBusPacket that has a data field
+    containing a record for a device on a given board.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01,
                  device_id=0x0000, device_type=0x00, data=None):
-        """
-        Three ways to initialize the response - it may be read, when expected,
+        """ Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the constructor,
@@ -270,13 +268,11 @@ class DumpResponse(DeviceBusPacket):
 
 
 class VersionCommand(DeviceBusPacket):
-    """
-    VersionCommand is a special DeviceBusPacket that has a data field of 'V' and
+    """ VersionCommand is a special DeviceBusPacket that has a data field of 'V' and
     is used to retrieve the version of a given board_id.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01):
-        """
-        Three ways to initialize the command - it may be read, when expected,
+        """ Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator).  Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
@@ -294,13 +290,11 @@ class VersionCommand(DeviceBusPacket):
 
 
 class VersionResponse(DeviceBusPacket):
-    """
-    VersionResponse is a special DeviceBusPacket that has a data field
+    """ VersionResponse is a special DeviceBusPacket that has a data field
     containing the version string for a given board.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01, versionString=None):
-        """
-        Three ways to initialize the response - it may be read, when expected,
+        """ Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the constructor,
@@ -329,15 +323,13 @@ class VersionResponse(DeviceBusPacket):
 
 
 class DeviceReadCommand(DeviceBusPacket):
-    """
-    DeviceReadCommand is a special DeviceBusPacket that has a data field of 'R'
-    and is used to retrieve the reading of a given board_id, device_id,
-    device_type combination.
+    """ DeviceReadCommand is a special DeviceBusPacket that has a data field of 'R'
+    and is used to retrieve the reading of a given board_id, device_id, device_type
+    combination.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01,
                  device_type=0xFF, device_id=0xFFFF):
-        """
-        Three ways to initialize the command - it may be read, when expected,
+        """ Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator). Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
@@ -355,14 +347,12 @@ class DeviceReadCommand(DeviceBusPacket):
 
 
 class DeviceReadResponse(DeviceBusPacket):
-    """
-    DeviceReadResponse is a special DeviceBusPacket that has a data field
+    """ DeviceReadResponse is a special DeviceBusPacket that has a data field
     containing the device/data returned for a given board and device_id.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01,
                  device_type=0xFF, device_id=0xFFFF, device_reading=None):
-        """
-        Three ways to initialize the response - it may be read, when expected,
+        """ Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the constructor, which
@@ -383,15 +373,13 @@ class DeviceReadResponse(DeviceBusPacket):
 
 
 class PowerControlCommand(DeviceBusPacket):
-    """
-    PowerControlCommand is a special DeviceBusPacket that has a data field of
+    """ PowerControlCommand is a special DeviceBusPacket that has a data field of
     'P0' or 'P1', and is used to control the power state of a given board_id
     and device_id combination.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, power_on=False, power_off=False, power_cycle=False, power_status=False):
-        """
-        Three ways to initialize the command - it may be read, when expected,
+        """ Three ways to initialize the command - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for testing with the
         emulator).  Alternately, a byte buffer (bytes) may be given to the
         constructor, which is deserialized and populates the appropriate fields
@@ -403,8 +391,7 @@ class PowerControlCommand(DeviceBusPacket):
         If power_on is specified as True, then a power_on command is sent.
         If power_off is specified as True, then a power_off command is sent.
         If power_cycle is specified as True, then a power_cycle command is sent.
-        If power_status is specified as True, then a power_status command is
-        sent.
+        If power_status is specified as True, then a power_status command is sent.
         """
         if serial_reader is not None:
             super(PowerControlCommand, self).__init__(serial_reader=serial_reader)
@@ -427,14 +414,12 @@ class PowerControlCommand(DeviceBusPacket):
 
 
 class PowerControlResponse(DeviceBusPacket):
-    """
-    PowerControlResponse is a special DeviceBusPacket that has a data field
+    """ PowerControlResponse is a special DeviceBusPacket that has a data field
     containing the result of a power control action for a given board and device_id.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, data=None):
-        """
-        Three ways to initialize the response - it may be read, when expected,
+        """ Three ways to initialize the response - it may be read, when expected,
         via a serial reader (via serial_reader - e.g. for use in client apps
         that expect a response over serial, such as the flask server).
         Alternately, a byte buffer (bytes) may be given to the constructor,
@@ -537,8 +522,8 @@ def device_id_to_bytes(device_id):
     """ Convert a hexadecimal device_id value into a corresponding list of bytes.
 
     Given a hex value, will convert the value to a hex string. If the value is
-    not 4 bytes wide, padding will be added to the string to ensure correct size.
-    The string is then split, converted back to a hexadecimal value and the four
+    not 2 bytes wide, padding will be added to the string to ensure correct size.
+    The string is then split, converted back to a hexadecimal value and the two
     bytes are returned as a list.
 
       e.g. 0xAABB -> [AA, BB]

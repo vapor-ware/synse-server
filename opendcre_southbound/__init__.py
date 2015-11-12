@@ -330,7 +330,7 @@ def get_board_version(boardNum):
         The version of the hardware and firmware for the given board.
 
     Raises:
-        Returns a 500 error if the scan command fails.
+        Returns a 500 error if the version command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -351,6 +351,9 @@ def get_board_version(boardNum):
 
         logger.debug(" * FLASK (version) >>: " + str([hex(x) for x in vc.serialize()]))
 
+        # attempt getting a VersionResponse off the bus. if there is some kind of
+        # error caused by corruption/invalid data, retry the configured amount of
+        # times before giving up.
         for attempt in xrange(RETRY_LIMIT):
             try:
                 vr = devicebus.VersionResponse(serial_reader=bus)
@@ -424,7 +427,7 @@ def get_board_devices(boardNum):
 
 @app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
 def read_device(deviceType, boardNum, deviceNum):
-    """ Get a device reading for the given board and port and device type.
+    """ Get a device reading for the given board and device and device type.
 
     We could filter on the upper ID of boardNum in case an unusual board number
     is provided; however, the bus should simply time out in these cases.
@@ -441,7 +444,7 @@ def read_device(deviceType, boardNum, deviceNum):
         Interpreted and raw device reading, based on the specified device type.
 
     Raises:
-        Returns a 500 error if the scan command fails.
+        Returns a 500 error if the read command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -457,6 +460,9 @@ def read_device(deviceType, boardNum, deviceNum):
 
         logger.debug(" * FLASK (read) >>: " + str([hex(x) for x in src.serialize()]))
 
+        # attempt getting a DeviceReadResponse off the bus. if there is some kind of
+        # error caused by corruption/invalid data, retry the configured amount of
+        # times before giving up.
         for attempt in xrange(RETRY_LIMIT):
             try:
                 srr = devicebus.DeviceReadResponse(serial_reader=bus)
@@ -509,8 +515,7 @@ def write_device(deviceType, boardNum, deviceNum):
             match the actual type of device that is present on the bus, and may
             be used to interpret the device data.
         boardNum (str): specifies which Pi hat to write to.
-        deviceNum (str): specifies which device of the Pi hat should be written
-            to.
+        deviceNum (str): specifies which device of the Pi hat should be written to.
 
     Returns:
         Depends on device, but if data returned, success.
@@ -524,7 +529,7 @@ def write_device(deviceType, boardNum, deviceNum):
 
 @app.route(PREFIX + __api_version__ + "/power/<string:powerAction>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
 def power_control(powerAction, boardNum, deviceNum):
-    """ Power on/off/cycle/status for the given board and port and device.
+    """ Power on/off/cycle/status for the given board and device.
 
     Args:
         powerAction (str): may be on/off/cycle/status and corresponds to the
@@ -633,6 +638,9 @@ def power_control(powerAction, boardNum, deviceNum):
 
         logger.debug(" * FLASK (power) >>: " + str([hex(x) for x in pcc.serialize()]))
 
+        # attempt getting a PowerControlResponse off the bus. if there is some kind of
+        # error caused by corruption/invalid data, retry the configured amount of
+        # times before giving up.
         for attempts in xrange(RETRY_LIMIT):
             try:
                 pcr = devicebus.PowerControlResponse(serial_reader=bus)
@@ -723,12 +731,12 @@ def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
     except IOError as e:
         # in this case, there is no config file, or error opening
         # in which case, we log error and cache no bmcs
-        logger.debug(" * FLASK (scan) : Error opening BMC Config File : " + str(e))
+        logger.debug(" * FLASK (ipmi) : Error opening BMC Config File : " + str(e))
         app.config['bmcs'] = {'bmcs': []}
     except Exception as e:
         # once again, we do not want to completely kill the endpoint,
         # so we log the exception and cache no bmcs
-        logger.debug(" * FLASK (scan) : Error reading BMC Config File : " + str(e))
+        logger.debug(" * FLASK (ipmi) : Error reading BMC Config File : " + str(e))
         app.config['bmcs'] = {'bmcs': []}
 
     if __name__ == '__main__':
