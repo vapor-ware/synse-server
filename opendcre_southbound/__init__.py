@@ -204,71 +204,81 @@ def ipmi_scan():
     return response_dict
 
 
-def opendcre_scan(packet, bus):
+def opendcre_scan(packet, bus, retry_count=0):
     """ Query all boards and provide the active devices on each board.
     """
     response_dict = {'boards': []}
+    bus.write(packet.serialize)
 
-    for attempt in xrange(RETRY_LIMIT):
-        bus.write(packet.serialize())
+    try:
+        response_packet = devicebus.DumpResponse(serial_reader=bus)
+    except BusTimeoutException:
+        abort(500)
+    except (BusDataException, ChecksumException):
+        # flush the bus of any corrupt data
+        bus.flushInput()
+        bus.flushOutput()
 
+        # add the shuffle bit to the packet board_id and increment the count
+        packet.board_id = packet.board_id | SHUFFLE_BOARD_ID
+        retry_count += 1
+
+        # retry if permissible
+        if retry_count < RETRY_LIMIT:
+            return opendcre_scan(packet, bus, retry_count=retry_count)
+        else:
+            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+
+    else:
+        response_dict['boards'].append({
+            'board_id': board_id_to_hex_string(response_packet.board_id),
+            'devices': [{
+                'device_id': device_id_to_hex_string(response_packet.device_id),
+                'device_type': devicebus.get_device_type_name(response_packet.data[0])
+            }]
+        })
+        logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
+
+    while True:
         try:
             response_packet = devicebus.DumpResponse(serial_reader=bus)
         except BusTimeoutException:
-            abort(500)
-        except (ChecksumException, BusDataException):
-            packet.board_id = packet.board_id | SHUFFLE_BOARD_ID
+            break
+        except (BusDataException, ChecksumException):
+            # flush the bus of any corrupt data
             bus.flushInput()
             bus.flushOutput()
-            pass
-        else:
-            response_dict['boards'].append({
-                'board_id': board_id_to_hex_string(response_packet.board_id),
-                'devices': [{
-                    'device_id': device_id_to_hex_string(response_packet.device_id),
-                    'device_type': devicebus.get_device_type_name(response_packet.data[0])
-                }]
-            })
-            logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
-            break
-    else:
-        raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
 
-    while True:
-        for attempt in xrange(RETRY_LIMIT):
-            try:
-                response_packet = devicebus.DumpResponse(serial_reader=bus)
-            except BusTimeoutException:
-                break
-            except (ChecksumException, BusDataException):
-                # FIXME - do we set the shuffle bit here again? will this shuffle
-                # the ids for the boards already found? does it matter if it does?
-                packet.board_id = packet.board_id | SHUFFLE_BOARD_ID
-                bus.flushInput()
-                bus.flushOutput()
-                pass
+            # add the shuffle bit to the packet board_id and increment the count
+            packet.board_id = packet.board_id | SHUFFLE_BOARD_ID
+            retry_count += 1
+
+            # retry if permissible
+            if retry_count < RETRY_LIMIT:
+                return opendcre_scan(packet, bus, retry_count=retry_count)
             else:
-                board_exists = False
-                for board in response_dict['boards']:
-                    if int(board['board_id'], 16) == response_packet.board_id:
-                        board_exists = True
-                        board['devices'].append({
-                            'device_id': device_id_to_hex_string(response_packet.device_id),
-                            'device_type': devicebus.get_device_type_name(response_packet.data[0])
-                        })
-                        break
-
-                if not board_exists:
-                    response_dict['boards'].append({
-                        'board_id': board_id_to_hex_string(response_packet.board_id),
-                        'devices': [{
-                            'device_id': device_id_to_hex_string(response_packet.device_id),
-                            'device_type': devicebus.get_device_type_name(response_packet.data[0])
-                        }]
-                    })
-                logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
+                raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+            
         else:
-            raise CommunicationException('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+            board_exists = False
+            for board in response_dict['boards']:
+                if int(board['board_id'], 16) == response_packet.board_id:
+                    board_exists = True
+                    board['devices'].append({
+                        'device_id': device_id_to_hex_string(response_packet.device_id),
+                        'device_type': devicebus.get_device_type_name(response_packet.data[0])
+                    })
+                    break
+
+            if not board_exists:
+                response_dict['boards'].append({
+                    'board_id': board_id_to_hex_string(response_packet.board_id),
+                    'devices': [{
+                        'device_id': device_id_to_hex_string(response_packet.device_id),
+                        'device_type': devicebus.get_device_type_name(response_packet.data[0])
+                    }]
+                })
+            logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
 
     return response_dict
 
@@ -360,8 +370,8 @@ def get_board_devices(boardNum):
     devices on that board.
 
     Args:
-        boardNum (str): the board number to dump. If 0xFF then scan all boards
-            on the bus.
+        boardNum (str): the board number to dump. If the upper byte is 0x80 then
+            all boards on the bus will be scanned.
 
     Returns:
         Active devices, numbers and types from the given board(s).

@@ -24,7 +24,7 @@
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# hardcode the bit within a 4-byte board id which corresponds to a given protocol
+# hard-code the bit within a 4-byte board id which corresponds to a given protocol
 # directive, for convenience and consistency
 
 SCAN_ALL_BIT = 31
@@ -39,6 +39,3 @@ SCAN_ALL_BOARD_ID = 1 << SCAN_ALL_BIT  # set bit 7 of upper byte of board_id to 
 IPMI_BOARD_ID = 1 << IPMI_BIT          # set bit 6 of upper byte of board_id to 1=IPMI (0x40000000)
 SHUFFLE_BOARD_ID = 1 << SHUFFLE_BIT    # set bit 5 of upper byte of board_id to 1=SHUFFLE (0x20000000)
 SAVE_BOARD_ID = 1 << SAVE_BIT          # set bit 4 of upper byte of board_id to 1=SAVE (0x10000000)
-
-
-
