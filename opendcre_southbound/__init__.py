@@ -226,7 +226,7 @@ def opendcre_scan(packet, bus, retry_count=0):
             RETRY_LIMIT.
     """
     response_dict = {'boards': []}
-    bus.write(packet.serialize)
+    bus.write(packet.serialize())
 
     try:
         response_packet = devicebus.DumpResponse(serial_reader=bus)

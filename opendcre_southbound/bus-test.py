@@ -46,6 +46,11 @@ EMULATORTTY = "/dev/ttyVapor001"
 ENDPOINTTTY = "/dev/ttyVapor002"
 EMULATOR_ENABLE = True
 
+# by default the log output of the tests will go to srdout. enabling the
+# log_to_file flag will instead output results to a file in /logs of the
+# container. this can be useful for debugging purposes.
+LOG_TO_FILE = False
+
 
 class ScanTestCase(unittest.TestCase):
     """
@@ -85,6 +90,7 @@ class ScanTestCase(unittest.TestCase):
             Test for one board.
         """
         r = requests.get(PREFIX + "/scan/00000001")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response["boards"]), 1)
 
@@ -107,6 +113,7 @@ class ScanTestCase(unittest.TestCase):
             Test for one board with many devices.
         """
         r = requests.get(PREFIX + "/scan/00000003")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response["boards"][0]["devices"]), 25)
 
@@ -116,6 +123,7 @@ class ScanTestCase(unittest.TestCase):
         """
         for x in range(5):
             r = requests.get(PREFIX + "/scan/00000001")
+            self.assertEqual(r.status_code, 200)
             response = json.loads(r.text)
             self.assertEqual(len(response["boards"]), 1)
 
@@ -212,6 +220,7 @@ class VersionTestCase(unittest.TestCase):
             Test simple version (valid board, valid version)
         """
         r = requests.get(PREFIX + "/version/00000001")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["firmware_version"], "Version Response 1")
 
@@ -229,6 +238,7 @@ class VersionTestCase(unittest.TestCase):
             Test empty version (valid board, empty version)
         """
         r = requests.get(PREFIX + "/version/00000003")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["firmware_version"], "")
 
@@ -238,6 +248,7 @@ class VersionTestCase(unittest.TestCase):
         """
         for x in range(5):
             r = requests.get(PREFIX + "/version/" + str(x + 4))
+            self.assertEqual(r.status_code, 200)
             response = json.loads(r.text)
             self.assertEqual(response["firmware_version"], "Version 0x0" + str(x + 1))
 
@@ -246,8 +257,8 @@ class VersionTestCase(unittest.TestCase):
             Data > 32 bytes (should be multiple packets but we cheat currently)
         """
         r = requests.get(PREFIX + "/version/00000009")
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
         self.assertEqual(response["firmware_version"], "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
 
     def test_006_bad_data(self):
@@ -335,6 +346,7 @@ class DeviceReadTestCase(unittest.TestCase):
             Get a zero value for each supported conversion method
         """
         r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 0)
         self.assertEqual(response["temperature_c"], 131.29)
@@ -347,6 +359,7 @@ class DeviceReadTestCase(unittest.TestCase):
             Get a midpoint value for each supported conversion method
         """
         r = requests.get(PREFIX + "/read/thermistor/00000001/04ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 32768)
         self.assertEqual(response["temperature_c"], -4173.97)
@@ -362,6 +375,7 @@ class DeviceReadTestCase(unittest.TestCase):
         self.assertEqual(r.status_code, 500)  # 65535 was the value
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 65534)
         self.assertAlmostEqual(response["temperature_c"], -8466.32, 1)
@@ -689,14 +703,17 @@ class EmulatorCounterTestCase(unittest.TestCase):
             increments sequentially.
         """
         r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 100)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 101)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 102)
 
@@ -708,18 +725,22 @@ class EmulatorCounterTestCase(unittest.TestCase):
             previous tests have incremented its counter.
         """
         r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 103)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 200)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/01ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 104)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 201)
 
@@ -731,18 +752,22 @@ class EmulatorCounterTestCase(unittest.TestCase):
             previous tests have incremented its counter.
         """
         r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 202)
 
         r = requests.get(PREFIX + "/read/thermistor/00000003/02ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 800)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/03ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 203)
 
         r = requests.get(PREFIX + "/read/thermistor/00000003/02ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 801)
 
@@ -753,54 +778,66 @@ class EmulatorCounterTestCase(unittest.TestCase):
             of the responses list differ.
         """
         r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 600)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 500)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 601)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 501)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 602)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 502)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 603)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 503)
 
         # counter should wrap back around here, since len(responses) has
         # been exceeded.
         r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 600)
 
         # counter should not wrap around for this device, since len(responses)
         # has not been exceeded
         r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 504)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0cff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 601)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/0aff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 505)
 
@@ -857,14 +894,17 @@ class EmulatorCounterTestCase(unittest.TestCase):
         # perform three requests on the thermistor to get the count different from
         # the start count of the power
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 300)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 301)
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 302)
 
@@ -875,6 +915,7 @@ class EmulatorCounterTestCase(unittest.TestCase):
         self.assertEqual(response["pmbus_raw"], "0,0,0,0")
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 303)
 
@@ -884,6 +925,7 @@ class EmulatorCounterTestCase(unittest.TestCase):
         self.assertEqual(response["pmbus_raw"], "64,0,0,0")
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 304)
 
@@ -893,6 +935,7 @@ class EmulatorCounterTestCase(unittest.TestCase):
         self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 305)
 
@@ -902,6 +945,7 @@ class EmulatorCounterTestCase(unittest.TestCase):
         self.assertEqual(response["pmbus_raw"], "2056,0,0,0")
 
         r = requests.get(PREFIX + "/read/thermistor/00000001/08ff")
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(response["device_raw"], 306)
 
@@ -1057,19 +1101,19 @@ class ByteProtocolTestCase(unittest.TestCase):
         """
         board_id = [0x01, 0x02, 0x03]
         with self.assertRaises(TypeError):
-            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+            devicebus.board_id_to_bytes(board_id)
 
         board_id = (0x01, 0x02, 0x03, 0x04)
         with self.assertRaises(TypeError):
-            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+            devicebus.board_id_to_bytes(board_id)
 
         board_id = float(0xf)
         with self.assertRaises(TypeError):
-            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+            devicebus.board_id_to_bytes(board_id)
 
         board_id = {0x01, 0x02, 0x03, 0x04}
         with self.assertRaises(TypeError):
-            board_id_bytes = devicebus.board_id_to_bytes(board_id)
+            devicebus.board_id_to_bytes(board_id)
 
     def test_007_board_id_join_bytes(self):
         """ Test converting a list of board_id bytes into its original value.
@@ -1270,12 +1314,11 @@ class ByteProtocolTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             devicebus.device_id_join_bytes(device_id_bytes)
 
+
 ################################################################################
 #                                                                              #
 #                           I P M I  T E S T S                                 #
 #                                                                              #
-################################################################################
-
 ################################################################################
 class BMCValidConfigTestCase01(unittest.TestCase):
     """
@@ -1293,7 +1336,7 @@ class BMCValidConfigTestCase01(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1314,6 +1357,7 @@ class BMCValidConfigTestCase01(unittest.TestCase):
 
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -1322,12 +1366,10 @@ class BMCValidConfigTestCase01(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that all of the entries are there - by doing a scan all.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -1339,19 +1381,18 @@ class BMCValidConfigTestCase01(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
             Ensure that power control returns a status.
         """
         r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
         self.assertEqual(response['power_ok'], True)
 
     def test_005_power_control_loop(self):
@@ -1360,8 +1401,8 @@ class BMCValidConfigTestCase01(unittest.TestCase):
         """
         for i in range(0, 5):
             r = requests.get(PREFIX + '/power/on/' + IPMIBOARD + "/1")
-            response = json.loads(r.text)
             self.assertEqual(r.status_code, 200)
+            response = json.loads(r.text)
             self.assertEqual(response['power_ok'], True)
 
     @classmethod
@@ -1394,6 +1435,7 @@ class BMCValidConfigTestCase01(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCValidConfigTestCase02(unittest.TestCase):
     """
@@ -1408,7 +1450,7 @@ class BMCValidConfigTestCase02(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc016.json'
@@ -1428,8 +1470,8 @@ class BMCValidConfigTestCase02(unittest.TestCase):
         """
         for i in range(0, 500):
             r = requests.get(PREFIX + '/power/status/' + IPMIBOARD + "/1")
-            response = json.loads(r.text)
             self.assertEqual(r.status_code, 200)
+            response = json.loads(r.text)
             self.assertEqual(response['power_ok'], True)
 
     @classmethod
@@ -1462,6 +1504,7 @@ class BMCValidConfigTestCase02(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCInValidConfigTestCase01(unittest.TestCase):
     """
@@ -1477,7 +1520,7 @@ class BMCInValidConfigTestCase01(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1498,6 +1541,7 @@ class BMCInValidConfigTestCase01(unittest.TestCase):
 
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 0)
@@ -1510,9 +1554,8 @@ class BMCInValidConfigTestCase01(unittest.TestCase):
 
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -1527,8 +1570,8 @@ class BMCInValidConfigTestCase01(unittest.TestCase):
 
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     @classmethod
     def tearDownClass(self):
@@ -1560,6 +1603,7 @@ class BMCInValidConfigTestCase01(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCInValidConfigTestCase02(unittest.TestCase):
     """
@@ -1575,7 +1619,7 @@ class BMCInValidConfigTestCase02(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1593,9 +1637,9 @@ class BMCInValidConfigTestCase02(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as the config was invalid.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 0)
@@ -1605,12 +1649,10 @@ class BMCInValidConfigTestCase02(unittest.TestCase):
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as config was invalid -
             via scan all.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -1622,11 +1664,10 @@ class BMCInValidConfigTestCase02(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     @classmethod
     def tearDownClass(self):
@@ -1658,6 +1699,7 @@ class BMCInValidConfigTestCase02(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCInValidConfigTestCase03(unittest.TestCase):
     """
@@ -1673,7 +1715,7 @@ class BMCInValidConfigTestCase03(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1691,9 +1733,9 @@ class BMCInValidConfigTestCase03(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as the config was invalid.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 0)
@@ -1703,12 +1745,10 @@ class BMCInValidConfigTestCase03(unittest.TestCase):
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as config was invalid -
             via scan all.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -1720,11 +1760,10 @@ class BMCInValidConfigTestCase03(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     @classmethod
     def tearDownClass(self):
@@ -1756,6 +1795,7 @@ class BMCInValidConfigTestCase03(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCInValidConfigTestCase04(unittest.TestCase):
     """
@@ -1771,7 +1811,7 @@ class BMCInValidConfigTestCase04(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1790,9 +1830,9 @@ class BMCInValidConfigTestCase04(unittest.TestCase):
             Ensure that the configuration file was picked up by the endpoint,
             and that one IPMI device is present, as the config was invalid, but
             not so much so to prevent initialization (extra field ignored).
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 1)
@@ -1803,12 +1843,10 @@ class BMCInValidConfigTestCase04(unittest.TestCase):
             and that one IPMI device is present, as the config was invalid, but
             not so much so to prevent initialization (extra field ignored) -
             via scan all.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -1820,11 +1858,10 @@ class BMCInValidConfigTestCase04(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     @classmethod
     def tearDownClass(self):
@@ -1856,6 +1893,7 @@ class BMCInValidConfigTestCase04(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCInValidConfigTestCase05(unittest.TestCase):
     """
@@ -1871,7 +1909,7 @@ class BMCInValidConfigTestCase05(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1889,9 +1927,9 @@ class BMCInValidConfigTestCase05(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as the config was invalid.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 0)
@@ -1901,12 +1939,10 @@ class BMCInValidConfigTestCase05(unittest.TestCase):
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as config was invalid -
             via scan all.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -1918,11 +1954,10 @@ class BMCInValidConfigTestCase05(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     @classmethod
     def tearDownClass(self):
@@ -1954,6 +1989,7 @@ class BMCInValidConfigTestCase05(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class BMCInValidConfigTestCase06(unittest.TestCase):
     """
@@ -1969,7 +2005,7 @@ class BMCInValidConfigTestCase06(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc007.json'
@@ -1987,9 +2023,9 @@ class BMCInValidConfigTestCase06(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as the config was invalid.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 0)
@@ -1999,12 +2035,10 @@ class BMCInValidConfigTestCase06(unittest.TestCase):
             Ensure that the configuration file was picked up by the endpoint,
             and that no IPMI devices are present, as config was invalid -
             via scan all.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2016,11 +2050,10 @@ class BMCInValidConfigTestCase06(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     @classmethod
     def tearDownClass(self):
@@ -2051,6 +2084,7 @@ class BMCInValidConfigTestCase06(unittest.TestCase):
                 subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
             except:
                 pass
+
 
 ################################################################################
 class VBMCNoCloseTestCase(unittest.TestCase):
@@ -2071,7 +2105,7 @@ class VBMCNoCloseTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc008.json'
@@ -2089,9 +2123,9 @@ class VBMCNoCloseTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2100,12 +2134,10 @@ class VBMCNoCloseTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2117,11 +2149,10 @@ class VBMCNoCloseTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2160,6 +2191,7 @@ class VBMCNoCloseTestCase(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class VBMCChassisErrorReturnTestCase(unittest.TestCase):
     """
@@ -2179,7 +2211,7 @@ class VBMCChassisErrorReturnTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc009.json'
@@ -2197,9 +2229,9 @@ class VBMCChassisErrorReturnTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2208,12 +2240,10 @@ class VBMCChassisErrorReturnTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2225,11 +2255,10 @@ class VBMCChassisErrorReturnTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2288,7 +2317,7 @@ class VBMCChannelAuthCapErrorTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc010.json'
@@ -2306,9 +2335,9 @@ class VBMCChannelAuthCapErrorTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2317,12 +2346,10 @@ class VBMCChannelAuthCapErrorTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2334,11 +2361,10 @@ class VBMCChannelAuthCapErrorTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2377,6 +2403,7 @@ class VBMCChannelAuthCapErrorTestCase(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class VBMCCloseErrorTestCase(unittest.TestCase):
     """
@@ -2396,7 +2423,7 @@ class VBMCCloseErrorTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc008.json'
@@ -2414,9 +2441,9 @@ class VBMCCloseErrorTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2425,12 +2452,10 @@ class VBMCCloseErrorTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2442,11 +2467,10 @@ class VBMCCloseErrorTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2485,6 +2509,7 @@ class VBMCCloseErrorTestCase(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class VBMCJunkDataTestCase(unittest.TestCase):
     """
@@ -2504,7 +2529,7 @@ class VBMCJunkDataTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc012.json'
@@ -2522,9 +2547,9 @@ class VBMCJunkDataTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2533,12 +2558,10 @@ class VBMCJunkDataTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2550,11 +2573,10 @@ class VBMCJunkDataTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2594,6 +2616,7 @@ class VBMCJunkDataTestCase(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class VBMCInvalidSessionTestCase(unittest.TestCase):
     """
@@ -2615,7 +2638,7 @@ class VBMCInvalidSessionTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc013.json'
@@ -2633,9 +2656,9 @@ class VBMCInvalidSessionTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2644,12 +2667,10 @@ class VBMCInvalidSessionTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2661,11 +2682,10 @@ class VBMCInvalidSessionTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2705,6 +2725,7 @@ class VBMCInvalidSessionTestCase(unittest.TestCase):
             except:
                 pass
 
+
 ################################################################################
 class VBMCNotEnoughDataTestCase(unittest.TestCase):
     """
@@ -2725,7 +2746,7 @@ class VBMCNotEnoughDataTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc015.json'
@@ -2743,9 +2764,9 @@ class VBMCNotEnoughDataTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2754,12 +2775,10 @@ class VBMCNotEnoughDataTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2771,11 +2790,10 @@ class VBMCNotEnoughDataTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2813,6 +2831,7 @@ class VBMCNotEnoughDataTestCase(unittest.TestCase):
                 subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
             except:
                 pass
+
 
 ################################################################################
 class VBMCTooMuchDataTestCase(unittest.TestCase):
@@ -2833,7 +2852,7 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
             the test.
         """
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test001.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             self.vBMCConfig = './opendcre_southbound/tests/vbmc014.json'
@@ -2851,9 +2870,9 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of BMC devices are present.
-
         """
         r = requests.get(PREFIX + '/scan/' + IPMIBOARD)
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 4)
@@ -2862,12 +2881,10 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
         """
             Ensure that the configuration file was picked up by the endpoint,
             and that the correct number of devices show up.
-
         """
         r = requests.get(PREFIX + '/scan')
+        self.assertEqual(r.status_code, 200)
         response = json.loads(r.text)
-        # there are 6 'boards' in emulator config, but only 3 are valid (the
-        # invalid ones do not have any devices, so are ignored by scan)
         self.assertEqual(len(response['boards']), 4)
         hasIpmiBoard = False
         for board in response['boards']:
@@ -2879,11 +2896,10 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
     def test_003_version(self):
         """
             Ensure that the IPMI module is returning for version.
-
         """
         r = requests.get(PREFIX + '/version/' + IPMIBOARD)
-        response = json.loads(r.text)
         self.assertEqual(r.status_code, 200)
+        json.loads(r.text)
 
     def test_004_power_control(self):
         """
@@ -2922,4 +2938,10 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
             except:
                 pass
 
-unittest.main()
+if __name__ == '__main__':
+    if LOG_TO_FILE:
+        with open('/logs/opendcre_bus-test.log', 'w') as f:
+            runner = unittest.TextTestRunner(f)
+            unittest.main(testRuner=runner)
+    else:
+        unittest.main()
