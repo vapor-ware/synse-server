@@ -670,8 +670,11 @@ def power_control(powerAction, boardNum, deviceNum):
             voltage_raw = int(pmbus_values[2])
             current_raw = int(pmbus_values[3])
         except ValueError:
-            abort(500)  # if we cannot convert the reading from bytes to
-                        # an integer, we cannot move forward
+            # unable to convert the reading from bytes to an integer
+            abort(500)
+        except IndexError:
+            # no value found where expected, in pmbus_values
+            abort(500)
 
         def convert_power_status(raw):
             if (raw >> 6 & 0x01) == 0x01:
