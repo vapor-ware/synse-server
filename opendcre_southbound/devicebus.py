@@ -28,7 +28,7 @@
 import logging
 import serial
 
-DEBUG = True
+DEBUG = False
 logger = logging.getLogger()
 
 

@@ -5,6 +5,7 @@
       "bmc_ip": "127.0.0.1",
       "username": "root",
       "password": "vapor",
-      "auth_type": "NONE"
+      "auth_type": "NONE",
+      "asset_info": "example BMC"
   ]
 }

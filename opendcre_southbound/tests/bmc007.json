@@ -5,28 +5,32 @@
       "bmc_ip": "127.0.0.1",
       "username": "root",
       "password": "vapor",
-      "auth_type": "NONE"
+      "auth_type": "NONE",
+      "asset_info": "example BMC"
     },
     {
       "bmc_device_id": 2,
       "bmc_ip": "127.0.0.1",
       "username": "root",
       "password": "vapor",
-      "auth_type": "MD2"
+      "auth_type": "MD2",
+      "asset_info": "example BMC"
     },
     {
       "bmc_device_id": 3,
       "bmc_ip": "127.0.0.1",
       "username": "root",
       "password": "vapor",
-      "auth_type": "MD5"
+      "auth_type": "MD5",
+      "asset_info": "example BMC"
     },
     {
       "bmc_device_id": 4,
       "bmc_ip": "127.0.0.1",
       "username": "root",
       "password": "vapor",
-      "auth_type": "PASWORD"
+      "auth_type": "PASWORD",
+      "asset_info": "example BMC"
     }
   ]
 }

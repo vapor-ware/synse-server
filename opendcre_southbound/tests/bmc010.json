@@ -4,7 +4,8 @@
       "bmc_device_id": 1,
       "bmc_ip": "127.0.0.1",
       "username": "root",
-      "password": "vapor"
+      "password": "vapor",
+      "asset info": "example BMC"
     }
   ]
 }
