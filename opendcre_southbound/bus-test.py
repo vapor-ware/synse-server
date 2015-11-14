@@ -76,16 +76,7 @@ class ScanTestCase(unittest.TestCase):
             self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
             time.sleep(6)  # wait for flask to be ready
 
-    def test_001_many_boards(self):
-        """
-            Test for many boards (24 to be exact)
-        """
-        r = requests.get(PREFIX + "/scan/ff")
-        # response = json.loads(r.text)
-        # self.assertEqual(len(response["boards"]), 24)
-        self.assertEqual(r.status_code, 500)  # currently not enabled in firmware
-
-    def test_002_one_boards(self):
+    def test_001_one_boards(self):
         """
             Test for one board.
         """
@@ -94,21 +85,25 @@ class ScanTestCase(unittest.TestCase):
         response = json.loads(r.text)
         self.assertEqual(len(response["boards"]), 1)
 
-    def test_003_no_boards(self):
+    def test_002_no_boards(self):
         """
             Test for no boards.
         """
         r = requests.get(PREFIX + "/scan/000000c8")
         self.assertEqual(r.status_code, 500)
+        # response = json.loads(r.text)
+        # self.assertEqual(len(response["boards"]), 0)
 
-    def test_004_no_devices(self):
+    def test_003_no_devices(self):
         """
             Test for one board with no devices.
         """
         r = requests.get(PREFIX + "/scan/00000002")
-        self.assertEqual(r.status_code, 500)  # should this really be so?
+        self.assertEqual(r.status_code, 500)
+        # response = json.loads(r.text)
+        # self.assertEqual(len(response["boards"]), 0)
 
-    def devices(self):
+    def test_004_many_devices(self):
         """
             Test for one board with many devices.
         """
@@ -117,7 +112,7 @@ class ScanTestCase(unittest.TestCase):
         response = json.loads(r.text)
         self.assertEqual(len(response["boards"][0]["devices"]), 25)
 
-    def test_006_many_requests(self):
+    def test_005_many_requests(self):
         """
             Test for one board many times.  Too many cooks.
         """
@@ -127,15 +122,17 @@ class ScanTestCase(unittest.TestCase):
             response = json.loads(r.text)
             self.assertEqual(len(response["boards"]), 1)
 
-    def test_007_extraneous_data(self):
+    def test_006_extraneous_data(self):
         """
             Get a valid packet but with a boxload of data.
             We should be happy and drop the extra data on the floor.
         """
         r = requests.get(PREFIX + "/scan/00000063")
         self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertEqual(len(response["boards"]), 1)
 
-    def test_008_invalid_data(self):
+    def test_007_invalid_data(self):
         """
             Get a valid packet but with bad data - checksum, trailer.
         """
@@ -147,13 +144,15 @@ class ScanTestCase(unittest.TestCase):
         r = requests.get(PREFIX + "/scan/00000065")
         self.assertEqual(r.status_code, 500)
 
-    def test_009_no_data(self):
+    def test_008_no_data(self):
         """
             Get no packet in return.
         """
         # TIMEOUT
         r = requests.get(PREFIX + "/scan/00000066")
         self.assertEqual(r.status_code, 500)
+        # response = json.loads(r.text)
+        # self.assertEqual(len(response["boards"]), 0)
 
     def test_010_bad_url(self):
         """
@@ -2938,10 +2937,11 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
             except:
                 pass
 
+
 if __name__ == '__main__':
     if LOG_TO_FILE:
         with open('/logs/opendcre_bus-test.log', 'w') as f:
             runner = unittest.TextTestRunner(f)
-            unittest.main(testRuner=runner)
+            unittest.main(testRunner=runner)
     else:
         unittest.main()

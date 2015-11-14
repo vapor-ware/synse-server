@@ -54,3 +54,10 @@ class BusCommunicationError(Exception):
     ChecksumException retry limit is reached, this exception should be thrown.
     """
     pass
+
+
+class BusReadError(Exception):
+    """ Exception raised when constructing a DeviceBusPacket with serial reader, and
+    no additional data can be read from the bus.
+    """
+    pass
