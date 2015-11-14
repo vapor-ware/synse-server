@@ -456,7 +456,7 @@ def read_asset_info(deviceType, boardNum, deviceNum):
     except ValueError:
         abort(500)
 
-    if deviceType not 'power':
+    if deviceType != 'power':
         abort(500)  # only 'power' devices supported
 
     with LockFile(LOCKFILE):
@@ -491,7 +491,7 @@ def read_asset_info(deviceType, boardNum, deviceNum):
             "device_id": device_id_to_hex_string(deviceNum),
             "asset_info": rair.asset_info})
 
-@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<string:boardNum>/<string:deviceNum>/<string:assetInfo>", methods=['GET'])
+@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<string:boardNum>/<string:deviceNum>/info/<string:assetInfo>", methods=['GET'])
 def write_asset_info(deviceType, boardNum, deviceNum, assetInfo):
     """ Write asset infor for a given device (so long as supported).
 
@@ -515,7 +515,7 @@ def write_asset_info(deviceType, boardNum, deviceNum, assetInfo):
     except ValueError:
         abort(500)
 
-    if deviceType not 'power':
+    if deviceType != 'power':
         abort(500)  # only 'power' devices supported
 
     with LockFile(LOCKFILE):
