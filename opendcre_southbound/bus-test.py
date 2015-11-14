@@ -1288,8 +1288,8 @@ class ReadAssetInfoTestCase(unittest.TestCase):
             self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
             time.sleep(6)  # waiting for flask to be ready
 
-    def test_001(self):
-        """
+    def test_001_read_asset_info(self):
+        """ Test reading the asset info off of a board
         """
         r = requests.get(PREFIX + "/read/power/00000001/01ff/info")
         self.assertEqual(r.status_code, 200)
@@ -1300,6 +1300,199 @@ class ReadAssetInfoTestCase(unittest.TestCase):
         self.assertEqual(response["asset_info"], "example power")
         self.assertEqual(response["board_id"], "00000001")
         self.assertEqual(response["device_id"], "01ff")
+
+    def test_002_read_asset_info(self):
+        """ Test reading the asset info off of a board with different values
+        """
+        r = requests.get(PREFIX + "/read/power/00000001/02ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "example power")
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "02ff")
+
+    def test_003_read_asset_info(self):
+        """ Test reading the asset info off of a different board
+        """
+        r = requests.get(PREFIX + "/read/power/00000002/01ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "example power")
+        self.assertEqual(response["board_id"], "00000002")
+        self.assertEqual(response["device_id"], "01ff")
+
+    def test_004_read_asset_info_invalid_params(self):
+        """ Test reading the asset info, providing invalid parameters
+        """
+        r = requests.get(PREFIX + "/read/power/000000fg/01ff/info")
+        self.assertEqual(r.status_code, 500)
+
+    def test_005_read_asset_info_invalid_params(self):
+        """ Test reading the asset info, providing invalid parameters
+        """
+        r = requests.get(PREFIX + "/read/power/0000000f/bad-id/info")
+        self.assertEqual(r.status_code, 500)
+
+    def test_006_read_asset_unsupported(self):
+        """ Test reading the asset info off of an unsupported device
+        """
+        r = requests.get(PREFIX + "/read/thermistor/00000003/01ff/info")
+        self.assertEqual(r.status_code, 500)
+
+
+class WriteAssetInfoTestCase(unittest.TestCase):
+    """
+        Test writing asset info
+    """
+    @classmethod
+    def setUpClass(self):
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # waiting for flask to be ready
+
+    def test_001_write_asset_info(self):
+        """ Test writing the asset info to a board's device.
+
+        This depends on the read asset info to work, since we want to  verify that
+        the value did actually change.
+        """
+        r = requests.get(PREFIX + "/read/power/00000001/01ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "example power")
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "01ff")
+
+        r = requests.get(PREFIX + "/write/power/00000001/01ff/info/write test")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "write test")
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "01ff")
+
+        r = requests.get(PREFIX + "/read/power/00000001/01ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "write test")
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "01ff")
+
+    def test_002_write_asset_info(self):
+        """ Test writing the asset info to a board's device.
+
+        This depends on the read asset info to work, since we want to  verify that
+        the value did actually change.
+        """
+        r = requests.get(PREFIX + "/read/power/00000002/01ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "example power")
+        self.assertEqual(response["board_id"], "00000002")
+        self.assertEqual(response["device_id"], "01ff")
+
+        r = requests.get(PREFIX + "/write/power/00000002/01ff/info/write test")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "write test")
+        self.assertEqual(response["board_id"], "00000002")
+        self.assertEqual(response["device_id"], "01ff")
+
+        r = requests.get(PREFIX + "/read/power/00000002/01ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "write test")
+        self.assertEqual(response["board_id"], "00000002")
+        self.assertEqual(response["device_id"], "01ff")
+
+    def test_003_write_asset_info(self):
+        """ Test writing the asset info to a board's device. In this case, the
+        asset info will be too long, so we expect the return to be truncated
+
+        This depends on the read asset info to work, since we want to  verify that
+        the value did actually change.
+        """
+        r = requests.get(PREFIX + "/read/power/00000001/02ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "example power")
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "02ff")
+
+        asset_info = '0123456789' * 13
+        truncated_info = asset_info[:127]
+
+        r = requests.get(PREFIX + "/write/power/00000001/02ff/info/" + asset_info)
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], truncated_info)
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "02ff")
+
+        r = requests.get(PREFIX + "/read/power/00000001/02ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], truncated_info)
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "02ff")
+
+    def test_004_write_asset_info_invalid_params(self):
+        """ Test writing the asset info, providing invalid parameters
+        """
+        r = requests.get(PREFIX + "/write/power/000000fg/01ff/info/test-data")
+        self.assertEqual(r.status_code, 500)
+
+    def test_005_write_asset_info_invalid_params(self):
+        """ Test writing the asset info, providing invalid parameters
+        """
+        r = requests.get(PREFIX + "/write/power/0000000f/bad-id/info/test-data")
+        self.assertEqual(r.status_code, 500)
+
+    def test_006_write_asset_unsupported(self):
+        """ Test writing the asset info to an unsupported device
+        """
+        r = requests.get(PREFIX + "/write/thermistor/00000003/01ff/info/test-data")
+        self.assertEqual(r.status_code, 500)
+
 
 
 ################################################################################

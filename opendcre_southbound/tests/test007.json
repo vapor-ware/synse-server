@@ -12,6 +12,66 @@
             "repeatable": true,
             "responses": [ "0,0,0,0", "64,0,0,0", "2048,0,0,0" ]
           }
+        },
+        {
+          "device_id": "02ff",
+          "device_type": "power",
+          "asset_info": "example power",
+          "power": {
+            "repeatable": false,
+            "responses": [ "0,0,0,0" ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000002",
+      "firmware_version": "OpenDCRE Emulator v1.1.0",
+      "devices": [
+        {
+          "device_id": "01ff",
+          "device_type": "power",
+          "asset_info": "example power",
+          "power": {
+            "repeatable": true,
+            "responses": [ "0,0,0,0", "64,0,0,0", "2048,0,0,0" ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000003",
+      "firmware_version": "OpenDCRE Emulator v1.1.0",
+      "devices": [
+        {
+          "device_id": "01ff",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656,
+              646,
+              636,
+              625,
+              615,
+              605,
+              594,
+              584,
+              573,
+              563,
+              553,
+              542,
+              532,
+              522,
+              512,
+              502,
+              491,
+              482,
+              472,
+              462,
+              452
+            ]
+          }
         }
       ]
     }

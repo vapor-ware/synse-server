@@ -268,8 +268,37 @@ def main(emulatorDevice):
                                     _count %= len(device["power"]["responses"])
                                 device["power"]["_count"] = _count
                                 pass
+                    # otherwise, no response
 
-        # otherwise, no response
+        elif cmd == 'W':
+            # ======================> WRITE <======================
+            # first, determine what kind of a read we are dealing with
+            if len(packet.data) == 1:
+                # unsupported read
+                pass
+
+            else:
+                # write asset info
+                write_type = chr(packet.data[1])
+                if write_type == 'I':
+                    wai = devicebus.WriteAssetInfoCommand(bytes=packet.serialize())
+                    for board in configuration["boards"]:
+                        if board_ids_match(board, wai):
+                            for device in board["devices"]:
+                                if device_ids_match(device, wai) and (device["device_type"] == devicebus.get_device_type_name(wai.device_type)):
+                                    # update the asset info field
+                                    device["asset_info"] = ''.join([chr(x) for x in wai.data])
+                                    # now we can craft a response
+                                    wair = devicebus.WriteAssetInfoResponse(
+                                        board_id=board["board_id"],
+                                        device_id=device["device_id"],
+                                        device_type=devicebus.get_device_type_code(device["device_type"]),
+                                        asset_info=device["asset_info"]
+                                    )
+                                    emulator.write(wair.serialize())
+                                    emulator.flush()
+                    # otherwise, no response
+
         else:
             # ======================> UNKNOWN <======================
             pass
