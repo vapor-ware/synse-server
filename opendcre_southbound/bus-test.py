@@ -1270,6 +1270,38 @@ class ByteProtocolTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             devicebus.device_id_join_bytes(device_id_bytes)
 
+
+class ReadAssetInfoTestCase(unittest.TestCase):
+    """
+        Test reading asset info
+    """
+    @classmethod
+    def setUpClass(self):
+        if EMULATOR_ENABLE:
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
+            self.emulatortty = EMULATORTTY
+            self.endpointtty = ENDPOINTTTY
+            socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
+            socatarg2 = "PTY,link=" + self.endpointtty + ",mode=666"
+            self.p3 = subprocess.Popen(["socat", socatarg1, socatarg2], preexec_fn=os.setsid)
+            self.p2 = subprocess.Popen(["./opendcre_southbound/devicebus_emulator.py", self.emulatortty, self.emulatorConfiguration], preexec_fn=os.setsid)
+            self.p = subprocess.Popen(["./start_opendcre.sh", self.endpointtty], preexec_fn=os.setsid)
+            time.sleep(6)  # waiting for flask to be ready
+
+    def test_001(self):
+        """
+        """
+        r = requests.get(PREFIX + "/read/power/00000001/01ff/info")
+        self.assertEqual(r.status_code, 200)
+        response = json.loads(r.text)
+        self.assertIn("asset_info", response)
+        self.assertIn("board_id", response)
+        self.assertIn("device_id", response)
+        self.assertEqual(response["asset_info"], "example power")
+        self.assertEqual(response["board_id"], "00000001")
+        self.assertEqual(response["device_id"], "01ff")
+
+
 ################################################################################
 #                                                                              #
 #                           I P M I  T E S T S                                 #
@@ -2921,5 +2953,6 @@ class VBMCTooMuchDataTestCase(unittest.TestCase):
                 subprocess.call(["/bin/kill", "-s TERM `cat /var/run/nginx.pid`"])
             except:
                 pass
+
 
 unittest.main()

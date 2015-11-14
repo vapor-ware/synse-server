@@ -1,0 +1,19 @@
+{
+  "boards": [
+    {
+      "board_id": "00000001",
+      "firmware_version": "OpenDCRE Emulator v1.1.0",
+      "devices": [
+        {
+          "device_id": "01ff",
+          "device_type": "power",
+          "asset_info": "example power",
+          "power": {
+            "repeatable": true,
+            "responses": [ "0,0,0,0", "64,0,0,0", "2048,0,0,0" ]
+          }
+        }
+      ]
+    }
+  ]
+}

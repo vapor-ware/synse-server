@@ -48,7 +48,7 @@ import vapor_ipmi
 
 PREFIX = "/opendcre/"  # URL prefix for REST access
 SERIAL_DEFAULT = "/dev/ttyAMA0"  # default serial device to use for bus
-DEBUG = False  # set to False to disable extra logging
+DEBUG = True  # set to False to disable extra logging
 LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
 
 IPMIFILE = "bmc_config.json"  # BMC settings for IPMI module
@@ -450,17 +450,21 @@ def read_asset_info(deviceType, boardNum, deviceNum):
     Raises:
         Returns a 500 error if the read asset info command fails.
     """
+    logger.debug("================== READ ASSET INFO =======================")
     try:
         boardNum = int(boardNum, 16)
         deviceNum = int(deviceNum, 16)
     except ValueError:
+        logger.debug("failed type conversion for boardNum/deviceNum")
         abort(500)
 
     if deviceType != 'power':
+        logger.debug("device type is not 'power'")
         abort(500)  # only 'power' devices supported
 
     with LockFile(LOCKFILE):
         if is_ipmi_board(boardNum):
+            logger.debug('found IPMI board')
             if is_ipmi_device(deviceNum):
                 try:
                     bmc_info = ipmi_get_bmc_info(boardNum, deviceNum)
@@ -473,6 +477,7 @@ def read_asset_info(deviceType, boardNum, deviceNum):
             else:
                 abort(500)  # invalid IPMI device specified
 
+        logger.debug("Non-IPMI board...")
         bus = devicebus.initialize(app.config["SERIAL"])
         src = devicebus.ReadAssetInfoCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
                                           device_type=devicebus.get_device_type_code(deviceType.lower()))
@@ -483,6 +488,7 @@ def read_asset_info(deviceType, boardNum, deviceNum):
         try:
             rair = devicebus.ReadAssetInfoResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
+            logger.debug("encounterd BusTimeoutException")
             abort(500)
 
         logger.debug(" * FLASK (asset read) <<: " + str([hex(x) for x in rair.serialize()]))

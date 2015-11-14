@@ -28,7 +28,7 @@
 import logging
 import serial
 
-DEBUG = False
+DEBUG = True
 logger = logging.getLogger()
 
 
@@ -92,7 +92,8 @@ class DeviceBusPacket(object):
                 # now make the packet
                 # print [hex(x) for x in bytes]
                 self.deserialize(serialbytes)
-            except Exception:
+            except Exception as e:
+                logger.exception(e)
                 # yes, this is a catchall exception, however:
                 # if something bad happened, it is related to reading
                 # junk or nothing at all from the bus.  in either case, we can

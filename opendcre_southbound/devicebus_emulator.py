@@ -176,36 +176,59 @@ def main(emulatorDevice):
 
         elif cmd == 'R':
             # ======================> READ <======================
-            rc = devicebus.DeviceReadCommand(bytes=packet.serialize())
-            for board in configuration["boards"]:
-                if board_ids_match(board, rc):
-                    for device in board["devices"]:
-                        if device_ids_match(device, rc) and (device["device_type"] == devicebus.get_device_type_name(rc.device_type)):
-                            # now we can craft a response
-                            responses_length = len(device["read"]["responses"])
-                            # get the responses counter
-                            _count = device["read"]["_count"] if "_count" in device["read"] else 0
-                            if responses_length > 0 and _count < responses_length:
-                                if isinstance(device["read"]["responses"][_count], list):
-                                    # we are sending raw bytes
-                                    emulator.write(device["read"]["responses"][_count])
-                                    emulator.flush()
-                                elif device["read"]["responses"][_count] is not None:
-                                    # we are sending back a device reading
-                                    reading = [ord(x) for x in str(device["read"]["responses"][_count])]
-                                    rr = devicebus.DeviceReadResponse(device_reading=reading)
-                                    emulator.write(rr.serialize())
-                                    emulator.flush()
-                                else:
-                                    # otherwise, we do not send a response
+            # first, determine what kind of a read we are dealing with
+            if len(packet.data) == 1:
+                # data -> ["R"] : Read Command
+                rc = devicebus.DeviceReadCommand(bytes=packet.serialize())
+                for board in configuration["boards"]:
+                    if board_ids_match(board, rc):
+                        for device in board["devices"]:
+                            if device_ids_match(device, rc) and (device["device_type"] == devicebus.get_device_type_name(rc.device_type)):
+                                # now we can craft a response
+                                responses_length = len(device["read"]["responses"])
+                                # get the responses counter
+                                _count = device["read"]["_count"] if "_count" in device["read"] else 0
+                                if responses_length > 0 and _count < responses_length:
+                                    if isinstance(device["read"]["responses"][_count], list):
+                                        # we are sending raw bytes
+                                        emulator.write(device["read"]["responses"][_count])
+                                        emulator.flush()
+                                    elif device["read"]["responses"][_count] is not None:
+                                        # we are sending back a device reading
+                                        reading = [ord(x) for x in str(device["read"]["responses"][_count])]
+                                        rr = devicebus.DeviceReadResponse(device_reading=reading)
+                                        emulator.write(rr.serialize())
+                                        emulator.flush()
+                                    else:
+                                        # otherwise, we do not send a response
+                                        pass
+                                    # now increment index into our responses, and wrap it if
+                                    # we are repeatable
+                                    _count += 1
+                                    if device["read"]["repeatable"]:
+                                        _count %= len(device["read"]["responses"])
+                                    device["read"]["_count"] = _count
                                     pass
-                                # now increment index into our responses, and wrap it if
-                                # we are repeatable
-                                _count += 1
-                                if device["read"]["repeatable"]:
-                                    _count %= len(device["read"]["responses"])
-                                device["read"]["_count"] = _count
-                                pass
+
+            else:
+                read_type = chr(packet.data[1])
+                if read_type == 'I':
+                    # data -> ["R", "I"] : Read Asset Info
+                    rai = devicebus.ReadAssetInfoCommand(bytes=packet.serialize())
+                    for board in configuration["boards"]:
+                        if board_ids_match(board, rai):
+                            for device in board["devices"]:
+                                if device_ids_match(device, rai) and (device["device_type"] == devicebus.get_device_type_name(rai.device_type)):
+                                    # now we can craft a response
+                                    rair = devicebus.ReadAssetInfoResponse(
+                                        board_id=board["board_id"],
+                                        device_id=device["device_id"],
+                                        device_type=devicebus.get_device_type_code(device["device_type"]),
+                                        asset_info=device["asset_info"]
+                                    )
+                                    emulator.write(rair.serialize())
+                                    emulator.flush()
+                    # otherwise, no response
 
         elif cmd == 'P':
             # ======================> POWER CONTROL <======================
