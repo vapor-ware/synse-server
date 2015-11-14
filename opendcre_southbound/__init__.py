@@ -382,7 +382,7 @@ def read_device(deviceType, boardNum, deviceNum):
         Interpreted and raw device reading, based on the specified device type.
 
     Raises:
-        Returns a 500 error if the scan command fails.
+        Returns a 500 error if the read command fails.
     """
     try:
         boardNum = int(boardNum, 16)
@@ -429,6 +429,117 @@ def read_device(deviceType, boardNum, deviceNum):
             # caught when the request is sent over the bus
             return jsonify({"device_raw": device_raw})
 
+@app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<string:boardNum>/<string:deviceNum>/info", methods=['GET'])
+def read_asset_info(deviceType, boardNum, deviceNum):
+    """ Get asset information for the given board and port and device type.
+    Currently, only 'power' type devices are supported.
+
+    Args:
+        deviceType (str): corresponds to the type of device to get a reading for.
+            It must match the actual type of device that is present on the bus,
+            and is used to interpret the raw device reading.  Only 'power' type
+            devices are supported.
+        boardNum (str): specifies which board to get the asset info from.
+        deviceNum (str): specifies which device should be polled
+            for asset info.
+
+    Returns:
+        Asset information string, along with board and device number.  For IPMI
+        devices, also returns BMC IP.
+
+    Raises:
+        Returns a 500 error if the read asset info command fails.
+    """
+    try:
+        boardNum = int(boardNum, 16)
+        deviceNum = int(deviceNum, 16)
+    except ValueError:
+        abort(500)
+
+    if deviceType not 'power':
+        abort(500)  # only 'power' devices supported
+
+    with LockFile(LOCKFILE):
+        if is_ipmi_board(boardNum):
+            if is_ipmi_device(deviceNum):
+                try:
+                    bmc_info = ipmi_get_bmc_info(boardNum, deviceNum)
+                    return jsonify({'board_id': board_id_to_hex_string(boardNum),
+                        'device_id': device_id_to_hex_string(deviceNum),
+                        'asset_info': bmc_info['asset_info'],
+                        'bmc_ip': bmc_info['bmc_ip']})
+                except:
+                    abort(500)  # unrecoverable error
+            else:
+                abort(500)  # invalid IPMI device specified
+
+        bus = devicebus.initialize(app.config["SERIAL"])
+        src = devicebus.ReadAssetInfoCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                          device_type=devicebus.get_device_type_code(deviceType.lower()))
+        bus.write(src.serialize())
+
+        logger.debug(" * FLASK (asset read) >>: " + str([hex(x) for x in src.serialize()]))
+
+        try:
+            rair = devicebus.ReadAssetInfoResponse(serial_reader=bus)
+        except devicebus.BusTimeoutException:
+            abort(500)
+
+        logger.debug(" * FLASK (asset read) <<: " + str([hex(x) for x in rair.serialize()]))
+
+        return jsonify({"board_id": board_id_to_hex_string(boardNum),
+            "device_id": device_id_to_hex_string(deviceNum),
+            "asset_info": rair.asset_info})
+
+@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<string:boardNum>/<string:deviceNum>/<string:assetInfo>", methods=['GET'])
+def write_asset_info(deviceType, boardNum, deviceNum, assetInfo):
+    """ Write asset infor for a given device (so long as supported).
+
+    Args:
+        deviceType (str): corresponds to the type of device to write to - must
+            match the actual type of device that is present on the bus.  Only
+            'power' type device supported for non-IPMI boards.
+        boardNum (str): specifies which board to write to.
+        deviceNum (str): specifies which device to write to.
+        assetInfo (str): the asset information to write (127 characters or less)
+
+    Returns:
+        Board, device and asset information upon success.
+
+    Raises:
+        Returns a 500 error if the write command fails.
+    """
+    try:
+        boardNum = int(boardNum, 16)
+        deviceNum = int(deviceNum, 16)
+    except ValueError:
+        abort(500)
+
+    if deviceType not 'power':
+        abort(500)  # only 'power' devices supported
+
+    with LockFile(LOCKFILE):
+        if is_ipmi_board(boardNum):
+                abort(500)  # write to IPMI asset info not supported
+
+        bus = devicebus.initialize(app.config["SERIAL"])
+        src = devicebus.WriteAssetInfoCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                          device_type=devicebus.get_device_type_code(deviceType.lower()),
+                                          asset_info=assetInfo[0:127])
+        bus.write(src.serialize())
+
+        logger.debug(" * FLASK (asset write) >>: " + str([hex(x) for x in src.serialize()]))
+
+        try:
+            wair = devicebus.WriteAssetInfoResponse(serial_reader=bus)
+        except devicebus.BusTimeoutException:
+            abort(500)
+
+        logger.debug(" * FLASK (asset write) <<: " + str([hex(x) for x in wair.serialize()]))
+
+        return jsonify({"board_id": board_id_to_hex_string(boardNum),
+            "device_id": device_id_to_hex_string(deviceNum),
+            "asset_info": wair.asset_info})
 
 @app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
 def write_device(deviceType, boardNum, deviceNum):
@@ -626,7 +737,7 @@ def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
         app.config['bmcs'] = json.loads(ipmifile.read())
         # validate schema of each BMC:
         for bmc in app.config['bmcs']['bmcs']:
-            for key in ['bmc_device_id', 'bmc_ip', 'username', 'password', 'auth_type']:
+            for key in ['bmc_device_id', 'bmc_ip', 'username', 'password', 'auth_type', 'asset_info']:
                 if key not in bmc:
                     raise Exception('Key ' + key + ' missing from BMC configuration.')
     except IOError as e:

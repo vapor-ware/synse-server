@@ -314,7 +314,6 @@ class VersionResponse(DeviceBusPacket):
         else:
             raise BusDataException("VersionResponse requires serial_reader, bytes, or a versionString.")
 
-
 class DeviceReadCommand(DeviceBusPacket):
     """
     DeviceReadCommand is a special DeviceBusPacket that has a data field of 'R'
@@ -339,7 +338,6 @@ class DeviceReadCommand(DeviceBusPacket):
         else:
             super(DeviceReadCommand, self).__init__(sequence=sequence, device_type=device_type, board_id=board_id,
                                                     device_id=device_id, data=[ord('R')])
-
 
 class DeviceReadResponse(DeviceBusPacket):
     """
@@ -368,6 +366,134 @@ class DeviceReadResponse(DeviceBusPacket):
         else:
             raise BusDataException("DeviceReadResponse requires serial_reader, bytes or device_reading.")
 
+class ReadAssetInfoCommand(DeviceBusPacket):
+    """
+    ReadAssetInfoCommand is a special DeviceBusPacket that has a data field of
+    'RI' and is used to retrieve the asset_info of a given board_id, device_id,
+    device_type combination.
+    """
+    def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None,
+                 sequence=0x01, device_type=0xFF, device_id=0xFFFF):
+        """
+        Three ways to initialize the command - it may be read, when expected,
+        via a serial reader (via serial_reader - e.g. for testing with the
+        emulator). Alternately, a byte buffer (bytes) may be given to the
+        constructor, which is deserialized and populates the appropriate fields
+        of the object. Finally, a ReadAssetInfoCommand may be constructed from a
+        board_id, device_type and device_id (and sequence number) - this is what
+        is most likely to be used by a client application (e.g. the flask server).
+        """
+        if serial_reader is not None:
+            super(ReadAssetInfoCommand, self).__init__(serial_reader=serial_reader)
+        elif bytes is not None:
+            super(ReadAssetInfoCommand, self).__init__(bytes=bytes)
+        else:
+            super(ReadAssetInfoCommand, self).__init__(sequence=sequence,
+                device_type=device_type, board_id=board_id, device_id=device_id,
+                data=[ord('R'), ord('I')])
+
+class ReadAssetInfoResponse(DeviceBusPacket):
+    """
+    ReadAssetInfoResponse is a special DeviceBusPacket that has a data field
+    containing the asset info string for a given device.
+    """
+    def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None,
+                sequence=0x01, device_type=0xFF, device_id=0xFFFF,
+                asset_info=None):
+        """
+        Three ways to initialize the response - it may be read, when expected,
+        via a serial reader (via serial_reader - e.g. for use in client apps
+        that expect a response over serial, such as the flask server).
+        Alternately, a byte buffer (bytes) may be given to the constructor,
+        which is deserialized and populates the appropriate fields of the
+        object. Finally, a ReadAssetInfoResponse may be constructed from a
+        board_id, sequence number and asset_info - this is what is most
+        likely to be used when simulating responses (e.g. in the emulator).
+        """
+        if serial_reader is not None:
+            super(ReadAssetInfoResponse, self).__init__(serial_reader=serial_reader)
+            self.asset_info = ""
+            for x in self.data:
+                self.asset_info += chr(x)
+        elif bytes is not None:
+            super(ReadAssetInfoResponse, self).__init__(bytes=bytes)
+            self.asset_info = ""
+            for x in self.data:
+                self.asset_info += chr(x)
+        elif asset_info is not None:
+            data = [ord(x) for x in asset_info]
+            super(ReadAssetInfoResponse, self).__init__(sequence=sequence,
+                device_type=device_type, board_id=board_id,
+                device_id=device_id, data=data)
+            self.asset_info = asset_info
+        else:
+            raise BusDataException("ReadAssetInfoResponse requires serial_reader, bytes, or an asset_info.")
+
+class WriteAssetInfoCommand(DeviceBusPacket):
+    """
+    WriteAssetInfoCommand is a special DeviceBusPacket used to write asset info
+    for a given board_id, device_id, device_type combination.
+    """
+    def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None,
+                    sequence=0x01, device_type=0xFF, device_id=0xFFFF,
+                    asset_info=None):
+        """
+        Three ways to initialize the command - it may be read, when expected,
+        via a serial reader (via serial_reader - e.g. for testing with the
+        emulator). Alternately, a byte buffer (bytes) may be given to the
+        constructor, which is deserialized and populates the appropriate fields
+        of the object. Finally, a WriteAssetInfoCommand may be constructed from
+        a board_id, device_type and device_id, asset_info (and sequence number)
+        - this is what is most likely to be used by a client application (e.g.
+        the flask server).
+        """
+        if serial_reader is not None:
+            super(WriteAssetInfoCommand, self).__init__(serial_reader=serial_reader)
+        elif bytes is not None:
+            super(WriteAssetInfoCommand, self).__init__(bytes=bytes)
+        else:
+            cmdData = [ord('W'),ord('I')]
+            for c in asset_info:
+                cmdData.append(ord(c))
+            super(WriteAssetInfoCommand, self).__init__(sequence=sequence,
+                device_type=device_type, board_id=board_id, device_id=device_id,
+                data=cmdData)
+
+class WriteAssetInfoResponse(DeviceBusPacket):
+    """
+    WriteAssetInfoResponse is a special DeviceBusPacket that indicates whether
+    an asset info write succeeded or not.
+    """
+    def __init__(self, serial_reader=None, board_id=0x00000000, bytes=None, sequence=0x01,
+                device_type=0xFF, device_id=0xFFFF, asset_info=None):
+        """
+        Three ways to initialize the response - it may be read, when expected,
+        via a serial reader (via serial_reader - e.g. for use in client apps
+        that expect a response over serial, such as the flask server).
+        Alternately, a byte buffer (bytes) may be given to the constructor,
+        which is deserialized and populates the appropriate fields of the
+        object. Finally, a WriteAssetInfoResponse may be constructed from a
+        board_id, sequence number and asset_info - this is what is most likely
+        to be used when simulating responses (e.g. in the emulator).
+        """
+        if serial_reader is not None:
+            super(WriteAssetInfoResponse, self).__init__(serial_reader=serial_reader)
+            self.asset_info = ""
+            for x in self.data:
+                self.asset_info += chr(x)
+        elif bytes is not None:
+            super(WriteAssetInfoResponse, self).__init__(bytes=bytes)
+            self.asset_info = ""
+            for x in self.data:
+                self.asset_info += chr(x)
+        elif asset_info is not None:
+            data = [ord(x) for x in asset_info]
+            super(WriteAssetInfoResponse, self).__init__(sequence=sequence,
+                device_type=device_type, board_id=board_id,
+                device_id=device_id, data=data)
+            self.asset_info = asset_info
+        else:
+            raise BusDataException("WriteAssetInfoResponse requires serial_reader, bytes, or an asset_info.")
 
 class PowerControlCommand(DeviceBusPacket):
     """
