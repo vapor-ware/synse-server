@@ -39,6 +39,7 @@ from flask import Flask
 from flask import jsonify
 from flask import abort
 from lockfile import LockFile  # for sync on the serial bus
+from uuid import getnode as get_mac_addr
 
 from version import __version__  # full opendcre version
 from version import __api_version__  # major.minor API version
@@ -57,6 +58,7 @@ LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
 IPMIFILE = "bmc_config.json"  # BMC settings for IPMI module
 
 RETRY_LIMIT = 3  # number of times to retry sending a packet if the checksum validation fails
+TIME_SLICE = 75  # time in ms 
 
 app = Flask(__name__)
 logger = logging.getLogger()
@@ -387,7 +389,11 @@ def scan_all():
     """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        dc = devicebus.DumpCommand(board_id=SCAN_ALL_BOARD_ID, sequence=next(_count))
+
+        mac_addr = str(get_mac_addr())
+        id_bytes = [int(mac_addr[i:i+2], 16) for i in range(len(mac_addr)-4, len(mac_addr), 2)]
+        board_id = SCAN_ALL_BOARD_ID + (id_bytes[0] << 16) + (id_bytes[1] << 8) + TIME_SLICE
+        dc = devicebus.DumpCommand(board_id=board_id, sequence=next(_count))
         response_dict = opendcre_scan(dc, bus)
 
         # now scan IPMI based on configuration
