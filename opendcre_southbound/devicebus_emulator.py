@@ -286,8 +286,11 @@ def main(emulatorDevice):
                         if board_ids_match(board, wai):
                             for device in board["devices"]:
                                 if device_ids_match(device, wai) and (device["device_type"] == devicebus.get_device_type_name(wai.device_type)):
-                                    # update the asset info field
-                                    device["asset_info"] = ''.join([chr(x) for x in wai.data])
+                                    # update the asset info field - here we slice wai.data from the 2nd
+                                    # index until the end, because the first two byte contain the "W" "I"
+                                    # commands which tell us this is an asset write. the remaining bytes
+                                    # are the payload for what gets updated.
+                                    device["asset_info"] = ''.join([chr(x) for x in wai.data[2:]])
                                     # now we can craft a response
                                     wair = devicebus.WriteAssetInfoResponse(
                                         board_id=board["board_id"],
