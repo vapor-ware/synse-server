@@ -353,22 +353,10 @@ def get_board_version(boardNum):
 
         logger.debug(" * FLASK (version) >>: " + str([hex(x) for x in vc.serialize()]))
 
-        # attempt getting a VersionResponse off the bus. if there is some kind of
-        # error caused by corruption/invalid data, retry the configured amount of
-        # times before giving up.
-        for attempt in xrange(RETRY_LIMIT):
-            try:
-                vr = devicebus.VersionResponse(serial_reader=bus)
-            except BusTimeoutException:
-                abort(500)
-            except (BusDataException, ChecksumException):
-                bus.flushInput()
-                bus.flushOutput()
-                pass
-            else:
-                break
-        else:
-            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+        try:
+            vr = devicebus.VersionResponse(serial_reader=bus)
+        except (BusTimeoutException, BusDataException, ChecksumException):
+            abort(500)
 
         logger.debug(" * FLASK (version) <<: " + str([hex(x) for x in vr.serialize()]))
 
@@ -466,22 +454,10 @@ def read_device(deviceType, boardNum, deviceNum):
 
         logger.debug(" * FLASK (read) >>: " + str([hex(x) for x in src.serialize()]))
 
-        # attempt getting a DeviceReadResponse off the bus. if there is some kind of
-        # error caused by corruption/invalid data, retry the configured amount of
-        # times before giving up.
-        for attempt in xrange(RETRY_LIMIT):
-            try:
-                srr = devicebus.DeviceReadResponse(serial_reader=bus)
-            except BusTimeoutException:
-                abort(500)
-            except (BusDataException, ChecksumException):
-                bus.flushInput()
-                bus.flushOutput()
-                pass
-            else:
-                break
-        else:
-            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+        try:
+            srr = devicebus.DeviceReadResponse(serial_reader=bus)
+        except (BusTimeoutException, BusDataException, ChecksumException):
+            abort(500)
 
         logger.debug(" * FLASK (read) <<: " + str([hex(x) for x in srr.serialize()]))
 
@@ -562,7 +538,7 @@ def read_asset_info(deviceType, boardNum, deviceNum):
 
         try:
             rair = devicebus.ReadAssetInfoResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
+        except (BusTimeoutException, BusDataException, ChecksumException):
             abort(500)
 
         logger.debug(" * FLASK (asset read) <<: " + str([hex(x) for x in rair.serialize()]))
@@ -612,7 +588,7 @@ def write_asset_info(deviceType, boardNum, deviceNum, assetInfo):
 
         try:
             wair = devicebus.WriteAssetInfoResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
+        except (BusTimeoutException, BusDataException, ChecksumException):
             abort(500)
 
         logger.debug(" * FLASK (asset write) <<: " + str([hex(x) for x in wair.serialize()]))
@@ -755,22 +731,10 @@ def power_control(powerAction, boardNum, deviceNum):
 
         logger.debug(" * FLASK (power) >>: " + str([hex(x) for x in pcc.serialize()]))
 
-        # attempt getting a PowerControlResponse off the bus. if there is some kind of
-        # error caused by corruption/invalid data, retry the configured amount of
-        # times before giving up.
-        for attempts in xrange(RETRY_LIMIT):
-            try:
-                pcr = devicebus.PowerControlResponse(serial_reader=bus)
-            except BusTimeoutException:
-                abort(500)
-            except (BusDataException, ChecksumException):
-                bus.flushInput()
-                bus.flushOutput()
-                pass
-            else:
-                break
-        else:
-            raise BusCommunicationError('Corrupt packets received (failed checksum validation) - Retry limit reached.')
+        try:
+            pcr = devicebus.PowerControlResponse(serial_reader=bus)
+        except (BusTimeoutException, BusDataException, ChecksumException):
+            abort(500)
 
         logger.debug(" * FLASK (power) <<: " + str([hex(x) for x in pcr.serialize()]))
 
