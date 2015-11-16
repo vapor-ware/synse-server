@@ -1278,7 +1278,7 @@ class ReadAssetInfoTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test008.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
@@ -1353,7 +1353,7 @@ class WriteAssetInfoTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         if EMULATOR_ENABLE:
-            self.emulatorConfiguration = "./opendcre_southbound/tests/test007.json"
+            self.emulatorConfiguration = "./opendcre_southbound/tests/test008.json"
             self.emulatortty = EMULATORTTY
             self.endpointtty = ENDPOINTTTY
             socatarg1 = "PTY,link=" + self.emulatortty + ",mode=666"
