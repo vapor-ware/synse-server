@@ -6,6 +6,7 @@
       "username": "root",
       "password": "vapor",
       "auth_type": "NONE",
+      "asset_info": "example BMC",
       "extra_field": "this is an extra field"
     }
   ]
