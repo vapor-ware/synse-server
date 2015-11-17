@@ -25,10 +25,9 @@
 
     You should have received a copy of the GNU General Public License
     along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
-
 """
 __version_major__ = "1"
-__version_minor__ = "0"
+__version_minor__ = "1"
 __version_micro__ = "0"
 __api_version__ = __version_major__+"."+__version_minor__
 __version__ = __api_version__+"."+__version_micro__

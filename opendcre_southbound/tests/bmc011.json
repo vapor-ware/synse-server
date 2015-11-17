@@ -1,0 +1,12 @@
+{
+  "bmcs": [
+    {
+      "bmc_device_id": 1,
+      "bmc_ip": "127.0.0.1",
+      "username": "root",
+      "password": "vapor",
+      "auth_type": "NONE",
+      "extra_field": "this is an extra field"
+    }
+  ]
+}

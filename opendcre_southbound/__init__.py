@@ -9,6 +9,7 @@
                         from stomping all over the bus.
             7/20/2015 - add node information
             7/28/2015 - convert to python package
+            11/6/2015 - add IPMI module support and configuration (v1.1.0)
 
         \\//
          \/apor IO
@@ -32,6 +33,7 @@
 """
 import sys
 import logging
+import json
 
 from flask import Flask
 from flask import jsonify
@@ -40,20 +42,32 @@ from lockfile import LockFile  # for sync on the serial bus
 
 from version import __version__  # full opendcre version
 from version import __api_version__  # major.minor API version
+
 import devicebus
+import vapor_ipmi
 
 PREFIX = "/opendcre/"  # URL prefix for REST access
 SERIAL_DEFAULT = "/dev/ttyAMA0"  # default serial device to use for bus
 DEBUG = False  # set to False to disable extra logging
 LOCKFILE = "/tmp/OpenDCRE.lock"  # to prevent chaos on the serial bus
 
+IPMIFILE = "bmc_config.json"  # BMC settings for IPMI module
+IPMI_BOARD_ID = 0x40000000    # set bit 6 of upper byte of board_id to 1=IPMI
+
 app = Flask(__name__)
 logger = logging.getLogger()
 
 
 def __count(start=0x00, step=0x01):
-    """ Generator whose next() method returns consecutive values until it
-        reaches 0xff, then wraps back to 0x00.
+    """ Generator whose next() method returns consecutive values until it reaches
+    0xff, then wraps back to 0x00.
+
+    Args:
+        start (int): the value at which to start the count
+        step (int): the amount to increment the count
+
+    Returns:
+        An int representing the next count value.
     """
     n = start
     while True:
@@ -65,6 +79,184 @@ def __count(start=0x00, step=0x01):
 _count = __count(start=0x01, step=0x01)
 
 
+def board_id_to_hex_string(hex_value):
+    """ Convenience method to convert a hexadecimal board_id value into its hex
+    string representation, without the '0x' prefix, and with left-padding added
+    if needed (for a 4 byte width).
+
+    Args:
+        hex_value (int): hexadecimal board id value.
+
+    Returns:
+        A string representation of the board id.
+    """
+    return '{0:08x}'.format(hex_value)
+
+
+def device_id_to_hex_string(hex_value):
+    """ Convenience method to convert a hexadecimal device_id value into its hex
+    string representation, without the '0x' prefix, and with left- padding added
+    if needed (for a 2 byte width).
+
+    Args:
+        hex_value (int): hexadecimal device id value.
+
+    Returns:
+        A string representation of the device id.
+    """
+    return '{0:04x}'.format(hex_value)
+
+
+def is_ipmi_board(board_id):
+    """ Convenience method to determine if a board_num is an IPMI board, in
+    which case, different processing is to occur.
+
+    Args:
+        board_id (int): hexadecimal board id value.
+
+    Returns:
+        True if the board is an IPMI board, False otherwise.
+    """
+    if board_id == IPMI_BOARD_ID:
+        return True
+    return False
+
+
+def is_ipmi_device(device_id):
+    """ Convenience method to determine if a device_id is valid BMC or not.
+
+    Args:
+        device_id (int): hexadecimal device id value.
+
+    Returns:
+        True if the device_id maps to a BMC, False otherwise.
+    """
+    for bmc in app.config['bmcs']['bmcs']:
+        if bmc['bmc_device_id'] == device_id:
+            return True
+    return False
+
+
+def ipmi_get_bmc_info(board_id, device_id):
+    """ Convenience method to get BMC information for a given board and device
+    number.
+
+    Args:
+        board_id (int): hexadecimal board id value.
+        device_id (int): hexadecimal device id value.
+
+    Returns:
+        None, if the BMC does not exist, otherwise the BMC record is returned.
+    """
+    if is_ipmi_board(board_id) and is_ipmi_device(device_id):
+        for bmc in app.config['bmcs']['bmcs']:
+            if bmc['bmc_device_id'] == device_id:
+                return bmc
+    return None
+
+
+def ipmi_get_auth_type(auth_string):
+    """ Converts the 'auth_type' field string value to the numeric value used
+    by IPMI and vapor_ipmi.
+
+    Args:
+        auth_string (str): string value of the auth type.
+
+    Returns:
+        The numeric value used by IMPI for the given auth string. If auth_type
+        is "NONE", or unable to be determined, AUTH_NONE is returned.
+    """
+    if auth_string == 'MD5':
+        return vapor_ipmi.AUTH_MD5
+    elif auth_string == 'MD2':
+        return vapor_ipmi.AUTH_MD2
+    elif auth_string == 'PASSWORD':
+        return vapor_ipmi.AUTH_PASSWORD
+    else:
+        return vapor_ipmi.AUTH_NONE
+
+
+def ipmi_scan():
+    """ Return a "board" result based on the BMC configuration loaded at app
+    initialization. If no BMCs are configured, an empty set of devices is
+    returned, otherwise a device entry is returned for each BMC configured.
+
+    Returns:
+        A 'board' result based on the BMC configuration.
+    """
+    response_dict = {
+        'board_id': board_id_to_hex_string(IPMI_BOARD_ID),
+        'devices': []
+    }
+
+    for bmc in app.config['bmcs']['bmcs']:
+        response_dict['devices'].append(
+            {
+                'device_id': device_id_to_hex_string(bmc['bmc_device_id']),
+                'device_type': 'power'
+            }
+        )
+
+    return response_dict
+
+
+def opendcre_scan(bus):
+    """ Query all boards and provide the active devices on each board.
+    """
+    response_dict = {'boards': []}
+
+    try:
+        dr = devicebus.DumpResponse(serial_reader=bus)
+    except devicebus.BusTimeoutException:
+        abort(500)
+    else:
+        response_dict['boards'].append(
+            {
+                'board_id': board_id_to_hex_string(dr.board_id),
+                'devices': [
+                    {
+                        'device_id': device_id_to_hex_string(dr.device_id),
+                        'device_type': devicebus.get_device_type_name(dr.data[0])
+                    }
+                ]
+            }
+        )
+        logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+
+    while True:
+        try:
+            dr = devicebus.DumpResponse(serial_reader=bus)
+        except devicebus.BusTimeoutException:
+            break
+        else:
+            board_exists = False
+
+            for board in response_dict['boards']:
+                if int(board['board_id'], 16) == dr.board_id:
+                    board_exists = True
+                    board['devices'].append(
+                        {
+                            'device_id': device_id_to_hex_string(dr.device_id),
+                            'device_type': devicebus.get_device_type_name(dr.data[0])
+                        }
+                    )
+                    break
+
+            if not board_exists:
+                response_dict['boards'].append(
+                    {
+                        'board_id': board_id_to_hex_string(dr.board_id),
+                        'devices': [{
+                            'device_id': device_id_to_hex_string(dr.device_id),
+                            'device_type': devicebus.get_device_type_name(dr.data[0])
+                        }]
+                    }
+                )
+            logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in dr.serialize()]))
+
+    return response_dict
+
+
 @app.route(PREFIX + __api_version__ + "/test", methods=['GET', 'POST'])
 def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
@@ -73,154 +265,145 @@ def test_routine():
     return jsonify({"status": "ok"})
 
 
-@app.route(PREFIX + __api_version__ + "/version/<int:boardNum>", methods=['GET'])
+@app.route(PREFIX + __api_version__ + "/version/<string:boardNum>", methods=['GET'])
 def get_board_version(boardNum):
     """ Get board version given the specified board number.
 
-    Args:  boardNum is the board number to get version for.
+    Args:
+        boardNum (str): the board number to get version for.
 
-    Returns:  The version of the hardware and firmware for the given board.
+    Returns:
+        The version of the hardware and firmware for the given board.
 
-    Raises:   Returns a 500 error if the scan command fails.
-
+    Raises:
+        Returns a 500 error if the scan command fails.
     """
-    # TODO: this is a very aggressive locking strategy.  we could release
-    #       the lockfile once we've gotten our response back, prior to
-    #       returning results.  this could be tidied up.
+    try:
+        boardNum = int(boardNum, 16)
+    except ValueError:
+        abort(500)
+
     with LockFile(LOCKFILE):
+        # first check if IPMI
+        if is_ipmi_board(boardNum):
+            return jsonify({'firmware_version': 'OpenDCRE IPMI Bridge ' + __version__,
+                            'opendcre_version': __version__,
+                            'api_version': __api_version__})
+
+        # otherwise, hit the bus
         bus = devicebus.initialize(app.config["SERIAL"])
         vc = devicebus.VersionCommand(board_id=boardNum, sequence=next(_count))
         bus.write(vc.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in vc.serialize()]))
+        logger.debug(" * FLASK (version) >>: " + str([hex(x) for x in vc.serialize()]))
 
         try:
             vr = devicebus.VersionResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
             abort(500)
 
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in vr.serialize()]))
+        logger.debug(" * FLASK (version) <<: " + str([hex(x) for x in vr.serialize()]))
 
         return jsonify({"firmware_version": vr.versionString,
                         "opendcre_version": __version__,
                         "api_version": __api_version__})
 
 
-@app.route(PREFIX + __api_version__ + "/scan/<int:boardNum>", methods=['GET'])
-def get_board_ports(boardNum):
-    """ Query a specific board, given the board id, and provide the
-        active devices on that board.
+@app.route(PREFIX + __api_version__ + "/scan", methods=['GET'])
+def scan_all():
+    """ Query for all boards, and provide the active devices on each board.
 
-    Args:  boardNum is the board number to dump.  If 0xFF then scan
-            all boards on the bus.
+    Returns:
+        Active devices, numbers and types from the given board(s).
 
-    Returns:  Active device ports, numbers and types from the given board(s).
-
-    Raises:   Returns a 500 error if the scan command fails.
-
+    Raises:
+        Returns a 500 error if the scan command fails.
     """
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        response_dict = {"boards": []}
-        dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
+        dc = devicebus.DumpCommand(board_id=0xff000000, sequence=next(_count))
         bus.write(dc.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in dc.serialize()]))
+        response_dict = opendcre_scan(bus)
 
-        try:
-            dr = devicebus.DumpResponse(serial_reader=bus)
-        except devicebus.BusTimeoutException:
-            # in this case, we cannot move further
-            abort(500)
-
-        # add the initial board/port record to the response
-        response_dict["boards"].append(
-            {
-                "board_id": dr.board_id,
-                "ports": [{
-                    "port_index": dr.port_id,
-                    "device_id": dr.device_id,
-                    "device_type": devicebus.get_device_type_name(dr.data[0])
-                }]
-            }
-        )
-
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in dr.serialize()]))
-
-        # keep reading while we have bytes left in the buffer
-        # this allows for multiple response packets to arrive
-        # so long as the board is not lollygagging returning results
-        while True:
-            try:
-                dr = devicebus.DumpResponse(serial_reader=bus)
-            except devicebus.BusTimeoutException:
-                # in this case, we cannot move further
-                break
-
-            boardExists = False
-
-            # iterate through the boards to locate the board record
-            # corresponding with the board_id from the response
-            # if it does not exist, set a flag, so we can add the board
-            # and in both cases we add a port record for the relevant board/port
-            for board in response_dict["boards"]:
-                if board["board_id"] == dr.board_id:
-                    boardExists = True
-                    board["ports"].append(
-                        {
-                            "port_index": dr.port_id,
-                            "device_id": dr.device_id,
-                            "device_type": devicebus.get_device_type_name(dr.data[0])
-                        }
-                    )
-                    break
-            if not boardExists:
-                response_dict["boards"].append(
-                    {
-                        "board_id": dr.board_id,
-                        "ports": [{
-                            "port_index": dr.port_id,
-                            "device_id": dr.device_id,
-                            "device_type": devicebus.get_device_type_name(dr.data[0])
-                        }]
-                    }
-                )
-
-            logger.debug(" * FLASK<<: " + str([hex(x) for x in dr.serialize()]))
-
+        # now scan IPMI based on configuration
+        response_dict['boards'].append(ipmi_scan())
         return jsonify(response_dict)
 
 
-@app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<int:boardNum>/<int:portNum>", methods=['GET'])
-def read_device(deviceType, boardNum, portNum):
+@app.route(PREFIX + __api_version__ + "/scan/<string:boardNum>", methods=['GET'])
+def get_board_devices(boardNum):
+    """ Query a specific board, given the board id, and provide the active
+    devices on that board.
+
+    Args:
+        boardNum (str): the board number to dump. If 0xFF then scan all boards
+            on the bus.
+
+    Returns:
+        Active devices, numbers and types from the given board(s).
+
+    Raises:
+        Returns a 500 error if the scan command fails.
+    """
+    try:
+        boardNum = int(boardNum, 16)
+    except ValueError:
+        abort(500)
+
+    with LockFile(LOCKFILE):
+        if is_ipmi_board(boardNum):
+            return jsonify({'boards': [ipmi_scan()]})
+
+        bus = devicebus.initialize(app.config["SERIAL"])
+        dc = devicebus.DumpCommand(board_id=boardNum, sequence=next(_count))
+        bus.write(dc.serialize())
+
+        response_dict = opendcre_scan(bus)
+        return jsonify(response_dict)
+
+
+@app.route(PREFIX + __api_version__ + "/read/<string:deviceType>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
+def read_device(deviceType, boardNum, deviceNum):
     """ Get a device reading for the given board and port and device type.
 
-    Args:  the deviceType corresponds to the type of device to get a reading
-    for - it must match the actual type of device that is present on the bus,
-    and is used to interpret the raw device reading.  The boardNum specifies
-    which Pi hat to get the reading from, while the portNum specifies which port
-    of the Pi hat should be polled for device reading.
+    We could filter on the upper ID of boardNum in case an unusual board number
+    is provided; however, the bus should simply time out in these cases.
 
-    Returns:  Interpreted and raw device reading, based on the specified device
-              type.
+    Args:
+        deviceType (str): corresponds to the type of device to get a reading for.
+            It must match the actual type of device that is present on the bus,
+            and is used to interpret the raw device reading.
+        boardNum (str): specifies which Pi hat to get the reading from
+        deviceNum (str): specifies which device of the Pi hat should be polled
+            for device reading.
 
-    Raises:   Returns a 500 error if the scan command fails.
+    Returns:
+        Interpreted and raw device reading, based on the specified device type.
 
+    Raises:
+        Returns a 500 error if the scan command fails.
     """
+    try:
+        boardNum = int(boardNum, 16)
+        deviceNum = int(deviceNum, 16)
+    except ValueError:
+        abort(500)
+
     with LockFile(LOCKFILE):
         bus = devicebus.initialize(app.config["SERIAL"])
-        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count), port_id=portNum, device_id=0xFF,
+        src = devicebus.DeviceReadCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
                                           device_type=devicebus.get_device_type_code(deviceType.lower()))
         bus.write(src.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in src.serialize()]))
+        logger.debug(" * FLASK (read) >>: " + str([hex(x) for x in src.serialize()]))
 
         try:
             srr = devicebus.DeviceReadResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
             abort(500)
 
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in srr.serialize()]))
+        logger.debug(" * FLASK (read) <<: " + str([hex(x) for x in srr.serialize()]))
 
         # get raw value as number
         device_raw = ""
@@ -247,67 +430,133 @@ def read_device(deviceType, boardNum, portNum):
             return jsonify({"device_raw": device_raw})
 
 
-@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<int:boardNum>/<int:portNum>", methods=['GET'])
-def write_device(deviceType, boardNum, portNum):
+@app.route(PREFIX + __api_version__ + "/write/<string:deviceType>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
+def write_device(deviceType, boardNum, deviceNum):
     """ Write a value to a given device (so long as the device is writeable).
 
-    Args:  the deviceType corresponds to the type of device to write to
-    - it must match the actual type of device that is present on the bus,
-    and may be used to interpret the device data.  The boardNum specifies
-    which Pi hat to write to, while the portNum specifies which port
-    of the Pi hat should be written to.  UNDONE:  this method may change
-    considerably as it has not yet been fleshed out.
+    UNDONE: this method may change considerably as it has not yet been fleshed out.
 
-    Returns:  Depends on device, but if data returned, success.
+    Args:
+        deviceType (str): corresponds to the type of device to write to - it must
+            match the actual type of device that is present on the bus, and may
+            be used to interpret the device data.
+        boardNum (str): specifies which Pi hat to write to.
+        deviceNum (str): specifies which device of the Pi hat should be written
+            to.
 
-    Raises:   Returns a 500 error if the write command fails.
+    Returns:
+        Depends on device, but if data returned, success.
 
+    Raises:
+        Returns a 500 error if the write command fails.
     """
-    # not currently implemented.  we may need for the demo, but until then,
-    # left undone
+    # not currently implemented.
     abort(501)
 
 
-@app.route(PREFIX + __api_version__ + "/power/<string:powerAction>/<int:boardNum>/<int:portNum>", methods=['GET'])
-def power_control(powerAction, boardNum, portNum):
+@app.route(PREFIX + __api_version__ + "/power/<string:powerAction>/<string:boardNum>/<string:deviceNum>", methods=['GET'])
+def power_control(powerAction, boardNum, deviceNum):
     """ Power on/off/cycle/status for the given board and port and device.
 
-    Args:  powerAction may be on/off/cycle/status and corresponds to the action
-    to take.  The boardNum and portNum must correspond to a device that accepts
-    power control commands.
+    Args:
+        powerAction (str): may be on/off/cycle/status and corresponds to the
+            action to take.
+        boardNum (str): the id of the board which contains the device that
+            accepts power control commands.
+        deviceNum (str): the id of the device which accepts power control
+            commands.
 
-    Returns:  Power status of the given device.
+    Returns:
+        Power status of the given device.
 
-    Raises:   Returns a 500 error if the power command fails.
-
+    Raises:
+        Returns a 500 error if the power command fails.
     """
+    try:
+        boardNum = int(boardNum, 16)
+        deviceNum = int(deviceNum, 16)
+    except ValueError:
+        abort(500)
+
     with LockFile(LOCKFILE):
+        # first see if we are IPMI, and handle right here if so
+        if is_ipmi_board(boardNum) and is_ipmi_device(deviceNum):
+            bmc_info = ipmi_get_bmc_info(boardNum, deviceNum)
+            if powerAction.lower() == "status" or powerAction.lower() == "on" or powerAction.lower() == "off":
+                try:
+                    status = vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        ipmi_get_auth_type(bmc_info['auth_type']),
+                        bmc_info['bmc_ip'], powerAction.lower())
+
+                    # now, convert raw reading into subfields
+                    status_converted = {
+                        "pmbus_raw": 0,
+                        "power_status": status['power_status'],
+                        "power_ok": status['power_ok'],
+                        "over_current": False,
+                        "under_voltage": False,
+                        "input_power": 0,
+                        "input_voltage": 0,
+                        "output_current": 0
+                    }
+
+                    return jsonify(status_converted)
+                except:
+                    abort(500)  # there is nothing we can do to recover here
+            elif powerAction.lower() == "cycle":
+                try:
+                    vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        ipmi_get_auth_type(bmc_info['auth_type']),
+                        bmc_info['bmc_ip'], "off")
+                    status = vapor_ipmi.power(bmc_info['username'], bmc_info['password'],
+                        ipmi_get_auth_type(bmc_info['auth_type']),
+                        bmc_info['bmc_ip'], "on")
+
+                    # now, convert raw reading into subfields
+                    status_converted = {
+                        "pmbus_raw": 0,
+                        "power_status": status['power_status'],
+                        "power_ok": status['power_ok'],
+                        "over_current": False,
+                        "under_voltage": False,
+                        "input_power": 0,
+                        "input_voltage": 0,
+                        "output_current": 0
+                    }
+
+                    return jsonify(status_converted)
+                except:
+                    abort(500)  # there is nothing we can do here to recover
+            else:
+                abort(500)  # poweraction is invalid
+
+        # otherwise use the bus for power control
         bus = devicebus.initialize(app.config["SERIAL"])
         if powerAction.lower() == "status":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_status=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_status=True)
         elif powerAction.lower() == "on":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_on=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_on=True)
         elif powerAction.lower() == "off":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_off=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_off=True)
         elif powerAction.lower() == "cycle":
-            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), port_id=portNum,
-                        device_type=devicebus.get_device_type_code("power"), device_id=0xFF, power_cycle=True)
+            pcc = devicebus.PowerControlCommand(board_id=boardNum, sequence=next(_count), device_id=deviceNum,
+                                                device_type=devicebus.get_device_type_code("power"), power_cycle=True)
         else:
             abort(500)  # powerAction is invalid
 
         bus.write(pcc.serialize())
 
-        logger.debug(" * FLASK>>: " + str([hex(x) for x in pcc.serialize()]))
+        logger.debug(" * FLASK (power) >>: " + str([hex(x) for x in pcc.serialize()]))
 
         try:
             pcr = devicebus.PowerControlResponse(serial_reader=bus)
         except devicebus.BusTimeoutException:
             abort(500)
 
-        logger.debug(" * FLASK<<: " + str([hex(x) for x in pcr.serialize()]))
+        logger.debug(" * FLASK (power) <<: " + str([hex(x) for x in pcr.serialize()]))
 
         # get raw value as string
         pmbus_raw = ""
@@ -355,19 +604,42 @@ def power_control(powerAction, boardNum, portNum):
 def main(serial_port=SERIAL_DEFAULT, flaskdebug=False):
     """ Main method to run the flask server.
 
-    Args:  serial_port - specify the serial port to use; the default is fine
-    for production, but for testing it is necessary to pass in an emulator
-    port here.  Tcp_port is the TCP port that flask should listen on.
-    Flaskdebug indicates whether debug information is produced by flask.
+    Args:
+        serial_port (str): specify the serial port to use; the default is fine
+            for production, but for testing it is necessary to pass in an emulator
+            port here.
+        flaskdebug (bool): indicates whether debug information is produced by flask.
     """
     app.config["SERIAL"] = serial_port
-    app.debug = True
+    #app.debug = True
     if DEBUG is True:
         logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter("%(message)s")
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(message)s")
+        ch.setFormatter(formatter)
         logger.addHandler(ch)
+
+    # read IPMI configuration in at startup
+    try:
+        ipmifile = open(IPMIFILE, "r")
+        app.config['bmcs'] = json.loads(ipmifile.read())
+        # validate schema of each BMC:
+        for bmc in app.config['bmcs']['bmcs']:
+            for key in ['bmc_device_id', 'bmc_ip', 'username', 'password', 'auth_type']:
+                if key not in bmc:
+                    raise Exception('Key ' + key + ' missing from BMC configuration.')
+    except IOError as e:
+        # in this case, there is no config file, or error opening
+        # in which case, we log error and cache no bmcs
+        logger.debug(" * FLASK (scan) : Error opening BMC Config File : " + str(e))
+        app.config['bmcs'] = {'bmcs': []}
+    except Exception as e:
+        # once again, we do not want to completely kill the endpoint,
+        # so we log the exception and cache no bmcs
+        logger.debug(" * FLASK (scan) : Error reading BMC Config File : " + str(e))
+        app.config['bmcs'] = {'bmcs': []}
+
     if __name__ == '__main__':
         app.run(host="0.0.0.0")
 

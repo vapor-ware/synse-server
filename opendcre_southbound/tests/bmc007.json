@@ -1,0 +1,32 @@
+{
+  "bmcs": [
+    {
+      "bmc_device_id": 1,
+      "bmc_ip": "127.0.0.1",
+      "username": "root",
+      "password": "vapor",
+      "auth_type": "NONE"
+    },
+    {
+      "bmc_device_id": 2,
+      "bmc_ip": "127.0.0.1",
+      "username": "root",
+      "password": "vapor",
+      "auth_type": "MD2"
+    },
+    {
+      "bmc_device_id": 3,
+      "bmc_ip": "127.0.0.1",
+      "username": "root",
+      "password": "vapor",
+      "auth_type": "MD5"
+    },
+    {
+      "bmc_device_id": 4,
+      "bmc_ip": "127.0.0.1",
+      "username": "root",
+      "password": "vapor",
+      "auth_type": "PASWORD"
+    }
+  ]
+}
