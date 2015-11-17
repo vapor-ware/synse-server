@@ -5,7 +5,7 @@
 #Overview
 OpenDCRE provides a securable RESTful API for monitoring and control of data center and IT equipment, including reading sensors and server power control - via power line communications (PLC) over a DC bus bar, or via IPMI over LAN.  The OpenDCRE API is easy to integrate into third-party monitoring, management and orchestration providers, while providing a simple, curl-able interface for common and custom devops tasks.
 
-Additional documentation may be found on the <a href="http://wiki.opendcre.com/">Vapor wiki</a>.
+Additional documentation may be found on the <a href="http://wiki.opendcre.com/">OpenDCRE wiki</a>.
 
 #Contents
 
@@ -29,7 +29,9 @@ To build a custom distribution of OpenDCRE (for example, to include site-specifi
 
 In the simplest case, from the opendcre directory:
 
-```docker build -t opendcre .```
+```
+docker build -t opendcre .
+```
 
 #Running and Testing OpenDCRE
 
@@ -37,15 +39,21 @@ OpenDCRE expects a volume to be exposed for logs (/logs).  Additionally, OpenDCR
 
 <b>To start OpenDCRE with the HAT device attached:</b>
 
-```docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh```
+```
+docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh
+```
 
 <b>To start OpenDCRE in emulator mode:</b>
 
-```docker run -d -p 5000:5000 -v /var/log/opendcre:/logs opendcre ./start_opendcre_emulator.sh```
+```
+docker run -d -p 5000:5000 -v /var/log/opendcre:/logs opendcre ./start_opendcre_emulator.sh
+```
 
 <b>To run the OpenDCRE test suite:</b>
 
-```docker run -ti -v /var/log/opendcre:/logs opendcre ./opendcre_southbound/bus-test.py```
+```
+docker run -ti -v /var/log/opendcre:/logs opendcre ./opendcre_southbound/bus-test.py
+```
 
 #License
 
