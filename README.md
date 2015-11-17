@@ -5,7 +5,7 @@
 #Overview
 OpenDCRE provides a securable RESTful API for monitoring and control of data center and IT equipment, including reading sensors and server power control - via power line communications (PLC) over a DC bus bar, or via IPMI over LAN.  The OpenDCRE API is easy to integrate into third-party monitoring, management and orchestration providers, while providing a simple, curl-able interface for common and custom devops tasks.
 
-Additional documentation may be found on the <a href="http://wiki.vapor.io/">Vapor wiki</a>.
+Additional documentation may be found on the <a href="http://wiki.opendcre.com/">Vapor wiki</a>.
 
 #Contents
 
@@ -15,7 +15,7 @@ The core OpenDCRE Python implementation is distributed as a Python package (<b>o
 
 <b>start_opendcre.sh</b> and <b>start_opendcre_emulator.sh</b> are shell scripts used to start OpenDCRE in hardware (HAT) mode or emulator mode.
 
-To configure the IPMI bridge for OpenDCRE, an example configuration file <b>bmc_config_sample.json</b> is provided, where BMC IP address, username, password and authentication type (NONE, PASSWORD, MD5, MD2) may be chosen.
+To configure the IPMI bridge for OpenDCRE, an example configuration file <b>bmc_config_sample.json</b> is provided, where BMC IP address, username, password and authentication type (NONE, PASSWORD, MD5, MD2) may be chosen.  Copy or move <b>bmc_config_sample.json</b> to <b>bmc_config.json</b> and build and run the OpenDCRE container to have the IPMI BMC settings take effect.
 
 Within the OpenDCRE southbound package, <b>__init__.py</b> contains the main Flask implemementation, which relies on <b>devicebus.py</b> which handles serial communications and command/response framing.  <b>version.py</b> contains the OpenDCRE version - if creating a new/changed version of the API, version numbers must be changed in this file only.
 
