@@ -1,0 +1,85 @@
+VirtualBMC Emulator Configuration File Schema
+=============================================
+
+Example:
+
+{
+  "repeat": true,
+  "responses": [
+    [ 6, 0, 255, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 16, 28, 212, 32, 0, 56, 0, 1, 39, 6, 0, 0, 0, 0, 0, 122],
+    [ 6, 0, 255, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 28, 16, 28, 212, 32, 0, 57, 0, 187, 88, 247, 178, 144, 176, 128, 86, 72, 172, 104, 63, 47, 62, 45, 110, 45, 78, 236, 194, 9],
+    [ 6, 0, 255, 7, 0, 3, 0, 0, 0, 187, 88, 247, 34, 18, 16, 28, 212, 32, 0, 58, 0, 0, 187, 88, 247, 34, 1, 0, 0, 0, 4, 229],
+    [ 6, 0, 255, 7, 0, 4, 0, 0, 0, 187, 88, 247, 34, 9, 16, 28, 212, 32, 0, 59, 0, 4, 17],
+    [ 6, 0, 255, 7, 0, 5, 0, 0, 0, 187, 88, 247, 34, 8, 16, 4, 236, 32, 0, 2, 0, 222],
+    [ 6, 0, 255, 7, 0, 6, 0, 0, 0, 187, 88, 247, 34, 12, 16, 4, 236, 32, 0, 1, 0, 69, 16, 64, 0, 74],
+    [ 6, 0, 255, 7, 0, 7, 0, 0, 0, 187, 88, 247, 34, 8, 16, 28, 212, 32, 0, 60, 0, 164]
+  ]
+}
+
+"repeat" - if 'true', when all responses from the file have been sent,
+  VirtualBMC returns to the beginning of the response list, wrapping forever.
+  If 'false', when all responses have been sent, VirtualBMC exits.
+
+"responses" - a list of lists.  Sublists must be comprised of one-byte integer
+  values corresponding to IPMI packet bytes, starting with the RMCP header, up
+  to the last byte of the IPMI packet itself (ck2).
+
+In the example above, the first 4 responses are standard responses to a properly
+formed IPMI connection sequence.
+  Response 0 is the response to Get Channel Authentication Capabilities.
+  Response 1 is the response to Get Session Challenge.
+  Response 2 is the response to Activate Session.
+  Response 3 is the response to Set Session Privilege Level.
+
+The fourth response above is the response from a Chassis Control command as part
+of the overall IPMI session above, while the fifth response is from a Chassis
+Status command.  The final response is from the Close Session command.
+
+Breaking down the packet structure:
+  ------------------------------------------------------------------------------
+   RMCP HEADER  A  SEQUENCE #   *  SESSION ID *  L  TA  N  CK1  SA SL  C  CC CK2
+  ------------------------------------------------------------------------------
+  6, 0, 255, 7, 0, 5, 0, 0, 0, 187, 88, 247, 34, 8, 16, 4, 236, 32, 0, 2, 0, 222
+  ------------------------------------------------------------------------------
+  RMCP header: should never change unless trying to fool client.
+  A: the auth_type in play (0x00 is no auth).  When auth is present, an authcode
+      field accompanies the packet.
+  Sequence # - The sequence number of the packet.  Should increase w/each pair.
+  Session ID - The session ID of the packet. Should be same throughout.
+  L: the length of the payload - basically, how many bytes follow L.
+  TA: Target address - usually 0x10 (or 16 decimal), leave asis.
+  N: The netfn of the command (0x01 - chassis response)
+  CK1: Checksum of the TA and N fields (256-TA+N)%256 - usually ignored by BMC!
+  SA: Source address (usually 0x20)
+  SL: Source LUN (0x00 is ok)
+  C: Command ID - 0x02 is chassis control for NetFn 0x00/0x01.
+  CC: Completion Code - nonzero is error and handled upstream!
+  CK2: Checksum of SA, SL, C, CC - 256 minus sum of those fields % 256.
+
+From here, you can create responses that are valid, invalid or otherwise just
+crazy.  It helps to start with the boilerplate for valid IPMI session, and then
+craft the appropriate responses following that, unless the goal is to break the
+IPMI session.
+
+=====================
+*** vbmcXXX FILES ***
+=====================
+vbmc007 : Contains the sequence above; power control, no auth, all formed
+          correctly. Can be repeated indefinitely.
+vbmc008 : Does not include a response to the Close Session command. Expect 500.
+          Does not repeat.
+vbmc009 : Sends error code in response to Chassis Control command. Expect 500.
+          Does not repeat.
+vbmc010 : Sends error code in response to Get Session Auth Capabilities cmd.
+          Expect 500. Does not repeat.
+vbmc011 : Sends error code in response to Close Session command. Expect 500.
+          Does not repeat.
+vbmc012 : Sends invalid data in response to Chassis Control command. Expect 500.
+          Repeats.
+vbmc013 : Sends invalid session id in response to Activate Session command.
+          Expect 500.  Repeats.
+vbmc014 : Sends data with invalid length specifier (too long) in response to
+          Chassis Control command.  Expect 500.  Repeats.
+vbmc015 : Sends data with invalid length specified (too short) in response to
+          Chassis Control command.  Expect 500.  Repeats.
+vbmc016 : Valid response to power status, no auth, correctly formed. Repeats.

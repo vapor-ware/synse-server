@@ -225,11 +225,6 @@
       ]
     },
     {
-      "board_id": "00000002",
-      "firmware_version" : "OpenDCRE Emulator v1.1.0",
-      "devices" : []
-    },
-    {
       "board_id": "00000003",
       "firmware_version" : "OpenDCRE Emulator v1.1.0",
       "devices" : [
@@ -464,16 +459,6 @@
       "board_id": "00000063",
       "firmware_version" : "OpenDCRE Emulator v1.1.0",
       "raw_data": [1, 11, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 189, 4]
-    },
-    {
-      "board_id": "00000064",
-      "firmware_version" : "OpenDCRE Emulator v1.1.0",
-      "raw_data": [1, 11, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 189, 3]
-    },
-    {
-      "board_id": "00000065",
-      "firmware_version" : "OpenDCRE Emulator v1.1.0",
-      "raw_data": [1, 11, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 190, 4]
     }
   ]
 }

@@ -1,0 +1,9 @@
+=========================
+*** bmcXXX.json FILES ***
+=========================
+bmc007.json : Valid file, has valid localhost entries for all auth types.
+bmc008.json : Invalid file, formatting error (not valid JSON)
+bmc009.json : Invalid file - empty
+bmc010.json : Invalid file - missing field(s) in BMC config.
+bmc011.json : Invalid file - extra field(s) in BMC config.
+bmc012.json : Invalid file - valid first BMC, invalid second one.
