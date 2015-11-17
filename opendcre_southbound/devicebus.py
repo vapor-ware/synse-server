@@ -461,7 +461,7 @@ class BusDataException(Exception):
     pass
 
 
-def initialize(serial_device, speed=9600, timeout=0.25):
+def initialize(serial_device, speed=115200, timeout=0.25):
     """ Get serial connection on given serial port.
 
     Args:
