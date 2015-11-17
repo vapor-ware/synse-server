@@ -15,7 +15,7 @@ The core OpenDCRE Python implementation is distributed as a Python package (<b>o
 
 <b>start_opendcre.sh</b> and <b>start_opendcre_emulator.sh</b> are shell scripts used to start OpenDCRE in hardware (HAT) mode or emulator mode.
 
-To configure the IPMI bridge for OpenDCRE, an example configuration file <b>bmc_config_sample.json</b> is provided, where BMC IP address, username, password and authentication type (NONE, PASSWORD, MD5, MD2) may be chosen.
+To configure the IPMI bridge for OpenDCRE, an example configuration file <b>bmc_config_sample.json</b> is provided, where BMC IP address, username, password and authentication type (NONE, PASSWORD, MD5, MD2) may be chosen.  Copy or move <b>bmc_config_sample.json</b> to <b>bmc_config.json</b> and build and run the OpenDCRE container to have the IPMI BMC settings take effect.
 
 Within the OpenDCRE southbound package, <b>__init__.py</b> contains the main Flask implemementation, which relies on <b>devicebus.py</b> which handles serial communications and command/response framing.  <b>version.py</b> contains the OpenDCRE version - if creating a new/changed version of the API, version numbers must be changed in this file only.
 
