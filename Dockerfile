@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
     socat \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
-RUN pip install pyserial
+RUN pip install pyserial==2.7
 RUN pip install flask
 RUN pip install requests
 RUN pip install uwsgi
