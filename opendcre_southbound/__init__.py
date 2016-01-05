@@ -303,13 +303,6 @@ def opendcre_scan(packet, bus, retry_count=0):
                 })
             logger.debug(" * FLASK (scan) <<: " + str([hex(x) for x in response_packet.serialize()]))
 
-    # if we get here, the scan was successful, so we can save the scan state.
-    # we don't expect a response for a save command, so after writing to the
-    # bus, we can return the aggregated scan results.
-    board_id = SCAN_ALL_BOARD_ID | SAVE_BOARD_ID
-    save_packet = devicebus.DumpCommand(board_id=board_id, sequence=next(_count))
-    bus.write(save_packet.serialize())
-
     return response_dict
 
 
