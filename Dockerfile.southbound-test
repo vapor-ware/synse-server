@@ -1,0 +1,6 @@
+FROM python:2.7
+ADD . /opendcre
+WORKDIR /opendcre
+RUN pip install requests
+RUN pip install pyserial==2.7
+CMD ["bash"]

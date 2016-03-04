@@ -1,0 +1,15 @@
+endurance-test-macos:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test
+  command: python ./opendcre_southbound/test-endurance.py
+  links:
+    - opendcre-southbound-test-container
+
+opendcre-southbound-test-container:
+  build: ..
+  dockerfile: Dockerfile.macos-test-container
+  command: ./start_opendcre_emulator.sh ./opendcre_southbound/tests/data/endurance-data.json
+  expose:
+    - "5000"
+  volumes:
+    - /logs:/logs

@@ -1,27 +1,28 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
-   OpenDCRE Southbound Exceptions
+   OpenDCRE Exceptions
    Author:  erick
-   Date:    11/11/2015
+   Date:    11/16/2015
+
         \\//
          \/apor IO
 
-    Copyright (C) 2015  Vapor IO
+Copyright (C) 2015-16  Vapor IO
 
-    This file is part of OpenDCRE.
+This file is part of OpenDCRE.
 
-    OpenDCRE is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 2 of the License, or
-    (at your option) any later version.
+OpenDCRE is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
 
-    OpenDCRE is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+OpenDCRE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
@@ -56,8 +57,7 @@ class BusCommunicationError(Exception):
     pass
 
 
-class BusReadError(Exception):
-    """ Exception raised when constructing a DeviceBusPacket with serial reader, and
-    no additional data can be read from the bus.
+class OpenDcreException(Exception):
+    """ Generic exception used for OpenDCRE endpoint exceptions, generally raised only
+    in the OpenDCRE southbound endpoint.
     """
-    pass

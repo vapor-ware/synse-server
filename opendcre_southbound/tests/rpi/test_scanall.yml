@@ -1,0 +1,15 @@
+scanall-test-rpi:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test-rpi
+  command: python ./opendcre_southbound/test-scanall.py
+  links:
+    - opendcre-southbound-test-container
+
+opendcre-southbound-test-container:
+  build: ..
+  dockerfile: Dockerfile.rpi-test-container
+  command: ./start_opendcre_emulator.sh ./opendcre_southbound/tests/data/scanall-data.json
+  expose:
+    - "5000"
+  volumes:
+    - /logs:/logs

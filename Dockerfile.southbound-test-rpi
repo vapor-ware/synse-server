@@ -1,0 +1,8 @@
+FROM resin/rpi-raspbian:jessie
+RUN apt-get update && apt-get install -y \
+	python-pip
+ADD . /opendcre
+WORKDIR /opendcre
+RUN pip install requests
+RUN pip install pyserial==2.7
+CMD ["bash"]
