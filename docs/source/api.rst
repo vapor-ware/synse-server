@@ -35,13 +35,13 @@ Request Format
 Parameters
 ----------
 
-- ``board_id`` (optional) : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper 3 bytes of ``board_id`` are reserved for future use in OpenDCRE v1.1.  IPMI Bridge board has a special ``board_id`` of 40000000.
+- ``board_id`` (optional) : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge boards have a special ``board_id`` of 40NNNNNN (where NNNNNN is the hex string id of each configured BMC).
 
 Request Example
 ---------------
 ::
 
-    http://opendcre:5000/opendcre/1.1/scan
+    http://opendcre:5000/opendcre/1.2/scan
 
 Response Schema
 ---------------
@@ -49,7 +49,7 @@ Response Schema
 ::
 
     {
-        "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-boards-devices",
+        "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-boards-devices",
         "title": "OpenDCRE Boards and Devices",
         "type": "object",
         "properties": {
@@ -76,12 +76,10 @@ Response Schema
                                             "thermistor",
                                             "humidity",
                                             "led",
-                                            "ipmb",
+                                            "system",
                                             "power",
-                                            "door_lock",
-                                            "current",
-                                            "pressure",
-                                            "mone"
+                                            "fan_speed",
+                                            "pressure"
                                         ]
                                     }
                                 }
@@ -105,12 +103,12 @@ Example Response
           "board_id": "00000001",
           "devices": [
             {
-              "device_id": "01ff",
+              "device_id": "0001",
               "device_type": "thermistor"
             },
             {
-              "device_id": "02ff",
-              "device_type": "none"
+              "device_id": "0002",
+              "device_type": "fan_speed"
             }
           ]
         },
@@ -118,12 +116,12 @@ Example Response
           "board_id": "00000002",
           "devices": [
             {
-              "device_id": "01ff",
+              "device_id": "0001",
               "sensor_type": "thermistor"
             },
             {
-              "device_id": "02ff",
-              "device_type": "none"
+              "device_id": "2000",
+              "device_type": "temperature"
             }
           ]
         }
@@ -152,13 +150,13 @@ Request Format
 Parameters
 ----------
 
-``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper 3 bytes of ``board_id`` are reserved for future use in OpenDCRE v1.1.  IPMI Bridge board has a special ``board_id`` of 40000000.
+``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40000000.
 
 Request Example
 ---------------
 ::
 
-    https://opendcre:5000/opendcre/1.0/version/00000001
+    https://opendcre:5000/opendcre/1.2/version/00000001
 
 Response Schema
 ---------------
@@ -166,7 +164,7 @@ Response Schema
 ::
 
     {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-version",
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-version",
       "title": "OpenDCRE Board Version",
       "type": "object",
       "properties": {
@@ -188,9 +186,9 @@ Example Response
 ::
 
     {
-      "api_version": "1.1", 
-      "firmware_version": "OpenDCRE Emulator v1.1.0", 
-      "opendcre_version": "1.1.0"
+      "api_version": "1.2",
+      "firmware_version": "OpenDCRE Emulator v1.2.0",
+      "opendcre_version": "1.2.0"
     }
 
 Errors
@@ -215,17 +213,14 @@ Parameters
 ----------
 
 - ``device_type``:  String value (lower-case) indicating what type of device to read:
-    - thermistor
-    - temperature  (not implemented yet)
-    - current (not implemented yet)
-    - humidity (not implemented yet)
-    - led (not implemented yet)
-    - ipmb (not implemented yet)
-    - door_lock (not implemented yet)
-    - pressure (not implemented yet)
-    - none (**Note**:  reading a "none" device will result in a 500 error)
+    - ``thermistor``
+    - ``temperature``
+    - ``humidity``
+    - ``led``
+    - ``fan_speed``
+    - ``pressure`` (not implemented yet)
 
-- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper 3 bytes of ``board_id`` are reserved for future use in OpenDCRE v1.1.  IPMI Bridge board has a special ``board_id`` of 40000000.
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN (where NNNNNN is the hex string id of each individual BMC configured with the IPMI Bridge).
 
 - ``device_id`` : The device to read on the specified board.  Hexadecimal string representation of a 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to  OpenDCRE matches the ``device_type`` specified in the command for the given device - else, a 500 error is returned.
 
@@ -233,7 +228,7 @@ Request Example
 ---------------
 ::
 
-    http://opendcre:5000/opendcre/1.1/read/thermistor/00000001/01FF
+    http://opendcre:5000/opendcre/1.2/read/thermistor/00000001/0001
 
 Response Schema
 ---------------
@@ -241,13 +236,10 @@ Response Schema
 ::
 
     {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-thermistor-reading",
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-thermistor-reading",
       "title": "OpenDCRE Thermistor Reading",
       "type": "object",
       "properties": {
-        "sensor_raw": {
-          "type": "number"
-        },
         "temperature_c": {
           "type": "number"
         }
@@ -260,44 +252,40 @@ Example Response
 ::
 
     {
-      "sensor_raw": 755,
       "temperature_c": 19.73
     }
 
 Errors
 ------
 
-- If a sensor is not readable or does not exist, an error (500) is returned.
+- If a device is not readable or does not exist, an error (500) is returned.
 
-Read Asset Info
-===============
+Get Asset Information
+=====================
 
 Description
 -----------
 
-- Read asset information from the given ``board_id`` and ``device_id`` for a specific ``device_type``.  The specified ``device_type`` must match the actual physical device type (as reported by the ``scan`` command), and is used to return asset information (e.g. IP address, MAC address, Asset Tag, etc.) about a given device.  Only devices of ``device_type`` of ``power`` support retrieval of asset information; IPMI ``power`` devices support read of asset information, but do not support write of asset information.
+- Get asset information from the given ``board_id`` and ``device_id``.  The device's ``device_type`` must be of type ``system`` (as reported by the ``scan`` command), and is used to return asset information for a given device.
 
 Request Format
 --------------
 ::
     
-    http://<ipaddress>:<port>/opendcre/<version>/read/<device_type>/<board_id>/<device_id>/info
+    http://<ipaddress>:<port>/opendcre/<version>/asset/<board_id>/<device_id>
 
 Parameters
 ----------
 
-- ``device_type``:  String value (lower-case) indicating what type of device to read:
-    - power (**Note**:  all other device types unsupported in this version of OpenDCRE).
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
 
-- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper 3 bytes of ``board_id`` are reserved for future use in OpenDCRE v1.1.  IPMI Bridge board has a special ``board_id`` of 40000000.  IPMI BMC asset information is readable, but not writeable.
-
-- ``device_id`` : The device to read asset information for on the specified board.  Hexadecimal string representation of a 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE matches the ``device_type`` specified in the command for the given device - else, a 500 error is returned.
+- ``device_id`` : The device to read asset information for on the specified board.  Hexadecimal string representation of a 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is of type ``system`` - else, a 500 error is returned.
 
 Request Example
 ---------------
 ::
 
-    http://opendcre:5000/opendcre/1.1/read/power/00000001/01FF/info
+    http://opendcre:5000/opendcre/1.2/asset/00000001/0004
 
 Response Schema
 ---------------
@@ -305,42 +293,66 @@ Response Schema
 ::
 
     {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-asset-info-reading",
-      "title": "OpenDCRE Asset Info Reading",
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-asset-information",
+      "title": "OpenDCRE Asset Information",
       "type": "object",
       "properties": {
-        "board_id": {
+        "bmc_ip": {
           "type": "string"
         },
-        "device_id: {
-          "type": "string"
+        "board_info": {
+          "type": "object",
+          "properties": {
+            "manufacturer": {
+              "type": "string"
+            },
+            "part_number": {
+              "type": "string"
+            },
+            "product_name": {
+              "type": "string"
+            },
+            "serial_number": {
+              "type": "string"
+            }
+          }
         },
-        "asset_info: {
-          "type": "string"
-        }
-      }
-    }
-
-Alternately, for IPMI devices:
-
-::
-
-    {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-asset-info-reading",
-      "title": "OpenDCRE Asset Info Reading",
-      "type": "object",
-      "properties": {
-        "board_id": {
-          "type": "string"
+        "chassis_info": {
+          "type": "object",
+          "properties": {
+            "chassis_type": {
+              "type": "string"
+            },
+            "part_number": {
+              "type": "string"
+            },
+            "serial_number": {
+              "type": "string"
+            }
+          }
         },
-        "device_id: {
-          "type": "string"
-        },
-        "asset_info: {
-          "type": "string"
-        },
-        "bmc_ip: {
-          "type": "string"
+        "product_info": {
+          "type": "object",
+          "properties": {
+            "asset_tag": {
+              "type": "string"
+            },
+            "manufacturer": {
+              "type": "string"
+            }
+            "part_number": {
+              "type": "string"
+            },
+            "product_name": {
+              "type": "string"
+            },
+            "serial_number": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            }
+          }
         }
       }
     }
@@ -351,109 +363,32 @@ Example Response
 ::
 
     {
-      "board_id": "00000001",
-      "device_id": "01FF",
-      "asset_info": "example asset information"
-    }
-
-Alternately, for IPMI devices:
-
-::
-
-    {
-      "board_id": "00000001",
-      "device_id": "01FF",
-      "asset_info": "example IPMI asset information",
-      "bmc_ip": "123.124.10.100"
-    }
-
-Errors
-------
-
-- asset info is not readable or does not exist, an error (500) is returned.
-
-Write Asset Info
-================
-
-Description
------------
-
-- Write asset information from the given ``board_id`` and ``device_id`` for a specific ``device_type``.  The specified ``device_type`` must match the actual physical device type (as reported by the ``scan`` command), and is used to set asset information (e.g. IP address, MAC address, Asset Tag, etc.) for a given device.  Only devices of ``device_type`` of ``power`` support set and retrieval of asset information; IPMI ``power`` devices support read of asset information, but do not support write of asset information.  Attempting to write asset information for an IPMI device will result in a 500 error.
-
-Request Format
---------------
-::
-
-    http://<ipaddress>:<port>/opendcre/<version>/write/<device_type>/<board_id>/<device_id>/info/<value>
-
-Parameters
-----------
-
-- ``device_type``:  String value (lower-case) indicating what type of device to write asset info for:
-    - power (**Note**:  all other device types unsupported in this version of OpenDCRE).
-
-- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper 3 bytes of ``board_id`` are reserved for future use in OpenDCRE v1.1.  IPMI Bridge board has a special ``board_id`` of 40000000.  IPMI BMC asset information is readable, but not writeable.
-
-- ``device_id`` : The device to read asset information for on the specified board.  Hexadecimal string representation of a 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE matches the ``device_type`` specified in the command for the given device - else, a 500 error is returned.
-
-- ``value`` : The string value to set for asset information for the given device.  Max length of this string value is 127 bytes.  Overwrites any value previously stored in the ``asset_info`` field.
-
-Request Example
----------------
-::
-
-    http://opendcre:5000/opendcre/1.1/write/power/00000001/01FF/info/192.100.10.1
-
-Response Schema
----------------
-
-::
-
-    {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-asset-info-response",
-      "title": "OpenDCRE Asset Info Response",
-      "type": "object",
-      "properties": {
-        "board_id": {
-          "type": "string"
-        },
-        "device_id: {
-          "type": "string"
-        },
-        "asset_info: {
-          "type": "string"
-        }
+      "bmc_ip": "192.168.1.118",
+      "board_info": {
+        "manufacturer": "Vapor IO",
+        "part_number": "0001",
+        "product_name": "Example Product",
+        "serial_number": "S1234567"
+      },
+      "chassis_info": {
+        "chassis_type": "rack mount chassis",
+        "part_number": "P1234567",
+        "serial_number": "S1234567"
+      },
+      "product_info": {
+        "asset_tag": "A1234567",
+        "manufacturer": "Vapor IO",
+        "part_number": "P1234567",
+        "product_name": "Example Product",
+        "serial_number": S1234567",
+        "version": "v1.2.0"
       }
     }
 
-Example Response
-----------------
-
-::
-
-    {
-      "board_id": "00000001",
-      "device_id": "01FF",
-      "asset_info": "example asset information"
-    }
-
 Errors
 ------
 
-- If asset info is not writeable or does not exist, an error (500) is returned.
-
-Write Device
-============
-
-Description
------------
-
-- Write to device bus to a writeable device.  The write command is followed by the ``device_type``, ``board_id`` and ``device_id``, with the final field of the request being the data sent to the device.
-
-Status
-------
-
-- Not yet implemented.
+- If asset info is unavailable or does not exist, an error (500) is returned.
 
 Power
 =====
@@ -467,16 +402,16 @@ Request Format
 --------------
 ::
 
-    http://<ipaddress>:<port>/opendcre/<version>/power/<command>/<board_id>/<device_id>
+    http://<ipaddress>:<port>/opendcre/<version>/power/<board_id>/<device_id>[/<command>]
 
 Parameters
 ----------
 
-- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper 3 bytes of ``board_id`` are reserved for future use in OpenDCRE v1.1.  IPMI Bridge board has a special ``board_id`` of 40000000.
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
 
-- ``device_id`` : The device to issue power command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to the OpenDCRE HAT is ``power`` - else, a 500 error is returned.
+- ``device_id`` : The device to issue power command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``power`` - else, a 500 error is returned.
 
-- ``command`` : 
+- ``command`` (optional) :
     - ``on`` : Turn power on to specified device.
     - ``off`` : Turn power off to specified device.
     - ``cycle`` : Power-cycle the specified device.
@@ -488,7 +423,7 @@ Request Example
 ---------------
 ::
 
-    http://opendcre:5000/opendcre/1.1/power/on/00000001/01ff
+    http://opendcre:5000/opendcre/1.2/power/00000001/000d/on
 
 Response Schema
 ---------------
@@ -496,7 +431,7 @@ Response Schema
 ::
 
     {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-power-status",
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-power-status",
       "title": "OpenDCRE Power Status",
       "type": "object",
       "properties": {
@@ -548,6 +483,339 @@ Errors
 
 - If a power action fails, or an invalid board/device combination are specified, an error (500) is returned.
 
+Boot Target
+===========
+
+Description
+-----------
+
+- The boot target command may be used to get or set the boot target for a given device (whose device_type must be ``system``).  The boot_target command takes two required parameters - ``board_id`` and ``device_id``, to identify the device to direct the boot_target command to.  Additionally, a third, optional parameter, ``target`` may be used to set the boot target.
+
+Request Format
+--------------
+::
+
+   http://<ipaddress>:<port>/opendcre/<version>/boot_target/<board_id>/<device_id>[/<target>]
+
+Parameters
+----------
+
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
+
+- ``device_id`` : The device to issue boot target command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``system`` - else, a 500 error is returned.
+
+- ``target`` (optional) :
+    - ``hdd`` : boot to hard disk
+    - ``pxe`` : boot to network
+    - ``no_override`` : use the system default boot target
+
+If a target is not specified, boot_target makes no changes, and simply retrieves and returns the system boot target.  If ``target`` is specified and valid, the boot_target command will return the updated boot target value, as provided by the remote device.
+
+Request Example
+---------------
+::
+
+    http://opendcre:5000/opendcre/1.2/boot_target/00000001/0004
+
+
+Response Schema
+---------------
+
+::
+
+    {
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-boot-target",
+      "title": "OpenDCRE Boot Target",
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string"
+        }
+      }
+    }
+
+Example Response
+----------------
+
+::
+
+    {
+      "target": "no_override"
+    }
+
+Errors
+------
+
+- If a boot target action fails, or an invalid board/device combination are specified, an error (500) is returned.
+
+Location
+========
+
+Description
+-----------
+
+- The location command returns the physical location of a given board in the rack, if known, and may also include a given device's position within a chassis (when ``device_id`` is specified).  IPMI boards return ``unknown`` for all fields of ``physical_location`` as location information is not provided by IPMI.
+
+Request Format
+--------------
+::
+
+   http://<ipaddress>:<port>/opendcre/<version>/location/<board_id>[/<device_id>]
+
+Parameters
+----------
+
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
+
+- ``device_id`` (optional) : The device to get location for on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device known to OpenDCRE - else, a 500 error is returned.
+
+Response Schema
+---------------
+-Device Location:
+
+::
+
+    {
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-device-location",
+      "title": "OpenDCRE Device Location",
+      "type": "object",
+      "properties": {
+        "chassis_location": {
+          "type": "object",
+          "properties": {
+            "depth": {
+              "type": "string"
+            },
+            "horiz_pos": {
+              "type": "string"
+            },
+            "vert_pos": {
+              "type": "string"
+            },
+            "server_node": {
+              "type": "string"
+            }
+          }
+        },
+        "physical_location": {
+          "type": "object",
+          "properties": {
+            "depth": {
+              "type": "string"
+            },
+            "horizontal": {
+              "type": "string"
+            },
+            "vertical": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+
+- Board Location:
+
+::
+
+    {
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-board-location",
+      "title": "OpenDCRE BoardLocation",
+      "type": "object",
+      "properties": {
+        "physical_location": {
+          "type": "object",
+          "properties": {
+            "depth": {
+              "type": "string"
+            },
+            "horizontal": {
+              "type": "string"
+            },
+            "vertical": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+
+Example Responses
+-----------------
+- Device Location:
+
+::
+
+    {
+      "chassis_location": {
+        "depth": "unknown",
+        "horiz_pos": "unknown",
+        "server_node": "unknown",
+        "vert_pos": "unknown"
+      },
+      "physical_location": {
+        "depth": "unknown",
+        "horizontal": "unknown",
+        "vertical": "unknown"
+      }
+    }
+
+- Valid values for ``chassis_location`` ``depth`` fields are ``front``, ``middle`` and ``rear``.
+
+- Valid values for ``chassis_location`` ``horiz_pos`` fields are ``left``, ``middle`` and ``right``.
+
+- Valid values for ``chassis_location`` ``vert_pos`` fields are ``top``, ``middle``, and ``bottom``.
+
+- ``unknown`` is a valid value for any location field.
+
+- Board Location:
+
+::
+
+    {
+      "physical_location": {
+        "depth": "unknown",
+        "horizontal": "unknown",
+        "vertical": "unknown"
+      }
+    }
+
+- Valid values for ``physical_location`` ``depth`` fields are: ``front``, ``middle``, and ``rear``.
+
+- Valid values for ``physical_location`` ``horizontal`` fields are: ``left``, ``middle``, and ``right``.
+
+- Valid values for ``physical_location`` ``vertical`` fields are: ``top``, ``middle``, and ``bottom``.
+
+- ``unknown`` is a valid value for any location field.
+
+Errors
+------
+
+- If a location command fails, or an invalid board/device combination are specified, an error (500) is returned.
+
+LED Control
+===========
+
+Description
+-----------
+
+- The LED control command is used to get and set the chassis "identify" LED state.  ``led`` devices known to OpenDCRE allow LED state to be set and retrieved.
+
+Request Format
+--------------
+::
+
+   http://<ipaddress>:<port>/opendcre/<version>/led/<board_id>/<device_id>[/<led_state>]
+
+Parameters
+----------
+
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
+
+- ``device_id`` : The device to issue LED control command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``led`` - else, a 500 error is returned.
+
+- ``led_state`` (optional) :
+    - ``on`` : Turn on the chassis identify LED.
+    - ``off`` : Turn off the chassis identify LED.
+
+Request Example
+---------------
+::
+
+    http://opendcre:5000/opendcre/1.2/led/00000001/0005
+
+Response Schema
+---------------
+
+::
+
+    {
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-led-control",
+      "title": "OpenDCRE LED Control",
+      "type": "object",
+      "properties": {
+        "led_state": {
+          "type": "string"
+        }
+      }
+    }
+
+Example Response
+----------------
+
+::
+
+    {
+      "led_state": "on"
+    }
+
+Errors
+------
+
+- If a LED control action fails, or an invalid board/device combination are specified, an error (500) is returned.
+
+
+Fan Speed
+=========
+
+Description
+-----------
+
+- The fan control command is used to get and set the fan speed in RPM for a given fan.  ``fan_speed`` devices known to OpenDCRE that are not IPMI devices allow fan speed to be set and retrieved, while IPMI ``fan_speed`` devices are read-only.
+
+Request Format
+--------------
+::
+
+   http://<ipaddress>:<port>/opendcre/<version>/fan/<board_id>/<device_id>[/<speed_rpm>]
+
+Parameters
+----------
+
+- ``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
+
+- ``device_id`` : The device to issue fan control command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``fan_speed`` - else, a 500 error is returned.
+
+- ``speed_rpm`` (optional) : Numeric decimal value to set fan speed to, in range of 0-10000.
+
+    - If ``speed_rpm`` is not specified, the ``fan`` command makes no changes, and simply retrieves and returns the fan speed in RPM.  If ``speed_rpm`` is specified and valid, the ``fan`` command will return the updated fan speed value, as provided by the remote device.
+
+Request Example
+---------------
+::
+
+    http://opendcre:5000/opendcre/1.2/fan/00000001/0002
+
+Response Schema
+---------------
+
+::
+
+    {
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-fan-speed",
+      "title": "OpenDCRE Fan Speed",
+      "type": "object",
+      "properties": {
+        "speed_rpm": {
+          "type": "number"
+        }
+      }
+    }
+
+Example Response
+----------------
+
+::
+
+    {
+      "speed_rpm": 4100
+    }
+
+Errors
+------
+
+- If a fan speed action fails, or an invalid board/device combination are specified, an error (500) is returned.
+
 Test
 ====
 
@@ -568,7 +836,7 @@ Response Schema
 ::
 
     {
-      "$schema": "http://schemas.vapor.io/opendcre/v1.1/opendcre-1.1-test-status",
+      "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-test-status",
       "title": "OpenDCRE Test Status",
       "type": "object",
       "properties": {
@@ -579,6 +847,7 @@ Response Schema
     }
 
 Example Response
+----------------
 
 ::
 

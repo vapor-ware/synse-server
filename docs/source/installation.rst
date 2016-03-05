@@ -20,7 +20,7 @@ Hardware Requirements
 Software Requirements
 ---------------------
 
-- OpenMistOS v1.0.0 or later.
+- OpenMistOS v1.1.0 or later.
 
 Download and Install
 ====================
@@ -30,7 +30,7 @@ Download
 
 - `Download OpenMistOS`__ , and decompress the .img file.  `OpenDCRE Source`__ on GitHub.
 
-.. _OpenMistOS: http://www.vapor.io/file/2015/11/OpenMistOS-v1.0.0.img.tar.gz
+.. _OpenMistOS: http://www.vapor.io/file/2016/03/OpenMistOS-v1.1.0.img.tar.gz
 
 .. _OpenDCRE: https://github.com/vapor-ware/OpenDCRE 
 
@@ -69,19 +69,45 @@ At completion of the boot process, the OpenMistOS device IP address is displayed
 Login
 -----
 
-Ssh into the OpenMistOS device:
+SSH into the OpenMistOS device:
 
 - *Username*:  ``openmistos``
 - *Password*:  ``0p3ndcr3!``
 
 
-The openmistos user has sudo rights on OpenMistOS.  It is recommended to **immediately** change the openmistos password to a new, secure, password.
+The ``openmistos`` user has ``sudo`` and Docker rights on OpenMistOS.  It is recommended to **immediately** change the ``openmistos`` password to a new, secure, password.
 
 **Note**: OpenMistOS, like other Raspberry Pi OSes, uses only the space required for the OS on the SD card. It is recommended to change this behavior so that the entire space on the SD card is used. To do this, enter the configuration menu on first login:
 
 ``$ sudo raspi-config``
 
 In the configuration menu, there should be an option to use the entire disk. Once selected and confirmed, OpenMistOS will restart and the entire SD card will then be used.
+
+Starting OpenDCRE
+-----------------
+OpenDCRE may be started manually for verification.
+
+To start OpenDCRE with the HAT device attached:
+::
+
+    docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/mem:/dev/mem --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh /dev/ttyAMA0 0``
+
+
+With Emulator
+-------------
+
+To start OpenDCRE in local emulator mode:
+::
+
+    docker run -d -p 5000:5000 -v /var/log/opendcre:/logs opendcre ./start_opendcre_emulator.sh
+
+Run Tests
+---------
+
+To run the OpenDCRE test suite (from the OpenDCRE root):
+::
+
+    make rpi-test
 
 Verification
 ------------
@@ -93,7 +119,7 @@ Browser
 Navigate to:
 ::
 
-    http://<openmistos ip address>:5000/opendcre/1.1/test
+    http://<openmistos ip address>:5000/opendcre/1.2/test
 
 Output should be similar to:
 ::
@@ -123,10 +149,6 @@ or:
     2281101f6a60        vaporio/opendcre:latest   "./start_opendcre_em   4 days ago          Up 4 days           0.0.0.0:5000->5000/tcp   opendcre
 
 (when using the emulator)
-
-The OpenDCRE service starts automatically at boot; it can be started/stopped via the init.d daemon:
-
-``$ sudo /etc/init.d/opendcre <start|stop>``
 
 Logs
 ----

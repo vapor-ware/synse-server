@@ -3,7 +3,7 @@ Configuring OpenDCRE
 ====================
 
 Customization
---------------
+-------------
 
 OpenDCRE may be customized in a variety of ways, most commonly by changing the HTTP endpoint port, adding TLS certificates for HTTPS support, or by integrating OpenDCRE with a site-specific authentication provider.
 
