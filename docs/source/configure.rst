@@ -1,6 +1,6 @@
-=====================
-Configuring OpendDCRE
-=====================
+====================
+Configuring OpenDCRE
+====================
 
 Customization
 --------------
