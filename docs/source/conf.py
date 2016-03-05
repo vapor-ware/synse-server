@@ -48,8 +48,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'OpenDCRE'
-copyright = u'2016, Andrew Cencini'
-author = u'Andrew Cencini'
+copyright = u'2016, Vapor IO'
+author = u'Vapor IO'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -224,7 +224,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'OpenDCRE.tex', u'OpenDCRE Documentation',
-     u'Andrew Cencini', 'manual'),
+     u'Vapor IO', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
