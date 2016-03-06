@@ -14,6 +14,7 @@ To modify the emulator output, users may clone the `OpenDCRE GitHub repository`_
 __ OpenDCRE_
 
 Example emulator configuration from ``simple.json`` is below, followed by an explanation of the contents.
+
 .. code-block:: json
 
     {
