@@ -43,31 +43,27 @@ Install
 
 Insert Micro SD card into card reader, and determine the SD card device:
 
-*MacOS*
+MacOS
+    .. code-block:: shell
 
-.. code-block:: shell
+        sudo diskutil list
 
-    sudo diskutil list
+Linux
+    .. code-block:: shell
 
-*Linux*
-
-.. code-block:: shell
-
-    sudo fdisk -l
+        sudo fdisk -l
 
 Use ``dd`` to write image to card:
 
-*Macos*
+Macos
+    .. code-block:: shell
 
-.. code-block:: shell
+        sudo dd if=<.img file> of=<sd card device> bs=4m
 
-    sudo dd if=<.img file> of=<sd card device> bs=4m
+Linux
+    .. code-block:: shell
 
-*Linux*
-
-.. code-block:: shell
-
-    sudo dd if=<.img file> of=<sd card device> bs=4M
+        sudo dd if=<.img file> of=<sd card device> bs=4M
 
 Note:
     - ``<.img file>`` is the path and filename of the decompressed OpenMistOS .img downloaded above.
@@ -81,17 +77,15 @@ When executing the above commands, if an error is returned similar to
 
 then the SD card must be unmounted. To do this, identify the SD card partition (can use ``df -h`` for this, or the results from determining the SD card device, above), then unmount the partition:
 
-*MacOS*
+MacOS
+    .. code-block:: shell
 
-.. code-block:: shell
+        sudo diskutil unmount <sd card device>
 
-    sudo diskutil unmount <sd card device>
+Linux
+    .. code-block:: shell
 
-*Linux*
-
-.. code-block:: shell
-
-    sudo umount <sd card device>
+        sudo umount <sd card device>
 
 When ``dd`` is complete, OpenMistOS is ready to run from the SD card.  Plug the Raspberry Pi into the wired network, insert the Micro SD card, and power up the Raspberry Pi.
 
@@ -165,6 +159,7 @@ Output should be similar to:
     {
         "status": "ok"
     }
+
 
 Command-Line
 ~~~~~~~~~~~~
