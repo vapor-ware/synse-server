@@ -26,7 +26,7 @@ Configuration
 The Vapor IPMI bridge is configured via the ``bmc_config.json`` file, which must be placed in the top level of the OpenDCRE distribution.  An example file, ``bmc_config_sample.json`` is included with OpenDCRE (located in the ``opendcre_southbound`` directory), and may be modified to one's environment.
 
 All IPMI BMCs successfully configured will show up on a ``scan`` command result as devices under ``board_id`` 40000000.
-::
+.. code-block:: json
 
     {
       "bmcs": [
@@ -68,7 +68,7 @@ If a field is missing, or the ``bmc_config.json`` file is improperly formatted, 
 
 Once the configuration file has been successfully edited, rebuild the OpenDCRE Docker container, and verify the configured BMC devices are returned via a ``scan`` command.
 
-Each BMC device will show up as a board, with ``board_id`` in the range of ``40000001``..``40FFFFFF``.
+Each BMC device will show up as a board, with ``board_id`` in the range of ``40000001`` ... ``40FFFFFF``.
 
 OpenDCRE commands may be issued against IPMI and PLC devices without change in command format.
 

@@ -46,7 +46,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
         "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-boards-devices",
@@ -95,7 +95,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "boards": [
@@ -156,12 +156,12 @@ Request Example
 ---------------
 ::
 
-    https://opendcre:5000/opendcre/1.2/version/00000001
+    http://opendcre:5000/opendcre/1.2/version/00000001
 
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-version",
@@ -183,7 +183,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "api_version": "1.2",
@@ -205,6 +205,7 @@ Description
 - Read a value from the given ``board_id`` and ``device_id`` for a specific ``device_type``.  The specified ``device_type`` must match the actual physical device type (as reported by the ``scan`` command), and is used to return a translated raw reading value (e.g. temperature in C for a thermistor) based on the existing algorithm for a given sensor type.  The raw value is also returned.
 
 Request Format
+--------------
 ::
 
     http://<ipaddress>:<port>/opendcre/<version>/read/<device_type>/<board_id>/<device_id>
@@ -212,7 +213,7 @@ Request Format
 Parameters
 ----------
 
-- ``device_type``:  String value (lower-case) indicating what type of device to read:
+- ``device_type`` :  String value (lower-case) indicating what type of device to read
     - ``thermistor``
     - ``temperature``
     - ``humidity``
@@ -233,7 +234,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-thermistor-reading",
@@ -249,7 +250,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "temperature_c": 19.73
@@ -290,7 +291,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-asset-information",
@@ -360,7 +361,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "bmc_ip": "192.168.1.118",
@@ -428,7 +429,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-power-status",
@@ -465,7 +466,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "input_power": 0.0, 
@@ -521,7 +522,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-boot-target",
@@ -537,7 +538,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "target": "no_override"
@@ -573,7 +574,7 @@ Response Schema
 ---------------
 -Device Location:
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-device-location",
@@ -616,7 +617,7 @@ Response Schema
 
 - Board Location:
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-board-location",
@@ -644,7 +645,7 @@ Example Responses
 -----------------
 - Device Location:
 
-::
+.. code-block:: json
 
     {
       "chassis_location": {
@@ -670,7 +671,7 @@ Example Responses
 
 - Board Location:
 
-::
+.. code-block:: json
 
     {
       "physical_location": {
@@ -727,7 +728,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-led-control",
@@ -743,7 +744,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "led_state": "on"
@@ -789,7 +790,7 @@ Request Example
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-fan-speed",
@@ -805,7 +806,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "speed_rpm": 4100
@@ -833,7 +834,7 @@ Request Format
 Response Schema
 ---------------
 
-::
+.. code-block:: json
 
     {
       "$schema": "http://schemas.vapor.io/opendcre/v1.2/opendcre-1.2-test-status",
@@ -849,7 +850,7 @@ Response Schema
 Example Response
 ----------------
 
-::
+.. code-block:: json
 
     {
       "status": "ok" 

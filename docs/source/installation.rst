@@ -55,7 +55,7 @@ Install
         - ``<.img file>`` is the path and filename of the decompressed OpenMistOS .img downloaded above.
         - ``<sd card device>`` is the SD card device determined in the previous step. (e.g. - /dev/disk1)
 
-When executing the above commands, if an error is returned similar to: ``dd: <sd card device>: Resource busy`` then the SD card must be unmounted.To do this, identify the SD card partition (can use ``df -h`` for this, or the results from determining the SD card device, above), then unmount the partition:
+When executing the above commands, if an error is returned similar to: ``dd: <sd card device>: Resource busy`` then the SD card must be unmounted. To do this, identify the SD card partition (can use ``df -h`` for this, or the results from determining the SD card device, above), then unmount the partition:
 
 - *MacOS*:
     - ``sudo diskutil unmount <sd card device>``
@@ -90,7 +90,7 @@ OpenDCRE may be started manually for verification.
 To start OpenDCRE with the HAT device attached:
 ::
 
-    docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/mem:/dev/mem --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh /dev/ttyAMA0 0``
+    docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/mem:/dev/mem --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh /dev/ttyAMA0 0
 
 
 With Emulator
@@ -114,7 +114,7 @@ Verification
 There are several methods for verifying that OpenDCRE is running properly.
 
 Browser
--------
+~~~~~~~
 
 Navigate to:
 ::
@@ -129,7 +129,7 @@ Output should be similar to:
     }
 
 Command-Line
-------------
+~~~~~~~~~~~~
 
 Running:
 ``$ docker ps``
