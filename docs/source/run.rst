@@ -16,7 +16,7 @@ With HAT
 To start OpenDCRE with the HAT device attached:
 ::
 
-    docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/mem:/dev/mem --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh``
+    docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/mem:/dev/mem --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh
 
 With Emulator
 -------------

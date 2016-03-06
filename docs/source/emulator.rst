@@ -5,7 +5,7 @@ OpenDCRE Emulator
 Emulator Configuration
 ----------------------
 
-In the absence of HAT hardware, OpenDCRE can utilize a software emulator, to simulate and test various capabilities of OpenDCRE.  The OpenDCRE emulator is configured by means of a JSON file (the default file is ``simple.json``) which is stored in the ``/opendcre/opendcre_southbound`` directory of the OpenDCRE Docker container.
+In the absence of HAT hardware, OpenDCRE can utilize a software emulator to simulate and test various capabilities of OpenDCRE.  The OpenDCRE emulator is configured by means of a JSON file (the default file is ``simple.json``) which is stored in the ``/opendcre/opendcre_southbound`` directory of the OpenDCRE Docker container.
 
 To modify the emulator output, users may clone the `OpenDCRE GitHub repository`__, and change the contents of ``simple.json``, then rebuild the OpenDCRE container.
 
@@ -14,7 +14,8 @@ To modify the emulator output, users may clone the `OpenDCRE GitHub repository`_
 __ OpenDCRE_
 
 Example emulator configuration from ``simple.json`` is below, followed by an explanation of the contents.
-::
+
+.. code-block:: json
 
     {
       "boards": [
@@ -646,7 +647,8 @@ The ``device_type`` field must be present, and must contain a string value that 
 - ``fan_speed``
 - ``temperature``
 
-In previous releases, a device type of ``none`` indicated that no device is present at a given ``device_id`` on the given board, and may be ignored.  In OpenDCRE v1.2 the ``none`` device type has been removed.
+.. versionchanged:: 1.2
+    In previous releases, a device type of ``none`` indicated that no device is present at a given ``device_id`` on the given board, and may be ignored.  In OpenDCRE v1.2 the ``none`` device type has been removed.
 
 Other device types (e.g. for additional sensors and actions) will be added in future revisions of OpenDCRE, or may be added by developers wishing to add support for other device types.
 
@@ -668,7 +670,7 @@ Device Type     Action Supported
 Read
 ----
 
-For the ``read`` action's field in the OpenDCRE emulator configuration, two fields may be configured, relating to the responses returned from a read command for the given device.
+For the ``read`` action's field in the OpenDCRE emulator configuration, two fields may be configured relating to the responses returned from a read command for the given device.
 
 First, the ``repeatable`` field may be set to true or false, depending on whether it is desirable for the list of responses set in the responses field to repeat in a round-robin fashion, or if a device should stop returning data after its response list has been exhausted.
 
@@ -679,7 +681,7 @@ When a list of values is provided for responses, the emulator iterates sequentia
 An empty responses list means the device returns no data, which translates to a 500 error for the read command at the OpenDCRE REST API level (useful for simulating errors).  To always return the same single value, a responses list with a single element, and repeatable set to "true" will suffice.
 
 Read Response Format
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 The table below describes the response format for each device type for ``read`` commands to the emulator.
 
@@ -689,7 +691,7 @@ Device Type     Format
 ``thermistor``  integer, converted by OpenDCRE (see ``simple.json``)
 ``temperature`` numeric, sent back as numeric value (e.g. 28.78)
 ``humidity``    numeric, converted by OpenDCRE
-``led``         integer - ``1`` is ``on`` and ``0`` is ``off``; all other values are errors
+``led``         integer, ``1`` is ``on`` and ``0`` is ``off``; all other values are errors
 ``fan_speed``   integer, sent back as integer value (e.g. 4100)
 =============== ==============================================
 
@@ -701,7 +703,7 @@ Write
 For the ``write`` action's field in the OpenDCRE emulator configuration, two fields may be configured, relating to the responses returned from a write command for the given device.  The fields are laid out and function in the same manner as ``read`` fields.
 
 Write Response Format
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 The table below describes the response format for each device type for ``write`` commands to the emulator.
 
