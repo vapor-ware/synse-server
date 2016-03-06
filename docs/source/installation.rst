@@ -42,24 +42,30 @@ Install
 -------
 
 Insert Micro SD card into card reader, and determine the SD card device:
+
 *MacOS*
-::
+
+.. code-block:: shell
 
     sudo diskutil list
 
 *Linux*
-::
+
+.. code-block:: shell
 
     sudo fdisk -l
 
 Use ``dd`` to write image to card:
+
 *Macos*
-::
+
+.. code-block:: shell
 
     sudo dd if=<.img file> of=<sd card device> bs=4m
 
 *Linux*
-::
+
+.. code-block:: shell
 
     sudo dd if=<.img file> of=<sd card device> bs=4M
 
@@ -68,19 +74,22 @@ Note:
     - ``<sd card device>`` is the SD card device determined in the previous step. (e.g. - /dev/disk1)
 
 When executing the above commands, if an error is returned similar to
-::
+
+.. code-block:: shell
 
     dd: <sd card device>: Resource busy
 
 then the SD card must be unmounted. To do this, identify the SD card partition (can use ``df -h`` for this, or the results from determining the SD card device, above), then unmount the partition:
 
 *MacOS*
-::
+
+.. code-block:: shell
 
     sudo diskutil unmount <sd card device>
 
 *Linux*
-::
+
+.. code-block:: shell
 
     sudo umount <sd card device>
 
@@ -113,7 +122,8 @@ Starting OpenDCRE
 OpenDCRE may be started manually for verification.
 
 To start OpenDCRE with the HAT device attached:
-::
+
+.. code-block:: shell
 
     docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/mem:/dev/mem --device /dev/ttyAMA0:/dev/ttyAMA0 opendcre ./start_opendcre.sh /dev/ttyAMA0 0
 
@@ -122,7 +132,8 @@ With Emulator
 -------------
 
 To start OpenDCRE in local emulator mode:
-::
+
+.. code-block:: shell
 
     docker run -d -p 5000:5000 -v /var/log/opendcre:/logs opendcre ./start_opendcre_emulator.sh
 
@@ -130,7 +141,8 @@ Run Tests
 ---------
 
 To run the OpenDCRE test suite (from the OpenDCRE root):
-::
+
+.. code-block:: shell
 
     make rpi-test
 
@@ -147,6 +159,7 @@ Navigate to:
     http://<openmistos ip address>:5000/opendcre/1.2/test
 
 Output should be similar to:
+
 .. code-block:: json
 
     {
@@ -156,10 +169,7 @@ Output should be similar to:
 Command-Line
 ~~~~~~~~~~~~
 
-Running:
-``$ docker ps``
-
-produces output similar to:
+Running: ``docker ps`` produces output similar to:
 ::
 
     CONTAINER ID        IMAGE                      COMMAND                CREATED          STATUS              PORTS                    NAMES
