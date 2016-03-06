@@ -146,7 +146,7 @@ Request Format
 Parameters
 ----------
 
-``board_id`` : Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40000000.
+:board_id: Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40000000.
 
 Request Example
 ---------------
@@ -209,13 +209,8 @@ Request Format
 Parameters
 ----------
 
-:device_type:  String value (lower-case) indicating what type of device to read
-    - ``thermistor``
-    - ``temperature``
-    - ``humidity``
-    - ``led``
-    - ``fan_speed``
-    - ``pressure`` (not implemented yet)
+:device_type:  String value (lower-case) indicating what type of device to read: ``thermistor``, ``temperature``,
+    ``humidity``, ``led``, ``fan_speed``, ``pressure`` (not implemented yet)
 :board_id: Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN (where NNNNNN is the hex string id of each individual BMC configured with the IPMI Bridge).
 :device_id: The device to read on the specified board.  Hexadecimal string representation of a 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to  OpenDCRE matches the ``device_type`` specified in the command for the given device - else, a 500 error is returned.
 
@@ -403,11 +398,10 @@ Parameters
 
 :board_id: Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
 :device_id: The device to issue power command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``power`` - else, a 500 error is returned.
-:command: (optional)
-    - ``on`` : Turn power on to specified device.
-    - ``off`` : Turn power off to specified device.
-    - ``cycle`` : Power-cycle the specified device.
-    - ``status`` : Get power status for the specified device.
+:command: (optional) ``on`` : Turn power on to specified device.
+    ``off`` : Turn power off to specified device.
+    ``cycle`` : Power-cycle the specified device.
+    ``status`` : Get power status for the specified device.
 
 For all commands, power status is returned as the command's response.
 
@@ -495,9 +489,9 @@ Parameters
 :board_id: Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
 :device_id: The device to issue boot target command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``system`` - else, a 500 error is returned.
 :target: (optional)
-    - ``hdd`` : boot to hard disk
-    - ``pxe`` : boot to network
-    - ``no_override`` : use the system default boot target
+    ``hdd`` : boot to hard disk.
+    ``pxe`` : boot to network.
+    ``no_override`` : use the system default boot target.
 
 If a target is not specified, boot_target makes no changes, and simply retrieves and returns the system boot target.  If ``target`` is specified and valid, the boot_target command will return the updated boot target value, as provided by the remote device.
 
@@ -700,8 +694,8 @@ Parameters
 :board_id: Hexadecimal string representation of 4-byte integer value - range 00000000..FFFFFFFF.  Upper byte of ``board_id`` reserved for future use in OpenDCRE.  IPMI Bridge board has a special ``board_id`` of 40NNNNNN, where NNNNNN corresponds to the hex string id of each configured BMC.
 :device_id: The device to issue LED control command to on the specified board.  Hexadecimal string representation of 2-byte integer value - range 0000..FFFF.  Must be a valid, existing device, where the ``device_type`` known to OpenDCRE is ``led`` - else, a 500 error is returned.
 :led_state: (optional)
-    - ``on`` : Turn on the chassis identify LED.
-    - ``off`` : Turn off the chassis identify LED.
+    ``on`` : Turn on the chassis identify LED. 
+    ``off`` : Turn off the chassis identify LED.
 
 Request Example
 ---------------
