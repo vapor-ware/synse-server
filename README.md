@@ -5,7 +5,7 @@
 #Overview
 OpenDCRE provides a securable RESTful API for monitoring and control of data center and IT equipment, including reading sensors and server power control - via power line communications (PLC) over a DC bus bar, or via IPMI over LAN.  The OpenDCRE API is easy to integrate into third-party monitoring, management and orchestration providers, while providing a simple, curl-able interface for common and custom devops tasks.
 
-Additional documentation may be found on the <a href="http://opendcre.readthedocs.org/">OpenDCRE Read the Docs</a> site.
+Additional documentation may be found on the <a href="http://opendcre.readthedocs.org/en/v1.2.0/">OpenDCRE Read the Docs</a> site.
 
 #Contents
 
