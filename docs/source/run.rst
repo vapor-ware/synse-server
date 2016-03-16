@@ -33,3 +33,4 @@ To run the OpenDCRE test suite (from OpenDCRE root directory):
 ::
 
     make rpi-test
+
