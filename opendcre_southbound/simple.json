@@ -2,10 +2,10 @@
   "boards": [
     {
       "board_id": "00000001",
-      "firmware_version" : "OpenDCRE Emulator v1.1.0",
+      "firmware_version" : "OpenDCRE Emulator v1.2.0 - Standalone Server",
       "devices" : [
         {
-          "device_id": "01ff",
+          "device_id": "0001",
           "device_type": "thermistor",
           "read":
             {
@@ -36,16 +36,80 @@
             }
         },
         {
-          "device_id": "02ff",
-          "device_type": "none",
+          "device_id": "0002",
+          "device_type": "fan_speed",
           "read":
             {
               "repeatable": true,
-              "responses": [ ]
+              "responses": [
+                4100,
+                4100,
+                4000,
+                4000,
+                3900,
+                3900,
+                3800,
+                3800,
+                3700,
+                3700,
+                3800,
+                3800,
+                3900,
+                3900,
+                4000,
+                4000,
+                4100,
+                4100,
+                4200,
+                4200
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W1"
+              ]
             }
         },
         {
-          "device_id": "03ff",
+          "device_id": "0004",
+          "device_type": "system",
+          "asset_info":
+          {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          },
+          "boot_target": {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "led",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                1,
+                0
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W1"
+              ]
+            }
+        },
+        {
+          "device_id": "0009",
           "device_type": "thermistor",
           "read":
             {
@@ -76,154 +140,440 @@
             }
         },
         {
-          "device_id": "04ff",
-          "device_type": "none",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [ ]
-            }
-        },
-        {
-          "device_id": "05ff",
-          "device_type": "none",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [ ]
-            }
-        },
-        {
-          "device_id": "06ff",
-          "device_type": "none",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [ ]
-            }
-        },
-        {
-          "device_id": "07ff",
-          "device_type": "none",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [ ]
-            }
-        },
-        {
-          "device_id": "08ff",
-          "device_type": "thermistor",
+          "device_id": "2000",
+          "device_type": "temperature",
           "read":
             {
               "repeatable": true,
               "responses": [
-                656,
-                646,
-                636,
-                625,
-                615,
-                605,
-                594,
-                584,
-                573,
-                563,
-                553,
-                542,
-                532,
-                522,
-                512,
-                502,
-                491,
-                482,
-                472,
-                462,
-                452
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
               ]
             }
         },
         {
-          "device_id": "09ff",
-          "device_type": "thermistor",
+          "device_id": "4000",
+          "device_type": "temperature",
           "read":
             {
               "repeatable": true,
               "responses": [
-                656,
-                646,
-                636,
-                625,
-                615,
-                605,
-                594,
-                584,
-                573,
-                563,
-                553,
-                542,
-                532,
-                522,
-                512,
-                502,
-                491,
-                482,
-                472,
-                462,
-                452
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
               ]
             }
         },
         {
-          "device_id": "0aff",
-          "device_type": "thermistor",
+          "device_id": "000D",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [
+                "0,0,0,0"
+              ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000002",
+      "firmware_version" : "OpenDCRE Emulator v1.2.0 - Microserver",
+      "devices" : [
+        {
+          "device_id": "0002",
+          "device_type": "fan_speed",
           "read":
             {
               "repeatable": true,
               "responses": [
-                656,
-                646,
-                636,
-                625,
-                615,
-                605,
-                594,
-                584,
-                573,
-                563,
-                553,
-                542,
-                532,
-                522,
-                512,
-                502,
-                491,
-                482,
-                472,
-                462,
-                452
+                4100,
+                4100,
+                4000,
+                4000,
+                3900,
+                3900,
+                3800,
+                3800,
+                3700,
+                3700,
+                3800,
+                3800,
+                3900,
+                3900,
+                4000,
+                4000,
+                4100,
+                4100,
+                4200,
+                4200
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W1"
               ]
             }
         },
         {
-          "device_id": "0bff",
-          "device_type": "none",
-          "read":
+          "device_id": "8001",
+          "device_type": "system",
+          "asset_info":
+          {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          },
+          "boot_target": {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          }
+        },
+        {
+          "device_id": "8002",
+          "device_type": "power",
+          "power":
             {
               "repeatable": true,
-              "responses": [ ]
+              "responses": [
+                "0,0,0,0"
+              ]
             }
         },
         {
-          "device_id": "0cff",
-          "device_type": "none",
+          "device_id": "8003",
+          "device_type": "temperature",
           "read":
             {
               "repeatable": true,
-              "responses": [ ]
+              "responses": [
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
+              ]
             }
         },
         {
-          "device_id": "0dff",
+          "device_id": "8101",
+          "device_type": "system",
+          "asset_info":
+          {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          },
+          "boot_target": {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          }
+        },
+        {
+          "device_id": "8102",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [
+                "0,0,0,0"
+              ]
+            }
+        },
+        {
+          "device_id": "8103",
+          "device_type": "temperature",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
+              ]
+            }
+        },
+        {
+          "device_id": "8201",
+          "device_type": "system",
+          "asset_info":
+          {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          },
+          "boot_target": {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          }
+        },
+        {
+          "device_id": "8202",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [
+                "0,0,0,0"
+              ]
+            }
+        },
+        {
+          "device_id": "8203",
+          "device_type": "temperature",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
+              ]
+            }
+        },
+        {
+          "device_id": "8301",
+          "device_type": "system",
+          "asset_info":
+          {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          },
+          "boot_target": {
+              "repeatable": true,
+              "responses": [
+                "not yet implemented"
+              ]
+          }
+        },
+        {
+          "device_id": "8302",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [
+                "0,0,0,0"
+              ]
+            }
+        },
+        {
+          "device_id": "8303",
+          "device_type": "temperature",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
+              ]
+            }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "led",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                1,
+                0
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W1"
+              ]
+            }
+        },
+        {
+          "device_id": "2000",
+          "device_type": "temperature",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
+              ]
+            }
+        },
+        {
+          "device_id": "4000",
+          "device_type": "temperature",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                28.78,
+                29.77,
+                30.75,
+                31.84,
+                32.82,
+                33.81,
+                34.89,
+                35.88,
+                36.96,
+                37.94,
+                38.93,
+                40.21,
+                41.27,
+                42.33,
+                43.39,
+                44.45,
+                45.61,
+                46.57,
+                47.63,
+                48.69,
+                49.75
+              ]
+            }
+        },
+        {
+          "device_id": "000D",
           "device_type": "power",
           "power":
             {

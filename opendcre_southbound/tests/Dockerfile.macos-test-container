@@ -1,0 +1,12 @@
+# use the macos opendcre-southbound image as the base image for the test container.
+# this test container should be used be all macos tests
+FROM vaporio/opendcre-southbound-macos
+
+# overwrite the default macos certs with the test certs. test certs should be kept in
+# a directory of equal or lower level than the directory containing this Dockerfile,
+# since the <src> path must be inside the context of the build. (e.g. you cannot
+# ADD ../something /something)
+ADD ./test_certs /etc/nginx/ssl
+
+# set a default command
+CMD ["bash"]

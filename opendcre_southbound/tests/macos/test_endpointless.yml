@@ -1,0 +1,4 @@
+endpointless-test-macos:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test
+  command: python ./opendcre_southbound/test-endpointless.py
