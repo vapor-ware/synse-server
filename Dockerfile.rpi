@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 RUN pip install pyserial==2.7
-RUN pip install flask
+RUN pip install flask==0.10.1
 RUN pip install requests
 RUN pip install uwsgi
 RUN pip install RPi.GPIO
