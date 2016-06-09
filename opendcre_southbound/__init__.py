@@ -667,7 +667,11 @@ def power_control(power_action='status', board_num=None, device_num=None, device
     with LockFile(LOCKFILE):
         if is_ipmi_board(board_num):
             try:
-                power_status = control_ipmi_power(board_num, device_num, power_action, app.config)
+                if power_action == 'cycle':
+                    # power unit off first,
+                    control_ipmi_power(board_num, device_num, 'off', app.config)
+                # then power unit back on
+                power_status = control_ipmi_power(board_num, device_num, 'on', app.config)
                 if power_status is not None:
                     # power status and power ok are returned from IPMI
                     power_status["pmbus_raw"] = "0,0,0,0"
