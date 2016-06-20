@@ -28,6 +28,8 @@ import vapor_ipmi
 import logging
 import json
 from definitions import *
+from errors import *
+from pyghmi.exceptions import *
 
 logger = logging.getLogger()
 
@@ -52,14 +54,15 @@ def scan_ipmi(config_file=None):
     i = 1
     for bmc in bmcs['bmcs']:
         bmc['board_id'] = IPMI_BOARD_ID | i     # for easier retrieval
-        bmc['auth_type'] = get_ipmi_auth(str(bmc['auth_type']))
-        bmc['integrity_type'] = get_ipmi_integrity(str(bmc['integrity_type']))
-        bmc['encryption_type'] = get_ipmi_encryption(str(bmc['encryption_type']))
+        bmc['auth_type'] = bmc['auth_type']
+        bmc['integrity_type'] = bmc['integrity_type']
+        bmc['encryption_type'] = bmc['encryption_type']
 
         board_record = dict()
         board_record['board_id'] = format(IPMI_BOARD_ID | i, "08x")
         board_record['devices'] = [{'device_id': '0100', 'device_type': 'power'},
-                                   {'device_id': '0200', 'device_type': 'system'}]
+                                   {'device_id': '0200', 'device_type': 'system'},
+                                   {'device_id': '0300', 'device_type': 'led'}]
         i += 1
         sensors = dict()
         try:
@@ -68,14 +71,14 @@ def scan_ipmi(config_file=None):
                                          ipmi20_auth=bmc['auth_type'],
                                          ipmi20_integrity=bmc['integrity_type'],
                                          ipmi20_encryption=bmc['encryption_type'])
-        except vapor_ipmi.IpmiError as e:
+        except (OpenDcreException, IpmiException) as e:
             logger.error("Unable to retrieve sensors for BMC: %s - %s", bmc['bmc_ip'], e.message)
         except ValueError:
             logger.exception("Invalid string in configuration file for BMC: %s", bmc['bmc_ip'])
 
         for sensor in sensors:
-            if sensor['sensor_type'] in ['temperature', 'fan']:
-                if sensor['sensor_type'] == 'temperature':
+            if sensor['sensor_type'].lower() in ['temperature', 'fan']:
+                if sensor['sensor_type'].lower() == 'temperature':
                     sensor_type = 'temperature'
                 else:
                     sensor_type = 'fan_speed'
@@ -84,63 +87,6 @@ def scan_ipmi(config_file=None):
                                                'device_info': sensor['id_string']})
         bmc['board_record'] = board_record
     return bmcs
-
-
-def get_ipmi_auth(auth_string):
-    """ Get numeric auth value for use with vapor_ipmi.
-
-    Args:
-        auth_string: The auth_string to convert to an authentication ID.
-
-    Returns: (int) A numeric value corresponding to the auth type.
-
-    Raises:
-        ValueError - if the auth_string is not valid.
-    """
-    if auth_string.upper() == "RAKP_HMAC_SHA1":
-        return vapor_ipmi.RAKP_HMAC_SHA1
-    elif auth_string.upper() == "NO_AUTHENTICATION_ALGORITHM":
-        return vapor_ipmi.NO_AUTHENTICATION_ALGORITHM
-    else:
-        raise ValueError("Authentication type of '{}' unknown.".format(auth_string))
-
-
-def get_ipmi_integrity(integrity_string):
-    """ Get numeric integrity value for use with vapor_ipmi.
-
-    Args:
-        integrity_string: The integrity_string to convert to an integrity ID.
-
-    Returns: (int) A numeric value corresponding to the integrity type.
-
-    Raises:
-        ValueError - if the integrity_string is not valid.
-    """
-    if integrity_string.upper() == "HMAC_SHA1_96":
-        return vapor_ipmi.HMAC_SHA1_96
-    elif integrity_string.upper() == "NO_INTEGRITY_ALGORITHM":
-        return vapor_ipmi.NO_INTEGRITY_ALGORITHM
-    else:
-        raise ValueError("Integrity type of '{}' unknown.".format(integrity_string))
-
-
-def get_ipmi_encryption(encryption_string):
-    """ Get numeric encryption value for use with vapor_ipmi.
-
-    Args:
-        encryption_string: The encryption_string to convert to an encryption ID.
-
-    Returns: (int) A numeric value corresponding to the encryption type.
-
-    Raises:
-        ValueError - if the encryption_string is not valid.
-    """
-    if encryption_string.upper() == "AES_CBC_128":
-        return vapor_ipmi.AES_CBC_128
-    elif encryption_string.upper() == "NO_ENCRYPTION_ALGORITHM":
-        return vapor_ipmi.NO_CONFIDENTIALITY_ALGORITHM
-    else:
-        raise ValueError("Encryption type of '{}' unknown.".format(encryption_string))
 
 
 def is_ipmi_board(board_id):
@@ -179,7 +125,7 @@ def control_ipmi_power(board_id, device_id, power_action, config=None):
         board_id: The board_id of the device to control.
         device_id: The device_id of the device to control.
         power_action: The action to take - supported: "on", "off", "cycle", "status"
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: (dict) Power Status regardless of command.
 
@@ -199,7 +145,7 @@ def control_ipmi_power(board_id, device_id, power_action, config=None):
                                         ipmi20_auth=bmc_info['auth_type'],
                                         ipmi20_integrity=bmc_info['integrity_type'],
                                         ipmi20_encryption=bmc_info['encryption_type'],
-                                        ip_address=bmc_info['bmc_ip'], command=power_action)
+                                        ip_address=bmc_info['bmc_ip'], cmd=power_action)
 
     raise ValueError("BMC or power device not found when trying to power control board: {} device: {} action: {})".
                      format(str(board_id),
@@ -213,7 +159,7 @@ def get_ipmi_asset_info(board_id, device_id, config=None):
     Args:
         board_id: The board_id to get asset information for.
         device_id: The device to get asset information for, must be of device_type 'system'.
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: (dict) Asset information about the given device.
 
@@ -247,7 +193,7 @@ def set_ipmi_boot_target(board_id, device_id, target, config=None):
         target: The boot target to set, must be in 'no_override' (don't override the BIOS boot target),
                                                     'pxe' (force PXE boot)
                                                     'hdd' (force HDD boot)
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: The boot target of the system.
 
@@ -275,7 +221,7 @@ def get_ipmi_boot_target(board_id, device_id, config=None):
     Args:
         board_id: The board id to get boot target for.
         device_id: The device id to get boot target for.  Must be of device_type 'system'.
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: The boot target of the system.
 
@@ -303,7 +249,7 @@ def read_ipmi_sensor(board_id, device_id, device_type, config=None):
         board_id: The board_id to get sensor reading from.
         device_id: The device_id to get sensor reading from.
         device_type: The type of sensor to read.
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: (dict) Sensor reading dictionary.
 
@@ -324,7 +270,7 @@ def read_ipmi_sensor(board_id, device_id, device_type, config=None):
                                                  ipmi20_auth=bmc_info['auth_type'],
                                                  ipmi20_integrity=bmc_info['integrity_type'],
                                                  ipmi20_encryption=bmc_info['encryption_type'],
-                                                 ip_address=bmc_info['bmc_ip'], sensor_number=device_id)
+                                                 ip_address=bmc_info['bmc_ip'], sensor_name=device['device_info'])
 
                 if device_type == 'temperature':
                     return {'temperature_c': reading['sensor_reading']}
@@ -342,7 +288,7 @@ def get_ipmi_led_state(board_id, device_id, config=None):
     Args:
         board_id: The board_id to get LED state information for.
         device_id: The device to get LED state information for, must be of device_type 'system'.
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: (dict) LED state information about the given device.
 
@@ -352,7 +298,7 @@ def get_ipmi_led_state(board_id, device_id, config=None):
     bmc_info = get_ipmi_bmc_info(board_id, config)
     if bmc_info is not None:
         for device in bmc_info['board_record']['devices']:
-            if format(device_id, "04x") == device['device_id'] and device['device_type'] == 'system':
+            if format(device_id, "04x") == device['device_id'] and device['device_type'] == 'led':
                 led_data = vapor_ipmi.get_identify(username=bmc_info['username'], password=bmc_info['password'],
                                                    ipmi20_enabled=True,
                                                    ipmi20_auth=bmc_info['auth_type'],
@@ -375,7 +321,7 @@ def set_ipmi_led_state(board_id, device_id, led_state, config=None):
         board_id: The board_id to set LED state information for.
         device_id: The device to set LED state information for, must be of device_type 'system'.
         led_state: The state to set the IPMI LED to (on, off).
-        config: The app configuration to use.
+        config: The app config for the endpoint, containing the BMC info.
 
     Returns: (dict) LED state information about the given device.
 
@@ -385,7 +331,7 @@ def set_ipmi_led_state(board_id, device_id, led_state, config=None):
     bmc_info = get_ipmi_bmc_info(board_id, config)
     if bmc_info is not None:
         for device in bmc_info['board_record']['devices']:
-            if format(device_id, "04x") == device['device_id'] and device['device_type'] == 'system':
+            if format(device_id, "04x") == device['device_id'] and device['device_type'] == 'led':
                 led_state = 0 if led_state.lower() == "off" else 1
                 led_data = vapor_ipmi.set_identify(username=bmc_info['username'], password=bmc_info['password'],
                                                    ipmi20_enabled=True,

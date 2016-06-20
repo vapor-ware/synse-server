@@ -11,6 +11,7 @@
             7/28/2015 - v0.7.1 convert to python package
             12/5/2015 - Line noise robustness (retries)
             2/23/2016 - Reorganize code to move IPMI and Location capabilities to other modules.
+            6/20/2016 - Migrate to pyghmi for IPMI capabilities.
 
         \\//
          \/apor IO
@@ -529,7 +530,7 @@ def read_device(device_type, board_num, device_num):
                 logger.error("No response for sensor reading for board_num: {} device_num: {} type: {}".format(
                     board_num, device_num, device_type))
                 raise OpenDcreException("No sensor reading returned from BMC.")
-            except (vapor_ipmi.IpmiError, ValueError) as e:
+            except (IpmiException, ValueError) as e:
                 logger.error("Error reading IPMI sensor: {}.".format(e.message))
                 raise OpenDcreException("Error reading IPMI sensor: {}.".format(e.message))
 
@@ -667,11 +668,7 @@ def power_control(power_action='status', board_num=None, device_num=None, device
     with LockFile(LOCKFILE):
         if is_ipmi_board(board_num):
             try:
-                if power_action == 'cycle':
-                    # power unit off first,
-                    control_ipmi_power(board_num, device_num, 'off', app.config)
-                # then power unit back on
-                power_status = control_ipmi_power(board_num, device_num, 'on', app.config)
+                power_status = control_ipmi_power(board_num, device_num, power_action, app.config)
                 if power_status is not None:
                     # power status and power ok are returned from IPMI
                     power_status["pmbus_raw"] = "0,0,0,0"
@@ -684,7 +681,7 @@ def power_control(power_action='status', board_num=None, device_num=None, device
                 logger.error("Power control attempt returned no data: board_num: {} device_num: {} action: {}".format(
                         board_num, device_num, power_action))
                 raise OpenDcreException("No response from BMC for power control action.")
-            except (vapor_ipmi.IpmiError, ValueError) as e:
+            except (IpmiException, ValueError) as e:
                 logger.exception("Error controlling IPMI power: Board {}, Device: {}, Action: {}.".format(board_num,
                                                                                                           device_num,
                                                                                                           power_action))
@@ -810,7 +807,7 @@ def asset_info(board_num, device_num):
                 logger.error("No response getting asset info for board_num: {} device_num: {}".format(board_num,
                                                                                                       device_num))
                 raise OpenDcreException("No response from BMC when retrieving asset information via IPMI.")
-            except (vapor_ipmi.IpmiError, ValueError) as e:
+            except (IpmiException, ValueError) as e:
                 logger.exception("Error getting IPMI asset info: Board {}, Device: {}.".format(board_num, device_num))
                 raise OpenDcreException("Error received from BMC when retrieving asset information via IPMI ({}).".
                                         format(e))
@@ -848,27 +845,21 @@ def boot_target(board_num, device_num, target=None):
                 if target is None:
                     boot_info = get_ipmi_boot_target(board_num, device_num, app.config)
                 else:
-                    action = vapor_ipmi.NO_OVERRIDE
+                    action = 'no_override'
                     if target == 'no_override':
-                        action = vapor_ipmi.NO_OVERRIDE
+                        action = target
                     elif target == 'pxe':
-                        action = vapor_ipmi.FORCE_PXE
+                        action = target
                     elif target == 'hdd':
-                        action = vapor_ipmi.FORCE_HDD_BOOT
+                        action = target
                     boot_info = set_ipmi_boot_target(board_num, device_num, action, app.config)
 
                 if boot_info is not None:
-                    if boot_info['target'] == vapor_ipmi.NO_OVERRIDE:
-                        boot_info['target'] = 'no_override'
-                    elif boot_info['target'] == vapor_ipmi.FORCE_HDD_BOOT:
-                        boot_info['target'] = 'hdd'
-                    elif boot_info['target'] == vapor_ipmi.FORCE_PXE:
-                        boot_info['target'] = 'pxe'
                     return jsonify(boot_info)
                 logger.error("No response for boot target operation on board_num: {} device_num: {}".format(board_num,
                                                                                                             device_num))
                 raise OpenDcreException("No response from BMC on boot target operation via IPMI.")
-            except (vapor_ipmi.IpmiError, ValueError) as e:
+            except (IpmiException, ValueError) as e:
                 logger.exception("Error getting or setting IPMI boot target: Board {}, Device: {}, Target: {}.".format(
                         board_num, device_num, target))
                 raise OpenDcreException("Error received from BMC during boot target operation via IPMI ({}).".format(e))

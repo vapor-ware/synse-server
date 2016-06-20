@@ -43,27 +43,27 @@ DOCKER_PATH = $(shell which docker)
 macos:
 	docker build -f Dockerfile.macos -t vaporio/opendcre-southbound-macos .
 
-test-macos-bus:
+test-macos-bus: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml build
 	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml up bus-test-macos
 	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml stop
 
-test-macos-scanall:
+test-macos-scanall: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml build
 	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml up scanall-test-macos
 	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml stop
 
-test-macos-endurance:
+test-macos-endurance: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml build
 	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml up endurance-test-macos
 	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml stop
 
-test-macos-emulator:
+test-macos-emulator: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml build
 	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml up emulator-test-macos
 	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml stop
 
-test-macos-endpointless:
+test-macos-endpointless: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml build
 	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml up endpointless-test-macos
 	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml stop
@@ -85,27 +85,27 @@ rpi:
 	docker build -f Dockerfile.rpi -t vaporio/opendcre-southbound-rpi .
 
 # tests not enabled until docker compose supported on OMOS
-test-rpi-bus:
+test-rpi-bus: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml build
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml up bus-test-rpi
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml stop
 
-test-rpi-scanall:
+test-rpi-scanall: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml build
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml up scanall-test-rpi
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml stop
 
-test-rpi-endurance:
+test-rpi-endurance: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml build
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml up endurance-test-rpi
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml stop
 
-test-rpi-emulator:
+test-rpi-emulator: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml build
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml up emulator-test-rpi
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml stop
 
-test-rpi-endpointless:
+test-rpi-endpointless: delete-containers
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml build
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml up endpointless-test-rpi
 	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml stop

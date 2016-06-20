@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu:14.04
 MAINTAINER Andrew Cencini <andrew@vapor.io>
 
 # Install dependencies
@@ -15,15 +15,14 @@ RUN apt-get update && apt-get install -y \
     socat \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
-RUN pip install pyserial==2.7
-RUN pip install flask==0.10.1
-RUN pip install requests
-RUN pip install lockfile
-RUN pip install uwsgi
-RUN pip install RPi.GPIO
-RUN mkdir /var/uwsgi
-RUN chown www-data:www-data /var/uwsgi
-RUN touch /var/uwsgi/reload
+RUN pip install pyserial==2.7 && \
+    pip install flask==0.10.1 && \
+    pip install requests && \
+    pip install lockfile && \
+    pip install uwsgi && \
+    pip install RPi.GPIO && \
+    pip install pyghmi && \
+    mkdir /var/uwsgi && chown www-data:www-data /var/uwsgi && touch /var/uwsgi/reload
 
 # this should correspond to the opendcre/southbound-api dir
 ADD . /opendcre
@@ -34,9 +33,6 @@ RUN ./nginx-conf.sh
 
 # set up SSL support for nginx
 ADD ./certs/southbound_macos /etc/nginx/ssl
-
-# add IPMI support
-RUN cd / && tar xzvf /opendcre/Vapor_IPMI-2.0.linux-x86_64.tar.gz
 
 # expose our API endpoint port
 EXPOSE 5000
