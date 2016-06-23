@@ -15,18 +15,18 @@ RUN apt-get update && apt-get install -y \
     socat \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
-RUN pip install pyserial==2.7
-RUN pip install flask==0.10.1
-RUN pip install requests
-RUN pip install uwsgi
-RUN pip install RPi.GPIO
+RUN pip install pyserial==3.1.1 && \
+    pip install flask==0.10.1 && \
+    pip install requests && \
+    pip install uwsgi && \
+    pip install RPi.GPIO && \
+    pip install pyghmi
+
 # easy_install over pip for lockfile due to the fact that
-# pip install lockfile is broken as of 8/3 on RPI
+# pip install lockfile is broken as of 8/3/15 on RPI
 RUN easy_install lockfile
-RUN mkdir /var/uwsgi
-RUN chown www-data:www-data /var/uwsgi
-RUN touch /var/uwsgi/reload
-RUN usermod -a -G dialout www-data
+
+RUN mkdir /var/uwsgi && chown www-data:www-data /var/uwsgi && touch /var/uwsgi/reload && usermod -a -G dialout www-data
 
 # this should correspond to the opendcre/southbound-api dir
 ADD . /opendcre
@@ -37,9 +37,6 @@ RUN ./nginx-conf.sh
 
 # set up SSL support for nginx
 ADD ./certs/southbound_rpi /etc/nginx/ssl
-
-# add IPMI support
-RUN cd / && tar xzvf /opendcre/Vapor_IPMI-2.0.linux-armv7l.tar.gz
 
 # expose our API endpoint port
 EXPOSE 5000
