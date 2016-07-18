@@ -1,0 +1,61 @@
+NOTICE
+
+OpenDCRE v.1
+Copyright (c) 2015-2016 Vapor IO, Inc. and OpenDCRE contributors.
+
+The following is courtesy of our legal counsel:
+
+Use and transfer of OpenDCRE may be subject to certain restrictions by the
+United States and other governments. It is your responsibility to ensure that your use and/or transfer does not violate applicable laws.
+
+For more information, please see https://www.bis.doc.gov
+
+This product includes software developed at Vapor IO, Inc. (http://www.vapor.io) and other third party open source software in unmodified binary form. Each of these software components have their own license as noted below.
+
+This product contains software (https://github.com/docker/docker) developed
+by Docker, Inc., licensed under the Apache License, Version 2.0. Copyright (c) 2012-2016 Docker, Inc.
+
+This product contains software (https://github.com/certik/python-2.7) developed by Python Software Foundation, licensed under the PSF  License, Version 2. Copyright © 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,2012 Python Software Foundation.  All rights reserved. Copyright (c) 2000 BeOpen.com.  All rights reserved. Copyright (c) 1995-2001 Corporation for National Research Initiatives. All rights reserved.  Copyright (c) 1991-1995 Stichting Mathematisch Centrum. All rights reserved.
+
+This product contains software (https://github.com/gcc-mirror/gcc) developed at the GNU Complier Collection, licensed under the GNU General Public License, Version 3. Copyright years on GCC source files may be listed using range notation, e.g., 1987-2012, indicating that every year in the range,
+inclusive, is a copyrightable year that could otherwise be listed
+individually.
+
+This product contains software (http://nginx.org/) developed by Nginx, Inc. and licensed under the 2-clause BSD-like license.  Copyright (c) 2002-2016 Igor Sysoev.  Copyright (c) 2011-2016 Nginx, Inc.
+
+This product contains software (https://github.com/unbit/uwsgi) developed at the uWSGI Project and licensed under the GNU General Public License, Version 2, Linking Exception.  Copyright (c) 2012-2014 uWSGI.
+
+This product contains software (http:flask.pocoo.org) developed at the Flask Project and licensed under the BSD  License.  Copyright (c) 2016 by Armin Ronacher and various contributors.
+
+This product contains software (https://pypi.python.org/pypi/pip) developed by the pip developers and licensed under the MIT License.  Copyright (c) 2008-2016 The pip developers (see AUTHORS.txt file).
+
+This product contains software (https://github.com/pyserial/pyserial) developed by Chris Liechti and licensed under the BSD 3-clause license.  Copyright (c) 2001-2016 Chris Liechti cliechti@gmx.net.  All rights reserved.
+
+This product contains software (https://github.com/kennethreitz/requests) developed by Andrey Petrov and various contributors and licensed under the MIT License. Copyright 2008-2011 Andrey Petrov and contributors (see CONTRIBUTORS.txt), Modifications copyright 2012 Kenneth Reitz.
+
+This product contains software (https://git.openstack.org/cgit/openstack/pylockfile/) developed by Skip Montanaro and licensed under the MIT License.  Copyright (c) 2007 Skip Montanaro.
+
+This product contains software (http://savannah.gnu.org/projects/make) developed at the GNU Project and licensed under the GNU General Public License Version 2 or later.
+
+This product contains software (https://www.openssl.org/) developed by the OpenSSL Project and licensed under the OpenSSL License.  Copyright (c) 1999-2016 The OpenSSL Project Authors.  All Rights Reserved.
+
+This product contains software (https://pypi.python.org/pypi/setuptools) developed by PyPA and licensed under the Zope Public License Ver.2.0 or the PSF License.  Copyright (c) 2014, PyPA.
+
+This product contains software (https://golang.org/) developed by the Go Authors and licensed under the BSD License.  Copyright (c) 2012 The Go Authors.  All rights reserved.
+
+This product contains software (https://github.com/CumulusNetworks/jdoo/blob/master/sha.c) developed by Scott G. Miller and licensed under the GNU General Public License Version 2.  Copyright (c) 2000, 2001, 2003 Scott G. Miller.
+
+This product contains software (https://linuxcontainers.org/) licensed under the terms of the GNU LGPLv2.1+ License, with some Android compatibility bits licensed under a standard 2-clause BSD license and some binaries and templates licensed under the GNU General Public License Version 2.
+
+This product contains software (https://github.com/openstack/pyghmi) licensed under the terms of the Apache License Version 2.0.
+
+
+
+
+
+
+
+
+
+
+
