@@ -447,7 +447,8 @@ def scan_all():
         # add IPMI BMC boards to results
         if 'bmcs' in app.config['BMCS']:
             for board in app.config['BMCS']['bmcs']:
-                response_dict['boards'].append(board['board_record'])
+                if board['board_record'] is not None:
+                    response_dict['boards'].append(board['board_record'])
         return jsonify(response_dict)
 
 

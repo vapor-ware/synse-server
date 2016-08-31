@@ -73,8 +73,10 @@ def scan_ipmi(config_file=None):
                                          ipmi20_encryption=bmc['encryption_type'])
         except (OpenDcreException, IpmiException) as e:
             logger.error("Unable to retrieve sensors for BMC: %s - %s", bmc['bmc_ip'], e.message)
+            board_record = None
         except ValueError:
             logger.exception("Invalid string in configuration file for BMC: %s", bmc['bmc_ip'])
+            board_record = None
 
         for sensor in sensors:
             if sensor['sensor_type'].lower() in ['temperature', 'fan']:
