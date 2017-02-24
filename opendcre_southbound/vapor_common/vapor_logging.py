@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-"""
-   OPenDCRE Logging Helpers
-   Author:  andrew
-   Date:    12/7/2015
+""" OpenDCRE Logging Helpers
 
-        \\//
-         \/apor IO
+    Author:  andrew
+    Date:    12/7/2015
 
-Copyright (C) 2015-16  Vapor IO
+    \\//
+     \/apor IO
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 
@@ -29,18 +30,11 @@ import logging.config
 import os
 import json
 
+_startup_logger = None
 
-def setup_logging(
-    default_path='logging.json',
-    default_level=logging.INFO,
-    env_key='LOG_CFG'
-):
-    """
-    Set up default logging configuration.
-    :param default_path: The default logging path/
-    :param default_level: The default logging level.
-    :param env_key: Env key to logging info.
-    :return: None.
+
+def setup_logging(default_path='logging.json', default_level=logging.INFO, env_key='LOG_CFG'):
+    """ Setup logging configuration
     """
     path = default_path
     value = os.getenv(env_key, None)
@@ -52,3 +46,36 @@ def setup_logging(
         logging.config.dictConfig(config)
     else:
         logging.basicConfig(level=default_level)
+
+
+def _init_startup_logger():
+    """ Convenience method to initialize the setup error logger.
+    """
+    if not os.path.exists('/logs/err'):
+        # as a fallback to prevent failures, we will just return a plain old logger if the
+        # container isn't configured internally for the setup logger.
+        return logging.getLogger(__name__)
+
+    formatter = logging.Formatter('[CONTAINER STARTUP ERROR] (%(asctime)s - %(module)s:%(lineno)s): %(message)s')
+    handler = logging.FileHandler('/logs/err')
+    handler.setLevel(logging.DEBUG)
+    handler.setFormatter(formatter)
+
+    logger = logging.getLogger('startup_error')
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
+    global _startup_logger
+    _startup_logger = logger
+
+
+def get_startup_logger():
+    """ Get the startup logger, used to log out to the Container's stdout.
+
+    Returns:
+        Logger: the logger configured to write to the container's stdout,
+            assuming other service-specific configurations allow for it.
+    """
+    if _startup_logger is None:
+        _init_startup_logger()
+    return _startup_logger

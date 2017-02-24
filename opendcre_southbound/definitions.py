@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-"""
-   OpenDCRE Byte/Bit Definitions
-   Author:  erick
-   Date:    11/16/2015
+""" OpenDCRE Byte/Bit Definitions
 
-        \\//
-         \/apor IO
+    Author:  Erick Daniszewski
+    Date:    11/16/2015
 
-Copyright (C) 2015-16  Vapor IO
+    \\//
+     \/apor IO
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 
@@ -45,3 +46,7 @@ SAVE_BOARD_ID = 1 << SAVE_BIT          # set bit 4 of upper byte of board_id to 
 # fan speed constraints
 MAX_FAN_SPEED = 10000
 MIN_FAN_SPEED = 0
+
+
+# BMC port
+BMC_PORT = 623

@@ -1,0 +1,17 @@
+{
+  "scan_cache_file": "/tmp/opendcre/cache.json",
+  "cache_timeout": 600,
+  "cache_threshold": 500,
+
+  "devices": {
+    "plc": {
+      "from_config": "plc_config.json"
+    },
+    "ipmi": {
+      "from_config": "bmc_config.json"
+    },
+    "redfish": {
+      "from_config": "redfish_config.json"
+    }
+  }
+}

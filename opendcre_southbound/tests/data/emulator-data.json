@@ -2,7 +2,7 @@
   "boards": [
     {
       "board_id": "00000001",
-      "firmware_version" : "OpenDCRE Emulator v1.2.0",
+      "firmware_version" : "OpenDCRE Emulator v0.8.1",
       "devices" : [
         {
           "device_id": "01FF",
@@ -204,7 +204,7 @@
     },
     {
       "board_id": "00000003",
-      "firmware_version" : "OpenDCRE Emulator v1.2.0",
+      "firmware_version" : "OpenDCRE Emulator v0.8.1",
       "devices" : [
         {
         "device_id": "02FF",
@@ -407,7 +407,7 @@
     },
     {
       "board_id": "12345678",
-      "firmware_version" : "OpenDCRE Emulator v1.2.0",
+      "firmware_version" : "OpenDCRE Emulator v0.8.1",
       "raw_data": [ [ [1, 12, 88, 64, 18, 52, 86, 120, 170, 5, 1, 2, 3, 159, 4] ] ]
     }
   ]

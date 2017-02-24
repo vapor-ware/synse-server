@@ -1,132 +1,54 @@
 # ------------------------------------------------------------------------
 #  \\//
-#   \/aporIO - OpenDCRE southbound Makefile
+#   \/aporIO - Vapor OpenDCRE Southbound
 #
-# Build OpenDCRE docker images from the current directory. Note that
-# in order to successfully build with the correct tag, several python
-# dependencies are required:
-# 	* pyserial		* flask
-#	* requests		* lockfile
-#	* uwsgi			* docker-compose
+#  Build Vapor OpenDCRE Southbound docker images from the current directory.
 #
-# Each of the dependencies above may be installed with `pip` on Linux
-# and mac. On arm (raspberry pi), lockfile should be installed with
-# `easy_install`.
-#
-# Author: Erick Daniszewski (erick@vapor.io)
-#
-# Copyright (C) 2015-16  Vapor IO
-#
-# This file is part of OpenDCRE.
-#
-# OpenDCRE is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 2 of the License, or
-# (at your option) any later version.
-#
-# OpenDCRE is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+#  Author: Andrew Cencini (andrew@vapor.io)
+#  Date:   01 Sept 2016
 # ------------------------------------------------------------------------
 
-# get the host's path to the docker binary
-DOCKER_PATH = $(shell which docker)
+build-endpoint:
+	docker-compose -f opendcre.yml build
+
+run-endpoint: build-endpoint
+	docker-compose -f opendcre.yml up -d opendcre
+
 
 # -----------------------------------------------
-# macos (or linux)
+# x64
 # -----------------------------------------------
 
-macos:
-	docker build -f Dockerfile.macos -t vaporio/opendcre-southbound-macos .
+x64:
+	docker build -f dockerfile/Dockerfile.x64 -t vaporio/opendcre-x64:1.3 .
 
-test-macos-bus:
-	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml build
-	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml up bus-test-macos
-	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml stop
-
-test-macos-scanall:
-	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml build
-	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml up scanall-test-macos
-	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml stop
-
-test-macos-endurance:
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml build
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml up endurance-test-macos
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml stop
-
-test-macos-emulator:
-	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml build
-	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml up emulator-test-macos
-	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml stop
-
-test-macos-endpointless:
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml build
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml up endpointless-test-macos
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml stop
-
-macos-test: macos test-macos-bus test-macos-scanall test-macos-endurance test-macos-emulator test-macos-endpointless
-
-macos-test-clean:
-	docker-compose -f ./opendcre_southbound/tests/macos/test_bus.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/macos/test_scanall.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endurance.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/macos/test_emulator.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/macos/test_endpointless.yml rm -f
-
-# -----------------------------------------------
-# rpi
-# -----------------------------------------------
-
-rpi:
-	docker build -f Dockerfile.rpi -t vaporio/opendcre-southbound-rpi .
-
-# tests not enabled until docker compose supported on OMOS
-test-rpi-bus:
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml build
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml up bus-test-rpi
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml stop
-
-test-rpi-scanall:
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml build
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml up scanall-test-rpi
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml stop
-
-test-rpi-endurance:
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml build
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml up endurance-test-rpi
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml stop
-
-test-rpi-emulator:
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml build
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml up emulator-test-rpi
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml stop
-
-test-rpi-endpointless:
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml build
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml up endpointless-test-rpi
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml stop
-
-rpi-test: rpi test-rpi-bus test-rpi-scanall test-rpi-endurance test-rpi-emulator test-rpi-endpointless
-
-rpi-test-clean:
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_bus.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_scanall.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endurance.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_emulator.yml rm -f
-	docker-compose -f ./opendcre_southbound/tests/rpi/test_endpointless.yml rm -f
 
 # -----------------------------------------------
 # Docker Cleanup
+#
+# NOTE:
+#   these recipes are primarily used in development. caution should
+#   be taken when using them, as they are NOT OpenDCRE-specific. they
+#   will affect ALL containers/images on the host.
 # -----------------------------------------------
 RUNNING_CONTAINER_IDS=$(shell docker ps -q)
 ALL_CONTAINER_IDS=$(shell docker ps -aq)
 DANGLING_IMAGES=$(shell docker images -a -q -f dangling=true)
-ALL_IMAGES=$(shell docker images -q)
+
+# untagged images will only have an image id. repository and name are <none>.
+ALL_UNTAGGED_IMAGES=$(shell docker images | grep "^<none>" | awk '{print $$3}')
+# tagged images will have a repository and tag. The image id may not be unique which causes errors on multiple deletes.
+ALL_TAGGED_IMAGES=$(shell docker images | grep -v REPOSITORY | grep -v "^<none>" | awk '{print $$1":"$$2}')
+
 TEST_IMAGES=$(shell docker images | awk '$$1 ~ /test/ { print $$3 }')
+LATEST_OLD=$(shell docker images | grep 'latest-old' | awk '{ print $$1":latest-old" }')
+DATE_TAG=$(shell docker images | grep '[0-9]\{6\}-[0-9]\{4\}' | awk '{ print $$1":"$$2 }' )
+
+clean-date-tags:
+	@if [ -z "$(DATE_TAG)" ]; then echo "No images found with date tags."; else docker rmi $(DATE_TAG); fi;
+
+clean-latest-old:
+	@if [ -z "$(LATEST_OLD)" ]; then echo "No latest-old images tagged."; else docker rmi -f $(LATEST_OLD); fi;
 
 stop-containers:
 	@if [ -z  "$(RUNNING_CONTAINER_IDS)" ]; then echo "No running containers to stop."; else docker stop $(RUNNING_CONTAINER_IDS); fi;
@@ -134,13 +56,25 @@ stop-containers:
 delete-containers:
 	@if [ -z "$(ALL_CONTAINER_IDS)" ]; then echo "No containers to remove."; else docker rm $(ALL_CONTAINER_IDS); fi;
 
-delete-images:
-	@if [ -z "$(ALL_IMAGES)" ]; then echo "No images to remove."; else docker rmi -f $(ALL_IMAGES); fi;
+delete-untagged-images:
+	@if [ -z "$(ALL_UNTAGGED_IMAGES)" ]; then echo "No untagged images to remove."; else docker rmi -f $(ALL_UNTAGGED_IMAGES); fi;
+
+delete-tagged-images:
+	@if [ -z "$(ALL_TAGGED_IMAGES)" ]; then echo "No tagged images to remove."; else docker rmi -f $(ALL_TAGGED_IMAGES); fi;
+
+delete-images: delete-untagged-images delete-tagged-images
 
 delete-test-images:
-	@if [ -z "$(TEST_IMAGES)" ]; then echo "No test images to remove."; else docker rmi -f $(TEST_IMAGES); fi;
+	@if [ -z "$(TEST_IMAGES)" ]; then echo "No test images to remove"; else docker rmi -f $(TEST_IMAGES); fi;
 
 delete-dangling:
 	@if [ -z "$(DANGLING_IMAGES)" ]; then echo "No dangling images to remove."; else docker rmi -f $(DANGLING_IMAGES); fi;
 
+clean-hard:
+	@if [ -z "$(ALL_CONTAINER_IDS)" ]; then echo "No containers to stop and remove."; else docker rm -f $(ALL_CONTAINER_IDS); fi;
+
+clean-volatile: stop-containers delete-containers delete-dangling
+
 delete-all: stop-containers delete-containers delete-images
+
+clean: delete-all

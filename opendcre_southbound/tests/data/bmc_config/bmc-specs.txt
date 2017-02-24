@@ -1,0 +1,4 @@
+#
+#
+bmc_config001.json : contains one valid and one invalid BMC, both with valid credentials and auth, etc.
+                     for use with Tyan motherboard and BMC.

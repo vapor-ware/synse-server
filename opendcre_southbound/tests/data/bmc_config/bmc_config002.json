@@ -1,0 +1,17 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "bmcs": [
+        {
+          "bmc_ip": "ipmi-emulator",
+          "bmc_port": 623,
+          "username": "ADMIN",
+          "password": "ADMIN",
+          "hostnames": ["test-1", "test-2", "test-1"],
+          "ip_addresses": ["192.168.1.100", "192.168.2.100", "192.168.1.100"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: dockerfile/Dockerfile.x64
+  command: bash -c "sleep 5 && python ./opendcre_southbound/tests/test-endpoint-utilities.py"
+  environment:
+    - VAPOR_DEBUG=true
+  links:
+    - ipmi-emulator-x64
+    - ipmi-emulator-x64:ipmi-emulator-x64-2
+    - redfish-emulator-x64
+
+ipmi-emulator-x64:
+  build: ../../../emulator/ipmi
+  dockerfile: Dockerfile.x64
+  ports:
+    - 623:623/udp
+  environment:
+    - VAPOR_DEBUG=true
+
+redfish-emulator-x64:
+  build: ../../../emulator/redfish
+  dockerfile: Dockerfile.x64
+  ports:
+    - 5040:5040

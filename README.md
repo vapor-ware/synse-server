@@ -1,58 +1,75 @@
 <img src="http://www.vapor.io/wp-content/uploads/2015/11/openDCRElogo.png" width=144 height=144 align=right>
 
-#OpenDCRE
+# OpenDCRE
 
-#Overview
-OpenDCRE provides a securable RESTful API for monitoring and control of data center and IT equipment, including reading sensors and server power control - via power line communications (PLC) over a DC bus bar, or via IPMI over LAN.  The OpenDCRE API is easy to integrate into third-party monitoring, management and orchestration providers, while providing a simple, curl-able interface for common and custom devops tasks.
+## Overview
+OpenDCRE provides a securable RESTful API for monitoring and control of data center and IT equipment, including reading 
+sensors and server power control - via power line communications (PLC) over a DC bus bar, via IPMI over LAN, or via 
+Redfish over LAN. The OpenDCRE API is easy to integrate into third-party monitoring, management and orchestration 
+providers, while providing a simple, curl-able interface for common and custom devops tasks.
 
 Additional documentation may be found on the <a href="http://opendcre.com">OpenDCRE Read the Docs</a> site.
 
-#Contents
 
-The OpenDCRE project relies on nginx as its web server, with uwsgi as a reverse proxy to a Python Flask endpoint.  The OpenDCRE uwsgi and nginx configuration files are <b>opendcre_nginx.conf</b>, <b>opendcre_uwsgi.conf</b> and <b>uwsgi.conf</b>.  These files may be edited to suit site-specific needs, change HTTP port, support HTTPS/auth, etc.
-
-The core OpenDCRE Python implementation is distributed as a Python package (<b>opendcre_southbound</b>), and <b>runserver.py</b>, in the OpenDCRE root, is used by uwsgi to launch the Flask implementation.
-
-<b>start_opendcre.sh</b> and <b>start_opendcre_emulator.sh</b> are shell scripts used to start OpenDCRE in hardware (HAT) mode or emulator mode.
-
-To configure the IPMI bridge for OpenDCRE, an example configuration file <b>bmc_config_sample.json</b> is provided.  Copy or move <b>bmc_config_sample.json</b> to <b>bmc_config.json</b> in the /opendcre root and build and run the OpenDCRE container to have the IPMI BMC settings take effect.
-
-Within the OpenDCRE southbound package, <b>__init__.py</b> contains the main Flask implemementation, which relies on <b>devicebus.py</b> which handles serial communications and command/response framing.  <b>version.py</b> contains the OpenDCRE version - if creating a new/changed version of the API, version numbers must be changed in this file only.
-
-Additionally, the devicebus emulator (<b>devicebus_emulator.py</b>) is part of the OpenDCRE southbound package, and <b>simple.json</b> is used to configure the OpenDCRE emulator (see the OpenMistOS web site for API and emulator configuration reference).
-
-#Building OpenDCRE as a Docker Container
-
-To build a custom distribution of OpenDCRE (for example, to include site-specific TLS certificates, or to configure nginx to use site-specific authn/authz), the included Makefile can be used to package up the distribution.
+## Building an OpenDCRE Image
+To build a custom distribution of OpenDCRE (for example, to include site-specific TLS certificates, or to 
+configure Nginx to use site-specific authn/authz), the included Makefile can be used to package up the distribution.
 
 In the simplest case, from the opendcre directory:
-
 ```
-make rpi
-```
-
-#Running and Testing OpenDCRE
-
-OpenDCRE expects a volume to be exposed for logs (/logs).  Additionally, OpenDCRE, by default, uses TCP port 5000 to listen for API requests.  In cases where the OpenDCRE HAT is used with the OpenDCRE container, the /dev/ttyAMA0 serial device is also required.
-
-<b>To start OpenDCRE with the HAT device attached:</b>
-
-```
-docker run -d -p 5000:5000 -v /var/log/opendcre:/logs --privileged --device /dev/ttyAMA0:/dev/ttyAMA0 --device /dev/mem:/dev/mem opendcre ./start_opendcre.sh
+make x64
 ```
 
-<b>To start OpenDCRE in emulator mode:</b>
+
+## Running and Testing OpenDCRE
+OpenDCRE listens for API requests on port 5000 by default. It can run "out of the box", but requires some amount
+of configuration to get it communicating with devices (whether emulated or real). To start OpenDCRE out of the box,
 
 ```
-docker run -d -p 5000:5000 -v /var/log/opendcre:/logs opendcre ./start_opendcre_emulator.sh
+docker run -d -p 5000:5000 vaporio/opendcre
 ```
 
-<b>To run the OpenDCRE test suite:</b>
+With this, you can hit all endpoints, but since no backend devices are configured, no data will be returned. See the
+<a href="http://opendcre.com">OpenDCRE documentation</a> for the API Reference as well as how to properly configure
+and run OpenDCRE in "emulated" and "real" modes.
+
+To use OpenDCRE with data available, you can run it with the PLC emulator (IPMI and Redfish emulators exist as well,
+see the full documentation for more). With the OpenDCRE image built, this can be done simply with:
 
 ```
-make rpi-test
+docker run \
+    -p 5000:5000 \
+    -v `pwd`/sample/config_plc.json:/opendcre/override/config.json \
+    vaporio/opendcre ./start_opendcre_plc_emulator.sh
 ```
 
-#License
+Once it spins up, you can visit the IP address of your Docker instance:
 
+```
+http://IPADDRESS:5000/opendcre/1.3/test
+```
+
+You should get the response:
+
+```
+{
+  "status": "ok"
+}
+```
+
+Other OpenDCRE commands (scan, read, power, etc) should also work and provide responses with emulated data.
+
+
+The tests for OpenDCRE exist in the `opendcre_southbound/tests` directory. The OpenDCRE documentation goes into more
+detail on the test setup, but in short - OpenDCRE tests are run through the Makefile. To run all tests, from the test
+directory:
+
+```
+make test-x64
+```
+
+All tests are containerized for consistency and ease of deployment and integration. There are many test cases, so 
+running the full suite of tests may take some time.
+
+## License
 OpenDCRE is released under GPLv2 - see LICENSE for more information.

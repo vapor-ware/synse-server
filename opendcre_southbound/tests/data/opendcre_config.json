@@ -1,0 +1,13 @@
+{
+  "scan_cache_file": "/tmp/opendcre/cache.json",
+  "cache_timeout": 600,
+  "cache_threshold": 500,
+
+  "devices": {
+    "ipmi": {
+      "device_initializer_threads": 4,
+      "scan_on_init": true,
+      "from_config": "bmc_config.json"
+    }
+  }
+}

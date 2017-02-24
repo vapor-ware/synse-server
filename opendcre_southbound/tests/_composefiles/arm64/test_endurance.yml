@@ -1,0 +1,13 @@
+endurance-test-arm64:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test.arm64
+  command: python ./opendcre_southbound/test-endurance.py
+  links:
+    - opendcre-southbound-test-container
+
+opendcre-southbound-test-container:
+  build: ..
+  dockerfile: Dockerfile.test-container.arm64
+  command: ./start_opendcre_plc_emulator.sh ./opendcre_southbound/emulator/plc/data/test_endurance.json
+  expose:
+    - "5000"

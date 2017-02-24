@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-"""
-   OpenDCRE Exceptions
-   Author:  erick
-   Date:    11/16/2015
+""" OpenDCRE Exceptions
 
-        \\//
-         \/apor IO
+    Author:  Erick Daniszewski
+    Date:    11/16/2015
 
-Copyright (C) 2015-16  Vapor IO
+    \\//
+     \/apor IO
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 
@@ -25,8 +26,15 @@ You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+# region Internal Exceptions
 
-class BusTimeoutException(Exception):
+
+class OpenDCREInternalException(Exception):
+    """ Generic base for internal OpenDCRE exceptions.
+    """
+
+
+class BusTimeoutException(OpenDCREInternalException):
     """ Exception raised when a command fails to receive a response from the
     device bus. This may be for many reasons, which it may be difficult or
     impossible to pinpoint, so no more specific error is available.
@@ -34,20 +42,21 @@ class BusTimeoutException(Exception):
     pass
 
 
-class BusDataException(Exception):
-    """ Exception raised when something sent over the bus does not look right.
+class BusDataException(OpenDCREInternalException):
+    """ Exception raised either when the client requests an invalid state or when the
+    device responds with an invalid packet.
     """
     pass
 
 
-class ChecksumException(Exception):
+class ChecksumException(OpenDCREInternalException):
     """ Exception raised when checksum validation fails. ChecksumExceptions should
     use a retry mechanism to resend the packets.
     """
     pass
 
 
-class BusCommunicationError(Exception):
+class BusCommunicationError(OpenDCREInternalException):
     """ Exception raised when multiple retries fail after catching ChecksumExceptions.
 
     Corrupt data may slip through, raising the ChecksumException (which should then
@@ -56,8 +65,20 @@ class BusCommunicationError(Exception):
     """
     pass
 
+# endregion
 
-class OpenDcreException(Exception):
+# region External Exceptions
+
+
+class OpenDCREException(Exception):
     """ Generic exception used for OpenDCRE endpoint exceptions, generally raised only
     in the OpenDCRE southbound endpoint.
     """
+
+
+class CommandNotSupported(OpenDCREException):
+    """ Command is not supported by OpenDCRE.
+    """
+    pass
+
+# endregion

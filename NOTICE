@@ -1,7 +1,7 @@
 NOTICE
 
 OpenDCRE v.1
-Copyright (c) 2015-2016 Vapor IO, Inc. and OpenDCRE contributors.
+Copyright (c) 2015-2017 Vapor IO, Inc. and OpenDCRE contributors.
 
 The following is courtesy of our legal counsel:
 
@@ -55,15 +55,18 @@ This product contains software (https://pypi.python.org/pypi/pip)
 developed by the pip developers and licensed under the MIT License.
 Copyright (c) 2008-2016 The pip developers (see AUTHORS.txt file).
 
+This product contains software (http://www.dest-unreach.org/socat/)
+licensed under the GNU General Public License Version 2.0.
+
 This product contains software (https://github.com/pyserial/pyserial)
 developed by Chris Liechti and licensed under the BSD 3-clause
 license.  Copyright (c) 2001-2016 Chris Liechti cliechti@gmx.net.  All
 rights reserved.
 
-This product contains software (https://github.com/kennethreitz/requests) developed by Andrey Petrov
-and various contributors and licensed under the MIT License. Copyright
-2008-2011 Andrey Petrov and contributors (see CONTRIBUTORS.txt),
-Modifications copyright 2012 Kenneth Reitz.
+This product contains software (https://github.com/kennethreitz/requests)
+developed by Andrey Petrov and various contributors and licensed under the
+MIT License. Copyright 2008-2011 Andrey Petrov and contributors
+(see CONTRIBUTORS.txt), Modifications copyright 2012 Kenneth Reitz.
 
 This product contains software (https://git.openstack.org/cgit/openstack/pylockfile/)
 developed by Skip Montanaro and licensed under the MIT License.
@@ -85,10 +88,6 @@ This product contains software (https://golang.org/) developed by the
 Go Authors and licensed under the BSD License.  Copyright (c) 2012 The
 Go Authors.  All rights reserved.
 
-This product contains software (https://github.com/CumulusNetworks/jdoo/blob/master/sha.c)
-developed by Scott G. Miller and licensed under the GNU General Public
-License Version 2.  Copyright (c) 2000, 2001, 2003 Scott G. Miller.
-
 This product contains software (https://linuxcontainers.org/) licensed
 under the terms of the GNU LGPLv2.1+ License, with some Android
 compatibility bits licensed under a standard 2-clause BSD license and
@@ -98,6 +97,29 @@ License Version 2.
 This product contains software (https://github.com/openstack/pyghmi)
 licensed under the terms of the Apache License Version 2.0.
 
+This product contains software (https://pypi.python.org/pypi/Twisted)
+licensed under the terms of the MIT License.  Copyright (c) 2001-2016
+Allen Short, Amber Hawkie Brown, Andrew Bennetts, Andy Gayton, Antoine
+Pitrou, Apple Computer, Inc., Ashwini Oruganti, Benjamin Bruheim, Bob
+Ippolito, Canonical Limited, Christopher Armstrong, David Reid, Divmod
+Inc., Donovan Preston, Eric Mangold, Eyal Lotem, Google Inc., Hybrid
+Logic Ltd., Hynek Schlawack, Itamar Turner-Trauring, James Knight, Jason
+A. Mobarak, Jean-Paul Calderone, Jessica McKellar, Jonathan D. Simms,
+Jonathan Jacobs, Jonathan Lange, Julian Berman, Jürgen Hermann, Kevin
+Horn, Kevin Turner, Laurens Van Houtven, Mary Gardiner, Massachusetts
+Institute of Technology, Matthew Lefkowitz, Moshe Zadka, Paul Swartz,
+Pavel Pergamenshchik, Rackspace, US Inc., Ralph Meijer, Richard Wall,
+Sean Riley, Software Freedom Conservancy, Tavendo GmbH, Thijs Triemstra,
+Thomas Herve, Timothy Allen, Tom Prince, Travis B. Hartwell and others
+that have contributed code to the public domain.
+
+This product contains software (https://pypi.python.org/pypi/zope.interface)
+licensed under the Zope Public License Ver. 2.1. Copyright (c) Zope Foundation
+and Contributors.
+
+This product contains software (https://github.com/DMTF/Redfish-Profile-Simulator)
+licensed under the BSD 3-clause license. Copyright (c) 2016 Distributed Management
+Task Force, Inc. All rights reserved.
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
@@ -1636,8 +1658,7 @@ Library.
   You may charge a fee for the physical act of transferring a copy,
 and you may at your option offer warranty protection in exchange for a
 fee.
-
-  2. You may modify your copy or copies of the Library or any portion
+  2. You may modify your copy or copies of the Library or any portion
 of it, thus forming a work based on the Library, and copy and
 distribute such modifications or work under the terms of Section 1
 above, provided that you also meet all of these conditions:
@@ -1694,8 +1715,7 @@ instead of to this License.  (If a newer version than version 2 of the
 ordinary GNU General Public License has appeared, then you can specify
 that version instead if you wish.)  Do not make any other change in
 these notices.
-
-  Once this change is made in a given copy, it is irreversible for
+  Once this change is made in a given copy, it is irreversible for
 that copy, so the ordinary GNU General Public License applies to all
 subsequent copies and derivative works made from that copy.
 
@@ -1745,8 +1765,7 @@ Library will still fall under Section 6.)
 distribute the object code for the work under the terms of Section 6.
 Any executables containing that work also fall under Section 6,
 whether or not they are linked directly with the Library itself.
-
-  6. As an exception to the Sections above, you may also combine or
+  6. As an exception to the Sections above, you may also combine or
 link a "work that uses the Library" with the Library to produce a
 work containing portions of the Library, and distribute that work
 under terms of your choice, provided that the terms permit
@@ -1807,8 +1826,7 @@ restrictions of other proprietary libraries that do not normally
 accompany the operating system.  Such a contradiction means you cannot
 use both them and the Library together in an executable that you
 distribute.
-
-  7. You may place library facilities that are a work based on the
+  7. You may place library facilities that are a work based on the
 Library side-by-side in a single library together with other library
 facilities not covered by this License, and distribute such a combined
 library, provided that the separate distribution of the work based on
@@ -1848,8 +1866,7 @@ subject to these terms and conditions.  You may not impose any further
 restrictions on the recipients' exercise of the rights granted herein.
 You are not responsible for enforcing compliance by third parties with
 this License.
-
-  11. If, as a consequence of a court judgment or allegation of patent
+  11. If, as a consequence of a court judgment or allegation of patent
 infringement or for any other reason (not limited to patent issues),
 conditions are imposed on you (whether by court order, agreement or
 otherwise) that contradict the conditions of this License, they do not
@@ -1901,8 +1918,7 @@ conditions either of that version or of any later version published by
 the Free Software Foundation.  If the Library does not specify a
 license version number, you may choose any version ever published by
 the Free Software Foundation.
-
-  14. If you wish to incorporate parts of the Library into other free
+  14. If you wish to incorporate parts of the Library into other free
 programs whose distribution conditions are incompatible with these,
 write to the author to ask for permission.  For software which is
 copyrighted by the Free Software Foundation, write to the Free
@@ -1936,3 +1952,56 @@ DAMAGES.
 
                      END OF TERMS AND CONDITIONS
 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+
+Zope Public License (ZPL) Version 2.1
+
+A copyright notice accompanies this license document that
+identifies the copyright holders.
+
+This license has been certified as open source. It has also been
+designated as GPL compatible by the Free Software Foundation
+(FSF).
+
+Redistribution and use in source and binary forms, with or
+without modification, are permitted provided that the following
+conditions are met:
+
+1. Redistributions in source code must retain the accompanying
+copyright notice, this list of conditions, and the following
+disclaimer.
+
+2. Redistributions in binary form must reproduce the
+accompanying copyright notice, this list of conditions, and the
+following disclaimer in the documentation and/or other materials
+provided with the distribution.
+
+3. Names of the copyright holders must not be used to endorse or
+promote products derived from this software without prior
+written permission from the copyright holders.
+
+4. The right to distribute this software or to use it for any
+purpose does not give you the right to use Servicemarks (sm) or
+Trademarks (tm) of the copyright holders. Use of them is covered
+by separate agreement with the copyright holders.
+
+5. If any files are modified, you must cause the modified files
+to carry prominent notices stating that you changed the files
+and the date of any change.
+
+Disclaimer
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND
+ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.

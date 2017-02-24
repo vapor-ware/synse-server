@@ -1,13 +1,14 @@
 #!/usr/bin/env python
-"""
-   OpenDCRE Location Support
-   Author:  andrew
-   Date:    2/23/2016 - Add device_id location translation.
+""" OpenDCRE Location Support
 
-        \\//
-         \/apor IO
+    Author:  andrew
+    Date:    2/23/2016 - Add device_id location translation.
 
-Copyright (C) 2015-16  Vapor IO
+    \\//
+     \/apor IO
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 
@@ -41,9 +42,9 @@ def has_location(device_id=None):
     Args:
         device_id:
 
-    Returns: (bool) True if device_id has location bits encoded in it, False
-             if it has microserver ID bits in it.
-
+    Returns:
+        bool: True if device_id has location bits encoded in it, False if
+            it has microserver ID bits in it.
     """
     if (device_id >> IS_MICRO_BIT) & 0x01:
         return False
@@ -51,8 +52,7 @@ def has_location(device_id=None):
 
 
 def get_microserver_id(device_id=None):
-    """
-    Get the ID of a given microserver.  This is done by shifting the
+    """ Get the ID of a given microserver. This is done by shifting the
     upper byte over into the lower byte, and then masking off the relevant
     bits (0..6) to get the microserver id.
 
@@ -62,15 +62,14 @@ def get_microserver_id(device_id=None):
     Args:
         device_id: The device_id to get microserver id for.
 
-    Returns: (int) The microserver ID.
-
+    Returns:
+        int: The microserver ID.
     """
     return (device_id >> 8) & 0x1F
 
 
 def get_chassis_location(device_id=None):
-    """
-    Get the location of a device in a given chassis.
+    """ Get the location of a device in a given chassis.
 
     This function assumes that device_id does in fact contain location bits (as
     opposed to microserver id).
@@ -79,7 +78,7 @@ def get_chassis_location(device_id=None):
         device_id:  The device id to get location for
 
     Returns:
-        (dict) A dict containing the intra-chassis location of the device.
+        dict: A dict containing the intra-chassis location of the device.
     """
     chassis_location = {'depth': 'unknown', 'horiz_pos': 'unknown', 'vert_pos': 'unknown', 'server_node': 'unknown'}
 
@@ -111,4 +110,3 @@ def get_chassis_location(device_id=None):
         chassis_location['server_node'] = get_microserver_id(device_id)
 
     return chassis_location
-

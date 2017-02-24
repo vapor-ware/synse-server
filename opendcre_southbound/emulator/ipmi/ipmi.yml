@@ -1,0 +1,8 @@
+ipmi-emulator:
+  container_name: ipmi-emulator
+  dockerfile: Dockerfile.x64
+  build: .
+  # to run in debug mode, uncomment the line below
+  #command: -d
+  ports:
+    - 623:623/udp

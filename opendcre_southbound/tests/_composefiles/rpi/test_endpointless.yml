@@ -1,0 +1,4 @@
+endpointless-test-rpi:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test.rpi
+  command: python ./opendcre_southbound/test-endpointless.py

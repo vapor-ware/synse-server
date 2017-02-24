@@ -1,0 +1,6 @@
+{
+    "HOST": "0.0.0.0",
+    "PORT": "5040",
+    "SOURCE": "RackmountServerMockUp",
+    "TOKEN": ["123456789authtoken"]
+}

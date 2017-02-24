@@ -1,0 +1,4 @@
+endpointless-test-arm64:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test.arm64
+  command: python ./opendcre_southbound/test-endpointless.py

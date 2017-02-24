@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-"""
-   OpenDCRE Server Runner - Used to launch OpenDCRE from package
-   via flask/nginx
+""" OpenDCRE Server Runner - Used to launch OpenDCRE from package
+via flask/nginx
 
-   Author:  andrew
-   Date:    7/28/2015
+    Author:  andrew
+    Date:    7/28/2015
 
-        \\//
-         \/apor IO
+    \\//
+     \/apor IO
 
-Copyright (C) 2015-16  Vapor IO
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 

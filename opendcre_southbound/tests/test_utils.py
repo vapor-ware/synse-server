@@ -1,12 +1,14 @@
 #!/usr/bin/env python
-"""
-Testing utilities for the OpenDCRE Southbound API tests
-Author:  erick
-Date:    9/9/2015
+""" Testing utilities for the VaporCORE Southbound API tests
+
+    Author:  Erick Daniszewski
+    Date:    9/9/2015
+
     \\//
      \/apor IO
 
-Copyright (C) 2015-16  Vapor IO
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 
@@ -31,10 +33,9 @@ import Queue
 
 
 class TestThread(Thread):
-    """
-    A thread class which executes a given function and gives back the execution end state
-    (more specifically, whether or not an Exception is present on the thread's stack) of
-    the thread in the specified bucket.
+    """ A thread class which executes a given function and gives back the execution end
+    state (more specifically, whether or not an Exception is present on the thread's stack)
+    of the thread in the specified bucket.
     """
     def __init__(self, func, bucket):
         super(TestThread, self).__init__()
@@ -56,8 +57,7 @@ class TestThread(Thread):
 
 
 class TestThreadExecutor(object):
-    """
-    An executor of the TestThread class. It instantiates thread_count number of TestThreads,
+    """ An executor of the TestThread class. It instantiates thread_count number of TestThreads,
     passing them the specified function to run as well as a Queue to hold system execution
     end state, and running each of those threads. Once a thread has executed the given function
     and put its end-state into the Queue, the executor will get the thread's end-state, analyze
@@ -104,12 +104,12 @@ class TestThreadExecutor(object):
 
 
 def threaded(*args):
-    """
-    Spawn multiple threads of a decorated function.
+    """ Spawn multiple threads of a decorated function.
 
     The number of threads can be specified as an argument to the decorator,
     otherwise a default number of threads are spawned (default=25). The
-    decorator can be used in the following forms:
+    decorator can be used in the following forms::
+
        @threaded       <- spawns the default number of threads
        @threaded()     <- spawns the default number of threads
        @threaded(100)  <- spawns the given number of threads (100)

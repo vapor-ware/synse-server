@@ -1,4 +1,4 @@
-The JSON files in this directory act as test configuration data for the opendcre emulator
+The JSON files in this directory act as test configuration data for the OpenDCRE emulator
 when running the test suites. There should be one data config file (JSON file) per test
 suite. Test suites will eventually have multiple test cases within them, e.g. devicebus tests.
 In these cases, ranges of board numbers should be allocated to each test case. Currently, the
@@ -16,7 +16,13 @@ Device bus tests:
   0x1e - 0x27 : power tests
   0x28 - 0x2f : chassis fan speed
   0x30 - 0x3f : chassis led
-  0x40 - 0xb3 : unallocated
+  0x40 - 0x4f : boot target
+  0x50 - 0x5f : asset info
+  0x60 - 0x6f : rectifier status
+  0x70 - 0x7f : chamber led
+  0x80 - 0x8f : chamber fan
+  0x90 - 0x9f : host info
+  0xA0 - 0xb3 : unallocated
   0xb4 - 0xbd : bad trailer
   0xbe - 0xc7 : bad checksum
   0xc8 - 0xd1 : line noise - buffers
@@ -40,3 +46,8 @@ Emulator tests:
   0xb4 - 0xbd : bad trailer
   0xbe - 0xc7 : bad checksum
   0xc8 +      : leave empty
+
+IPMI tests:
+-----------
+  0x00 - 0x0F : IPMI integration tests (ensure emulator & ipmi work together)
+  0x10 +      : unalloated, leave empty

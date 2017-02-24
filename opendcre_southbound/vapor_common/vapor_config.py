@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-"""
-    Vapor Configuration Manager
-    This module contains the configuration manager, a common component among
-    Vapor projects. The configuration manager expects the config files which
-    it operates on to be json files.
+""" Vapor Configuration Manager
 
-    Author: erick
+This module contains the configuration manager, a common component among
+Vapor projects. The configuration manager expects the config files which
+it operates on to be json files.
+
+    Author: Erick Daniszewski
     Date:   01/12/2016
 
-        \\//
-         \/apor IO
+    \\//
+     \/apor IO
 
-Copyright (C) 2015-16  Vapor IO
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
 
 This file is part of OpenDCRE.
 
@@ -28,7 +29,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
+import logging
 import json
+import os
+import re
+
+logger = logging.getLogger()
 
 
 class ConfigManager(object):
@@ -46,7 +52,7 @@ class ConfigManager(object):
     any attribute which starts with "_" (reserved for object private members).
     Accordingly, values in the config JSON should never start with "_".
     """
-    def __init__(self, path=None):
+    def __init__(self, default, override=None):
         """ Constructor for the ConfigManager class.
 
         The constructor will attempt to read in and parse a configuration file,
@@ -54,24 +60,50 @@ class ConfigManager(object):
         JSON-parsable, an exception will be raised.
 
         Args:
-            path (str): The path to the configuration file to read in. If no
-                path is provided, no configuration is loaded, but the config
-                manager still initializes and can update its context dynamically
-                at runtime. (default: None)
+            default (str): the default path to the configuration file to read in.
+            override (str): the path to the directory containing the user-defined config.
+                the config manager will search the directory for a file with the string
+                'config' (case insensitive) in it with a JSON file extension. if no such
+                file exists, nothing will be used as the override config. if multiple files
+                match, nothing will be used as the override config.
 
         Raises:
             IOError: Specified file does not exist.
             ValueError: File contents are not JSON-parsable.
         """
-        self.__path = path
+        self._default = default
+        self._override = override
 
-        if self.__path:
+        if self._default:
             # no exception handling here because we want the exception to propagate
             # upwards. if a file is specified but doesn't exist, or if the file
             # contents are not json-parsable, its not a problem we can fix here.
-            with open(self.__path, 'r') as f:
-                json_config = json.load(f)
-            self.add_config(json_config)
+            with open(self._default, 'r') as f:
+                default_config = json.load(f)
+            self.add_config(default_config)
+        else:
+            raise ValueError('No/invalid default configuration provided: {}'.format(default))
+
+        if self._override:
+            try:
+                dir_contents = os.listdir(self._override)
+                matching = self._find_config_matches(dir_contents)
+
+                match_count = len(matching)
+                if match_count == 1:
+                    with open(os.path.join(self._override, matching[0]), 'r') as f:
+                        override_config = json.load(f)
+                    self.add_config(override_config)
+
+                else:
+                    logger.warning(
+                        'Found {} files for override config, but was expecting 1: {}'.format(match_count, matching)
+                    )
+
+            except OSError as e:
+                logger.error('Given override path is invalid: {}'.format(e))
+            except Exception as e:
+                logger.error('Unexpected exception when searching for override file: {}'.format(e))
 
     def __getitem__(self, item):
         """ Get an item from the object __dict__ """
@@ -79,6 +111,21 @@ class ConfigManager(object):
             return self.__dict__[item]
         except Exception:
             raise AttributeError
+
+    @staticmethod
+    def _find_config_matches(dir_contents):
+        """ Apply the regex search to the list of directory contents to get
+        a list of items which match.
+
+        Args:
+            dir_contents (list): a list of strings, each of which the regex will
+                be applied to.
+
+        Returns:
+            list: a list of items which match the regex. an empty list if nothing
+                matches the regex.
+        """
+        return [i for i in dir_contents if re.search(r'.*(config).*\.json', i, re.IGNORECASE)]
 
     def add_config(self, to_add):
         """ Batch add values to the config manager.
@@ -105,13 +152,10 @@ class ConfigManager(object):
             path (str): The path of the configuration file to write to. If no
                 path is given, the class' path member is used. (default: None)
 
-        Returns:
-            None
-
         Raises:
             ValueError: No path is specified for the config file to write out to.
         """
-        path = path if path else self.__path
+        path = path if path else self._default
         if not path:
             raise ValueError('No path specified for config write.')
         with open(path, 'w+') as f:

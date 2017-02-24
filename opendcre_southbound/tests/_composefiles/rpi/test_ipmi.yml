@@ -1,0 +1,13 @@
+ipmi-test-rpi:
+  build: ../../..
+  dockerfile: Dockerfile.southbound-test.rpi
+  command: bash -c "sleep 15 && python ./opendcre_southbound/test-ipmi.py"
+  links:
+    - opendcre-southbound-test-container
+
+opendcre-southbound-test-container:
+  build: ..
+  dockerfile: Dockerfile.test-container.rpi
+  command: bash -c "cp ./opendcre_southbound/tests/data/bmc_config/bmc_config001.json ./bmc_config.json && ./start_opendcre_plc_emulator.sh ./opendcre_southbound/tests/data/ipmi-data.json"
+  expose:
+    - "5000"

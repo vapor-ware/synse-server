@@ -1,0 +1,603 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "boards": [
+        {
+          "board_id": "40000000",
+          "ip_addresses": [
+            "ipmi-emulator-1"
+          ],
+          "hostnames": [
+            "ipmi-emulator-1"
+          ],
+          "device_interface": [
+            "af052ac2-d2d3-4fcd-9fef-01c6658c6b59",
+            "4db9a292-f6fa-460e-bd23-1e1b823c2bb9",
+            "5bcd006d-f4eb-447d-9393-3bb0d592b34c",
+            "9a554c01-f9ef-491a-8c26-9778a04eb052",
+            "44e83a0d-01f4-453c-92c3-d01f529c69c1",
+            "7157a03a-8259-4b23-aee4-f6c4e4121efa"
+          ],
+          "devices": [
+            {
+              "device_info": "power",
+              "device_type": "power",
+              "device_id": "0100"
+            },
+            {
+              "device_info": "system",
+              "device_type": "system",
+              "device_id": "0200"
+            },
+            {
+              "device_info": "led",
+              "device_type": "led",
+              "device_id": "0300"
+            },
+            {
+              "device_info": "CPU Vcore",
+              "device_type": "voltage",
+              "device_id": "0021"
+            },
+            {
+              "device_info": "SYS FAN",
+              "device_type": "fan_speed",
+              "device_id": "0042"
+            },
+            {
+              "device_info": "+3.3VCC",
+              "device_type": "voltage",
+              "device_id": "0023"
+            },
+            {
+              "device_info": "VDIMM",
+              "device_type": "voltage",
+              "device_id": "0024"
+            },
+            {
+              "device_info": "+5 V",
+              "device_type": "voltage",
+              "device_id": "0025"
+            },
+            {
+              "device_info": "Vichcore",
+              "device_type": "voltage",
+              "device_id": "0026"
+            },
+            {
+              "device_info": "CPU FAN",
+              "device_type": "fan_speed",
+              "device_id": "0041"
+            },
+            {
+              "device_info": "VBAT",
+              "device_type": "voltage",
+              "device_id": "0028"
+            },
+            {
+              "device_info": "+3.3VSB",
+              "device_type": "voltage",
+              "device_id": "0027"
+            },
+            {
+              "device_info": "+12 V",
+              "device_type": "voltage",
+              "device_id": "0022"
+            },
+            {
+              "device_info": "System Temp",
+              "device_type": "temperature",
+              "device_id": "0011"
+            },
+            {
+              "device_info": "CPU Temp",
+              "device_type": "temperature",
+              "device_id": "0012"
+            },
+            {
+              "device_info": "PS Status",
+              "device_type": "power_supply",
+              "device_id": "0055"
+            }
+          ]
+        },
+        {
+          "board_id": "40000005",
+          "ip_addresses": [
+            "ipmi-emulator-6"
+          ],
+          "hostnames": [
+            "ipmi-emulator-6"
+          ],
+          "device_interface": [
+            "af052ac2-d2d3-4fcd-9fef-01c6658c6b59",
+            "4db9a292-f6fa-460e-bd23-1e1b823c2bb9",
+            "5bcd006d-f4eb-447d-9393-3bb0d592b34c",
+            "9a554c01-f9ef-491a-8c26-9778a04eb052",
+            "44e83a0d-01f4-453c-92c3-d01f529c69c1",
+            "7157a03a-8259-4b23-aee4-f6c4e4121efa"
+          ],
+          "devices": [
+            {
+              "device_info": "power",
+              "device_type": "power",
+              "device_id": "0100"
+            },
+            {
+              "device_info": "system",
+              "device_type": "system",
+              "device_id": "0200"
+            },
+            {
+              "device_info": "led",
+              "device_type": "led",
+              "device_id": "0300"
+            },
+            {
+              "device_info": "CPU Vcore",
+              "device_type": "voltage",
+              "device_id": "0021"
+            },
+            {
+              "device_info": "SYS FAN",
+              "device_type": "fan_speed",
+              "device_id": "0042"
+            },
+            {
+              "device_info": "+3.3VCC",
+              "device_type": "voltage",
+              "device_id": "0023"
+            },
+            {
+              "device_info": "VDIMM",
+              "device_type": "voltage",
+              "device_id": "0024"
+            },
+            {
+              "device_info": "+5 V",
+              "device_type": "voltage",
+              "device_id": "0025"
+            },
+            {
+              "device_info": "Vichcore",
+              "device_type": "voltage",
+              "device_id": "0026"
+            },
+            {
+              "device_info": "CPU FAN",
+              "device_type": "fan_speed",
+              "device_id": "0041"
+            },
+            {
+              "device_info": "VBAT",
+              "device_type": "voltage",
+              "device_id": "0028"
+            },
+            {
+              "device_info": "+3.3VSB",
+              "device_type": "voltage",
+              "device_id": "0027"
+            },
+            {
+              "device_info": "+12 V",
+              "device_type": "voltage",
+              "device_id": "0022"
+            },
+            {
+              "device_info": "System Temp",
+              "device_type": "temperature",
+              "device_id": "0011"
+            },
+            {
+              "device_info": "CPU Temp",
+              "device_type": "temperature",
+              "device_id": "0012"
+            },
+            {
+              "device_info": "PS Status",
+              "device_type": "power_supply",
+              "device_id": "0055"
+            }
+          ]
+        },
+        {
+          "board_id": "40000004",
+          "ip_addresses": [
+            "ipmi-emulator-5"
+          ],
+          "hostnames": [
+            "ipmi-emulator-5"
+          ],
+          "device_interface": [
+            "af052ac2-d2d3-4fcd-9fef-01c6658c6b59",
+            "4db9a292-f6fa-460e-bd23-1e1b823c2bb9",
+            "5bcd006d-f4eb-447d-9393-3bb0d592b34c",
+            "9a554c01-f9ef-491a-8c26-9778a04eb052",
+            "44e83a0d-01f4-453c-92c3-d01f529c69c1",
+            "7157a03a-8259-4b23-aee4-f6c4e4121efa"
+          ],
+          "devices": [
+            {
+              "device_info": "power",
+              "device_type": "power",
+              "device_id": "0100"
+            },
+            {
+              "device_info": "system",
+              "device_type": "system",
+              "device_id": "0200"
+            },
+            {
+              "device_info": "led",
+              "device_type": "led",
+              "device_id": "0300"
+            },
+            {
+              "device_info": "CPU Vcore",
+              "device_type": "voltage",
+              "device_id": "0021"
+            },
+            {
+              "device_info": "SYS FAN",
+              "device_type": "fan_speed",
+              "device_id": "0042"
+            },
+            {
+              "device_info": "+3.3VCC",
+              "device_type": "voltage",
+              "device_id": "0023"
+            },
+            {
+              "device_info": "VDIMM",
+              "device_type": "voltage",
+              "device_id": "0024"
+            },
+            {
+              "device_info": "+5 V",
+              "device_type": "voltage",
+              "device_id": "0025"
+            },
+            {
+              "device_info": "Vichcore",
+              "device_type": "voltage",
+              "device_id": "0026"
+            },
+            {
+              "device_info": "CPU FAN",
+              "device_type": "fan_speed",
+              "device_id": "0041"
+            },
+            {
+              "device_info": "VBAT",
+              "device_type": "voltage",
+              "device_id": "0028"
+            },
+            {
+              "device_info": "+3.3VSB",
+              "device_type": "voltage",
+              "device_id": "0027"
+            },
+            {
+              "device_info": "+12 V",
+              "device_type": "voltage",
+              "device_id": "0022"
+            },
+            {
+              "device_info": "System Temp",
+              "device_type": "temperature",
+              "device_id": "0011"
+            },
+            {
+              "device_info": "CPU Temp",
+              "device_type": "temperature",
+              "device_id": "0012"
+            },
+            {
+              "device_info": "PS Status",
+              "device_type": "power_supply",
+              "device_id": "0055"
+            }
+          ]
+        },
+        {
+          "board_id": "40000003",
+          "ip_addresses": [
+            "ipmi-emulator-4"
+          ],
+          "hostnames": [
+            "ipmi-emulator-4"
+          ],
+          "device_interface": [
+            "af052ac2-d2d3-4fcd-9fef-01c6658c6b59",
+            "4db9a292-f6fa-460e-bd23-1e1b823c2bb9",
+            "5bcd006d-f4eb-447d-9393-3bb0d592b34c",
+            "9a554c01-f9ef-491a-8c26-9778a04eb052",
+            "44e83a0d-01f4-453c-92c3-d01f529c69c1",
+            "7157a03a-8259-4b23-aee4-f6c4e4121efa"
+          ],
+          "devices": [
+            {
+              "device_info": "power",
+              "device_type": "power",
+              "device_id": "0100"
+            },
+            {
+              "device_info": "system",
+              "device_type": "system",
+              "device_id": "0200"
+            },
+            {
+              "device_info": "led",
+              "device_type": "led",
+              "device_id": "0300"
+            },
+            {
+              "device_info": "CPU Vcore",
+              "device_type": "voltage",
+              "device_id": "0021"
+            },
+            {
+              "device_info": "SYS FAN",
+              "device_type": "fan_speed",
+              "device_id": "0042"
+            },
+            {
+              "device_info": "+3.3VCC",
+              "device_type": "voltage",
+              "device_id": "0023"
+            },
+            {
+              "device_info": "VDIMM",
+              "device_type": "voltage",
+              "device_id": "0024"
+            },
+            {
+              "device_info": "+5 V",
+              "device_type": "voltage",
+              "device_id": "0025"
+            },
+            {
+              "device_info": "Vichcore",
+              "device_type": "voltage",
+              "device_id": "0026"
+            },
+            {
+              "device_info": "CPU FAN",
+              "device_type": "fan_speed",
+              "device_id": "0041"
+            },
+            {
+              "device_info": "VBAT",
+              "device_type": "voltage",
+              "device_id": "0028"
+            },
+            {
+              "device_info": "+3.3VSB",
+              "device_type": "voltage",
+              "device_id": "0027"
+            },
+            {
+              "device_info": "+12 V",
+              "device_type": "voltage",
+              "device_id": "0022"
+            },
+            {
+              "device_info": "System Temp",
+              "device_type": "temperature",
+              "device_id": "0011"
+            },
+            {
+              "device_info": "CPU Temp",
+              "device_type": "temperature",
+              "device_id": "0012"
+            },
+            {
+              "device_info": "PS Status",
+              "device_type": "power_supply",
+              "device_id": "0055"
+            }
+          ]
+        },
+        {
+          "board_id": "40000002",
+          "ip_addresses": [
+            "ipmi-emulator-3"
+          ],
+          "hostnames": [
+            "ipmi-emulator-3"
+          ],
+          "device_interface": [
+            "af052ac2-d2d3-4fcd-9fef-01c6658c6b59",
+            "4db9a292-f6fa-460e-bd23-1e1b823c2bb9",
+            "5bcd006d-f4eb-447d-9393-3bb0d592b34c",
+            "9a554c01-f9ef-491a-8c26-9778a04eb052",
+            "44e83a0d-01f4-453c-92c3-d01f529c69c1",
+            "7157a03a-8259-4b23-aee4-f6c4e4121efa"
+          ],
+          "devices": [
+            {
+              "device_info": "power",
+              "device_type": "power",
+              "device_id": "0100"
+            },
+            {
+              "device_info": "system",
+              "device_type": "system",
+              "device_id": "0200"
+            },
+            {
+              "device_info": "led",
+              "device_type": "led",
+              "device_id": "0300"
+            },
+            {
+              "device_info": "CPU Vcore",
+              "device_type": "voltage",
+              "device_id": "0021"
+            },
+            {
+              "device_info": "SYS FAN",
+              "device_type": "fan_speed",
+              "device_id": "0042"
+            },
+            {
+              "device_info": "+3.3VCC",
+              "device_type": "voltage",
+              "device_id": "0023"
+            },
+            {
+              "device_info": "VDIMM",
+              "device_type": "voltage",
+              "device_id": "0024"
+            },
+            {
+              "device_info": "+5 V",
+              "device_type": "voltage",
+              "device_id": "0025"
+            },
+            {
+              "device_info": "Vichcore",
+              "device_type": "voltage",
+              "device_id": "0026"
+            },
+            {
+              "device_info": "CPU FAN",
+              "device_type": "fan_speed",
+              "device_id": "0041"
+            },
+            {
+              "device_info": "VBAT",
+              "device_type": "voltage",
+              "device_id": "0028"
+            },
+            {
+              "device_info": "+3.3VSB",
+              "device_type": "voltage",
+              "device_id": "0027"
+            },
+            {
+              "device_info": "+12 V",
+              "device_type": "voltage",
+              "device_id": "0022"
+            },
+            {
+              "device_info": "System Temp",
+              "device_type": "temperature",
+              "device_id": "0011"
+            },
+            {
+              "device_info": "CPU Temp",
+              "device_type": "temperature",
+              "device_id": "0012"
+            },
+            {
+              "device_info": "PS Status",
+              "device_type": "power_supply",
+              "device_id": "0055"
+            }
+          ]
+        },
+        {
+          "board_id": "40000001",
+          "ip_addresses": [
+            "ipmi-emulator-2"
+          ],
+          "hostnames": [
+            "ipmi-emulator-2"
+          ],
+          "device_interface": [
+            "af052ac2-d2d3-4fcd-9fef-01c6658c6b59",
+            "4db9a292-f6fa-460e-bd23-1e1b823c2bb9",
+            "5bcd006d-f4eb-447d-9393-3bb0d592b34c",
+            "9a554c01-f9ef-491a-8c26-9778a04eb052",
+            "44e83a0d-01f4-453c-92c3-d01f529c69c1",
+            "7157a03a-8259-4b23-aee4-f6c4e4121efa"
+          ],
+          "devices": [
+            {
+              "device_info": "power",
+              "device_type": "power",
+              "device_id": "0100"
+            },
+            {
+              "device_info": "system",
+              "device_type": "system",
+              "device_id": "0200"
+            },
+            {
+              "device_info": "led",
+              "device_type": "led",
+              "device_id": "0300"
+            },
+            {
+              "device_info": "CPU Vcore",
+              "device_type": "voltage",
+              "device_id": "0021"
+            },
+            {
+              "device_info": "SYS FAN",
+              "device_type": "fan_speed",
+              "device_id": "0042"
+            },
+            {
+              "device_info": "+3.3VCC",
+              "device_type": "voltage",
+              "device_id": "0023"
+            },
+            {
+              "device_info": "VDIMM",
+              "device_type": "voltage",
+              "device_id": "0024"
+            },
+            {
+              "device_info": "+5 V",
+              "device_type": "voltage",
+              "device_id": "0025"
+            },
+            {
+              "device_info": "Vichcore",
+              "device_type": "voltage",
+              "device_id": "0026"
+            },
+            {
+              "device_info": "CPU FAN",
+              "device_type": "fan_speed",
+              "device_id": "0041"
+            },
+            {
+              "device_info": "VBAT",
+              "device_type": "voltage",
+              "device_id": "0028"
+            },
+            {
+              "device_info": "+3.3VSB",
+              "device_type": "voltage",
+              "device_id": "0027"
+            },
+            {
+              "device_info": "+12 V",
+              "device_type": "voltage",
+              "device_id": "0022"
+            },
+            {
+              "device_info": "System Temp",
+              "device_type": "temperature",
+              "device_id": "0011"
+            },
+            {
+              "device_info": "CPU Temp",
+              "device_type": "temperature",
+              "device_id": "0012"
+            },
+            {
+              "device_info": "PS Status",
+              "device_type": "power_supply",
+              "device_id": "0055"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

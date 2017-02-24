@@ -2,586 +2,706 @@
   "boards": [
     {
       "board_id": "00000001",
-      "firmware_version" : "OpenDCRE Emulator v1.2.0 - Standalone Server",
-      "devices" : [
+      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "devices": [
         {
           "device_id": "0001",
           "device_type": "thermistor",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                656,
-                646,
-                636,
-                625,
-                615,
-                605,
-                594,
-                584,
-                573,
-                563,
-                553,
-                542,
-                532,
-                522,
-                512,
-                502,
-                491,
-                482,
-                472,
-                462,
-                452
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656,
+              646,
+              636,
+              625,
+              615,
+              605,
+              594,
+              584,
+              573,
+              563,
+              553,
+              542,
+              532,
+              522,
+              512,
+              502,
+              491,
+              482,
+              472,
+              462,
+              452
+            ]
+          }
         },
         {
           "device_id": "0002",
           "device_type": "fan_speed",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                4100,
-                4100,
-                4000,
-                4000,
-                3900,
-                3900,
-                3800,
-                3800,
-                3700,
-                3700,
-                3800,
-                3800,
-                3900,
-                3900,
-                4000,
-                4000,
-                4100,
-                4100,
-                4200,
-                4200
-              ]
-            },
-          "write":
-            {
-              "repeatable": true,
-              "responses": [
-                "W1"
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              4100,
+              4100,
+              4000,
+              4000,
+              3900,
+              3900,
+              3800,
+              3800,
+              3700,
+              3700,
+              3800,
+              3800,
+              3900,
+              3900,
+              4000,
+              4000,
+              4100,
+              4100,
+              4200,
+              4200
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
         },
         {
           "device_id": "0004",
           "device_type": "system",
-          "asset_info":
-          {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
           },
           "boot_target": {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.15,htest-server0"
+            ]
           }
         },
         {
           "device_id": "0005",
           "device_type": "led",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                1,
-                0
-              ]
-            },
-          "write":
-            {
-              "repeatable": true,
-              "responses": [
-                "W1"
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1,
+              0
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
         },
         {
           "device_id": "0009",
           "device_type": "thermistor",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                656,
-                646,
-                636,
-                625,
-                615,
-                605,
-                594,
-                584,
-                573,
-                563,
-                553,
-                542,
-                532,
-                522,
-                512,
-                502,
-                491,
-                482,
-                472,
-                462,
-                452
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656,
+              646,
+              636,
+              625,
+              615,
+              605,
+              594,
+              584,
+              573,
+              563,
+              553,
+              542,
+              532,
+              522,
+              512,
+              502,
+              491,
+              482,
+              472,
+              462,
+              452
+            ]
+          }
         },
         {
           "device_id": "2000",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "4000",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "000D",
           "device_type": "power",
-          "power":
-            {
-              "repeatable": true,
-              "responses": [
-                "0,0,0,0"
-              ]
-            }
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
         }
       ]
     },
     {
       "board_id": "00000002",
-      "firmware_version" : "OpenDCRE Emulator v1.2.0 - Microserver",
-      "devices" : [
+      "firmware_version": "OpenDCRE Emulator v1.0.0 - Microserver",
+      "devices": [
         {
           "device_id": "0002",
           "device_type": "fan_speed",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                4100,
-                4100,
-                4000,
-                4000,
-                3900,
-                3900,
-                3800,
-                3800,
-                3700,
-                3700,
-                3800,
-                3800,
-                3900,
-                3900,
-                4000,
-                4000,
-                4100,
-                4100,
-                4200,
-                4200
-              ]
-            },
-          "write":
-            {
-              "repeatable": true,
-              "responses": [
-                "W1"
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              4100,
+              4100,
+              4000,
+              4000,
+              3900,
+              3900,
+              3800,
+              3800,
+              3700,
+              3700,
+              3800,
+              3800,
+              3900,
+              3900,
+              4000,
+              4000,
+              4100,
+              4100,
+              4200,
+              4200
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
         },
         {
           "device_id": "8001",
           "device_type": "system",
-          "asset_info":
-          {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
           },
           "boot_target": {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.16,htest-server1"
+            ]
           }
         },
         {
           "device_id": "8002",
           "device_type": "power",
-          "power":
-            {
-              "repeatable": true,
-              "responses": [
-                "0,0,0,0"
-              ]
-            }
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
         },
         {
           "device_id": "8003",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "8101",
           "device_type": "system",
-          "asset_info":
-          {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
           },
           "boot_target": {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.17,htest-server2"
+            ]
           }
         },
         {
           "device_id": "8102",
           "device_type": "power",
-          "power":
-            {
-              "repeatable": true,
-              "responses": [
-                "0,0,0,0"
-              ]
-            }
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
         },
         {
           "device_id": "8103",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "8201",
           "device_type": "system",
-          "asset_info":
-          {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
           },
           "boot_target": {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.18,htest-server3"
+            ]
           }
         },
         {
           "device_id": "8202",
           "device_type": "power",
-          "power":
-            {
-              "repeatable": true,
-              "responses": [
-                "0,0,0,0"
-              ]
-            }
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
         },
         {
           "device_id": "8203",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "8301",
           "device_type": "system",
-          "asset_info":
-          {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
           },
           "boot_target": {
-              "repeatable": true,
-              "responses": [
-                "not yet implemented"
-              ]
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.19,htest-server4"
+            ]
           }
         },
         {
           "device_id": "8302",
           "device_type": "power",
-          "power":
-            {
-              "repeatable": true,
-              "responses": [
-                "0,0,0,0"
-              ]
-            }
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
         },
         {
           "device_id": "8303",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "0005",
           "device_type": "led",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                1,
-                0
-              ]
-            },
-          "write":
-            {
-              "repeatable": true,
-              "responses": [
-                "W1"
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1,
+              0
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
         },
         {
           "device_id": "2000",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "4000",
           "device_type": "temperature",
-          "read":
-            {
-              "repeatable": true,
-              "responses": [
-                28.78,
-                29.77,
-                30.75,
-                31.84,
-                32.82,
-                33.81,
-                34.89,
-                35.88,
-                36.96,
-                37.94,
-                38.93,
-                40.21,
-                41.27,
-                42.33,
-                43.39,
-                44.45,
-                45.61,
-                46.57,
-                47.63,
-                48.69,
-                49.75
-              ]
-            }
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
         },
         {
           "device_id": "000D",
           "device_type": "power",
-          "power":
-            {
-              "repeatable": true,
-              "responses": [
-                "0,0,0,0"
-              ]
-            }
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000003",
+      "firmware_version": "Vapor Fan Control Board v1.0",
+      "devices": [
+        {
+          "device_id": "000F",
+          "device_type": "vapor_fan",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1100,
+              1100,
+              1000,
+              1000,
+              900,
+              900,
+              800,
+              800,
+              700,
+              700,
+              800,
+              800,
+              900,
+              900,
+              1000,
+              1000,
+              1100,
+              1100,
+              1200,
+              1200
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000004",
+      "firmware_version": "Vapor Rectifier Board v1.0",
+      "devices": [
+        {
+          "device_id": "000E",
+          "device_type": "vapor_rectifier",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000005",
+      "firmware_version": "Vapor LED Control Board v1.0",
+      "devices": [
+        {
+          "device_id": "000E",
+          "device_type": "vapor_led",
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "1,ffffff,0",
+              "0,000000,0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000006",
+      "firmware_version": "Vapor Sensor Board v1.0",
+      "devices": [
+        {
+          "device_id": "0001",
+          "device_type": "pressure",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              -1,
+              -0.9,
+              -0.8,
+              -0.7,
+              -0.6,
+              -0.5,
+              -0.4,
+              -0.3,
+              -0.2,
+              -0.1,
+              0,
+              0.1,
+              0.2,
+              0.3,
+              0.4,
+              0.5,
+              0.6,
+              0.7,
+              0.8,
+              0.9
+            ]
+          }
         }
       ]
     }
