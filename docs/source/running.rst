@@ -47,7 +47,7 @@ A configuration file should be created which specifies this emulator, which we w
 Next, we just need to run OpenDCRE and mount in the IPMI configuration file to the appropriate location.
 ::
 
-    docker run -p 5000:5000 -v `pwd`/bmc_config.json:/opendcre/bmc_config.json vaporio/opendcre:1.3
+    docker run -p 5000:5000 -v `pwd`/bmc_config.json:/opendcre/bmc_config.json vaporio/opendcre:1.3.0
 
 This will start OpenDCRE and reach out to 192.168.1.10 to register the IPMI Device and scan that BMC. To use your
 own BMCs, you would simply provide the appropriate IP, username, and password for each BMC configured.
