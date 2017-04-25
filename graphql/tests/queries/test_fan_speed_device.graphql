@@ -1,12 +1,11 @@
 {
-  clusters(id:"zone_1") {
-    racks(id:"rack_1") {
-      boards(id:"00000002") {
-        devices(device_type:"fan_speed") {
-          ... on FanSpeedDevice {
-            fan_mode
-            speed_rpm
-          }
+  racks(id:"rack_1") {
+    boards {
+      devices(device_type:"fan_speed") {
+        ... on FanSpeedDevice {
+          health
+          states
+          speed_rpm
         }
       }
     }

@@ -1,18 +1,12 @@
 {
-  clusters(id:"zone_1") {
-    racks(id:"rack_1") {
-      boards(id:"00000001") {
-        devices(device_type:"power") {
-          ... on PowerDevice {
-            input_power
-            input_voltage
-            output_current
-            over_current
-            pmbus_raw
-            power_ok
-            power_status
-            under_voltage
-          }
+  racks(id:"rack_1") {
+    boards {
+      devices(device_type:"power") {
+        ... on PowerDevice {
+          input_power
+          over_current
+          power_ok
+          power_status
         }
       }
     }

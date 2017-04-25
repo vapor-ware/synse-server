@@ -1,9 +1,7 @@
 {
-  clusters(id:"zone_1") {
-    racks(id:"rack_1") {
-      boards(id:"00000100") {
-        id
-      }
+  racks(id:"rack_6") {
+    boards(id:"40000021") {
+      id
     }
   }
 }

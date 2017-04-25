@@ -19,25 +19,22 @@ from pytz import utc
 import graphql_frontend.schema
 
 query = '''{
-    clusters {
+    racks {
         id
-        racks {
+        boards {
             id
-            boards {
+            devices {
                 id
-                devices {
-                    id
-                    info
-                    device_type
-                    ... on TemperatureDevice {
-                        temperature_c
-                    }
-                    ... on FanSpeedDevice {
-                        speed_rpm
-                    }
-                    ... on PowerDevice {
-                        input_power
-                    }
+                info
+                device_type
+                ... on TemperatureDevice {
+                    temperature_c
+                }
+                ... on FanSpeedDevice {
+                    speed_rpm
+                }
+                ... on PowerDevice {
+                    input_power
                 }
             }
         }
@@ -53,7 +50,6 @@ _metrics = {
 class Device(object):
 
     default_labels = [
-        "cluster_id",
         "rack_id",
         "board_id",
         "device_id",
@@ -73,8 +69,7 @@ class Device(object):
         "power": list(range(0, 400, 10)) + [_INF]
     }
 
-    def __init__(self, cluster, rack, board, device):
-        self._cluster = cluster
+    def __init__(self, rack, board, device):
         self._rack = rack
         self._board = board
         self._device = device
@@ -86,7 +81,6 @@ class Device(object):
     @property
     def labels(self):
         return [
-            self._cluster.get("id"),
             self._rack.get("id"),
             self._board.get("id"),
             self._device.get("id"),
@@ -138,19 +132,16 @@ def get():
         if hasattr(error, "message"):
             logging.debug(error.message)
 
-    for cluster in result.data.get("clusters"):
-        if not cluster:
+    for rack in result.data.get("racks"):
+        if not rack:
             continue
-        for rack in cluster.get("racks"):
-            if not rack:
+        for board in rack.get("boards"):
+            if not board:
                 continue
-            for board in rack.get("boards"):
-                if not board:
+            for device in board.get("devices"):
+                if not device:
                     continue
-                for device in board.get("devices"):
-                    if not device:
-                        continue
-                    Device(cluster, rack, board, device).record()
+                Device(rack, board, device).record()
 
 
 def refresh():

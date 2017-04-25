@@ -1,11 +1,9 @@
 {
-  clusters(id:"zone_1") {
-    racks(id:"rack_1") {
-      boards(id:"00000100") {
-        devices(device_type:"temperature") {
-          ... on TemperatureDevice {
-            temperature_c
-          }
+  racks(id:"rack_1") {
+    boards {
+      devices(device_type:"temperature") {
+        ... on TemperatureDevice {
+          temperature_c
         }
       }
     }

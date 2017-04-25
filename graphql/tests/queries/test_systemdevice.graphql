@@ -1,32 +1,30 @@
 {
-  clusters {
-    racks {
-      boards {
-        devices {
-          device_type
-          ... on SystemDevice {
-            hostnames
-            ip_addresses
-            asset {
-              board_info {
-                manufacturer
-                part_number
-                product_name
-                serial_number
-              }
-              chassis_info {
-                chassis_type
-                part_number
-                serial_number
-              }
-              product_info {
-                asset_tag
-                manufacturer
-                part_number
-                product_name
-                serial_number
-                version
-              }
+  racks {
+    boards {
+      devices(device_type:"system") {
+        device_type
+        ... on SystemDevice {
+          hostnames
+          ip_addresses
+          asset {
+            board_info {
+              manufacturer
+              part_number
+              product_name
+              serial_number
+            }
+            chassis_info {
+              chassis_type
+              part_number
+              serial_number
+            }
+            product_info {
+              asset_tag
+              manufacturer
+              part_number
+              product_name
+              serial_number
+              version
             }
           }
         }
@@ -34,4 +32,7 @@
     }
   }
 }
+
+
+
 

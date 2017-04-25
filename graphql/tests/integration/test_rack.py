@@ -15,16 +15,11 @@ from ..util import BaseSchemaTest
 class TestRack(BaseSchemaTest):
 
     def get_racks(self, query):
-        return self.run_query(query).data.get("clusters")[0]["racks"]
+        return self.run_query(query).data.get("racks")
 
     def test_query(self):
         keys = [
-            "id",
-            "is_leader",
-            "is_shadow",
-            "vec_ip",
-            "failed_servers",
-            "server_count"
+            "id"
         ]
         self.assertItemsEqual(self.get_racks("test_racks")[0].keys(), keys)
 

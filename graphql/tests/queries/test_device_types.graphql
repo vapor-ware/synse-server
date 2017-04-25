@@ -1,13 +1,10 @@
 {
-  clusters {
+  racks {
     id
-    racks {
+    boards {
       id
-      boards {
-        id
-        devices {
-          device_type
-        }
+      devices {
+        device_type
       }
     }
   }

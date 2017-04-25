@@ -15,7 +15,7 @@ from ..util import BaseSchemaTest
 class TestBoard(BaseSchemaTest):
 
     def get_boards(self, query):
-        return self.run_query(query).data["clusters"][0]["racks"][0]["boards"]
+        return self.run_query(query).data.get("racks")[0].get("boards")
 
     def test_query(self):
         keys = ["id"]

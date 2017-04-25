@@ -28,10 +28,8 @@ class BaseSchemaTest(testtools.TestCase):
 
         if graphql_frontend.config.options is None:
             graphql_frontend.config.parse_args([
-                '--mode',
-                'core',
                 '--backend',
-                'localhost:4998'
+                'localhost:5000'
             ])
         self.schema = graphql_frontend.schema.create()
 
@@ -52,6 +50,7 @@ class BaseSchemaTest(testtools.TestCase):
             logging.exception("Query error", exc_info=error)
             if hasattr(error, "message"):
                 logging.debug(error.message)
+
         self.assertFalse(result.errors)
         self.output(result)
 

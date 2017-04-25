@@ -7,12 +7,12 @@
      \/apor IO
 """
 
+import functools
+
 import graphene
 
 from . import device, util
-from .. import config
-from .cluster import Cluster
-from .notification import Notification
+from .rack import Rack
 
 
 def get_device_types():
@@ -21,44 +21,29 @@ def get_device_types():
 
 def create():
     return graphene.Schema(
-        query=System,
+        query=Cluster,
         auto_camelcase=False,
         types=get_device_types()
     )
 
 
-class System(graphene.ObjectType):
-    clusters = graphene.List(
-        lambda: Cluster,
+class Cluster(graphene.ObjectType):
+
+    # Schema
+    racks = graphene.List(
+        lambda: Rack,
         required=True,
         id=graphene.String()
     )
-    notifications = graphene.List(
-        lambda: Notification,
-        required=True,
-        _id=graphene.String()
-    )
+
+    @functools.lru_cache(maxsize=1)
+    def _request_assets(self):
+        return dict([(k, '') for k in self._assets])
 
     @graphene.resolve_only_args
-    def resolve_clusters(self, id=None):
-        if config.options.get('mode') == 'opendcre':
-            return [Cluster(id='main')]
-
-        return [Cluster(id=c["cluster_id"], _routing=c)
-                for c in util.arg_filter(
+    def resolve_racks(self, id=None):
+        return [Rack.build(self, r)
+                for r in util.arg_filter(
                     id,
-                    lambda x: x.get("cluster_id") == id,
-                    util.make_request(
-                        "routing_table").get("clusters", []))]
-
-    @graphene.resolve_only_args
-    def resolve_notifications(self, _id=None):
-        if config.options.get('mode') == 'opendcre':
-            return []
-
-        return [Notification.build(d)
-                for d in util.arg_filter(
-                    _id,
-                    lambda x: x.get("_id") == _id,
-                    util.make_request(
-                        "notifications").get("notifications", []))]
+                    lambda x: x.get("rack_id") == id,
+                    util.make_request('scan').get("racks"))]

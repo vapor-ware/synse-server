@@ -1,12 +1,5 @@
 {
-    clusters {
-        racks {
-            id
-            is_leader
-            is_shadow
-            vec_ip
-            failed_servers
-            server_count
-        }
-    }
+  racks {
+    id
+  }
 }
