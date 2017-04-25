@@ -7,9 +7,9 @@
      \/apor IO
 """
 
-import configargparse
 import sys
 
+import configargparse
 
 parser = configargparse.ArgParser(default_config_files=[
     "/graphql_frontend/config.yaml"

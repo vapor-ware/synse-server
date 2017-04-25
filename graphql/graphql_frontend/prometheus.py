@@ -6,17 +6,17 @@
     \\//
      \/apor IO
 """
-from datetime import datetime
+
 import logging
+from datetime import datetime
+
+import prometheus_client
+import prometheus_client.exposition
+from apscheduler.schedulers.background import BackgroundScheduler
+from prometheus_client.core import _INF
 from pytz import utc
 
-from apscheduler.schedulers.background import BackgroundScheduler
-import prometheus_client
-from prometheus_client.core import _INF
-import prometheus_client.exposition
-
 import graphql_frontend.schema
-
 
 query = '''{
     clusters {

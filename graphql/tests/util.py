@@ -42,6 +42,9 @@ class BaseSchemaTest(testtools.TestCase):
         print(json.dumps(result.data, indent=4)[:QUERY_PREVIEW_LENGTH])
 
     def assertQuery(self, result):
+        if result.errors is None:
+            result.errors = []
+
         for error in result.errors:
             logging.exception("Query error", exc_info=error)
             if hasattr(error, "message"):

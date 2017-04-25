@@ -11,7 +11,6 @@ from flask import Flask
 from flask import jsonify
 from flask_graphql import GraphQLView
 
-
 import graphql_frontend.config
 import graphql_frontend.prometheus
 import graphql_frontend.schema

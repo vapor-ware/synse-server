@@ -41,7 +41,8 @@ class TestNotification(BaseSchemaTest):
         self.assertItemsEqual(notification.keys(), keys)
         self.assertItemsEqual(notification.get("source", {}), source_keys)
 
-    @attr("now")
-    def test_id_arg(self):
-        self.assertEqual(
-            len(self.get_notifications("test_notification_id")), 1)
+    # FIXME - need to get a notification ID that works on everyone's host.
+    # @attr("now")
+    # def test_id_arg(self):
+    #     self.assertEqual(
+    #         len(self.get_notifications("test_notification_id")), 1)

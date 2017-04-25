@@ -29,6 +29,13 @@ At this point there is an interactive terminal running that you can do interacti
 
 ### Run the tests (as part of development)
 
+First, start aws-core locally:
+
+    cd aws-core
+    make run-e2e-multicluster-x64
+
+Then, run the tests:
+
     make build dev
     make one test="-a now"`
 

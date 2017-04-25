@@ -12,12 +12,12 @@ import graphene
 
 class NotificationSource(graphene.ObjectType):
     BoardID = graphene.String()
-    DeviceID = graphene.String(required=True)
-    DeviceType = graphene.String(required=True)
-    Field = graphene.String(required=True)
+    DeviceID = graphene.String()
+    DeviceType = graphene.String()
+    Field = graphene.String()
     RackID = graphene.String()
-    Reading = graphene.String(required=True)
-    ZoneID = graphene.String(required=True)
+    Reading = graphene.String()
+    ZoneID = graphene.String()
 
 
 class Notification(graphene.ObjectType):
