@@ -7,15 +7,25 @@
     \\//
      \/apor IO
 """
+
+import json
+import logging.config
+import os
+
 from flask import Flask, jsonify
 from flask_graphql import GraphQLView
 
 import graphql_frontend.config
 import graphql_frontend.prometheus
 import graphql_frontend.schema
-from vapor_common.vapor_logging import setup_logging
 
-setup_logging(default_path='logging.json')
+
+def setup_logging(name="logging.json"):
+    path = os.path.join(os.path.dirname(__file__), "..", name)
+    with open(path, 'rt') as f:
+        config = json.load(f)
+    logging.config.dictConfig(config)
+
 
 app = Flask(__name__)
 

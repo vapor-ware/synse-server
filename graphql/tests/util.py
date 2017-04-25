@@ -15,6 +15,7 @@ import testtools
 
 import graphql_frontend.config
 import graphql_frontend.schema
+from graphql_frontend import setup_logging
 
 QUERY_PREVIEW_LENGTH = 1000
 
@@ -23,6 +24,8 @@ class BaseSchemaTest(testtools.TestCase):
 
     def setUp(self):
         super(BaseSchemaTest, self).setUp()
+        setup_logging("logging-test.json")
+
         if graphql_frontend.config.options is None:
             graphql_frontend.config.parse_args([
                 '--mode',

@@ -9,10 +9,10 @@
 """
 
 from graphql_frontend import config
-from graphql_frontend import app
-from graphql_frontend import main
+from graphql_frontend import app, main, setup_logging
 
 
 if __name__ == '__main__':
     config.parse_args()
+    setup_logging()
     main()
