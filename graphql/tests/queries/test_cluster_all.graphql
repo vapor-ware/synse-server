@@ -1,0 +1,10 @@
+{
+  clusters {
+    id
+    hardware_version
+    leader_service_profile
+    model_number
+    serial_number
+    vendor
+  }
+}

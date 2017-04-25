@@ -1,0 +1,9 @@
+{
+  clusters {
+    racks {
+      boards {
+        id
+      }
+    }
+  }
+}

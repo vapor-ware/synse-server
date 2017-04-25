@@ -1,0 +1,20 @@
+{
+    notifications {
+        _id
+        code
+        resolved_on
+        severity
+        source {
+            BoardID
+            DeviceID
+            DeviceType
+            Field
+            RackID
+            Reading
+            ZoneID
+        }
+        status
+        text
+        timestamp
+    }
+}

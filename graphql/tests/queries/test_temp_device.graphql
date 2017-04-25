@@ -1,0 +1,13 @@
+{
+  clusters(id:"zone_1") {
+    racks(id:"rack_1") {
+      boards(id:"00000100") {
+        devices(device_type:"temperature") {
+          ... on TemperatureDevice {
+            temperature_c
+          }
+        }
+      }
+    }
+  }
+}

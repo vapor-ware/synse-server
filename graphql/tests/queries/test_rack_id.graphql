@@ -1,0 +1,7 @@
+{
+  clusters(id:"zone_1") {
+    racks(id:"rack_1") {
+      id
+    }
+  }
+}

@@ -1,0 +1,7 @@
+test-container-x64:
+  container_name: test-container-x64
+  dockerfile: Dockerfile.x64
+  build: ../..
+  command: python test_trust_utils.py
+  volumes:
+    - ../../..:/tests/vapor_common
