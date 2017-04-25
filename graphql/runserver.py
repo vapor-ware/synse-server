@@ -9,6 +9,7 @@
 """
 
 from graphql_frontend import config
+from graphql_frontend import app
 from graphql_frontend import main
 
 

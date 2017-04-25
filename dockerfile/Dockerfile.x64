@@ -3,21 +3,40 @@ MAINTAINER Andrew Cencini <andrew@vapor.io>
 
 ENV VAPOR_SERVICE_NAME=opendcre
 
+ADD ./graphql/requirements.txt requirements.txt
+
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     socat \
+    curl \
     python-dev \
+    python3-pip \
+    python3-dev \
     make \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     pip install pyserial==2.7 \
     RPi.GPIO \
     pyghmi \
-    grequests
+    grequests && \
+    pip3 install -r requirements.txt
 
-RUN mkdir /var/uwsgi && \
-    chown www-data:www-data /var/uwsgi && \
-    touch /var/uwsgi/reload
+
+RUN mkdir -p /etc/uwsgi/vassals && \
+    mkdir -p /etc/uwsgi/plugins && \
+    touch /etc/uwsgi/reload && \
+    chown -R www-data:www-data /etc/uwsgi
+
+RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
+    tar -xvzf uwsgi-2.0.15.tar.gz && \
+    cd uwsgi-2.0.15 && \
+    python uwsgiconfig.py --build nolang && \
+    PYTHON=python2.7 ./uwsgi --build-plugin "plugins/python python27" && \
+    PYTHON=python3.4 ./uwsgi --build-plugin "plugins/python python34" && \
+    cp python27_plugin.so /etc/uwsgi/plugins/ && \
+    cp python34_plugin.so /etc/uwsgi/plugins/ && \
+    UWSGI_PROFILE=nolang python setup.py install
+
 
 # this should correspond to the opendcre/southbound-api dir
 ADD . /opendcre
@@ -25,6 +44,10 @@ WORKDIR /opendcre
 
 # run command for nginx configuration
 RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
+    ln -s /opendcre/opendcre_uwsgi.ini /etc/uwsgi/vassals/opendcre_uwsgi.ini && \
+    ln -s /opendcre/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
+    ln -s /opendcre/emperor.ini /etc/uwsgi/emperor.ini && \
+    chown -R www-data:www-data /etc/uwsgi && \
     rm -f /etc/logrotate.d/nginx && \
     cp /opendcre/configs/nginx.logrotate /etc/logrotate.d/nginx && \
     ln -sf /proc/1/fd/1 /logs/err
@@ -33,8 +56,8 @@ RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
 # can be successfully be imported
 ENV PYTHONPATH="/opendcre/opendcre_southbound:${PYTHONPATH}"
 
-# Expose our API endpoint port.
-EXPOSE 5000
+# Expose our API endpoints port.
+EXPOSE 5000 5001
 
 # Define default command
 CMD ["./start_opendcre.sh"]

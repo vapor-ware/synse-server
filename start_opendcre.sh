@@ -44,12 +44,12 @@ then
 	        #   DEVICEBUS_RPI_HAT_V1 = 0x00
             #   DEVICEBUS_VEC_V1 = 0x10
             #   DEVICEBUS_EMULATOR_V1 = 0x20
-    		uwsgi /opendcre/opendcre_uwsgi.ini --plugin python --pyargv "$1 $2" 2>&1
+    		uwsgi --emperor /etc/uwsgi/emperor.ini --plugin python --pyargv "$1 $2" 2>&1
     	else
-    		uwsgi /opendcre/opendcre_uwsgi.ini --plugin python --pyargv $1 2>&1
+    		uwsgi --emperor /etc/uwsgi/emperor.ini --plugin python --pyargv $1 2>&1
     	fi
 	else
-		uwsgi /opendcre/opendcre_uwsgi.ini --plugin python 2>&1
+		uwsgi --emperor /etc/uwsgi/emperor.ini --plugin python 2>&1
 	fi
 else
 	if [ ! -z ${1} ]; then
@@ -59,11 +59,11 @@ else
 	        #   DEVICEBUS_RPI_HAT_V1 = 0x00
             #   DEVICEBUS_VEC_V1 = 0x10
             #   DEVICEBUS_EMULATOR_V1 = 0x20
-    		uwsgi /opendcre/opendcre_uwsgi.ini --pyargv "$1 $2" 2>&1
+    		uwsgi --emperor /etc/uwsgi/emperor.ini --pyargv "$1 $2" 2>&1
     	else
-    		uwsgi /opendcre/opendcre_uwsgi.ini --pyargv $1 2>&1
+    		uwsgi --emperor /etc/uwsgi/emperor.ini --pyargv $1 2>&1
     	fi
 	else
-		uwsgi /opendcre/opendcre_uwsgi.ini 2>&1
+		uwsgi --emperor /etc/uwsgi/emperor.ini 2>&1
 	fi
 fi
