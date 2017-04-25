@@ -7,8 +7,7 @@
     \\//
      \/apor IO
 """
-from flask import Flask
-from flask import jsonify
+from flask import Flask, jsonify
 from flask_graphql import GraphQLView
 
 import graphql_frontend.config
