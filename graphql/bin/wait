@@ -1,0 +1,5 @@
+#!/bin/sh
+
+while ! nc -z synse-server 5000; do
+  sleep 1
+done

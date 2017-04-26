@@ -29,7 +29,7 @@ class BaseSchemaTest(testtools.TestCase):
         if graphql_frontend.config.options is None:
             graphql_frontend.config.parse_args([
                 '--backend',
-                'localhost:5000'
+                'synse-server:5000'
             ])
         self.schema = graphql_frontend.schema.create()
 

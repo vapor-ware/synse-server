@@ -10,4 +10,4 @@ RUN apk add --update alpine-sdk python3-dev && \
   pip install -r /graphql_frontend/requirements.txt
 
 WORKDIR /graphql_frontend
-CMD /bin/sh
+CMD /bin/sh -c "while true; do sleep 100; done"

@@ -1,10 +1,64 @@
 version: "2"
 services:
+  synse-server:
+    container_name: synse-server-dev
+    image: vaporio/opendcre-core-x64
+    ports:
+      - 5000:5000
+    volumes:
+      - ../config/bmc.json:/opendcre/bmc_config.json
+      - ../config/ipmi.json:/opendcre/override/config.json
+    links:
+      - ipmi-emulator:ipmi-emulator-1-1
+      - ipmi-emulator:ipmi-emulator-1-2
+      - ipmi-emulator:ipmi-emulator-1-3
+      - ipmi-emulator:ipmi-emulator-1-4
+      - ipmi-emulator:ipmi-emulator-1-5
+      - ipmi-emulator:ipmi-emulator-1-6
+      - ipmi-emulator:ipmi-emulator-2-1
+      - ipmi-emulator:ipmi-emulator-2-2
+      - ipmi-emulator:ipmi-emulator-2-3
+      - ipmi-emulator:ipmi-emulator-2-4
+      - ipmi-emulator:ipmi-emulator-2-5
+      - ipmi-emulator:ipmi-emulator-2-6
+      - ipmi-emulator:ipmi-emulator-3-1
+      - ipmi-emulator:ipmi-emulator-3-2
+      - ipmi-emulator:ipmi-emulator-3-3
+      - ipmi-emulator:ipmi-emulator-3-4
+      - ipmi-emulator:ipmi-emulator-3-5
+      - ipmi-emulator:ipmi-emulator-3-6
+      - ipmi-emulator:ipmi-emulator-4-1
+      - ipmi-emulator:ipmi-emulator-4-2
+      - ipmi-emulator:ipmi-emulator-4-3
+      - ipmi-emulator:ipmi-emulator-4-4
+      - ipmi-emulator:ipmi-emulator-4-5
+      - ipmi-emulator:ipmi-emulator-4-6
+      - ipmi-emulator:ipmi-emulator-5-1
+      - ipmi-emulator:ipmi-emulator-5-2
+      - ipmi-emulator:ipmi-emulator-5-3
+      - ipmi-emulator:ipmi-emulator-5-4
+      - ipmi-emulator:ipmi-emulator-5-5
+      - ipmi-emulator:ipmi-emulator-5-6
+      - ipmi-emulator:ipmi-emulator-6-1
+      - ipmi-emulator:ipmi-emulator-6-2
+      - ipmi-emulator:ipmi-emulator-6-3
+      - ipmi-emulator:ipmi-emulator-6-4
+      - ipmi-emulator:ipmi-emulator-6-5
+      - ipmi-emulator:ipmi-emulator-6-6
+
+  ipmi-emulator:
+    container_name: synse-server-ipmi-emulator
+    image: vaporio/ipmi-emulator-x64
+    ports:
+      - 623:623/udp
+
   test:
-    image: vaporio/synse_graphql_test
+    container_name: synse-graphql-test
+    image: vaporio/synse-graphql-test
     build:
       context: ..
       dockerfile: dockerfile/test.dockerfile
     volumes:
-      - .:/graphql_frontend
-    network_mode: host
+      - ..:/graphql_frontend
+    links:
+      - synse-server

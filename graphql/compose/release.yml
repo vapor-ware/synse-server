@@ -1,6 +1,7 @@
 version: "2"
 services:
   release:
+    container_name: synse_graphql
     image: vaporio/synse_graphql
     build:
       context: ..

@@ -7,22 +7,31 @@
 #  Date:   24 Feb 2017
 # ------------------------------------------------------------------------
 
+define clean
+	docker-compose -f compose/test.yml down --remove-orphans
+	docker-compose -f compose/release.yml down --remove-orphans
+endef
+
 build-test:
 	docker-compose -f compose/test.yml build
 
 build-release:
 	docker-compose -f compose/release.yml build
 
-dev: build-test
-	docker-compose -f compose/test.yml run --rm test /bin/sh
+test-service:
+	docker-compose -f compose/test.yml up -d
 
-test: build-test
-	docker-compose -f compose/test.yml run --rm test tox
+dev test: %: build-test test-service real-%
+	$(call clean)
+
+real-dev:
+	-docker exec -it synse-graphql-test /bin/sh
+
+real-test:
+	-docker exec -it synse-graphql-test /bin/sh -c "bin/wait && tox"
 
 clean:
-	docker-compose -f compose/test.yml down --remove-orphans
-	docker-compose -f compose/release.yml down --remove-orphans
-	docker-compose -f compose/emulator.yml down --remove-orphans
+	$(call clean)
 
 run: build-release
 	docker-compose -f compose/release.yml up
