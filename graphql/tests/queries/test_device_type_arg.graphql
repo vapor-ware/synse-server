@@ -1,0 +1,9 @@
+{
+  racks(id:"rack_1") {
+    boards {
+      devices(device_type:"system") {
+        device_type
+      }
+    }
+  }
+}

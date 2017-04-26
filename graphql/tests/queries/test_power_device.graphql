@@ -1,0 +1,14 @@
+{
+  racks(id:"rack_1") {
+    boards {
+      devices(device_type:"power") {
+        ... on PowerDevice {
+          input_power
+          over_current
+          power_ok
+          power_status
+        }
+      }
+    }
+  }
+}

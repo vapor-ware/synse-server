@@ -1,0 +1,7 @@
+{
+  racks(id:"rack_6") {
+    boards(id:"40000021") {
+      id
+    }
+  }
+}

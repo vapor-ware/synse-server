@@ -1,0 +1,41 @@
+# JetBrains (PyCharm, WebStorm, etc.)
+.idea
+*.iws
+.idea_modules
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# OSX
+.DS_Store
+._*
+.TemporaryItems
+.Trashes
+
+# Vagrant
+.vagrant
+
+# Git
+.git
+.gitignore
+
+# Python
+*.py[cod]
+__pycache__
+
+# Logs
+*.log
+
+# Docker
+Dockerfile.*
+
+# Markdown
+*.md
+
+# ignore ldap server
+ldap
+
+# ignore node_modules folder
+node_modules
