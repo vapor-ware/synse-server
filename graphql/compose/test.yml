@@ -1,0 +1,10 @@
+version: "2"
+services:
+  test:
+    image: vaporio/synse_graphql_test
+    build:
+      context: ..
+      dockerfile: dockerfile/test.dockerfile
+    volumes:
+      - .:/graphql_frontend
+    network_mode: host
