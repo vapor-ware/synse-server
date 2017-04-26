@@ -4,7 +4,7 @@ services:
     container_name: synse-server-dev
     image: vaporio/opendcre-core-x64
     ports:
-      - 5000:5000
+      - 5000
     volumes:
       - ../config/bmc.json:/opendcre/bmc_config.json
       - ../config/ipmi.json:/opendcre/override/config.json
@@ -50,7 +50,7 @@ services:
     container_name: synse-server-ipmi-emulator
     image: vaporio/ipmi-emulator-x64
     ports:
-      - 623:623/udp
+      - 623
 
   test:
     container_name: synse-graphql-test
