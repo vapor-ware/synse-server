@@ -56,8 +56,8 @@ RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
 # can be successfully be imported
 ENV PYTHONPATH="/opendcre/opendcre_southbound:${PYTHONPATH}"
 
-# Expose our API endpoints port.
-EXPOSE 5000 5001
+# Expose our API endpoint port.
+EXPOSE 5000
 
 # Define default command
 CMD ["./start_opendcre.sh"]
