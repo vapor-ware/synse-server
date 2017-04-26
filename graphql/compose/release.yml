@@ -1,0 +1,9 @@
+version: "2"
+services:
+  release:
+    image: vaporio/synse_graphql
+    build:
+      context: ..
+      dockerfile: dockerfile/release.dockerfile
+    ports:
+      - "5001:5001"

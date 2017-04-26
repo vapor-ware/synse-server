@@ -7,25 +7,25 @@
 #  Date:   24 Feb 2017
 # ------------------------------------------------------------------------
 
-image := vaporio/graphql-frontend-x64
+build-test:
+	docker-compose -f compose/test.yml build
 
-build:
-	docker-compose -f docker-compose.yml build
+build-release:
+	docker-compose -f compose/release.yml build
 
-# get date for tagging on push
-date := $(shell /bin/date "+%m%d%y-%H%M")
+dev: build-test
+	docker-compose -f compose/test.yml run --rm test /bin/sh
 
-dev:
-	docker-compose -f docker-compose.yml run --rm test /bin/sh
-
-test:
-	docker-compose -f docker-compose.yml run --rm test tox
+test: build-test
+	docker-compose -f compose/test.yml run --rm test tox
 
 clean:
-	docker-compose -f docker-compose.yml down
+	docker-compose -f compose/test.yml down --remove-orphans
+	docker-compose -f compose/release.yml down --remove-orphans
+	docker-compose -f compose/emulator.yml down --remove-orphans
 
-run:
-	docker-compose -f docker-compose.yml run --service-ports --rm graphql_frontend
+run: build-release
+	docker-compose -f compose/release.yml up
 
 # meant to be run from within the docker container
 one:
