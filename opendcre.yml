@@ -4,6 +4,5 @@ opendcre:
   dockerfile: ./dockerfile/Dockerfile.x64
   ports:
     - 5000:5000
-    - 5001:5001
   environment:
     - VAPOR_DEBUG=true
