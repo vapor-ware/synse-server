@@ -50,7 +50,7 @@ services:
     container_name: synse-server-ipmi-emulator
     image: vaporio/ipmi-emulator-x64
     ports:
-      - 623:623/udp
+      - 623
 
   test:
     container_name: synse-graphql-test
