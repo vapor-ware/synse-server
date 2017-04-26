@@ -1,8 +1,0 @@
-opendcre:
-  container_name: opendcre
-  build: .
-  dockerfile: ./dockerfile/Dockerfile.x64
-  ports:
-    - 5000:5000
-  environment:
-    - VAPOR_DEBUG=true
