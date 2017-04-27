@@ -49,5 +49,5 @@ services:
   ipmi-emulator:
     container_name: synse-server-ipmi-emulator
     image: vaporio/ipmi-emulator-x64
-    ports:
-      - 623
+    expose:
+      - 623/udp
