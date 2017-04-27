@@ -8,6 +8,19 @@
 #  Date:   01 Sept 2016
 # ------------------------------------------------------------------------
 
+PKG_VER := $(shell opendcre_southbound/version.py)
+GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
+
+FPM_OPTS := -s dir -n synse-server -v $(PKG_VER) \
+	--architecture native \
+	--url "https://github.com/vapor-ware/synse-server" \
+	--license GPL2 \
+	--description "IoT sensor management and telemetry system" \
+	--maintainer "Thomas Rampelberg <thomasr@vapor.io>" \
+	--vendor "Vapor IO" \
+	--config-files lib/systemd/system/synse-server.service \
+	--after-install synse-server.systemd.postinst
+
 run: build
 	docker-compose -f compose/emulator.yml up -d
 
@@ -15,17 +28,55 @@ down:
 	docker-compose -f compose/emulator.yml -f compose/release.yml down --remove-orphans
 
 # -----------------------------------------------
-# x64
+# Build
 # -----------------------------------------------
 
-VERSION=$(shell opendcre_southbound/version.py)
-GIT_VERSION=$(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
+# FPM is used to generate the actual packages.
+# FIXME: The version is hardcoded right now, should be dynamic.
+build-fpm:
+	docker build -f dockerfile/fpm.dockerfile \
+		-t vaporio/fpm:latest \
+		-t vaporio/fpm:1.8.1 .
+
+# hub is used to create the release in github and upload it.
+# FIXME: The version is hardcoded right now, should be dynamic.
+build-hub:
+	docker build -f dockerfile/hub.dockerfile \
+		-t vaporio/hub:latest \
+		-t vaporio/hub:2.3.0-pre9 .
 
 build:
 	docker build -f dockerfile/Dockerfile.x64 \
 		-t vaporio/synse-server:latest \
-		-t vaporio/synse-server:$(VERSION) \
-		-t vaporio/synse-server:$(GIT_VERSION) .
+		-t vaporio/synse-server:$(PKG_VER) \
+		-t vaporio/synse-server:$(GIT_VER) .
+
+# -----------------------------------------------
+# Packages
+# -----------------------------------------------
+
+ubuntu1604:
+	docker run -it -v $(PWD)/packages:/data vaporio/fpm \
+	-t deb \
+	--iteration ubuntu1604 \
+	$(FPM_OPTS) .
+
+deb: ubuntu1604
+
+el7:
+	docker run -it -v $(PWD)/packages:/data vaporio/fpm \
+	-t rpm \
+	--iteration el7 \
+	$(FPM_OPTS) .
+
+rpm: el7
+
+release: deb rpm
+	docker run -it -v $(PWD):/data vaporio/hub \
+		release create -d \
+		-a packages/synse-server-$(PKG_VER)*rpm \
+		-a packages/synse-server_$(PKG_VER)*deb \
+		-m "v$(PKG_VER)" v$(PKG_VER)
 
 # -----------------------------------------------
 # Docker Cleanup
@@ -54,6 +105,10 @@ clean-date-tags:
 clean-latest-old:
 	@if [ -z "$(LATEST_OLD)" ]; then echo "No latest-old images tagged."; else docker rmi -f $(LATEST_OLD); fi;
 
+clean-build-artifacts:
+	-rm -f packages/*.deb
+	-rm -f packages/*.rpm
+
 stop-containers:
 	@if [ -z  "$(RUNNING_CONTAINER_IDS)" ]; then echo "No running containers to stop."; else docker stop $(RUNNING_CONTAINER_IDS); fi;
 
@@ -81,4 +136,4 @@ clean-volatile: stop-containers delete-containers delete-dangling
 
 delete-all: stop-containers delete-containers delete-images
 
-clean: delete-all
+clean: clean-build-artifacts delete-all
