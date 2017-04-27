@@ -8,20 +8,24 @@
 #  Date:   01 Sept 2016
 # ------------------------------------------------------------------------
 
-build-endpoint:
-	docker-compose -f opendcre.yml build
+run: build
+	docker-compose -f compose/emulator.yml up -d
 
-run-endpoint: build-endpoint
-	docker-compose -f opendcre.yml up -d opendcre
-
+down:
+	docker-compose -f compose/emulator.yml -f compose/release.yml down --remove-orphans
 
 # -----------------------------------------------
 # x64
 # -----------------------------------------------
 
-x64:
-	docker build -f dockerfile/Dockerfile.x64 -t vaporio/opendcre-x64:1.3 .
+VERSION=$(shell opendcre_southbound/version.py)
+GIT_VERSION=$(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
+build:
+	docker build -f dockerfile/Dockerfile.x64 \
+		-t vaporio/synse-server:latest \
+		-t vaporio/synse-server:$(VERSION) \
+		-t vaporio/synse-server:$(GIT_VERSION) .
 
 # -----------------------------------------------
 # Docker Cleanup
