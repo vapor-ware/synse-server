@@ -16,7 +16,6 @@ from flask import Flask, jsonify
 from flask_graphql import GraphQLView
 
 import graphql_frontend.config
-import graphql_frontend.prometheus
 import graphql_frontend.schema
 import graphql_frontend.version
 
@@ -51,14 +50,8 @@ app.add_url_rule(
         graphiql=True)
 )
 
-app.add_url_rule(
-    PREFIX + '/graphql/metrics',
-    view_func=graphql_frontend.prometheus.metrics
-)
-
 
 def main():
-    graphql_frontend.prometheus.refresh()
     app.run(host='0.0.0.0', port=graphql_frontend.config.options.get('port'))
 
 
