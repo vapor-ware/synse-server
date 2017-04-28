@@ -2,3 +2,7 @@
 .vagrant
 .idea
 .DS_Store
+
+# packages
+*.rpm
+*.deb
