@@ -27,7 +27,6 @@ EXPECTED_VAPOR_HTTP_ERROR = 'Should have raised VaporHTTPError.'
 NO_VERIFICATION_FOR_BOARD = 'No verification method for board_id {}'
 RACK_1 = 'rack_1'
 RACK_2 = 'rack_2'
-SNMP_EMULATOR_RITTAL_RIZONE = 'snmp-emulator-rittal-rizone'
 SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1 = 'snmp-emulator-opendcre-testdevice1-board1'
 SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2 = 'snmp-emulator-opendcre-testdevice1-board2'
 
@@ -35,13 +34,13 @@ SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2 = 'snmp-emulator-opendcre-testdevice1-
 
 
 class SnmpDeviceKillsForceScanTestCase(OpenDcreHttpTest):
-    """This test brings up three SNMP emulators. One for RiZone, Two for
-    TestDevice1. The goal here is to allow the OpenDCRE container to initialize
-    successfully with all three emulators running. Before these tests start we
-    docker kill the RiZone emulator and one of the TestDevice1 emulators. The
-    goal here is to find out what happens when SNMP servers fall over after
-    OpenDCRE initialization and a forced scan is done to account for missing
-    boards."""
+    """ This test brings up two SNMP emulators for TestDevice1. The goal here
+    is to allow the OpenDCRE container to initialize successfully with emulators
+    running. Before these tests start we docker kill one of the TestDevice1
+    emulators. The goal here is to find out what happens when SNMP servers fall
+    over after OpenDCRE initialization and a forced scan is done to account for
+    missing boards.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -57,7 +56,7 @@ class SnmpDeviceKillsForceScanTestCase(OpenDcreHttpTest):
                 assert False, 'Unable to ping container {}'.format(container)
 
         logger.debug('We expect these emulators to be down.')
-        dead = [SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, SNMP_EMULATOR_RITTAL_RIZONE]
+        dead = [SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1]
         for container in dead:
             rc = Pinger.ping(container)
             if rc == 0:
@@ -396,7 +395,7 @@ class SnmpDeviceKillsForceScanTestCase(OpenDcreHttpTest):
 
     # region Read2
 
-    def test_bad_data_according_to_rizone(self):
+    def test_bad_data_according_device(self):
         """Test bad data quality. Note: We don't support pressure readings yet,
         but we should check the data validity first. Sad case. Emulator is not running."""
         try:

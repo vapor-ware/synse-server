@@ -71,7 +71,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
         Snmp wrapper taking a string oid.
         :param community_string: The SNMP community string to use. Here public is read-only and private is
         read/write.
-        :param oid: A string oid such as 1.3.6.1.4.1.2606.6.5.1.2.1.10.3.
+        :param oid: A string oid such as 1.3.6.1.4.1.61439.6.5.1.2.1.10.3.
         :return: The single row result.
         """
         cmd_generator = cmdgen.CommandGenerator()
@@ -118,7 +118,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
 
     def snmp_set(self, community_string, data):
         """
-        SNMP set wrapper taking a community string and a string oid such as '1.3.6.1.4.1.2606.6.5.1.2.1.10.3'
+        SNMP set wrapper taking a community string and a string oid such as '1.3.6.1.4.1.61439.6.5.1.2.1.10.3'
         :param community_string: The SNMP community string to use. Here public is read-only and private is
         read/write.
         :param data: A tuple of OID and the data to set at the OID.
@@ -253,7 +253,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
         """Test get and set on a writable string OID. Happy case."""
         logger.debug('Start Test: test_get_set_string')
 
-        test_oid = '1.3.6.1.4.1.2606.6.5.1.2.1.10.25'
+        test_oid = '1.3.6.1.4.1.61439.6.5.1.2.1.10.25'
         result = self.snmp_get(COMMUNITY_STRING_READ_WRITE, test_oid)
 
         initial_value = result[1]
@@ -340,7 +340,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
         """Test get and set on a writable OID with Integer data. Happy case."""
         logger.debug('Start Test: test_get_set_integer')
 
-        test_oid = '1.3.6.1.4.1.2606.6.5.1.2.1.11.8'
+        test_oid = '1.3.6.1.4.1.61439.6.5.1.2.1.11.8'
         result = self.snmp_get(COMMUNITY_STRING_READ_WRITE, test_oid)
 
         initial_value = result[1]
@@ -396,7 +396,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
 
     def test_get_set_read_only(self):
         """Test get and set on an OID that we can read but not write due to read only community string."""
-        test_oid = '1.3.6.1.4.1.2606.6.5.1.2.1.10.3'
+        test_oid = '1.3.6.1.4.1.61439.6.5.1.2.1.10.3'
 
         result = self.snmp_get(COMMUNITY_STRING_READ_ONLY, test_oid)
 
@@ -407,7 +407,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
         self.assertEquals('whisky au juge blond qui', str(initial_value))
 
         logger.debug('set:')
-        set_param = (ObjectName('1.3.6.1.4.1.2606.6.5.1.2.1.10.3'), OctetString('whisky au juge blond qui'))
+        set_param = (ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.10.3'), OctetString('whisky au juge blond qui'))
 
         try:
             self.snmp_set(COMMUNITY_STRING_READ_ONLY, set_param)
@@ -444,7 +444,7 @@ class SnmpEmulatorTestCase(unittest.TestCase):
         """Test setting an integer when SNMP expects a string."""
         logger.debug('Start Test: test_send_incompatible_type')
 
-        test_oid = '1.3.6.1.4.1.2606.6.5.1.2.1.10.25'
+        test_oid = '1.3.6.1.4.1.61439.6.5.1.2.1.10.25'
         result = self.snmp_get(COMMUNITY_STRING_READ_WRITE, test_oid)
 
         initial_value = result[1]

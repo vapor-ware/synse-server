@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class LedTable(SnmpTable):
-    """SNMP table specific to Rittal RiZone variable table."""
+    """SNMP table specific to the test variable table."""
 
     def __init__(self, **kwargs):
 

@@ -11,7 +11,7 @@ from ......devicebus.devices.snmp.snmp_table import SnmpTable
 class EntityGroupsTable(SnmpTable):
     """SNMP table specific to the Entity MIB. This is just OIDs under
     1.3.6.1.2.1.47.3.2, but it's simplest to treat everything as a table.
-    We do not have data from Rittal for these OIDs so this is currently
+    We do not have real data  for these OIDs so this is currently
     untested."""
 
     def __init__(self, **kwargs):

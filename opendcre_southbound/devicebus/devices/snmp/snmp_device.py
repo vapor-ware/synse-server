@@ -62,8 +62,8 @@ class SnmpDevice(LANDevice):
             self.server_type, app_cfg=app_cfg, kwargs=kwargs)
 
     def __str__(self):
-        return '<SnmpDevice (server: {})>'.format(
-            self.snmp_client.snmp_server)
+        return '<SnmpDevice (server: {}, board: {})>'.format(
+            self.snmp_client.snmp_server, self.snmp_server.board_id)
 
     def __repr__(self):
         return self.__str__()

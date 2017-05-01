@@ -22,8 +22,8 @@ class SnmpRow(object):
         # This is different than the parent table.
         # For a table row this is an oid to walk to retrieve all columns.
         # For a single row this is the oid to get to retrieve the single column.
-        # Example: 1.3.6.1.4.1.2606.6.4.2.2.1.{}.<table_row_index>
-        #          1.3.6.1.4.1.2606.6.4.2.2.1.{}.4
+        # Example: 1.3.6.1.4.1.61439.6.4.2.2.1.{}.<table_row_index>
+        #          1.3.6.1.4.1.61439.6.4.2.2.1.{}.4
         # The one based column index will go into the {}
         self.base_oid = ArgumentChecker.check_instance(basestring, kwargs['base_oid'])
 

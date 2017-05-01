@@ -9,8 +9,8 @@ from ......devicebus.devices.snmp.snmp_table import SnmpTable
 
 
 class EntitySensorGroupsTable(SnmpTable):
-    """SNMP table specific to the Entity Sensor MIB. We have no data from
-    Rittal on these OIDs, so this is untested."""
+    """SNMP table specific to the Entity Sensor MIB. We have no real data
+    on these OIDs, so this is untested."""
 
     def __init__(self, **kwargs):
 

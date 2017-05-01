@@ -137,46 +137,6 @@ test-i2c-devices-x64:
 test-snmp-emulator-x64:
 	$(call run_test,test_snmp_emulator)
 
-test-snmp-device-registration-x64: delete-vapor-containers
-	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
-	docker-compose -f ./_composefiles/x64/test_snmp_device_registration.yml build
-	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_device_registration.yml)
-	docker-compose -f ./_composefiles/x64/test_snmp_device_registration.yml stop
-
-test-snmp-device-kills-x64: delete-vapor-containers
-	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
-	docker-compose -f ./_composefiles/x64/test_snmp_device_kills.yml build
-
-	# Kill RiZone container and One TestDevice1 container (board1).
-	# Here we are just sleeping and killing in the background. If we want to we can
-	# hit the test endpoint on OpenDCRE to make sure it's fully up, but the main thing
-	# is that device registration goes through before the kill.
-	( sleep 25 ; docker kill snmp-emulator-rittal-rizone) &
-	( sleep 25 ; docker kill snmp-emulator-opendcre-testdevice1-board1) &
-
-	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_device_kills.yml)
-	docker-compose -f ./_composefiles/x64/test_snmp_device_kills.yml stop
-
-test-snmp-device-kills-force-scan-x64: delete-vapor-containers
-	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
-	docker-compose -f ./_composefiles/x64/test_snmp_device_kills.yml build
-
-	# Kill RiZone container and One TestDevice1 container (board1).
-	# Here we are just sleeping and killing in the background. If we want to we can
-	# hit the test endpoint on OpenDCRE to make sure it's fully up, but the main thing
-	# is that device registration goes through before the kill.
-	( sleep 25 ; docker kill snmp-emulator-rittal-rizone) &
-	( sleep 25 ; docker kill snmp-emulator-opendcre-testdevice1-board1) &
-
-	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_device_kills_force_scan.yml)
-	docker-compose -f ./_composefiles/x64/test_snmp_device_kills_force_scan.yml stop
-
-test-snmp-rittal-initial-x64: delete-vapor-containers
-	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
-	docker-compose -f ./_composefiles/x64/test_snmp_rittal_initial.yml build
-	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_rittal_initial.yml)
-	docker-compose -f ./_composefiles/x64/test_snmp_rittal_initial.yml stop
-
 # REDFISH
 # ....................
 
@@ -234,11 +194,7 @@ test-x64-i2c: \
 	test-i2c-devices-x64
 
 test-x64-snmp: \
-	test-snmp-emulator-x64 \
-	test-snmp-device-registration-x64 \
-	test-snmp-device-kills-x64 \
-	test-snmp-device-kills-force-scan-x64 \
-	test-snmp-rittal-initial-x64
+	test-snmp-emulator-x64
 
 test-x64-redfish: \
     test-redfish-endpoints-x64 \
