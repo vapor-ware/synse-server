@@ -1,0 +1,67 @@
+# This is the container running the tests.
+# Link to the opendcre web service, not the SNMP emulator.
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: dockerfile/Dockerfile.x64
+  command: bash -c "sleep 15 && python ./opendcre_southbound/tests/test-snmp-rittal-initial.py"
+  links:
+    - opendcre-southbound-test-container
+
+# This container is where opendcre is running.
+# Allows us to make web service calls against it.
+opendcre-southbound-test-container:
+  build: ../../../..
+  dockerfile: dockerfile/Dockerfile.x64
+  command: ./start_opendcre.sh
+  ports:
+    - 5000:5000
+  volumes:
+    - ../../data/opendcre_snmp_config.json:/opendcre/override/config.json
+    - ../../data/snmp_config/merged/test_snmp_rittal_initial/snmp_config.json:/opendcre/snmp_config.json
+  environment:
+    - VAPOR_DEBUG=true
+  links:
+    - snmp-emulator-rittal-cmc-iii-monitor
+    - snmp-emulator-rittal-cmc-iii-cooling
+    - snmp-emulator-rittal-ups
+
+
+# This is the container running the emulator to test against
+# for the Rittal-CMC-III-Monitor snmp emulator.
+snmp-emulator-rittal-cmc-iii-monitor:
+  container_name: snmp-emulator-rittal-cmc-iii-monitor
+  build: ../../../emulator/snmp
+  dockerfile: Dockerfile-rittal-cmc-iii-monitor.x64
+  # This command will override what is in the dockerfile.
+  command: ./start_snmp_emulator.sh ./data 11011 snmp-emulator-rittal-cmc-iii-monitor.log
+  ports:
+    - 11011:11011/udp
+  environment:
+    - VAPOR_DEBUG=true
+
+# This is the container running the emulator to test against
+# for the Rittal-CMC-III-Cooling snmp emulator.
+snmp-emulator-rittal-cmc-iii-cooling:
+  container_name: snmp-emulator-rittal-cmc-iii-cooling
+  build: ../../../emulator/snmp
+  dockerfile: Dockerfile-rittal-cmc-iii-cooling.x64
+  # This command will override what is in the dockerfile.
+  command: ./start_snmp_emulator.sh ./data 11012 snmp-emulator-rittal-cmc-iii-cooling.log
+  ports:
+    - 11012:11012/udp
+  environment:
+    - VAPOR_DEBUG=true
+
+# This is the container running the emulator to test against
+# for the Rittal-UPS snmp emulator.
+snmp-emulator-rittal-ups:
+  container_name: snmp-emulator-rittal-ups
+  build: ../../../emulator/snmp
+  dockerfile: Dockerfile-rittal-ups.x64
+  # This command will override what is in the dockerfile.
+  command: ./start_snmp_emulator.sh ./data 11013 snmp-emulator-rittal-ups.log
+  ports:
+    - 11013:11013/udp
+  environment:
+    - VAPOR_DEBUG=true

@@ -31,7 +31,7 @@ import json
 import logging
 import sys
 
-import opendcre_southbound.vapor_common.vapor_logging as vapor_logging
+import vapor_common.vapor_logging as vapor_logging
 from opendcre_southbound.definitions import SCAN_ALL_BIT, SAVE_BIT, SHUFFLE_BIT
 from opendcre_southbound.utils import *
 from opendcre_southbound.devicebus.devices.plc.plc_bus import *

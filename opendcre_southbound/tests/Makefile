@@ -8,33 +8,56 @@
 #  Date:   01 Nov 2016
 # ------------------------------------------------------------------------
 
+# Include common functionality to fail make on test failure.
+include ../../../vapor_common/make_test_common
 
-SHELL := /bin/bash
+# Include common functionality for docker cleanup.
+include ../../../vapor_common/make_docker_common
 
-# -----------------------------------------------
-#  Variables / functions.
-# -----------------------------------------------
+# Include top level Makefile to get the package information.
+#include ../../Makefile
 
-# This gets the exit code for a docker container named test-container-x64
-# that has exited. No evaluation is done, it just hands out the exit code.
-TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
-						 awk '{print $1}' | \
-						 xargs docker inspect --format='{{ .State.ExitCode }}')
+# Include top level Makefile to get the package information.
+# Test if the package file exists.
+# If not, move up to the repo root and build it.
+# Copy to the tests directory where docker will add it.
+# $1 is the PACKAGE_NAME, example vapor_common
+# $2 is the PACKAGE_SDIST_FILE from the top level Makefile, example vapor_common-1.0.tar.gz
+MAKE_PACKAGE=\
+    echo MAKE_PACKAGE $(1) $(2) ; \
+    if [ ! -f $(2) ] ; then \
+        echo building package $(1) ; \
+        cd ../../../ ; make build-package ; \
+        ./copy_files_for_testing.sh ; \
+    fi
 
-# This starts the test container with the yml file given at $(1), waits for the
-# test container to exit, then gets the container exit code and exits make if
-# the exit code is non-zero.
-START_TEST_CONTAINER =                                                 \
-	docker-compose -f $(1) up --build test-container-x64 ;             \
-	if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ] ;                \
-		then exit $(value TEST_CONTAINER_EXIT_CODE) ;                  \
-	fi
+# convenience method for running trusted tests. here, certs will be
+# mounted into the correct directory, where they will be picked up
+# by the container.
+define run_trusted
+	make delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
+	export CERT_PATH="/etc/vapor/cert" ; \
+	$(call START_TEST_CONTAINER,_composefiles/x64/$(1).yml) ; \
+	docker-compose -f _composefiles/x64/$(1).yml kill
+endef
 
+# convenience method for running untrusted tests. here, certs will
+# be mounted into a container directory such that they will not be
+# found by the container, thus it will run in "untrusted" mode.
+define run_untrusted
+	make delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
+	export CERT_PATH="/tmp" ; \
+	$(call START_TEST_CONTAINER,_composefiles/x64/$(1).yml) ; \
+	docker-compose -f _composefiles/x64/$(1).yml kill
+endef
 
 # convenience method for running general tests. these tests do not
 # require any sense of "trust"
 define run_test
-	make delete-containers
+	make delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
 	$(call START_TEST_CONTAINER,_composefiles/x64/$(1).yml)
 	docker-compose -f _composefiles/x64/$(1).yml kill
 endef
@@ -50,6 +73,9 @@ endef
 test-plc-endpoints-x64:
 	$(call run_test,test_plc_endpoints)
 
+test-plc-bad-scan-x64:
+	$(call run_test,test_plc_bad_scan)
+
 test-plc-scanall-x64:
 	$(call run_test,test_plc_scanall)
 
@@ -59,8 +85,8 @@ test-plc-endurance-x64:
 test-plc-emulator-x64:
 	$(call run_test,test_plc_emulator)
 
-test-plc-endpointless-x64:
-	$(call run_test,test_plc_endpointless)
+test-plc-devicebus-x64:
+	$(call run_test,test_plc_devicebus)
 
 
 # IPMI
@@ -85,6 +111,72 @@ test-ipmi-no-init-scan-x64:
 	$(call run_test,test_ipmi_no_init_scan)
 
 
+# RS485
+# ....................
+
+test-rs485-emulator-x64:
+	$(call run_test,test_rs485_emulator)
+
+test-rs485-endpoints-x64:
+	$(call run_test,test_rs485_endpoints)
+
+
+# I2C
+# ....................
+
+test-i2c-endpoints-x64:
+	$(call run_test,test_i2c_endpoints)
+
+test-i2c-devices-x64:
+	$(call run_test,test_i2c_devices)
+
+
+# SNMP
+# ....................
+
+test-snmp-emulator-x64:
+	$(call run_test,test_snmp_emulator)
+
+test-snmp-device-registration-x64: delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
+	docker-compose -f ./_composefiles/x64/test_snmp_device_registration.yml build
+	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_device_registration.yml)
+	docker-compose -f ./_composefiles/x64/test_snmp_device_registration.yml stop
+
+test-snmp-device-kills-x64: delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
+	docker-compose -f ./_composefiles/x64/test_snmp_device_kills.yml build
+
+	# Kill RiZone container and One TestDevice1 container (board1).
+	# Here we are just sleeping and killing in the background. If we want to we can
+	# hit the test endpoint on OpenDCRE to make sure it's fully up, but the main thing
+	# is that device registration goes through before the kill.
+	( sleep 25 ; docker kill snmp-emulator-rittal-rizone) &
+	( sleep 25 ; docker kill snmp-emulator-opendcre-testdevice1-board1) &
+
+	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_device_kills.yml)
+	docker-compose -f ./_composefiles/x64/test_snmp_device_kills.yml stop
+
+test-snmp-device-kills-force-scan-x64: delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
+	docker-compose -f ./_composefiles/x64/test_snmp_device_kills.yml build
+
+	# Kill RiZone container and One TestDevice1 container (board1).
+	# Here we are just sleeping and killing in the background. If we want to we can
+	# hit the test endpoint on OpenDCRE to make sure it's fully up, but the main thing
+	# is that device registration goes through before the kill.
+	( sleep 25 ; docker kill snmp-emulator-rittal-rizone) &
+	( sleep 25 ; docker kill snmp-emulator-opendcre-testdevice1-board1) &
+
+	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_device_kills_force_scan.yml)
+	docker-compose -f ./_composefiles/x64/test_snmp_device_kills_force_scan.yml stop
+
+test-snmp-rittal-initial-x64: delete-vapor-containers
+	$(call MAKE_PACKAGE,${PACKAGE_NAME},${PACKAGE_SDIST_FILE})
+	docker-compose -f ./_composefiles/x64/test_snmp_rittal_initial.yml build
+	$(call START_TEST_CONTAINER,./_composefiles/x64/test_snmp_rittal_initial.yml)
+	docker-compose -f ./_composefiles/x64/test_snmp_rittal_initial.yml stop
+
 # REDFISH
 # ....................
 
@@ -107,6 +199,12 @@ test-device-supported-commands-x64:
 test-endpoint-utils-x64:
 	$(call run_test,test_endpoint_utils)
 
+test-utils-x64:
+	$(call run_test,test_utils)
+
+test-location-x64:
+	$(call run_test,test_location)
+
 
 # SUITES
 # ....................
@@ -116,8 +214,8 @@ test-x64-plc: \
 	test-plc-scanall-x64 \
 	test-plc-endurance-x64 \
 	test-plc-emulator-x64 \
-	test-plc-endpointless-x64
-
+	test-plc-bad-scan-x64 \
+	test-plc-devicebus-x64
 
 test-x64-ipmi: \
 	test-ipmi-endpoints-x64 \
@@ -127,6 +225,20 @@ test-x64-ipmi: \
 	test-ipmi-scan-cache-registration-x64 \
 	test-ipmi-emulator-x64
 
+test-x64-rs485: \
+	test-rs485-endpoints-x64 \
+	test-rs485-emulator-x64
+
+test-x64-i2c: \
+	test-i2c-endpoints-x64 \
+	test-i2c-devices-x64
+
+test-x64-snmp: \
+	test-snmp-emulator-x64 \
+	test-snmp-device-registration-x64 \
+	test-snmp-device-kills-x64 \
+	test-snmp-device-kills-force-scan-x64 \
+	test-snmp-rittal-initial-x64
 
 test-x64-redfish: \
     test-redfish-endpoints-x64 \
@@ -135,75 +247,32 @@ test-x64-redfish: \
 
 
 test-x64-general: \
-    test-device-supported-commands-x64 \
-    test-endpoint-utils-x64
+	test-utils-x64 \
+	test-location-x64 \
+	test-device-supported-commands-x64 \
+	test-endpoint-utils-x64
 
 
 test-x64: \
 	test-x64-plc \
 	test-x64-ipmi \
+	test-x64-rs485 \
+	test-x64-i2c \
+	test-x64-snmp \
 	test-x64-redfish \
 	test-x64-general
 
+test: test-x64
 
-# -----------------------------------------------
-# Docker Cleanup
-#
-# NOTE:
-#   these recipes are primarily used in development. caution should
-#   be taken when using them, as they are NOT OpenDCRE-specific. they
-#   will affect ALL containers/images on the host.
-# -----------------------------------------------
-RUNNING_CONTAINER_IDS=$(shell docker ps -q)
-ALL_CONTAINER_IDS=$(shell docker ps -aq)
-DANGLING_IMAGES=$(shell docker images -a -q -f dangling=true)
+# Finish packaging before this is unified.
+# The test makefile is in different directories in every repo.
+# Some repos have more than one test makefile.
+# distutils also wants the tests in <repo_root>/tests and we don't
+# have that everywhere yet.
+delete-packages:
+	cd ../../../ ; ./clean_files.sh
 
-# untagged images will only have an image id. repository and name are <none>.
-ALL_UNTAGGED_IMAGES=$(shell docker images | grep "^<none>" | awk '{print $$3}')
-# tagged images will have a repository and tag. The image id may not be unique which causes errors on multiple deletes.
-ALL_TAGGED_IMAGES=$(shell docker images | grep -v REPOSITORY | grep -v "^<none>" | awk '{print $$1":"$$2}')
-
-TEST_IMAGES=$(shell docker images | awk '$$1 ~ /test/ { print $$3 }')
-LATEST_OLD=$(shell docker images | grep 'latest-old' | awk '{ print $$1":latest-old" }')
-DATE_TAG=$(shell docker images | grep '[0-9]\{6\}-[0-9]\{4\}' | awk '{ print $$1":"$$2 }' )
-
-clean-date-tags:
-	@if [ -z "$(DATE_TAG)" ]; then echo "No images found with date tags."; else docker rmi $(DATE_TAG); fi;
-
-clean-latest-old:
-	@if [ -z "$(LATEST_OLD)" ]; then echo "No latest-old images tagged."; else docker rmi -f $(LATEST_OLD); fi;
-
-stop-containers:
-	@if [ -z  "$(RUNNING_CONTAINER_IDS)" ]; then echo "No running containers to stop."; else docker stop $(RUNNING_CONTAINER_IDS); fi;
-
-delete-containers:
-	@if [ -z "$(ALL_CONTAINER_IDS)" ]; then echo "No containers to remove."; else docker rm $(ALL_CONTAINER_IDS); fi;
-
-delete-untagged-images:
-	@if [ -z "$(ALL_UNTAGGED_IMAGES)" ]; then echo "No untagged images to remove."; else docker rmi -f $(ALL_UNTAGGED_IMAGES); fi;
-
-delete-tagged-images:
-	@if [ -z "$(ALL_TAGGED_IMAGES)" ]; then echo "No tagged images to remove."; else docker rmi -f $(ALL_TAGGED_IMAGES); fi;
-
-delete-images: delete-untagged-images delete-tagged-images
-
-delete-test-images:
-	@if [ -z "$(TEST_IMAGES)" ]; then echo "No test images to remove"; else docker rmi -f $(TEST_IMAGES); fi;
-
-delete-dangling:
-	@if [ -z "$(DANGLING_IMAGES)" ]; then echo "No dangling images to remove."; else docker rmi -f $(DANGLING_IMAGES); fi;
-
-# This cleans up all containers by stopping and removing them.
-clean-hard:
-	@if [ -z "$(ALL_CONTAINER_IDS)" ]; then echo "No containers to stop and remove."; else docker rm -f $(ALL_CONTAINER_IDS); fi;
-
-# This stops running containers and deletes them. Deletes dangling (unreferenced) images.
-clean-volatile: stop-containers delete-containers delete-dangling
-
-# This will clean things up enough to re-test without downloading from docker-hub.
-clean-test: clean-hard clean-volatile
-
-delete-all: stop-containers delete-containers delete-images
-
-# Make clean cleans everything up and starts from the beginning,
-clean: delete-all
+# Cleanup before a test run.
+# For this makefile we only need to delete the packages since
+# make delete-vapor-containers is called first in run_test.
+clean-test: delete-packages

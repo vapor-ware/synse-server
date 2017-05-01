@@ -1,0 +1,19 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "snmp_devices": [
+        {
+          "connection": {
+            "snmp_server": "snmp-emulator-rittal-rizone",
+            "snmp_port": "11011",
+            "community_string_read": "public",
+            "community_string_write": "private",
+            "snmp_version": "v2c"
+          },
+          "server_type": "Rittal-RiZone"
+        }
+      ]
+    }
+  ]
+}

@@ -95,7 +95,7 @@ class ConfigManager(object):
                         override_config = json.load(f)
                     self.add_config(override_config)
 
-                else:
+                elif match_count > 1:
                     logger.warning(
                         'Found {} files for override config, but was expecting 1: {}'.format(match_count, matching)
                     )

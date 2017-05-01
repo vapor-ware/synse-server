@@ -1,0 +1,49 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "snmp_devices": [
+        {
+          "connection": {
+            "snmp_server": "snmp-emulator-rittal-cmc-iii-monitor",
+            "snmp_port": "11011",
+            "community_string_read": "public",
+            "community_string_write": "private",
+            "snmp_version": "v2c"
+          },
+          "server_type": "Rittal-CMC-III-Monitor"
+        }
+      ]
+    },
+    {
+      "rack_id": "rack_2",
+      "snmp_devices": [
+        {
+          "connection": {
+            "snmp_server": "snmp-emulator-rittal-cmc-iii-cooling",
+            "snmp_port": "11012",
+            "community_string_read": "public",
+            "community_string_write": "private",
+            "snmp_version": "v2c"
+          },
+          "server_type": "Rittal-CMC-III-Cooling"
+        }
+      ]
+    },
+    {
+      "rack_id": "rack_3",
+      "snmp_devices": [
+        {
+          "connection": {
+            "snmp_server": "snmp-emulator-rittal-ups",
+            "snmp_port": "11013",
+            "community_string_read": "public",
+            "community_string_write": "private",
+            "snmp_version": "v2c"
+          },
+          "server_type": "Rittal-UPS"
+        }
+      ]
+    }
+  ]
+}

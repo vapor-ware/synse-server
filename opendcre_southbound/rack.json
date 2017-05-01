@@ -2,7 +2,7 @@
   "boards": [
     {
       "board_id": "00000001",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -214,7 +214,7 @@
     },
     {
       "board_id": "00000002",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -426,7 +426,7 @@
     },
     {
       "board_id": "00000003",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -638,7 +638,7 @@
     },
     {
       "board_id": "00000004",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -850,7 +850,7 @@
     },
     {
       "board_id": "00000005",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -1062,7 +1062,7 @@
     },
     {
       "board_id": "00000006",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -1274,7 +1274,7 @@
     },
     {
       "board_id": "00000007",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -1486,7 +1486,7 @@
     },
     {
       "board_id": "00000008",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -1698,7 +1698,7 @@
     },
     {
       "board_id": "00000009",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -1910,7 +1910,7 @@
     },
     {
       "board_id": "0000000A",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -2122,7 +2122,7 @@
     },
     {
       "board_id": "0000000B",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -2334,7 +2334,7 @@
     },
     {
       "board_id": "0000000C",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -2546,7 +2546,7 @@
     },
     {
       "board_id": "0000000D",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -2758,7 +2758,7 @@
     },
     {
       "board_id": "0000000E",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -2970,7 +2970,7 @@
     },
     {
       "board_id": "0000000F",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -3182,7 +3182,7 @@
     },
     {
       "board_id": "00000010",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -3394,7 +3394,7 @@
     },
     {
       "board_id": "00000011",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -3606,7 +3606,7 @@
     },
     {
       "board_id": "00000012",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -3818,7 +3818,7 @@
     },
     {
       "board_id": "00000013",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -4030,7 +4030,7 @@
     },
     {
       "board_id": "00000014",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -4242,7 +4242,7 @@
     },
     {
       "board_id": "00000015",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -4454,7 +4454,7 @@
     },
     {
       "board_id": "00000016",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -4666,7 +4666,7 @@
     },
     {
       "board_id": "00000017",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -4878,7 +4878,7 @@
     },
     {
       "board_id": "00000018",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -5090,7 +5090,7 @@
     },
     {
       "board_id": "00000019",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -5302,7 +5302,7 @@
     },
     {
       "board_id": "0000001A",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -5514,7 +5514,7 @@
     },
     {
       "board_id": "0000001B",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -5726,7 +5726,7 @@
     },
     {
       "board_id": "0000001C",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -5938,7 +5938,7 @@
     },
     {
       "board_id": "0000001D",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -6150,7 +6150,7 @@
     },
     {
       "board_id": "0000001E",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -6362,7 +6362,7 @@
     },
     {
       "board_id": "0000001F",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -6574,7 +6574,7 @@
     },
     {
       "board_id": "00000020",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -6786,7 +6786,7 @@
     },
     {
       "board_id": "00000021",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -6998,7 +6998,7 @@
     },
     {
       "board_id": "00000022",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -7210,7 +7210,7 @@
     },
     {
       "board_id": "00000023",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -7422,7 +7422,7 @@
     },
     {
       "board_id": "00000024",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -7634,7 +7634,7 @@
     },
     {
       "board_id": "00000025",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -7846,7 +7846,7 @@
     },
     {
       "board_id": "00000026",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -8058,7 +8058,7 @@
     },
     {
       "board_id": "00000027",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -8270,7 +8270,7 @@
     },
     {
       "board_id": "00000028",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -8482,7 +8482,7 @@
     },
     {
       "board_id": "00000029",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -8694,7 +8694,7 @@
     },
     {
       "board_id": "0000002A",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -8906,7 +8906,7 @@
     },
     {
       "board_id": "0000002B",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -9118,7 +9118,7 @@
     },
     {
       "board_id": "0000002C",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -9330,7 +9330,7 @@
     },
     {
       "board_id": "0000002D",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -9542,7 +9542,7 @@
     },
     {
       "board_id": "0000002E",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -9754,7 +9754,7 @@
     },
     {
       "board_id": "0000002F",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -9966,7 +9966,7 @@
     },
     {
       "board_id": "00000030",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -10178,7 +10178,7 @@
     },
     {
       "board_id": "00000031",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -10390,7 +10390,7 @@
     },
     {
       "board_id": "00000032",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -10602,7 +10602,7 @@
     },
     {
       "board_id": "00000033",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -10814,7 +10814,7 @@
     },
     {
       "board_id": "00000034",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -11026,7 +11026,7 @@
     },
     {
       "board_id": "00000035",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -11238,7 +11238,7 @@
     },
     {
       "board_id": "00000036",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -11450,7 +11450,7 @@
     },
     {
       "board_id": "00000037",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -11662,7 +11662,7 @@
     },
     {
       "board_id": "00000038",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -11874,7 +11874,7 @@
     },
     {
       "board_id": "00000039",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -12086,7 +12086,7 @@
     },
     {
       "board_id": "0000003A",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -12298,7 +12298,7 @@
     },
     {
       "board_id": "0000003B",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {
@@ -12510,7 +12510,7 @@
     },
     {
       "board_id": "0000003C",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "host_info": {

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" OpenDCRE Centralized Version Configuration
+""" Vapor CORE Centralized Version Configuration
 
 *** Version information should be updated here for each new build***
 

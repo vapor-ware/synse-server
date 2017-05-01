@@ -108,3 +108,11 @@ def run_suite(log_name, suite, loglevel=logging.DEBUG):
 
     runner = unittest.TextTestRunner(stream)
     return runner.run(suite)
+
+
+def exit_suite(suite_result):
+    """Exit the suite and fail make on failure.
+    :param suite_result: The result from the return value of run_suite."""
+    if not suite_result.wasSuccessful():
+        sys.exit(1)
+    sys.exit(0)

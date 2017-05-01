@@ -1,0 +1,9 @@
+{
+  "scan_cache_file": "/tmp/opendcre/cache.json",
+
+  "devices": {
+    "snmp": {
+      "from_config": "snmp_config.json"
+    }
+  }
+}

@@ -30,28 +30,43 @@ along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import lockfile
 import time
-import json
 import sys
 from uuid import getnode as get_mac_addr
 
+from vapor_common.constants import PLC_RACK_ID
+
+from opendcre_southbound.version import __version__, __api_version__
+import opendcre_southbound.strings as _s_
+from opendcre_southbound import constants as const
+from opendcre_southbound.devicebus.command import Command
+from opendcre_southbound.devicebus.response import Response
+from opendcre_southbound.devicebus.devices.serial_device import SerialDevice
+from opendcre_southbound.devicebus.constants import CommandId as cid
+from opendcre_southbound.devicebus.devices.plc import plc_bus
 from opendcre_southbound.utils import (
     board_id_to_hex_string,
     device_id_to_hex_string,
     get_device_type_code,
     get_device_type_name
 )
-from opendcre_southbound.definitions import *
-from opendcre_southbound.version import __version__, __api_version__
-from opendcre_southbound.errors import *
-from opendcre_southbound import constants as const
-
-from opendcre_southbound.devicebus.devices.plc.conversions import *
-from opendcre_southbound.devicebus.command import Command
-from opendcre_southbound.devicebus.response import Response
-from opendcre_southbound.devicebus.devices.serial_device import SerialDevice
-from opendcre_southbound.devicebus.constants import CommandId as cid
-from opendcre_southbound.devicebus.devices.plc.plc_bus import *
-from opendcre_southbound.vapor_common.constants import PLC_RACK_ID
+from opendcre_southbound.definitions import (
+    SCAN_ALL_BOARD_ID,
+    SCAN_ALL_BIT,
+    SHUFFLE_BOARD_ID,
+    SAVE_BOARD_ID
+)
+from opendcre_southbound.errors import (
+    ChecksumException,
+    OpenDCREException,
+    BusDataException,
+    BusTimeoutException,
+    BusCommunicationError
+)
+from opendcre_southbound.devicebus.devices.plc.conversions import (
+    convert_direct_pmbus,
+    convert_humidity,
+    convert_thermistor
+)
 
 
 logger = logging.getLogger(__name__)
@@ -59,6 +74,14 @@ logger = logging.getLogger(__name__)
 
 class PLCDevice(SerialDevice):
     """ Devicebus interface for PLC-routed commands.
+
+    The PLC Device represents a single bus device, e.g. /dev/ttyAMA0.
+
+    A PLC Device has a notion of 'boards', but unlike other devices, e.g.
+    IPMI, it is not itself a board. Where the IPMI board is known ahead
+    of time (by virtue of there being a 1:1 mapping of BMC to IPMIDevice),
+    the PLC boards are not known ahead of time. Instead, the bus must be
+    scanned to determine what exists for the given PLCDevice.
     """
     _instance_name = 'plc'
 
@@ -68,13 +91,15 @@ class PLCDevice(SerialDevice):
         'rpi_hat': const.DEVICEBUS_RPI_HAT_V1
     }
 
-    def __init__(self, counter, **kwargs):
+    def __init__(self, **kwargs):
         super(PLCDevice, self).__init__(lock_path=kwargs['lockfile'])
+
+        self._lock = lockfile.LockFile(self.serial_lock)
 
         # these are required, so if they are missing from the config
         # dict passed in, we will want the exception to propagate up
+        self.hardware_type = self._device_hardware.get(kwargs['hardware_type'], const.DEVICEBUS_UNKNOWN_HARDWARE)
         self.device_name = kwargs['device_name']
-        self.hardware_type = self._device_hardware.get(kwargs['hardware_type'], DEVICEBUS_UNKNOWN_HARDWARE)
 
         # these are optional values, so they may not exist in the config.
         # if they do not exist, they will hold a default value
@@ -94,9 +119,9 @@ class PLCDevice(SerialDevice):
         # another potential solution here would be to store the counter in the app
         # config and have the app context be passed to the devicebus interfaces on
         # init, but that isn't too different from this.
-        self._count = counter
+        self._count = kwargs['counter']
 
-        self._lock = lockfile.LockFile(self.serial_lock)
+        self.scan_on_init = kwargs.get('scan_on_init', True)
 
         self._command_map = {
             cid.VERSION: self._version,
@@ -112,16 +137,44 @@ class PLCDevice(SerialDevice):
             cid.HOST_INFO: self._host_info
         }
 
-        # since PLC devices are "dumb", meaning one device talks to a range of board_ids
-        # we expose the range here.  for single-board devices, an alternate 'board_id' property is exposed.
-        self.board_id_range = kwargs['board_id_range']
-        self.board_id_range_max = kwargs['board_id_range_max']
+        self.boards = self._get_board_records()
 
     def __str__(self):
-        return '<PLCDevice (name: {}, hardware: {})>'.format(self.device_name, hex(self.hardware_type))
+        return '<PLCDevice (name: {}, hardware: {}, boards: {})>'.format(
+            self.device_name, self.hardware_type, len(self.boards)
+        )
 
     def __repr__(self):
         return self.__str__()
+
+    def _get_board_records(self):
+        """ Get the board records for board found to be on the PLC bus via scan.
+
+        Returns:
+            dict[int:dict]: a dictionary whose key is the board_id and whose value is the
+                scan record for that board.
+        """
+        records = {}
+
+        # create a scan all command to issue
+        cmd = Command(
+            cmd_id=cid.SCAN_ALL,
+            data=dict(force=True),
+            sequence=next(self._count)
+        )
+
+        try:
+            scan_response = self._scan_all(cmd)
+        except Exception as e:
+            logger.error('Failed to scan all on PLC device registration.')
+            logger.exception(e)
+        else:
+            # iterate through the scan results to get the board records
+            for rack in scan_response.data['racks']:
+                for board in rack['boards']:
+                    records[int(board['board_id'], 16)] = board
+
+        return records
 
     @classmethod
     def register(cls, devicebus_config, app_config, app_cache):
@@ -133,65 +186,70 @@ class PLCDevice(SerialDevice):
                 for the PLC devices themselves.
             app_config (dict): Flask application config, where application-wide
                 configurations and constants are stored.
-            app_cache (tuple): a three-tuple which contains the mutable structures
+            app_cache (tuple): a tuple which contains the mutable structures
                 which make up the app's device cache and lookup tables. The first
                 item is a mapping of UUIDs to the devices registered here. The second
-                item is a collection of "single board devices". The third item is a
-                collection of "range devices". All collections are mutated by this
-                method to add all devices which are successfully registered, making
-                them available to the Flask app.
+                item is a collection of "single board devices". All collections are
+                mutated by this method to add all devices which are successfully
+                registered, making them available to the Flask app.
         """
         cls.validate_app_state(app_cache)
-        device_cache, single_board_devices, range_devices = app_cache
+        device_cache, single_board_devices = app_cache
 
         device_config = cls.get_device_config(devicebus_config)
         if not device_config:
-            raise ValueError('Unable to get configuration for device - unable to register.')
+            logger.error('Unable to get configuration for PLC device - unable to register.')
+            return False
 
-        # now, for each device in plc devices, we create a device instance
+        # now, we go through each of the racks defined in the config. each rack
+        # could have its own config, so every device found underneath that rack will
+        # inherit the rack's given configuration.
         if 'racks' in device_config:
             for rack in device_config['racks']:
+                # since we are locking at the rack level, we will want a separate PLC
+                # bus client for each rack that is defined.
+                #
+                # note: below, the timeout is a default value that can be overridden
+                # by specifying device-specific "timeout" in the config. if no timeout
+                # is specified for a device, the rack-level timeout is used, if exists,
+                # otherwise the default timeout is used.
+                rack_lockfile = rack['lockfile']
+                rack_id = rack['rack_id']
+                hardware_type = rack['hardware_type']
+                rack_timeout = rack.get('timeout', 0.25)
+                counter = app_config['COUNTER']
+
                 for plc_config in rack['devices']:
+                    # we will want to scan each device to determine what exists on the device.
+                    device_name = plc_config['device_name']
+                    retry_limit = plc_config['retry_limit']
+                    timeout = plc_config['timeout']
+                    time_slice = plc_config['time_slice']
+                    bps = plc_config['bps']
 
-                    # drop in the board_id range corresponding to PLC
-                    plc_config['board_id_range_min'] = int(plc_config.get('board_id_range_min', const.PLC_BOARD_RANGE[0]))
-                    plc_config['board_id_range_max'] = int(plc_config.get('board_id_range_max', const.PLC_BOARD_RANGE[1]))
-                    plc_config['board_id_range'] = (plc_config['board_id_range_min'], plc_config['board_id_range_max'])
+                    # create a new PLC device.
+                    plc_device = PLCDevice(
+                        device_name=device_name,
+                        retry_limit=retry_limit,
+                        timeout=timeout,
+                        time_slice=time_slice,
+                        lockfile=rack_lockfile,
+                        hardware_type=hardware_type,
+                        bps=bps,
+                        counter=counter
+                    )
 
-                    plc_config['rack_id'] = rack['rack_id']
-                    plc_config['board_offset'] = app_config['PLC_BOARD_OFFSET'].next()
-                    plc_config['hardware_type'] = rack.get('hardware_type', 'unknown')
-                    plc_config['lockfile'] = rack['lockfile']
-
-                    # check if there are override values for the device / hardware type.
-                    # override values are set by passing in arguments to the main() method
-                    # which initialized the app. with OpenDCRE, this is ultimately done
-                    # in the startup shell scripts.
-                    if app_config['SERIAL_OVERRIDE'] is not None:
-                        plc_config['device_name'] = app_config['SERIAL_OVERRIDE']
-
-                    if app_config['HARDWARE_OVERRIDE'] is not None:
-                        plc_config['hardware_type'] = app_config['HARDWARE_OVERRIDE']
-
-                    try:
-                        # generate a unique ID which will be used internally to reference the
-                        # device which will be created and mapped to racks/boards.
-                        plc_device = PLCDevice(
-                            counter=app_config['COUNTER'],
-                            **plc_config
-                        )
-                    except Exception as e:
-                        logger.error('Error initializing device: ')
-                        logger.exception(e)
-                        raise
-
+                    # add the plc device to the device lookup table
                     device_cache[plc_device.device_uuid] = plc_device
 
-                    # this is a device which owns a range of board_ids, so it should be added to _range_devices
-                    range_devices.append(plc_device)
+                    # upon initializing, the PLC device should perform a scan. the scan results
+                    # are used to populate a dictionary containing all of the board ids found
+                    # during the scan. we want to map these board ids to the new device.
+                    for board_id in plc_device.boards.keys():
+                        single_board_devices[board_id] = plc_device
 
         else:
-            logger.warning('Device configuration should specify "racks"!')
+            logger.warning('PLC device configuration should specify "racks" but does not.')
 
     def _get_bus(self):
         """ Convenience method to get a new instance of the DeviceBus.
@@ -199,11 +257,7 @@ class PLCDevice(SerialDevice):
         Returns:
             DeviceBus: a new instance of the DeviceBus object for PLC commands.
         """
-        # FIXME -- in the existing code paths, a new DeviceBus instance is created for
-        # every request. unclear if that is necessary or if the same instance can be
-        # reused. once this implementation matches the existing functionality, can play
-        # around with this to see if it can be simplified.
-        return DeviceBus(
+        return plc_bus.DeviceBus(
             device_name=self.device_name,
             hardware_type=self.hardware_type,
             timeout=self.bus_timeout
@@ -244,7 +298,7 @@ class PLCDevice(SerialDevice):
                 kwargs['sequence'] = next(self._count)
 
                 logger.debug('Retrying command: {}'.format(kwargs))
-                _request = RetryCommand(**kwargs)
+                _request = plc_bus.RetryCommand(**kwargs)
                 bus.write(_request.serialize())
                 logger.debug('>>Retry: {}'.format([hex(x) for x in _request.serialize()]))
 
@@ -282,9 +336,9 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
+            board_id = command.data[_s_.BOARD_ID]
 
-            request = VersionCommand(
+            request = plc_bus.VersionCommand(
                 board_id=board_id,
                 sequence=command.sequence
             )
@@ -292,14 +346,14 @@ class PLCDevice(SerialDevice):
             logger.debug('>>Version: {}'.format([hex(x) for x in request.serialize()]))
 
             try:
-                response = VersionResponse(
+                response = plc_bus.VersionResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
             except BusTimeoutException:
                 raise OpenDCREException('Version Command timeout'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, VersionResponse)
+                response = self._retry_command(bus, request, plc_bus.VersionResponse)
 
             return Response(
                 command=command,
@@ -325,9 +379,9 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
+            board_id = command.data[_s_.BOARD_ID]
 
-            request = DumpCommand(
+            request = plc_bus.DumpCommand(
                 board_id=board_id,
                 sequence=command.sequence
             )
@@ -360,7 +414,7 @@ class PLCDevice(SerialDevice):
             id_bytes = [int(mac_addr[i:i + 2], 16) for i in range(len(mac_addr) - 4, len(mac_addr), 2)]
             board_id = SCAN_ALL_BOARD_ID + (id_bytes[0] << 16) + (id_bytes[1] << 8) + self.time_slice
 
-            request = DumpCommand(
+            request = plc_bus.DumpCommand(
                 board_id=board_id,
                 sequence=command.sequence
             )
@@ -370,8 +424,8 @@ class PLCDevice(SerialDevice):
                 plc_rack['rack_id'] = PLC_RACK_ID
                 response_dict['racks'].append(plc_rack)
 
-            except Exception:
-                raise OpenDCREException('Scan All: Error when scanning all boards.'), None, sys.exc_info()[2]
+            except Exception as e:
+                raise OpenDCREException('Scan All: Error when scanning all boards ({})'.format(e)), None, sys.exc_info()[2]
 
             return Response(command=command, response_data=response_dict)
 
@@ -390,12 +444,12 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
-            device_type_string = command.data['device_type_string']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
+            device_type_string = command.data[_s_.DEVICE_TYPE_STRING]
 
-            request = DeviceReadCommand(
+            request = plc_bus.DeviceReadCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -408,7 +462,7 @@ class PLCDevice(SerialDevice):
             response = None
 
             try:
-                response = DeviceReadResponse(
+                response = plc_bus.DeviceReadResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -417,7 +471,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('No response from bus on sensor read.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, DeviceReadResponse)
+                response = self._retry_command(bus, request, plc_bus.DeviceReadResponse)
 
         try:
             device_type_string = device_type_string.lower()
@@ -426,10 +480,10 @@ class PLCDevice(SerialDevice):
             device_raw = float(''.join([chr(x) for x in response.data]))
 
             if device_type_string == const.DEVICE_TEMPERATURE:
-                response_data = {'temperature_c': device_raw}
+                response_data = {const.UOM_TEMPERATURE: device_raw}
 
             elif device_type_string == const.DEVICE_PRESSURE:
-                response_data = {'pressure_kpa': device_raw}
+                response_data = {const.UOM_PRESSURE: device_raw}
 
             else:
                 # for all other sensors get raw value as integer
@@ -437,23 +491,23 @@ class PLCDevice(SerialDevice):
 
                 # convert raw value and jsonify the device reading
                 if device_type_string == const.DEVICE_THERMISTOR:
-                    response_data = {'temperature_c': convert_thermistor(device_raw)}
+                    response_data = {const.UOM_THERMISTOR: convert_thermistor(device_raw)}
 
                 elif device_type_string == const.DEVICE_HUMIDITY:
-                    response_data = dict(zip(('humidity', 'temperature_c'), convert_humidity(device_raw)))
+                    response_data = dict(zip((const.UOM_HUMIDITY, const.UOM_TEMPERATURE), convert_humidity(device_raw)))
 
                 elif device_type_string == const.DEVICE_FAN_SPEED:
                     # TODO: retrieve fan mode from the auto_fan controller
-                    response_data = {'speed_rpm': device_raw, 'fan_mode': 'auto'}
+                    response_data = {const.UOM_FAN_SPEED: device_raw, 'fan_mode': 'auto'}
 
                 elif device_type_string == const.DEVICE_VAPOR_FAN:
                     # TODO: retrieve fan mode from the auto_fan controller
-                    response_data = {'speed_rpm': device_raw, 'fan_mode': 'auto'}
+                    response_data = {const.UOM_VAPOR_FAN: device_raw, 'fan_mode': 'auto'}
 
                 elif device_type_string == const.DEVICE_LED:
                     if device_raw not in [1, 0]:
                         raise ValueError('Invalid raw value returned: {}'.format(device_raw))
-                    response_data = {'led_state': 'on' if device_raw == 1 else 'off'}
+                    response_data = {'led_state': _s_.LED_ON if device_raw == 1 else _s_.LED_OFF}
 
                 # default - for anything we don't convert, send back raw data
                 # for invalid device types / device mismatches, that gets
@@ -485,12 +539,12 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            power_action = command.data['power_action']
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
+            power_action = command.data[_s_.POWER_ACTION]
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
 
-            request = PowerControlCommand(
+            request = plc_bus.PowerControlCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -501,7 +555,7 @@ class PLCDevice(SerialDevice):
             logger.debug('>>Power: {}'.format([hex(x) for x in request.serialize()]))
 
             try:
-                response = PowerControlResponse(
+                response = plc_bus.PowerControlResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -510,7 +564,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('Power command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, PowerControlResponse)
+                response = self._retry_command(bus, request, plc_bus.PowerControlResponse)
 
             # get raw value as string
             try:
@@ -527,7 +581,7 @@ class PLCDevice(SerialDevice):
                     current_raw = int(pmbus_values[3])
 
                     def convert_power_status(raw):
-                        return 'off' if (raw >> 6 & 0x01) == 0x01 else 'on'
+                        return _s_.PWR_OFF if (raw >> 6 & 0x01) == 0x01 else _s_.PWR_ON
 
                     def bit_to_bool(raw):
                         return raw == 1
@@ -577,11 +631,11 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
 
-            request = AssetInfoCommand(
+            request = plc_bus.AssetInfoCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -591,7 +645,7 @@ class PLCDevice(SerialDevice):
             logger.debug('>>Asset Info: {}'.format([hex(x) for x in request.serialize()]))
 
             try:
-                response = AssetInfoResponse(
+                response = plc_bus.AssetInfoResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -600,7 +654,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException as e:
                 raise OpenDCREException('Asset info command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, AssetInfoResponse)
+                response = self._retry_command(bus, request, plc_bus.AssetInfoResponse)
 
             # get raw value as string
             try:
@@ -665,12 +719,12 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
-            boot_target = command.data['boot_target']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
+            boot_target = command.data[_s_.BOOT_TARGET]
 
-            request = BootTargetCommand(
+            request = plc_bus.BootTargetCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -681,7 +735,7 @@ class PLCDevice(SerialDevice):
             logger.debug('>>Boot Target: {}'.format([hex(x) for x in request.serialize()]))
 
             try:
-                response = BootTargetResponse(
+                response = plc_bus.BootTargetResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -690,7 +744,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('Boot target command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, BootTargetResponse)
+                response = self._retry_command(bus, request, plc_bus.BootTargetResponse)
 
             # get raw value as string
             try:
@@ -701,11 +755,11 @@ class PLCDevice(SerialDevice):
 
                 def convert_boot_target(raw):
                     if raw == 'B0':
-                        return 'no_override'
+                        return _s_.BT_NO_OVERRIDE
                     elif raw == 'B1':
-                        return 'hdd'
+                        return _s_.BT_HDD
                     elif raw == 'B2':
-                        return 'pxe'
+                        return _s_.BT_PXE
                     else:
                         raise ValueError('Invalid raw boot target returned {}'.format(raw))
 
@@ -736,15 +790,15 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
-            rack_id = command.data['rack_id']
-            led_state = command.data['led_state']
-            led_color = command.data['led_color']
-            blink_state = command.data['blink_state']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
+            rack_id = command.data[_s_.RACK_ID]
+            led_state = command.data[_s_.LED_STATE]
+            led_color = command.data[_s_.LED_COLOR]
+            blink_state = command.data[_s_.LED_BLINK_STATE]
 
-            request = ChamberLedControlCommand(
+            request = plc_bus.ChamberLedControlCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -760,7 +814,7 @@ class PLCDevice(SerialDevice):
             logger.debug('>>Vapor_LED: {}'.format([hex(x) for x in request.serialize()]))
 
             try:
-                response = ChamberLedControlResponse(
+                response = plc_bus.ChamberLedControlResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -769,7 +823,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('Chamber LED command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, ChamberLedControlResponse)
+                response = self._retry_command(bus, request, plc_bus.ChamberLedControlResponse)
 
             # get raw value to ensure remote device took the write.
             try:
@@ -782,9 +836,9 @@ class PLCDevice(SerialDevice):
             if len(device_raw.split(',')) == 3:
                 control_data = device_raw.split(',')
                 led_response = dict()
-                led_response['led_state'] = 'on' if control_data[0] == '1' else 'off'
+                led_response['led_state'] = _s_.LED_ON if control_data[0] == '1' else _s_.LED_OFF
                 led_response['led_color'] = control_data[1]
-                led_response['blink_state'] = 'blink' if control_data[2] == '1' else 'steady'
+                led_response['blink_state'] = _s_.LED_BLINK if control_data[2] == '1' else _s_.LED_STEADY
                 return Response(command=command, response_data=led_response)
             else:
                 raise OpenDCREException('Invalid Chamber LED response data.')
@@ -805,10 +859,10 @@ class PLCDevice(SerialDevice):
             c = Command(
                 cmd_id=cid.READ,
                 data={
-                    'board_id': command.data['board_id'],
-                    'device_id': command.data['device_id'],
-                    'device_type': get_device_type_code(const.DEVICE_LED),
-                    'device_type_string': const.DEVICE_LED
+                    _s_.BOARD_ID: command.data[_s_.BOARD_ID],
+                    _s_.DEVICE_ID: command.data[_s_.DEVICE_ID],
+                    _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_LED),
+                    _s_.DEVICE_TYPE_STRING: const.DEVICE_LED
                 },
                 sequence=next(self._count)
             )
@@ -818,15 +872,15 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
-            led_state = command.data['led_state']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
+            led_state = command.data[_s_.LED_STATE]
 
             # convert led_state for plc
-            led_state = '1' if led_state == 'on' else '0'
+            led_state = '1' if led_state == _s_.LED_ON else '0'
 
-            request = DeviceWriteCommand(
+            request = plc_bus.DeviceWriteCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -840,7 +894,7 @@ class PLCDevice(SerialDevice):
             response = None
 
             try:
-                response = DeviceWriteResponse(
+                response = plc_bus.DeviceWriteResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -849,7 +903,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('LED write command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, DeviceWriteResponse)
+                response = self._retry_command(bus, request, plc_bus.DeviceWriteResponse)
 
         # get raw value to ensure remote device took the write.
         try:
@@ -861,10 +915,10 @@ class PLCDevice(SerialDevice):
             c = Command(
                 cmd_id=cid.READ,
                 data={
-                    'board_id': board_id,
-                    'device_id': device_id,
-                    'device_type': get_device_type_code(const.DEVICE_LED),
-                    'device_type_string': const.DEVICE_LED
+                    _s_.BOARD_ID: board_id,
+                    _s_.DEVICE_ID: device_id,
+                    _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_LED),
+                    _s_.DEVICE_TYPE_STRING: const.DEVICE_LED
                 },
                 sequence=next(self._count)
             )
@@ -887,12 +941,12 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
-            fan_speed = command.data['fan_speed']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
+            fan_speed = command.data[_s_.FAN_SPEED]
 
-            request = DeviceWriteCommand(
+            request = plc_bus.DeviceWriteCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -906,7 +960,7 @@ class PLCDevice(SerialDevice):
             response = None
 
             try:
-                response = DeviceWriteResponse(
+                response = plc_bus.DeviceWriteResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -915,7 +969,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('Fan command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, DeviceWriteResponse)
+                response = self._retry_command(bus, request, plc_bus.DeviceWriteResponse)
 
         # get raw value to ensure remote device took the write.
         try:
@@ -927,10 +981,10 @@ class PLCDevice(SerialDevice):
             c = Command(
                 cmd_id=cid.READ,
                 data={
-                    'board_id': board_id,
-                    'device_id': device_id,
-                    'device_type': get_device_type_code(const.DEVICE_FAN_SPEED),
-                    'device_type_string': const.DEVICE_FAN_SPEED
+                    _s_.BOARD_ID: board_id,
+                    _s_.DEVICE_ID: device_id,
+                    _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_FAN_SPEED),
+                    _s_.DEVICE_TYPE_STRING: const.DEVICE_FAN_SPEED
                 },
                 sequence=next(self._count)
             )
@@ -953,11 +1007,11 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             # get the command data out from the incoming command
-            board_id = command.data['board_id']
-            device_id = command.data['device_id']
-            device_type = command.data['device_type']
+            board_id = command.data[_s_.BOARD_ID]
+            device_id = command.data[_s_.DEVICE_ID]
+            device_type = command.data[_s_.DEVICE_TYPE]
 
-            request = HostInfoCommand(
+            request = plc_bus.HostInfoCommand(
                 board_id=board_id,
                 device_id=device_id,
                 device_type=device_type,
@@ -970,7 +1024,7 @@ class PLCDevice(SerialDevice):
             response = None
 
             try:
-                response = HostInfoResponse(
+                response = plc_bus.HostInfoResponse(
                     serial_reader=bus,
                     expected_sequence=request.sequence
                 )
@@ -979,7 +1033,7 @@ class PLCDevice(SerialDevice):
             except BusTimeoutException:
                 raise OpenDCREException('Host Info command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
-                response = self._retry_command(bus, request, HostInfoResponse)
+                response = self._retry_command(bus, request, plc_bus.HostInfoResponse)
 
         # get raw value to ensure remote device took the write.
         try:
@@ -1036,7 +1090,7 @@ class PLCDevice(SerialDevice):
         logger.debug('>>Scan: {}'.format([hex(x) for x in packet.serialize()]))
 
         try:
-            response_packet = DumpResponse(
+            response_packet = plc_bus.DumpResponse(
                 serial_reader=bus,
                 expected_sequence=packet.sequence
             )
@@ -1076,7 +1130,7 @@ class PLCDevice(SerialDevice):
 
         while True:
             try:
-                response_packet = DumpResponse(
+                response_packet = plc_bus.DumpResponse(
                     serial_reader=bus,
                     expected_sequence=packet.sequence
                 )
@@ -1137,7 +1191,7 @@ class PLCDevice(SerialDevice):
         # bus, we can return the aggregated scan results.
         if (packet.board_id >> SCAN_ALL_BIT) & 0x01 == 0x01:
             board_id = SCAN_ALL_BOARD_ID | SAVE_BOARD_ID
-            save_packet = DumpCommand(
+            save_packet = plc_bus.DumpCommand(
                 board_id=board_id,
                 sequence=next(self._count)
             )

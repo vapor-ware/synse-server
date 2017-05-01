@@ -11,24 +11,6 @@ hokey data. These tests are to ensure correct scan all behavior.
 
     \\//
      \/apor IO
-
--------------------------------
-Copyright (C) 2015-17  Vapor IO
-
-This file is part of OpenDCRE.
-
-OpenDCRE is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-OpenDCRE is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
@@ -46,9 +28,14 @@ class ScanAllTestCase(unittest.TestCase):
         r = http.get(PREFIX + '/scan')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(len(response['racks'][0]["boards"]), 8)
 
-        expected_board_ids = ['00000001', '00000003', '00000010', '00000011', '00000012', '00000013', '00000014', '12345678']
+        # NOTE: while the emulator data file, data/emulator-data.json, has 8 boards
+        # defined, one of the boards does not contain any devices. the board is still
+        # recognized internally, but the REST API will omit boards without devices, so
+        # we expect to not see that board here.
+        self.assertEqual(len(response['racks'][0]['boards']), 7)
+
+        expected_board_ids = ['00000001', '00000003', '00000010', '00000011', '00000012', '00000013', '00000014']
         for board in response['racks'][0]['boards']:
             self.assertIn(board['board_id'], expected_board_ids)
 
