@@ -3,7 +3,8 @@ MAINTAINER Andrew Cencini <andrew@vapor.io>
 
 ENV VAPOR_SERVICE_NAME=opendcre
 
-ADD ./graphql/requirements.txt requirements.txt
+ADD ./requirements.txt requirements.txt
+ADD ./graphql/requirements.txt graphql-requirements.txt
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -15,11 +16,8 @@ RUN apt-get update && apt-get install -y \
     make \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install pyserial==2.7 \
-    RPi.GPIO \
-    pyghmi \
-    grequests && \
-    pip3 install -r requirements.txt
+    pip install -r requirements.txt && \
+    pip3 install -r graphql-requirements.txt
 
 
 RUN mkdir -p /etc/uwsgi/vassals && \
