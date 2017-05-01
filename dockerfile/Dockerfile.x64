@@ -52,6 +52,9 @@ RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
     cp /opendcre/configs/nginx.logrotate /etc/logrotate.d/nginx && \
     ln -sf /proc/1/fd/1 /logs/err
 
+# Minimal cleanup
+RUN rm -r -f /var/lib/apt/lists/* && apt-get clean
+
 # update the python path to include the opendcre southbound module so that it
 # can be successfully be imported
 ENV PYTHONPATH="/opendcre/opendcre_southbound:${PYTHONPATH}"
