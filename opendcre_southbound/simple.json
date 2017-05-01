@@ -2,7 +2,7 @@
   "boards": [
     {
       "board_id": "00000001",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Standalone Server",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Standalone Server",
       "devices": [
         {
           "device_id": "0001",
@@ -214,7 +214,7 @@
     },
     {
       "board_id": "00000002",
-      "firmware_version": "OpenDCRE Emulator v1.0.0 - Microserver",
+      "firmware_version": "Vapor CORE Emulator v1.0.0 - Microserver",
       "devices": [
         {
           "device_id": "0002",

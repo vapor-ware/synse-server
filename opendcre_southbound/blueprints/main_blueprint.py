@@ -26,17 +26,28 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
+import logging
 import copy
 import json
 from uuid import UUID
 
 from flask import current_app, Blueprint, jsonify
 
+from vapor_common.utils.endpoint import make_url_builder
 import opendcre_southbound.constants as const
+import opendcre_southbound.strings as _s_
 from opendcre_southbound import definitions
-from opendcre_southbound.devicebus.devices import *
-from opendcre_southbound.errors import *
-from opendcre_southbound.location import *
+from opendcre_southbound.errors import OpenDCREException
+from opendcre_southbound.location import get_chassis_location
+from opendcre_southbound.version import __api_version__
+from opendcre_southbound.devicebus.devices import (
+    PLCDevice,
+    IPMIDevice,
+    RS485Device,
+    I2CDevice,
+    SnmpDevice,
+    RedfishDevice
+)
 from opendcre_southbound.utils import (
     check_valid_board,
     check_valid_board_and_device,
@@ -45,9 +56,6 @@ from opendcre_southbound.utils import (
     write_scan_cache,
     get_device_instance
 )
-from opendcre_southbound.version import __api_version__
-from opendcre_southbound.vapor_common.utils.endpoint import make_url_builder
-import logging
 
 # add the api_version to the prefix
 PREFIX = const.endpoint_prefix + __api_version__
@@ -70,12 +78,13 @@ def _lookup_by_id_range(board_id):
     device = get_device_instance(board_id)
 
     # unsupported device returns None
-    if not isinstance(device, (PLCDevice, IPMIDevice, RedfishDevice)):
+    if not isinstance(device, (PLCDevice, IPMIDevice, RS485Device, I2CDevice, SnmpDevice, RedfishDevice)):
         return None
 
     return {uid: dev for uid, dev in current_app.config['DEVICES'].iteritems() if isinstance(dev, device.__class__)}
 
 
+# FIXME (etd) -- is this used? PyCharm seems to think that it is not used.
 def get_device_interfaces(board_id):
     """ Get the configured device interface(s) which the board is determined to
     belong to.
@@ -142,7 +151,7 @@ def add_device_mapping(scan_result):
 
 
 def filter_cache_meta(cache):
-    """ Filter out metainformation from the cache.
+    """ Filter out meta information from the cache.
 
     This filtering should be done before the cache is returned from any endpoint.
     It prevents internal cache annotations from being surfaced, making the scan
@@ -152,7 +161,7 @@ def filter_cache_meta(cache):
         cache (dict): the cache as a dictionary
 
     Returns:
-        dict: the cache stripped of metainfo.
+        dict: the cache stripped of meta info.
     """
     for rack in cache['racks']:
         for board in rack['boards']:
@@ -161,13 +170,13 @@ def filter_cache_meta(cache):
     return cache
 
 
-@core.route(url('/version/<rack_id>/<board_num>'), methods=['GET'])
-def get_board_version(rack_id, board_num):
-    """ Get board version given the specified board number.
+@core.route(url('/version/<rack_id>/<board_id>'), methods=['GET'])
+def get_board_version(rack_id, board_id):
+    """ Get board version given the specified board id.
 
     Args:
         rack_id (str): the rack id associated with the board (currently unused).
-        board_num (str): the board number to get version for.
+        board_id (str): the board id to get version for.
 
     Returns:
         The version of the hardware and firmware for the given board.
@@ -175,32 +184,27 @@ def get_board_version(rack_id, board_num):
     Raises:
         Returns a 500 error if the version command fails.
     """
-    board_num = check_valid_board(board_num)
+    board_id = check_valid_board(board_id)
 
     cmd = current_app.config['CMD_FACTORY'].get_version_command({
-        'rack_id': rack_id,
-        'board_id': board_num
+        _s_.RACK_ID: rack_id,
+        _s_.BOARD_ID: board_id
     })
 
-    device = get_device_instance(board_num)
+    device = get_device_instance(board_id)
     response = device.handle(cmd)
 
     return jsonify(response.data)
 
 
 def _merge_list(accumulator, l, key_name):
-    """ Merge list l[key_name] into the accumulator[key_name] list.
+    """Merge list l[key_name] into the accumulator[key_name] list.
+    :param accumulator: A dict containing the current accumulation in
+     accumulator[keyname]. Also the merge result.
+    :param l: A dict containing the list to merge in at l[keyname].
+    :param key_name: The name of the key common to both dicts, each of which is a list.
+    :returns: The accumulator."""
 
-    Args:
-        accumulator (dict): a dict containing the current accumulation in
-            accumulator[keyname]. also the merge result.
-        l (dict): a dict containing the list to merge in at l[keyname]
-        key_name: the name of the key common to both dicts, each of which
-            is a list
-
-    Returns:
-        dict: the accumulator
-    """
     # If there is no l or no key at l[key_name] there is nothing to merge.
     if not l or key_name not in l:
         return
@@ -220,10 +224,8 @@ def _merge_list(accumulator, l, key_name):
 
 def _merge_scan_results(d, u):
     """ Merge two sets of scan results together
-
-    Args:
-        d (dict): accumulator for merged results
-        u (dict): results to merge into u
+    :param d: Accumulator for merged results.
+    :param u: Results to merge into u.
     """
     # For every rack in u.
     if u is not None:
@@ -265,7 +267,7 @@ def scan_all():
 
     for _id, device in current_app.config['DEVICES'].iteritems():
         cmd = current_app.config['CMD_FACTORY'].get_scan_all_command({
-            'force': False
+            _s_.FORCE: False
         })
         response = device.handle(cmd)
         scan_response = _merge_scan_results(scan_response, response.data)
@@ -290,7 +292,7 @@ def force_scan():
 
     for _id, device in current_app.config['DEVICES'].iteritems():
         cmd = current_app.config['CMD_FACTORY'].get_scan_all_command({
-            'force': True,
+            _s_.FORCE: True,
         })
         response = device.handle(cmd)
         scan_response = _merge_scan_results(scan_response, response.data)
@@ -300,14 +302,14 @@ def force_scan():
 
 
 @core.route(url('/scan/<rack_id>'), methods=['GET'])
-@core.route(url('/scan/<rack_id>/<board_num>'), methods=['GET'])
-def get_board_devices(rack_id, board_num=None):
+@core.route(url('/scan/<rack_id>/<board_id>'), methods=['GET'])
+def get_board_devices(rack_id, board_id=None):
     """ Query a specific board, given the board id, and provide the active
     devices on that board.
 
     Args:
         rack_id (str): The id of the rack where the target board resides
-        board_num (str): the board number to dump. If the upper byte is 0x80 then
+        board_id (str): the board number to dump. If the upper byte is 0x80 then
             all boards on the bus will be scanned.
 
     Returns:
@@ -316,10 +318,10 @@ def get_board_devices(rack_id, board_num=None):
     Raises:
         Returns a 500 error if the scan command fails.
     """
-    # if there is no board_num, we are doing a scan on a rack.
+    # if there is no board_id, we are doing a scan on a rack.
     # FIXME: since scan by the rack is not supported yet, (v 1.3) we will
     # determine the rack results by filtering on the 'scanall' results.
-    if board_num is None:
+    if board_id is None:
         scanall = scan_all()
         data = json.loads(scanall.data)
         for rack in data['racks']:
@@ -327,7 +329,7 @@ def get_board_devices(rack_id, board_num=None):
                 return jsonify({'racks': [rack]})
         raise OpenDCREException('No rack found with id: {}'.format(rack_id))
 
-    board_num = check_valid_board(board_num)
+    board_id = check_valid_board(board_id)
 
     """
     FIXME: temporarily disabled scan cache
@@ -337,28 +339,28 @@ def get_board_devices(rack_id, board_num=None):
         for rack in _cache['racks']:
             if rack['rack_id'] == rack_id:
                 for board in rack['boards']:
-                    if int(board['board_id'], 16) == board_num:
+                    if int(board['board_id'], 16) == board_id:
                         return jsonify({'boards': [board]})
                     else:
                         break
     """
 
     cmd = current_app.config['CMD_FACTORY'].get_scan_command({
-        'rack_id': rack_id,
-        'board_id': board_num
+        _s_.RACK_ID: rack_id,
+        _s_.BOARD_ID: board_id
     })
 
-    device = get_device_instance(board_num)
+    device = get_device_instance(board_id)
     response = device.handle(cmd)
 
     return jsonify(response.data)
 
 
-@core.route(url('/read/<device_type>/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-def read_device(rack_id, device_type, board_num, device_num):
+@core.route(url('/read/<device_type>/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+def read_device(rack_id, device_type, board_id, device_id):
     """ Get a device reading for the given board and port and device type.
 
-    We could filter on the upper ID of board_num in case an unusual board number
+    We could filter on the upper ID of board_id in case an unusual board number
     is provided; however, the bus should simply time out in these cases.
 
     Args:
@@ -366,8 +368,8 @@ def read_device(rack_id, device_type, board_num, device_num):
         device_type (str): corresponds to the type of device to get a reading for.
             It must match the actual type of device that is present on the bus,
             and is used to interpret the raw device reading.
-        board_num (str): specifies which Pi hat to get the reading from
-        device_num (str): specifies which device of the Pi hat should be polled
+        board_id (str): specifies which Pi hat to get the reading from
+        device_id (str): specifies which device of the Pi hat should be polled
             for device reading.
 
     Returns:
@@ -376,25 +378,25 @@ def read_device(rack_id, device_type, board_num, device_num):
     Raises:
         Returns a 500 error if the read command fails.
     """
-    board_num, device_num = check_valid_board_and_device(board_num, device_num)
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
     cmd = current_app.config['CMD_FACTORY'].get_read_command({
-        'board_id': board_num,
-        'device_id': device_num,
-        'device_type': get_device_type_code(device_type.lower()),
-        'device_type_string': device_type.lower()
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(device_type.lower()),
+        _s_.DEVICE_TYPE_STRING: device_type.lower()
     })
 
-    device = get_device_instance(board_num)
+    device = get_device_instance(board_id)
     response = device.handle(cmd)
 
     return jsonify(response.data)
 
 
-@core.route(url('/power/<rack_id>/<board_num>/<device_num>/<power_action>'), methods=['GET'])
-@core.route(url('/power/<device_type>/<rack_id>/<board_num>/<device_num>/<power_action>'), methods=['GET'])
-@core.route(url('/power/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-def power_control(power_action='status', rack_id=None, board_num=None, device_num=None, device_type='power'):
+@core.route(url('/power/<rack_id>/<board_id>/<device_id>/<power_action>'), methods=['GET'])
+@core.route(url('/power/<device_type>/<rack_id>/<board_id>/<device_id>/<power_action>'), methods=['GET'])
+@core.route(url('/power/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+def power_control(power_action='status', rack_id=None, board_id=None, device_id=None, device_type='power'):
     """ Power on/off/cycle/status for the given board and port and device.
 
     Args:
@@ -402,9 +404,9 @@ def power_control(power_action='status', rack_id=None, board_num=None, device_nu
             action to take.
         rack_id (str): the id of the rack which contains the board to accept
             the power control command
-        board_num (str): the id of the board which contains the device that
+        board_id (str): the id of the board which contains the device that
             accepts power control commands.
-        device_num (str): the id of the device which accepts power control
+        device_id (str): the id of the device which accepts power control
             commands.
         device_type (str): the type of device to accept power control command for.
 
@@ -414,9 +416,9 @@ def power_control(power_action='status', rack_id=None, board_num=None, device_nu
     Raises:
         Returns a 500 error if the power command fails.
     """
-    board_num, device_num = check_valid_board_and_device(board_num, device_num)
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
-    if rack_id.lower() in ['on', 'off', 'cycle', 'status']:
+    if rack_id.lower() in [_s_.PWR_ON, _s_.PWR_OFF, _s_.PWR_CYCLE, _s_.PWR_STATUS]:
         # for backwards-compatibility, we allow the command to come in as:
         # power_action/board_id/device_id
         # therefore, if we see a power action in the rack_id field, then
@@ -424,191 +426,10 @@ def power_control(power_action='status', rack_id=None, board_num=None, device_nu
         power_action = rack_id
 
     cmd = current_app.config['CMD_FACTORY'].get_power_command({
-        'board_id': board_num,
-        'device_id': device_num,
-        'device_type': get_device_type_code(device_type.lower()),
-        'power_action': power_action
-    })
-
-    device = get_device_instance(board_num)
-    response = device.handle(cmd)
-
-    return jsonify(response.data)
-
-
-@core.route(url('/asset/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-def asset_info(rack_id, board_num, device_num):
-    """ Get asset information for a given board and device.
-
-    Args:
-        rack_id: The id of the rack where the target board resides
-        board_num: The board number to get asset information for.
-        device_num: The device number to get asset information for (must be system).
-
-    Returns:
-        Asset information about the given device.
-    """
-    board_num, device_num = check_valid_board_and_device(board_num, device_num)
-
-    cmd = current_app.config['CMD_FACTORY'].get_asset_command({
-        'board_id': board_num,
-        'device_id': device_num,
-        'device_type': get_device_type_code(const.DEVICE_SYSTEM),
-    })
-
-    device = get_device_instance(board_num)
-    response = device.handle(cmd)
-
-    return jsonify(response.data)
-
-
-@core.route(url('/boot_target/<rack_id>/<board_num>/<device_num>/<target>'), methods=['GET'])
-@core.route(url('/boot_target/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-def boot_target(rack_id, board_num, device_num, target=None):
-    """ Get or set boot target for a given board and device.
-
-    Args:
-        rack_id: The id of the rack where the target board resides
-        board_num: The board number to get/set boot target for.
-        device_num: The device number to get/set boot target for (must be system).
-        target: The boot target to choose, or, if None, just get info.
-
-    Returns:
-        Boot target of the device.
-    """
-    board_num, device_num = check_valid_board_and_device(board_num, device_num)
-
-    if target is not None and target not in ['pxe', 'hdd', 'no_override']:
-        logger.error('Boot Target: Invalid boot target specified: %s board_num: %s device_num: %s', target, board_num,
-                     device_num)
-        raise OpenDCREException('Invalid boot target specified.')
-
-    cmd = current_app.config['CMD_FACTORY'].get_boot_target_command({
-        'board_id': board_num,
-        'device_id': device_num,
-        'device_type': get_device_type_code(const.DEVICE_SYSTEM),
-        'boot_target': target if target is not None else 'status'
-    })
-
-    device = get_device_instance(board_num)
-    response = device.handle(cmd)
-
-    return jsonify(response.data)
-
-
-@core.route(url('/location/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-@core.route(url('/location/<rack_id>/<board_num>'), methods=['GET'])
-def device_location(rack_id, board_num=None, device_num=None):
-    """ Get location of a device via PLC.  IPMI not supported, so unknown is returned.
-
-    Args:
-        rack_id: The id of the rack where the target board resides
-        board_num: The board number to get location for.  IPMI boards not supported.
-        device_num: The device number to get location for.  IPMI devices not supported.
-
-    Returns:
-        Location of device.
-    """
-    if device_num is not None:
-        (board_num, device_num) = check_valid_board_and_device(board_num, device_num)
-        if device_num > 0xFFFF:
-            raise OpenDCREException('Device number must be <= 0xFFFF')
-    else:
-        board_num = check_valid_board(board_num)
-
-    try:
-        # add validation on the board by finding its device instance
-        # if this is not a valid board, we raise an exception, as there is no valid location for it
-        get_device_instance(board_num)
-    except Exception as e:
-        raise e
-
-    # physical (rack) location is not yet implemented in v1
-    physical_location = {'horizontal': 'unknown', 'vertical': 'unknown', 'depth': 'unknown'}
-
-    if device_num is not None:
-        return jsonify({'physical_location': physical_location, 'chassis_location': get_chassis_location(device_num)})
-    else:
-        return jsonify({'physical_location': physical_location})
-
-
-def _chamber_led_control(board_num, device_num, led_state, rack_id, led_color, blink_state):
-    """ Control chamber LED via PLC.
-
-    Args:
-        board_num: The board number of the LED controler for vapor_led.
-        device_num: The device number of the LED controller for vapor_led.
-        led_state: The state to set the specified LED to (on, off, no_override)
-        rack_id: The ID of the rack whose LED segment is to be controlled (MIN_RACK_ID..MAX_RACK_ID)
-        led_color: The RGB hex value of the color to set the LED to, or 'no_override'.
-        blink_state: The blink state of the LED (blink, steady, no_override).
-    """
-    cmd = current_app.config['CMD_FACTORY'].get_chamber_led_command({
-        'board_id': board_num,
-        'device_id': device_num,
-        'device_type': get_device_type_code(const.DEVICE_VAPOR_LED),
-        'device_type_string': const.DEVICE_VAPOR_LED,
-        'device_name': const.DEVICE_VAPOR_LED,
-        'rack_id': rack_id,
-        'led_state': led_state,
-        'led_color': led_color,
-        'blink_state': blink_state,
-    })
-
-    device = get_device_instance(board_num)
-    response = device.handle(cmd)
-
-    return jsonify(response.data)
-
-
-@core.route(url('/led/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-@core.route(url('/led/<rack_id>/<board_num>/<device_num>/<led_state>'), methods=['GET'])
-@core.route(url('/led/<rack_id>/<board_num>/<device_num>/<led_state>/<led_color>/<blink_state>'), methods=['GET'])
-def led_control(rack_id, board_num, device_num, led_state=None, led_color=None, blink_state=None):
-    """ Control LED on system or wedge rack.  System led may only be turned on/off. Wedge rack supports color
-
-    Args:
-        rack_id: The rack id to control led for.
-        board_num: The board number to control led for. IPMI boards only support on/off.
-        device_num: The device number to control led for. IPMI devices only support on/off.
-        led_state: The state to set LED to (on/off for IPMI, on/off/blink for PLC).
-        led_color: The hex RGB color to set LED to (for PLC wedge LED only).
-        blink_state: The blink state (blink|steady|no_override) for PLC wedge LED only.
-
-    Returns:
-        LED state for chassis LED; LED state, color and blink state for PLC wedge LED.
-    """
-    board_id, device_id = check_valid_board_and_device(board_num, device_num)
-
-    if led_state not in ['on', 'off', 'no_override', None]:
-        logger.error('Invalid LED state {} provided for LED control.'.format(led_state))
-        raise OpenDCREException('Invalid LED state provided for LED control.')
-
-    if led_color is not None and led_color != 'no_override':
-        try:
-            led_color_int = int(led_color, 16)
-            if (led_color_int < 0x000000) or (led_color_int > 0xffffff):
-                raise ValueError('LED Color must be between 0x000000 and 0xffffff.')
-        except ValueError as e:
-            raise OpenDCREException('Invalid LED color specified. ({})'.format(e.message))
-
-    if blink_state is not None and blink_state not in ['blink', 'steady', 'no_override']:
-        raise OpenDCREException('Invalid blink state specified for LED.')
-
-    elif (led_color is not None) and (blink_state is not None):
-        return _chamber_led_control(board_num=board_id, device_num=device_id, led_state=led_state,
-                                    rack_id=rack_id, led_color=led_color, blink_state=blink_state)
-
-    cmd = current_app.config['CMD_FACTORY'].get_led_command({
-        'board_id': board_id,
-        'device_id': device_id,
-        'device_type': get_device_type_code(const.DEVICE_LED),
-        'device_type_string': const.DEVICE_LED,
-        'device_name': const.DEVICE_LED,
-        'rack_id': rack_id,
-        'led_state': led_state,
-        'led_color': led_color,
-        'blink_state': blink_state,
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(device_type.lower()),
+        _s_.POWER_ACTION: power_action
     })
 
     device = get_device_instance(board_id)
@@ -617,26 +438,217 @@ def led_control(rack_id, board_num, device_num, led_state=None, led_color=None, 
     return jsonify(response.data)
 
 
-@core.route(url('/fan/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-@core.route(url('/fan/<rack_id>/<board_num>/<device_num>/<fan_speed>'), methods=['GET'])
-def fan_control(rack_id, board_num, device_num, fan_speed=None):
+@core.route(url('/asset/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+def asset_info(rack_id, board_id, device_id):
+    """ Get asset information for a given board and device.
+
+    Args:
+        rack_id: The id of the rack where the target board resides
+        board_id: The board number to get asset information for.
+        device_id: The device number to get asset information for (must be system).
+
+    Returns:
+        Asset information about the given device.
+    """
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
+
+    cmd = current_app.config['CMD_FACTORY'].get_asset_command({
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_SYSTEM),
+    })
+
+    device = get_device_instance(board_id)
+    response = device.handle(cmd)
+
+    return jsonify(response.data)
+
+
+@core.route(url('/boot_target/<rack_id>/<board_id>/<device_id>/<target>'), methods=['GET'])
+@core.route(url('/boot_target/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+def boot_target(rack_id, board_id, device_id, target=None):
+    """ Get or set boot target for a given board and device.
+
+    Args:
+        rack_id: The id of the rack where the target board resides
+        board_id: The board number to get/set boot target for.
+        device_id: The device number to get/set boot target for (must be system).
+        target: The boot target to choose, or, if None, just get info.
+
+    Returns:
+        Boot target of the device.
+    """
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
+
+    if target is not None and target not in [_s_.BT_PXE, _s_.BT_HDD, _s_.BT_NO_OVERRIDE]:
+        logger.error('Boot Target: Invalid boot target specified: %s board_id: %s device_id: %s', target, board_id,
+                     device_id)
+        raise OpenDCREException('Invalid boot target specified.')
+
+    cmd = current_app.config['CMD_FACTORY'].get_boot_target_command({
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_SYSTEM),
+        _s_.BOOT_TARGET: target if target is not None else 'status'
+    })
+
+    device = get_device_instance(board_id)
+    response = device.handle(cmd)
+
+    return jsonify(response.data)
+
+
+@core.route(url('/location/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+@core.route(url('/location/<rack_id>/<board_id>'), methods=['GET'])
+def device_location(rack_id, board_id=None, device_id=None):
+    """ Get location of a device via PLC.  IPMI not supported, so unknown is returned.
+
+    Args:
+        rack_id: The id of the rack where the target board resides
+        board_id: The board number to get location for.  IPMI boards not supported.
+        device_id: The device number to get location for.  IPMI devices not supported.
+
+    Returns: Location of device.
+
+    """
+    if device_id is not None:
+        (board_id, device_id) = check_valid_board_and_device(board_id, device_id)
+        if device_id > 0xFFFF:
+            raise OpenDCREException('Device number must be <= 0xFFFF')
+    else:
+        board_id = check_valid_board(board_id)
+
+    try:
+        # add validation on the board by finding its device instance
+        # if this is not a valid board, we raise an exception, as there is no valid location for it
+        get_device_instance(board_id)
+    except Exception as e:
+        raise e
+
+    # physical (rack) location is not yet implemented in v1
+    physical_location = {
+        _s_.LOC_HORIZONTAL: _s_.LOC_UNKNOWN,
+        _s_.LOC_VERTICAL: _s_.LOC_UNKNOWN,
+        _s_.LOC_DEPTH: _s_.LOC_UNKNOWN
+    }
+
+    if device_id is not None:
+        return jsonify({
+            _s_.PHYSICAL_LOC: physical_location,
+            _s_.CHASSIS_LOC: get_chassis_location(device_id)
+        })
+    else:
+        return jsonify({
+            _s_.PHYSICAL_LOC: physical_location
+        })
+
+
+def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, blink_state):
+    """ Control chamber LED via PLC.
+
+    Args:
+        board_id: The board number of the LED controler for vapor_led.
+        device_id: The device number of the LED controller for vapor_led.
+        led_state: The state to set the specified LED to (on, off, no_override)
+        rack_id: The ID of the rack whose LED segment is to be controlled (MIN_RACK_ID..MAX_RACK_ID)
+        led_color: The RGB hex value of the color to set the LED to, or 'no_override'.
+        blink_state: The blink state of the LED (blink, steady, no_override).
+    """
+    cmd = current_app.config['CMD_FACTORY'].get_chamber_led_command({
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_VAPOR_LED),
+        _s_.DEVICE_TYPE_STRING: const.DEVICE_VAPOR_LED,
+        _s_.DEVICE_NAME: const.DEVICE_VAPOR_LED,
+        _s_.RACK_ID: rack_id,
+        _s_.LED_STATE: led_state,
+        _s_.LED_COLOR: led_color,
+        _s_.LED_BLINK_STATE: blink_state,
+    })
+
+    device = get_device_instance(board_id)
+    response = device.handle(cmd)
+
+    return jsonify(response.data)
+
+
+@core.route(url('/led/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+@core.route(url('/led/<rack_id>/<board_id>/<device_id>/<led_state>'), methods=['GET'])
+@core.route(url('/led/<rack_id>/<board_id>/<device_id>/<led_state>/<led_color>/<blink_state>'), methods=['GET'])
+def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, blink_state=None):
+    """ Control LED on system or wedge rack.  System led may only be turned on/off. Wedge rack supports color
+
+    Args:
+        rack_id: The rack id to control led for.
+        board_id: The board number to control led for. IPMI boards only support on/off.
+        device_id: The device number to control led for. IPMI devices only support on/off.
+        led_state: The state to set LED to (on/off for IPMI, on/off/blink for PLC).
+        led_color: The hex RGB color to set LED to (for PLC wedge LED only).
+        blink_state: The blink state (blink|steady|no_override) for PLC wedge LED only.
+
+    Returns:
+        LED state for chassis LED; LED state, color and blink state for PLC wedge LED.
+    """
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
+
+    if led_state not in [_s_.LED_ON, _s_.LED_OFF, _s_.LED_NO_OVERRIDE, None]:
+        logger.error('Invalid LED state {} provided for LED control.'.format(led_state))
+        raise OpenDCREException('Invalid LED state provided for LED control.')
+
+    if led_color is not None and led_color != _s_.LED_NO_OVERRIDE:
+        try:
+            led_color_int = int(led_color, 16)
+            if (led_color_int < 0x000000) or (led_color_int > 0xffffff):
+                raise ValueError('LED Color must be between 0x000000 and 0xffffff.')
+        except ValueError as e:
+            raise OpenDCREException('Invalid LED color specified. ({})'.format(e.message))
+
+    if blink_state is not None and blink_state not in [_s_.LED_BLINK, _s_.LED_STEADY, _s_.LED_NO_OVERRIDE]:
+        raise OpenDCREException('Invalid blink state specified for LED.')
+
+    elif (led_color is not None) and (blink_state is not None):
+        if not const.get_board_type(board_id) == const.BOARD_TYPE_SNMP:
+            return _chamber_led_control(board_id=board_id, device_id=device_id, led_state=led_state,
+                                        rack_id=rack_id, led_color=led_color, blink_state=blink_state)
+
+    cmd = current_app.config['CMD_FACTORY'].get_led_command({
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_LED),
+        _s_.DEVICE_TYPE_STRING: const.DEVICE_LED,
+        _s_.DEVICE_NAME: const.DEVICE_LED,
+        _s_.RACK_ID: rack_id,
+        _s_.LED_STATE: led_state,
+        _s_.LED_COLOR: led_color,
+        _s_.LED_BLINK_STATE: blink_state,
+    })
+
+    device = get_device_instance(board_id)
+    response = device.handle(cmd)
+
+    return jsonify(response.data)
+
+
+@core.route(url('/fan/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+@core.route(url('/fan/<rack_id>/<board_id>/<device_id>/<fan_speed>'), methods=['GET'])
+def fan_control(rack_id, board_id, device_id, fan_speed=None):
     """ Control fan on system or Vapor Chamber.  System fan may only be polled for status
     unless explicitly supported.
 
     Args:
         rack_id: The rack id to control fan for.
-        board_num: The board number to control fan for.
-        device_num: The device number to control fan for.
+        board_id: The board number to control fan for.
+        device_id: The device number to control fan for.
         fan_speed: The speed to set fan to.
 
     Returns:
         fan speed in rpms
     """
-    board_id, device_id = check_valid_board_and_device(board_num, device_num)
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
     # if we are reading the fan speed only, forward on to the device_read method and pass along response
     if fan_speed is None:
-        return read_device(rack_id, 'fan_speed', board_num, device_num)
+        return read_device(rack_id, const.DEVICE_FAN_SPEED, board_id, device_id)
 
     # convert fan speed to int
     if fan_speed is not None:
@@ -650,11 +662,11 @@ def fan_control(rack_id, board_num, device_num, fan_speed=None):
             raise OpenDCREException('Error converting fan_speed to integer ({}).'.format(e))
 
     cmd = current_app.config['CMD_FACTORY'].get_fan_command({
-        'board_id': board_id,
-        'device_id': device_id,
-        'device_type': get_device_type_code(const.DEVICE_FAN_SPEED),
-        'device_name': const.DEVICE_FAN_SPEED,
-        'fan_speed': fan_speed
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_FAN_SPEED),
+        _s_.DEVICE_NAME: const.DEVICE_FAN_SPEED,
+        _s_.FAN_SPEED: fan_speed
     })
 
     device = get_device_instance(board_id)
@@ -663,29 +675,29 @@ def fan_control(rack_id, board_num, device_num, fan_speed=None):
     return jsonify(response.data)
 
 
-@core.route(url('/host_info/<rack_id>/<board_num>/<device_num>'), methods=['GET'])
-def host_info(rack_id, board_num, device_num):
-    """ Get hostname and ip address for a given host (of type 'system'. This uses the PLC TTY to login to the server,
-    and retrieve the hostname[s] and ip address[es]
+@core.route(url('/host_info/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+def host_info(rack_id, board_id, device_id):
+    """ Get hostname and ip address for a given host (of type 'system'.  This uses
+    the PLC TTY to login to the server, and retrieve the hostname[s] and ip address[es]
 
     Args:
         rack_id: The id of the rack where the target board resides
-        board_num: The board number to get host info for.
-        device_num: The device number to get host info for.
+        board_id: The board number to get host info for.
+        device_id: The device number to get host info for.
 
     Returns:
         hostname(s) and IP address(es)
     """
-    board_num, device_num = check_valid_board_and_device(board_num, device_num)
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
     cmd = current_app.config['CMD_FACTORY'].get_host_info_command({
-        'board_id': board_num,
-        'device_id': device_num,
-        'device_type': get_device_type_code(const.DEVICE_SYSTEM),
-        'device_name': const.DEVICE_SYSTEM
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_SYSTEM),
+        _s_.DEVICE_NAME: const.DEVICE_SYSTEM
     })
 
-    device = get_device_instance(board_num)
+    device = get_device_instance(board_id)
     response = device.handle(cmd)
 
     return jsonify(response.data)

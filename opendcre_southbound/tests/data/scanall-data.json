@@ -1,6 +1,12 @@
 {
   "scanall": [
     {
+      "_comment": "Initial scan - this is done during device registration before the tests begin",
+      "initial": {
+        "result": "ok"
+      }
+    },
+    {
       "_comment": "Test 1 - All scans are ok, should return proper results",
       "initial": {
         "result": "ok"

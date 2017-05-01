@@ -479,7 +479,7 @@ def set_identify(username=None, password=None, ip_address=None, port=BMC_PORT, l
         led_state (int): 1 == Force on, 0 == Force off.
 
     Returns:
-        int: LED State as set.
+        dict: LED State as set.
     """
     # Force on if True, Force off if False (indefinite duration)
     state = led_state == 1

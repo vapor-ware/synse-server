@@ -1,0 +1,30 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "bmcs": [
+        {
+          "bmc_ip": "192.168.1.110",
+          "username": "ADMIN",
+          "password": "ADMIN",
+          "hostnames": ["flex1u"],
+          "ip_addresses": ["192.168.1.110"]
+        },
+        {
+          "bmc_ip": "192.168.1.118",
+          "username": "ADMIN",
+          "password": "ADMIN",
+          "hostnames": ["atom"],
+          "ip_addresses": ["192.168.1.118"]
+        },
+        {
+          "bmc_ip": "192.168.1.112",
+          "username": "admin",
+          "password": "Password1",
+          "hostnames": ["cloudline"],
+          "ip_addresses": ["192.168.1.112"]
+        }
+      ]
+    }
+  ]
+}

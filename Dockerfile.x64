@@ -6,14 +6,20 @@ ENV VAPOR_SERVICE_NAME=opendcre
 ADD ./requirements.txt requirements.txt
 ADD ./graphql/requirements.txt graphql-requirements.txt
 
+# Update sources.list so that we can get the snmp packages.
+RUN echo deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted  >> /etc/apt/sources.list && \
+    echo deb-src http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted  >> /etc/apt/sources.list
+
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    socat \
+    socat=1.7.2.3-1 \
+    libftdi-dev=0.20-1ubuntu1 \
+    swig=2.0.11-1ubuntu2 \
+    make=3.81-8.2ubuntu3 \
+    snmp=5.7.2~dfsg-8.1ubuntu3.2 \
     curl \
-    python-dev \
     python3-pip \
     python3-dev \
-    make \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
     rm -r -f /var/lib/apt/lists/* && apt-get clean
@@ -32,6 +38,12 @@ RUN mkdir -p /etc/uwsgi/vassals && \
     touch /etc/uwsgi/reload && \
     chown -R www-data:www-data /etc/uwsgi
 
+
+ADD ./libmpsse/src /build
+WORKDIR /build
+RUN ./configure && make && make install
+
+
 RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     tar -xvzf uwsgi-2.0.15.tar.gz && \
     cd uwsgi-2.0.15 && \
@@ -46,6 +58,11 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
 # this should correspond to the opendcre/southbound-api dir
 ADD . /opendcre
 WORKDIR /opendcre
+
+
+# Install our packages.
+#RUN pip install -I vapor_common-1.0.tar.gz crate_api-1.0.tar.gz opendcre-core-1.0.tar.gz
+
 
 # run command for nginx configuration
 RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \

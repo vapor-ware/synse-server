@@ -464,6 +464,9 @@ class MockBMC(object):
         if bool(self.chassis['current_power_state']):
             readings = self.dcmi['power']['current_watts']
             if len(readings) > 1:
+                # This reading index is not very reliable. Tests should only
+                # assert input_power is between the min and max in the bmc.json
+                # config file.
                 reading_idx = self.dcmi['power'].get('next_reading_idx', 0)
                 current_watts = readings[reading_idx]
                 self.dcmi['power']['next_reading_idx'] = (reading_idx + 1) % len(readings)

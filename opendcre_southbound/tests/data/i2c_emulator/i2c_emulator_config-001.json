@@ -1,0 +1,117 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "device_name": "/dev/ttyVapor006",
+      "lockfile": "/tmp/i2c-0.lock",
+      "hardware_type": "emulator",
+      "devices": [
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0000",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 1 - min-max"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0001",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 2 - steps"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0002",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 3 - bad-device"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0003",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 4 - one-value"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0004",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 5 - no-device"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0008",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 1 - min-max"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0009",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 2 - steps"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "000a",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 3 - one-value"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "000b",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 4 - no-data"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "ffff",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 5 - no-device"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "0014",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED - steady-white"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "0015",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED - cycle-on-blink-off"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "0016",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED - read-write"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "0017",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED - no-data"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "ffff",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED - no-device"
+        }
+      ]
+    }
+  ]
+}

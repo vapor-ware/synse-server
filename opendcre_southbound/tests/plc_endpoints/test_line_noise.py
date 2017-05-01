@@ -6,24 +6,6 @@
 
     \\//
      \/apor IO
-
--------------------------------
-Copyright (C) 2015-17  Vapor IO
-
-This file is part of OpenDCRE.
-
-OpenDCRE is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-OpenDCRE is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
@@ -35,15 +17,6 @@ from vapor_common.errors import VaporHTTPError
 class LineNoiseTestCase(unittest.TestCase):
     """ Line Noise Tests - ignore junk at head, positive
     """
-
-    def test_001_junk_head_scan(self):
-        # expect 200 status, single thermistor
-        r = http.get(PREFIX + "/scan/rack_1/000000c8")
-        self.assertTrue(http.request_ok(r.status_code))
-        response = r.json()
-        self.assertEqual(response["boards"][0]["board_id"], "00000002")
-        self.assertEqual(response["boards"][0]["devices"][0]["device_id"], "01ff")
-        self.assertEqual(response["boards"][0]["devices"][0]["device_type"], "thermistor")
 
     def test_002_junk_head_version(self):
         # expect 200 status, version string
@@ -88,15 +61,6 @@ class LineNoiseTestCase(unittest.TestCase):
     """
         Line Noise Tests - ignore junk at head, valid packet with junk at tail, positive
     """
-
-    def test_007_junk_head_valid_long_scan(self):
-        # expect 200 status, single thermistor
-        r = http.get(PREFIX + "/scan/rack_1/000000cc")
-        self.assertTrue(http.request_ok(r.status_code))
-        response = r.json()
-        self.assertEqual(response["boards"][0]["board_id"], "00000002")
-        self.assertEqual(response["boards"][0]["devices"][0]["device_id"], "01ff")
-        self.assertEqual(response["boards"][0]["devices"][0]["device_type"], "thermistor")
 
     def test_008_junk_head_valid_long_version(self):
         # expect 200 status, version string

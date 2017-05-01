@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   05/17/2016
-    
+
     \\//
      \/apor IO
 
@@ -27,8 +27,19 @@ along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
+class TestException(Exception):
+    """An exception indicating a test failure."""
+    pass  # Well hopefully not.
+
+
 class VaporError(Exception):
     """ The base error class for all common Vapor errors.
+    """
+    pass
+
+
+class RequestValidationError(VaporError):
+    """ A request failed to validate identity hash headers.
     """
     pass
 

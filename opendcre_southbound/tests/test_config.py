@@ -38,3 +38,9 @@ PREFIX = PROTOCOL + 'opendcre-southbound-test-container:' + str(_PORT) + _ENDPOI
 
 # path to the directory holding data for tests. assumes root at /vapor-core
 TEST_DATA_DIR = '/opendcre/opendcre_southbound/tests/data/'
+
+# device used by pymodbus for direct connnection to emulator
+RS485_TEST_CLIENT_DEVICE = '/dev/ttyVapor004'
+
+# timeout to be used by the test client for RS485
+RS485_TEST_TIMEOUT_SEC = 0.025

@@ -1,0 +1,13 @@
+{
+  "scan_cache_file": "/tmp/opendcre/cache.json",
+  "cache_timeout": 600,
+  "cache_threshold": 500,
+
+  "devices": {
+    "redfish": {
+      "scan_on_init": true,
+      "device_initializer_threads": 4,
+      "from_config": "redfish_config.json"
+    }
+  }
+}

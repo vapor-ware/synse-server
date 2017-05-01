@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   09/07/2016
-    
+
     \\//
      \/apor IO
 
@@ -43,7 +43,7 @@ class IPMIEmulatorThroughputTestCase(unittest.TestCase):
 
     # number of requests to make at a time
     SIZE = 5
-    
+
     # request timeout (seconds)
     TIMEOUT = 5
 

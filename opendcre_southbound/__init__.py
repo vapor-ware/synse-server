@@ -49,6 +49,9 @@ from utils import ThreadPool, cache_registration_dependencies
 
 from opendcre_southbound.devicebus.devices.plc import *
 from opendcre_southbound.devicebus.devices.ipmi import *
+from opendcre_southbound.devicebus.devices.rs485 import *
+from opendcre_southbound.devicebus.devices.i2c import *
+from opendcre_southbound.devicebus.devices.snmp.snmp_device import *
 from opendcre_southbound.devicebus.devices.redfish.redfish_device import *
 
 from opendcre_southbound.blueprints import core
@@ -91,6 +94,9 @@ PREFIX = const.endpoint_prefix + __api_version__
 device_registrars = {
     'plc': PLCDevice,
     'ipmi': IPMIDevice,
+    'i2c': I2CDevice,
+    'rs485': RS485Device,
+    'snmp': SnmpDevice,
     'redfish': RedfishDevice
 }
 
@@ -155,9 +161,8 @@ def register_app_devices(app):
 
     _devices = {}
     _single_board_devices = {}
-    _range_devices = []
 
-    app_cache = (_devices, _single_board_devices, _range_devices)
+    app_cache = (_devices, _single_board_devices)
 
     _failed_registration = False
 
@@ -185,7 +190,6 @@ def register_app_devices(app):
 
     app.config['DEVICES'] = _devices
     app.config['SINGLE_BOARD_DEVICES'] = _single_board_devices
-    app.config['RANGE_DEVICES'] = _range_devices
 
 
 def main(serial_port=None, hardware=None):
@@ -226,7 +230,10 @@ def main(serial_port=None, hardware=None):
         # board_id. this should increase monotonically for each board for each device interface
         # so that each board has a unique id whether registered upfront or at runtime
         app.config['IPMI_BOARD_OFFSET'] = count()
+        app.config['I2C_BOARD_OFFSET'] = count()
+        app.config['RS485_BOARD_OFFSET'] = count()
         app.config['PLC_BOARD_OFFSET'] = count()
+        app.config['SNMP_BOARD_OFFSET'] = count()
         app.config['REDFISH_BOARD_OFFSET'] = count()
 
         # add a command factory to the app context
@@ -238,9 +245,6 @@ def main(serial_port=None, hardware=None):
 
         # single board devices can be accessed by board_id to get device instance
         app.config['SINGLE_BOARD_DEVICES'] = {}
-
-        # range-devices must be iterated through to determine if a board_id belongs to one of them
-        app.config['RANGE_DEVICES'] = []
 
         app.register_blueprint(core)
         register_app_devices(app)
