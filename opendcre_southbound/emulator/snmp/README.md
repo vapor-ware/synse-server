@@ -5,24 +5,21 @@ Spin up the emulator by:
 make snmp-yml
 ```
 
-The file in data/public.snmprec is used by the snmp emulator to server OIDs from the Rittal MIB for reads.
+The file in data/public.snmprec is used by the snmp emulator to server OIDs from the Test MIB for reads.
 data/private.snmprec is read/write if the specific OID is setup that way in the file. For more information
 see: http://snmpsim.sourceforge.net/simulation-with-variation-modules.html#writecache
 
-To generate the data file:
-Download the Rittal MIB from here: http://www.rittal.de/downloads/rimatrix5/software/RiZoneMib_v3.6.zip
-Unzip it.
-Rename it to RITTAL-RIZONE-MIB.txt (Not clear if this copy is needed.)
+To generate the data file from a MIB text file:
 ```
-cp RITTAL-RIZONE-MIB.txt /usr/share/snmp/mibs/
+cp EMULATOR-TEST-MIB.txt /usr/share/snmp/mibs/
 pip install pysmi
 pip install snmpsim
-python /usr/local/bin/mibdump.py RITTAL-RIZONE-MIB.txt
+python /usr/local/bin/mibdump.py EMULATOR-TEST-MIB.txt
 mkdir rawdata
-mib2dev.py --mib-module=RITTAL-RIZONE-MIB > rawdata/RITTAL-RIZONE-MIB.snmprec
+mib2dev.py --mib-module=EMULATOR-TEST-MIB > rawdata/EMULATOR-TEST-MIB.snmprec
 mib2dev.py --mib-module=SNMPv2-MIB > rawdata/SNMPv2-MIB.snmprec
 mkdir data
-cat rawdata/RITTAL-RIZONE-MIB.snmprec rawdata/SNMPv2-MIB.snmprec > data/public.snmprec
+cat rawdata/EMULATOR-TEST-MIB.snmprec rawdata/SNMPv2-MIB.snmprec > data/public.snmprec
 cp public.snmprec private.snmprec
 # Then edit private.snmprec to make specific OIDs writable (see above writecache link)
 ```

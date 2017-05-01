@@ -5,13 +5,13 @@ test-container-x64:
   dockerfile: dockerfile/Dockerfile.x64
   command: bash -c "sleep 5 && python ./opendcre_southbound/tests/test-snmp-emulator.py"
   links:
-    - snmp-emulator
+    - snmp-emulator-test
 
 # This is the container running the emulator to test against.
-snmp-emulator:
-  container_name: snmp-emulator
+snmp-emulator-test:
+  container_name: snmp-emulator-test
   build: ../../../emulator/snmp
-  dockerfile: Dockerfile-rittal-rizone.x64
+  dockerfile: Dockerfile-emulator-tests.x64
   command: ./start_snmp_emulator.sh ./data 11011 snmp-emulator.log
   ports:
     - 11011:11011/udp

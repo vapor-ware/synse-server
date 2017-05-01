@@ -23,7 +23,7 @@ class UpsBypassTable(SnmpTable):
             row_base='1',
             readable_column='2',
             column_list=[
-                'index',        # The MIB says that this is not accessible, but it's in the Rittal walk.
+                'index',        # The MIB says that this is not accessible, but it's in the walk.
                 'voltage',      # RMS Volts.
                 'current',      # 0.1 RMS Amp.
                 'power',        # Watts.

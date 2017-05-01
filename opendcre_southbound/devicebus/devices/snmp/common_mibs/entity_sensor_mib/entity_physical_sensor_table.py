@@ -164,7 +164,7 @@ class EntityPhysicalSensorTable(SnmpTable):
             raise ValueError('Device status {}.'.format(operational_status))
 
         # Deliberately ignoring precision for now.
-        # The Rittal walk contains data of 20300, scale milli, precision 1.
+        # The walk data contains data of 20300, scale milli, precision 1.
         # This seems like it should read 20.3 rather than 20.
         # (Value has more precision than the precision column.)
         reading = float(row['value'])
