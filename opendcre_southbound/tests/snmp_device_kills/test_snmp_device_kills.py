@@ -6,12 +6,12 @@
 """
 import json
 import logging
+import docker
 
 from opendcre_southbound.tests.opendcre_test import OpenDcreHttpTest
 from opendcre_southbound.tests.test_utils import Uri
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
-from vapor_common.tests.utils.pinger import Pinger
 from vapor_common.tests.utils.strings import _S
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,6 @@ EXPECTED_VAPOR_HTTP_ERROR = 'Should have raised VaporHTTPError.'
 NO_VERIFICATION_FOR_BOARD = 'No verification method for board_id {}'
 RACK_1 = 'rack_1'
 RACK_2 = 'rack_2'
-SNMP_EMULATOR_RITTAL_RIZONE = 'snmp-emulator-rittal-rizone'
 SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1 = 'snmp-emulator-opendcre-testdevice1-board1'
 SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2 = 'snmp-emulator-opendcre-testdevice1-board2'
 
@@ -34,13 +33,14 @@ SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2 = 'snmp-emulator-opendcre-testdevice1-
 
 
 class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
-    """This test brings up three SNMP emulators. One for RiZone, Two for
-    TestDevice1. The goal here is to allow the OpenDCRE container to initialize
-    successfully with all three emulators running. Before these tests start we
-    docker kill the RiZone emulator and one of the TestDevice1 emulators. The
-    goal here is to find out what happens when SNMP servers fall over after
-    OpenDCRE initialization. No forced scan is done here so OpenDCRE will still
-    attempt to route commands to the emulators that have been killed."""
+    """ This test brings up two SNMP emulators for TestDevice1. The goal here
+    is to allow the OpenDCRE container to initialize successfully with all
+    emulators running. Before these tests start we docker kill one of the
+    TestDevice1 emulators. The goal here is to find out what happens when
+    SNMP servers fall over after OpenDCRE initialization. No forced scan is
+    done here so OpenDCRE will still attempt to route commands to the emulators
+    that have been killed.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -48,70 +48,29 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
         logger.debug('Starting SnmpDeviceKillsTestCase.')
         logger.debug('Verify containers are either alive or killed.')
 
-        logger.debug('We expect this emulator to be up.')
-        alive = [SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2]
-        for container in alive:
-            rc = Pinger.ping(container)
-            if rc != 0:
-                assert False, 'Unable to ping container {}'.format(container)
+        cli = docker.Client(base_url='unix://var/run/docker.sock')
 
-        logger.debug('We expect these emulators to be down.')
-        dead = [SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, SNMP_EMULATOR_RITTAL_RIZONE]
-        for container in dead:
-            rc = Pinger.ping(container)
-            if rc == 0:
-                assert False, 'Container {} should be down.'.format(container)
+        # stop one of the containers
+        cli.stop(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, timeout=0)
+
+        # now, we get the running containers to verify
+        running = cli.containers(filters={'status': 'running'})
+
+        alive = []
+        for ctr in running:
+            if 'Labels' in ctr:
+                for k, v in ctr['Labels'].iteritems():
+                    if k == 'com.docker.compose.service':
+                        alive.append(v)
+
+        # verify that the board we expect to be running is running, and the
+        # one we expect to be down is not running.
+        assert SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1 not in alive, 'Container alive, but should be dead.'
+        assert SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2 in alive, 'Container dead, but should be alive.'
 
     # region Scan Helpers
 
-    def _verify_rack1_scan(self, response):
-        """
-        Common area to validate valid scan all results.
-        :param response: The valid scan all response to verify.
-        """
-        # Get the first rack.
-        rack = self._get_rack_by_id(response, RACK_1)
-        self._verify_common_rack_fields(rack)
-
-        # Verify rack_id.
-        self.assertEquals(RACK_1, rack[_S.RACK_ID])
-
-        # Verify hostnames.
-        hostnames = rack[_S.HOSTNAMES]
-        self.assertEquals(1, len(hostnames))
-        self.assertEquals(SNMP_EMULATOR_RITTAL_RIZONE, hostnames[0])
-
-        # Verify ip_addresses.
-        ip_addresses = rack[_S.IP_ADDRESSES]
-        self.assertEquals(1, len(ip_addresses))
-        self.assertEquals(SNMP_EMULATOR_RITTAL_RIZONE, ip_addresses[0])
-
-        # Verify boards.
-        boards = rack[_S.BOARDS]
-        self.assertEqual(1, len(boards))
-
-        board = boards[0]
-        self._verify_common_board_fields(board)
-
-        # Verify board id.
-        board_id = board[_S.BOARD_ID]
-        self.assertEquals(BOARD_60000000, board_id)
-
-        # Verify devices.
-        devices = board[_S.DEVICES]
-        self.assertEqual(8, len(devices))
-
-        # Verify each device 1-8.
-        self._verify_device(devices[0], '0000', _S.DEVICE_TYPE_TEMPERATURE, _S.DEVICE_TYPE_TEMPERATURE)
-        self._verify_device(devices[1], '0001', _S.DEVICE_TYPE_TEMPERATURE, _S.DEVICE_TYPE_TEMPERATURE)
-        self._verify_device(devices[2], '0002', _S.DEVICE_TYPE_POWER, _S.DEVICE_TYPE_POWER)
-        self._verify_device(devices[3], '0003', _S.DEVICE_TYPE_HUMIDITY, _S.DEVICE_TYPE_HUMIDITY)
-        self._verify_device(devices[4], '0004', _S.DEVICE_TYPE_VOLTAGE, _S.DEVICE_TYPE_VOLTAGE)
-        self._verify_device(devices[5], '0005', _S.DEVICE_TYPE_FAN_SPEED, _S.DEVICE_TYPE_FAN_SPEED)
-        self._verify_device(devices[6], '0006', _S.DEVICE_TYPE_FREQUENCY, _S.DEVICE_TYPE_FREQUENCY)
-        self._verify_device(devices[7], '0007', _S.DEVICE_TYPE_LEAKAGE, _S.DEVICE_TYPE_LEAKAGE)
-
-    def _verify_board_60000001(self, board):
+    def _verify_board_60000000(self, board):
 
         self._verify_common_board_fields(board)
 
@@ -150,7 +109,7 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
         self._verify_device(devices[23], '0017', _S.DEVICE_TYPE_POWER, _S.DEVICE_TYPE_POWER)
         self._verify_device(devices[24], '0018', _S.DEVICE_TYPE_POWER, _S.DEVICE_TYPE_POWER)
 
-    def _verify_board_60000002(self, board):
+    def _verify_board_60000001(self, board):
 
         self._verify_common_board_fields(board)
 
@@ -188,6 +147,42 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
         self._verify_device(devices[22], '0016', _S.DEVICE_TYPE_POWER, _S.DEVICE_TYPE_POWER)
         self._verify_device(devices[23], '0017', _S.DEVICE_TYPE_POWER, _S.DEVICE_TYPE_POWER)
 
+    def _verify_rack1_scan(self, response):
+        """
+        Common area to validate valid scan all results.
+        :param response: The valid scan all response to verify.
+        """
+        # Get the rack.
+        rack = self._get_rack_by_id(response, RACK_1)
+        self._verify_common_rack_fields(rack)
+
+        # Verify rack_id.
+        self.assertEquals(RACK_1, rack[_S.RACK_ID])
+
+        # Verify hostnames.
+        hostnames = rack[_S.HOSTNAMES]
+        self.assertEquals(1, len(hostnames))
+        self.assertIn(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, hostnames)
+
+        # Verify ip_addresses.
+        ip_addresses = rack[_S.IP_ADDRESSES]
+        self.assertEquals(1, len(ip_addresses))
+        self.assertIn(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, ip_addresses)
+
+        # Verify boards.
+        boards = rack[_S.BOARDS]
+        self.assertEqual(1, len(boards))
+
+        for board in boards:
+            self.assertIn(_S.BOARD_ID, board)
+            board_id = board[_S.BOARD_ID]
+            self.assertIsInstance(board_id, basestring)
+
+            if board_id == BOARD_60000000:
+                self._verify_board_60000000(board)
+            else:
+                self.fail(NO_VERIFICATION_FOR_BOARD.format(board_id))
+
     def _verify_rack2_scan(self, response):
         """
         Common area to validate valid scan all results.
@@ -202,19 +197,17 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
         # Verify hostnames.
         hostnames = rack[_S.HOSTNAMES]
-        self.assertEquals(2, len(hostnames))
-        self.assertIn(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, hostnames)
+        self.assertEquals(1, len(hostnames))
         self.assertIn(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2, hostnames)
 
         # Verify ip_addresses.
         ip_addresses = rack[_S.IP_ADDRESSES]
-        self.assertEquals(2, len(ip_addresses))
-        self.assertIn(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD1, ip_addresses)
+        self.assertEquals(1, len(ip_addresses))
         self.assertIn(SNMP_EMULATOR_OPENDCRE_TESTDEVICE1_BOARD2, ip_addresses)
 
         # Verify boards.
         boards = rack[_S.BOARDS]
-        self.assertEqual(2, len(boards))
+        self.assertEqual(1, len(boards))
 
         for board in boards:
             self.assertIn(_S.BOARD_ID, board)
@@ -223,8 +216,6 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
             if board_id == BOARD_60000001:
                 self._verify_board_60000001(board)
-            elif board_id == BOARD_60000002:
-                self._verify_board_60000002(board)
             else:
                 self.fail(NO_VERIFICATION_FOR_BOARD.format(board_id))
 
@@ -331,11 +322,11 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
     def test_version_board_does_not_exist_rack1(self):
         """SNMP version testing. Board does not exist. Sad case."""
         try:
-            http.get(Uri.create(_S.URI_VERSION, RACK_1, BOARD_60000001))
+            http.get(Uri.create(_S.URI_VERSION, RACK_1, BOARD_60000002))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(
-                e, 500, _S.ERROR_NO_BOARD_ON_RACK.format(RACK_1, BOARD_60000001))
+                e, 500, _S.ERROR_NO_REGISTERED_DEVICE_FOR_BOARD.format(int(BOARD_60000002, 16)))
 
     def test_version_rack2(self):
         """SNMP version testing. Happy case."""
@@ -345,11 +336,11 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
     def test_version_board_does_not_exist_rack2(self):
         """SNMP version testing. Board does not exist. Sad case."""
         try:
-            http.get(Uri.create(_S.URI_VERSION, RACK_2, BOARD_60000000))
+            http.get(Uri.create(_S.URI_VERSION, RACK_2, BOARD_60000002))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(
-                e, 500, _S.ERROR_NO_BOARD_ON_RACK.format(RACK_2, BOARD_60000000))
+                e, 500, _S.ERROR_NO_REGISTERED_DEVICE_FOR_BOARD.format(int(BOARD_60000002, 16)))
 
     # endregion
 
@@ -425,37 +416,37 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
 
-    def test_read_fan_speed_rack2_board1(self):
+    def test_read_fan_speed_rack1_board0(self):
         """SNMP read of fan speed. Sad case. Emulator is dead."""
-        logger.debug('test_read_fan_speed_rack2_board1')
+        logger.debug('test_read_fan_speed_rack1_board0')
         try:
-            http.get(Uri.read_fan_speed(RACK_2, BOARD_60000001, '0005'), timeout=7)
+            http.get(Uri.read_fan_speed(RACK_1, BOARD_60000000, '0005'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
 
-    def test_read_fan_speed_rack2_board2(self):
+    def test_read_fan_speed_rack2_board1(self):
         """SNMP read of fan speed. Happy case."""
-        logger.debug('test_read_fan_speed_rack2_board2')
-        response = http.get(Uri.read_fan_speed(RACK_2, BOARD_60000002, '0005')).json()
+        logger.debug('test_read_fan_speed_rack2_board1')
+        response = http.get(Uri.read_fan_speed(RACK_2, BOARD_60000001, '0005')).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_read_fan_response(response, _S.OK, [], 5)
 
-    def test_read_voltage_rack2_board1(self):
+    def test_read_voltage_rack1_board0(self):
         """SNMP read of voltage variable. Sad case. Emulator is dead."""
-        logger.debug('test_read_voltage_rack2_board1')
+        logger.debug('test_read_voltage_rack1_board0')
         try:
-            http.get(Uri.read_voltage(RACK_2, BOARD_60000001, '0014'), timeout=7)
+            http.get(Uri.read_voltage(RACK_1, BOARD_60000000, '0014'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
 
-    def test_read_voltage_rack2_board2(self):
+    def test_read_voltage_rack2_board1(self):
         """SNMP read of voltage variable. Happy case."""
         logger.debug('test_read_voltage_rack2_board1')
-        response = http.get(Uri.read_voltage(RACK_2, BOARD_60000002, '0014'), timeout=7).json()
+        response = http.get(Uri.read_voltage(RACK_2, BOARD_60000001, '0014'), timeout=7).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_read_voltage_response(response, _S.OK, [], 14)
 
@@ -465,21 +456,11 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
     # region Read2
 
-    def test_bad_data_according_to_rizone(self):
-        """Test bad data quality. Note: We don't support pressure readings yet,
-        but we should check the data validity first. Sad case. Emulator is not running."""
-        try:
-            http.get(Uri.read_pressure(RACK_1, BOARD_60000000, '0000'), timeout=7)
-            self.fail(EXPECTED_VAPOR_HTTP_ERROR)
-
-        except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
-
-    def test_read_fan_speed_rack2(self):
+    def test_read_fan_speed_rack1_board0_down(self):
         """SNMP read of fan speed. Sad case. Emulator is down."""
-        logger.debug('test_read_fan_speed_rack2')
+        logger.debug('test_read_fan_speed_rack1_board0')
         try:
-            http.get(Uri.read_fan_speed(RACK_2, BOARD_60000001, '0000'), timeout=7)
+            http.get(Uri.read_fan_speed(RACK_1, BOARD_60000000, '0000'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
@@ -488,26 +469,26 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
     # region Fan
 
-    def test_read_write_fan_speed_rack2_board1(self):
+    def test_read_write_fan_speed_rack1_board0(self):
         """SNMP read of fan speed. Sad case. Emulator is down."""
-        logger.debug('test_read_write_fan_speed_rack2_board1')
-        base_uri = Uri.create(_S.URI_FAN, RACK_2, BOARD_60000001, '0004')
+        logger.debug('test_read_write_fan_speed_rack1_board0')
+        base_uri = Uri.create(_S.URI_FAN, RACK_1, BOARD_60000000, '0004')
         try:
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
 
-    def test_read_write_fan_speed_rack2_board2(self):
+    def test_read_write_fan_speed_rack2_board1(self):
         """SNMP read of fan speed. Happy case. Read, write, set back to the original.
-        This is a lot like test_read_write_fan_speed_rack2_board1, but verifies that
+        This is a lot like test_read_write_fan_speed_rack1_board0, but verifies that
         command routing is going to the correct emulator.
         NOTE: If a write fails or the write back to original fails, this test may be
         non-reentrant. To avoid reentrancy issues, no other tests should run against
-        this device at /rack_2/60000002/0004.
+        this device at /rack_2/60000001/0004.
         """
-        logger.debug('test_read_write_fan_speed_rack2_board2')
-        base_uri = Uri.create(_S.URI_FAN, RACK_2, BOARD_60000002, '0004')
+        logger.debug('test_read_write_fan_speed_rack2_board1')
+        base_uri = Uri.create(_S.URI_FAN, RACK_2, BOARD_60000001, '0004')
         response = http.get(base_uri).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_read_fan_response(response, _S.OK, [], 21)
@@ -528,20 +509,20 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
         response = http.get(base_uri).json()
         self._verify_read_fan_response(response, _S.OK, [], 21)
 
-    def test_write_fan_speed_rack2_board1_wrong_device_type(self):
+    def test_write_fan_speed_rack1_board0_wrong_device_type(self):
         """SNMP write of fan speed. Sad case. Fan control on LED."""
-        logger.debug('test_write_fan_speed_rack2_board1_wrong_device_type')
+        logger.debug('test_write_fan_speed_rack1_board0_wrong_device_type')
         try:
-            http.get(Uri.create(_S.URI_FAN, RACK_2, BOARD_60000001, '000c', '300'))
+            http.get(Uri.create(_S.URI_FAN, RACK_1, BOARD_60000000, '000c', '300'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.ERROR_FAN_COMMAND_NOT_SUPPORTED)
 
-    def test_write_fan_speed_rack2_board1_device_does_not_exist(self):
+    def test_write_fan_speed_rack1_board0_device_does_not_exist(self):
         """SNMP read of fan speed. Sad case. Fan control on non-existent device."""
-        logger.debug('test_write_fan_speed_rack2_board1_wrong_device_type')
+        logger.debug('test_write_fan_speed_rack1_board0_wrong_device_type')
         try:
-            http.get(Uri.create(_S.URI_FAN, RACK_2, BOARD_60000001, 'f001', '300'))
+            http.get(Uri.create(_S.URI_FAN, RACK_1, BOARD_60000000, 'f001', '300'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.ERROR_NO_DEVICE_WITH_ID.format('f001'))
@@ -557,7 +538,7 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.ERROR_POWER_COMMAND_NOT_SUPPORTED)
 
     def test_power_wrong_device_type_rack1(self):
         """Power read a valid device, but wrong device type.
@@ -568,21 +549,21 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.ERROR_POWER_COMMAND_NOT_SUPPORTED)
 
-    def test_power_board_does_not_exist_rack1(self):
+    def test_power_board_does_not_exist_rack2(self):
         """Test power where board does not exist. Sad case."""
         try:
-            http.get(Uri.create(_S.URI_POWER, RACK_1, '60000006', '0002'))
+            http.get(Uri.create(_S.URI_POWER, RACK_2, '60000006', '0002'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.ERROR_NO_REGISTERED_DEVICE_FOR_BOARD.format(int('60000006', 16)))
 
-    def test_power_device_does_not_exist_rack1(self):
+    def test_power_device_does_not_exist_rack2(self):
         """Test power where device does not exist. Sad case."""
         try:
-            http.get(Uri.create(_S.URI_POWER, RACK_1, BOARD_60000000, 'F001'))
+            http.get(Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, 'F001'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
@@ -596,13 +577,13 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.ERROR_POWER_COMMAND_NOT_SUPPORTED)
 
-    def test_power_read_rack2(self):
-        """Sad case power read on the second rack. Emulator is dead."""
-        logger.debug('test_power_read_rack2')
+    def test_power_read_rack1_bad(self):
+        """Sad case power read on the first rack. Emulator is dead."""
+        logger.debug('test_power_read_rack1')
         try:
-            http.get(Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, '0011'), timeout=7)
+            http.get(Uri.create(_S.URI_POWER, RACK_1, BOARD_60000000, '0011'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
@@ -610,7 +591,7 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
     def test_power_read_rack2_not_supported(self):
         """Sad case power read on the second rack. Power command on a fan."""
         try:
-            http.get(Uri.create(_S.URI_POWER, RACK_1, BOARD_60000001, '0002'))
+            http.get(Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, '0002'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.ERROR_POWER_COMMAND_NOT_SUPPORTED)
@@ -619,28 +600,28 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
     # region Power Writes
 
-    def test_read_write_power_rack2_board1(self):
+    def test_read_write_power_rack1_board0(self):
         """SNMP read/write of power. Sad case. Emulator is down.
         """
-        logger.debug('test_read_write_power_rack2_board1')
-        base_uri = Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, '0012')
+        logger.debug('test_read_write_power_rack1_board0')
+        base_uri = Uri.create(_S.URI_POWER, RACK_1, BOARD_60000000, '0012')
         try:
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
 
-    def test_read_write_power_rack2_board2(self):
+    def test_read_write_power_rack2_board1(self):
         """SNMP read/write of power. Happy case. Simulates an SNMP PDU.
         Read, off, read, on, read, cycle, read, off, read.
-        This is a lot like test_read_write_power_rack2_board1, but verifies that
+        This is a lot like test_read_write_power_rack1_board0, but verifies that
         command routing is going to the correct emulator.
         NOTE: If a write fails or the write back to original fails, this test may be
         non-reentrant. To avoid reentrancy issues, no other tests should run against
-        this device at /rack_2/60000002/0012.
+        this device at /rack_2/60000001/0012.
         """
-        logger.debug('test_read_write_power_rack2_board2')
-        base_uri = Uri.create(_S.URI_POWER, RACK_2, BOARD_60000002, '0012')
+        logger.debug('test_read_write_power_rack2_board1')
+        base_uri = Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, '0012')
         response = http.get(base_uri).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_power_response(response, 26, False, True, _S.ON)
@@ -678,20 +659,20 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
         response = http.get(base_uri).json()
         self._verify_power_response(response, 26, False, True, _S.OFF)
 
-    def test_write_power_rack2_board1_wrong_device_type(self):
+    def test_write_power_rack1_board0_wrong_device_type(self):
         """SNMP read of power. Sad case. Power command on LED."""
         try:
-            http.get(Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, '000c', '300'))
+            http.get(Uri.create(_S.URI_POWER, RACK_1, BOARD_60000000, '000c', '300'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(
                 e, 500, _S.ERROR_POWER_COMMAND_NOT_SUPPORTED)
 
-    def test_write_power_rack2_board1_device_does_not_exist(self):
+    def test_write_power_rack2_board0_device_does_not_exist(self):
         """SNMP read of power. Sad case. Power command on non-existent device."""
-        logger.debug('test_write_fan_speed_rack2_board1_wrong_device_type')
+        logger.debug('test_write_fan_speed_rack2_board0_wrong_device_type')
         try:
-            http.get(Uri.create(_S.URI_POWER, RACK_2, BOARD_60000001, 'f001', '300'))
+            http.get(Uri.create(_S.URI_POWER, RACK_1, BOARD_60000000, 'f001', '300'))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.ERROR_NO_DEVICE_WITH_ID.format('f001'))
@@ -700,27 +681,27 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
     # region LED Writes
 
-    def test_read_write_led_rack2_board1(self):
+    def test_read_write_led_rack2_board0(self):
         """SNMP read/write of LED. Sad case. Emulator is down."""
-        logger.debug('test_read_write_led_rack2_board1')
-        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000001, '000d')
+        logger.debug('test_read_write_led_rack2_board0')
+        base_uri = Uri.create(_S.URI_LED, RACK_1, BOARD_60000000, '000d')
         try:
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
 
-    def test_read_write_led_rack2_board2(self):
+    def test_read_write_led_rack2_board1(self):
         """SNMP read/write of LED. Happy case.
         Read, off, read, on, read, cycle, read, off, read.
-        This is a lot like test_read_write_led_rack2_board1, but verifies that
+        This is a lot like test_read_write_led_rack1_board0, but verifies that
         command routing is going to the correct emulator. (Initial read is different.)
         NOTE: If a write fails or the write back to original fails, this test may be
         non-reentrant. To avoid reentrancy issues, no other tests should run against
-        this device at /rack_2/60000001/000d.
+        this device at /rack_1/60000000/000d.
         """
-        logger.debug('test_read_write_led_rack2_board2')
-        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000002, '000d')
+        logger.debug('test_read_write_led_rack2_board1')
+        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000001, '000d')
         response = http.get(base_uri).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_led_response(response, _S.ON, 'ffffff', _S.BLINK_ON)
@@ -776,32 +757,32 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
 
     # endregion
 
-    def test_write_led_rack2_board1_wrong_device_type(self):
+    def test_write_led_rack1_board0_wrong_device_type(self):
         """SNMP write of LED Sad case. LED command on LED."""
         try:
-            http.get(Uri.create(_S.URI_LED, RACK_2, BOARD_60000001, '0016', _S.ON))
+            http.get(Uri.create(_S.URI_LED, RACK_1, BOARD_60000000, '0016', _S.ON))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(
                 e, 500, _S.ERROR_LED_COMMAND_NOT_SUPPORTED)
 
-    def test_write_led_rack2_board1_device_does_not_exist(self):
+    def test_write_led_rack1_board0_device_does_not_exist(self):
         """SNMP read of fan speed. Sad case. Fan control on non-existent device."""
-        logger.debug('test_write_led_rack2_board1_device_does_not_exist')
+        logger.debug('test_write_led_rack1_board0_device_does_not_exist')
         try:
-            http.get(Uri.create(_S.URI_LED, RACK_2, BOARD_60000001, 'f071', _S.ON))
+            http.get(Uri.create(_S.URI_LED, RACK_1, BOARD_60000000, 'f071', _S.ON))
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
             self._verify_vapor_http_error(e, 500, _S.ERROR_NO_DEVICE_WITH_ID.format('f071'))
 
-    def test_led_set_color_without_blink_rack2_board2(self):
+    def test_led_set_color_without_blink_rack2_board1(self):
         """SNMP read/write of LED. Sad case.
         NOTE: If a write fails or the write back to original fails, this test may be
         non-reentrant.
         """
         # Make sure the device is there.
-        logger.debug('test_led_set_color_without_blink_rack2_board2')
-        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000002, '000c')
+        logger.debug('test_led_set_color_without_blink_rack2_board1')
+        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000001, '000c')
         response = http.get(base_uri).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_led_response(response, _S.ON, 'ff0000', _S.BLINK_OFF)
@@ -814,14 +795,14 @@ class SnmpDeviceKillsTestCase(OpenDcreHttpTest):
             # You'll get a 404 here because the blueprint does not exist.
             self._verify_vapor_http_error(e, 404, _S.ERROR_FLASK_404)
 
-    def test_led_set_invalid_states_rack2_board2(self):
+    def test_led_set_invalid_states_rack2_board1(self):
         """SNMP write of LED. Sad casee.
         NOTE: If a write fails or the write back to original fails, this test may be
         non-reentrant.
         """
         # Make sure the device is there.
-        logger.debug('test_led_set_color_without_blink_rack2_board2')
-        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000002, '000c')
+        logger.debug('test_led_set_color_without_blink_rack2_board1')
+        base_uri = Uri.create(_S.URI_LED, RACK_2, BOARD_60000001, '000c')
         response = http.get(base_uri).json()
         logger.debug(json.dumps(response, sort_keys=True, indent=4, separators=(',', ': ')))
         self._verify_led_response(response, _S.ON, 'ff0000', _S.BLINK_OFF)

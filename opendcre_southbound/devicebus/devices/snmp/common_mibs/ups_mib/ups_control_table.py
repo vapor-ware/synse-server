@@ -23,7 +23,7 @@ class UpsControlTable(SnmpTable):
                 'startup_after_delay',      # Seconds
                 'reboot_with_duration',     # Seconds
                 'auto_restart',
-                # The Rittal walk data has two extra columns here, but they're
+                # The walk data has two extra columns here, but they're
                 # not defined in the RFC or here http://www.oidview.com/mibs/0/UPS-MIB.html
             ],
             snmp_server=kwargs['snmp_server'],

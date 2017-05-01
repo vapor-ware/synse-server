@@ -22,23 +22,8 @@ opendcre-southbound-test-container:
   environment:
     - VAPOR_DEBUG=true
   links:
-    - snmp-emulator-rittal-rizone
     - snmp-emulator-opendcre-testdevice1-board1
     - snmp-emulator-opendcre-testdevice1-board2
-
-
-# This is the container running the emulator to test against
-# for the Rittal-RiZone snmp emulator.
-snmp-emulator-rittal-rizone:
-  container_name: snmp-emulator-rittal-rizone
-  build: ../../../emulator/snmp
-  dockerfile: Dockerfile-rittal-rizone.x64
-  # This command will override what is in the dockerfile.
-  command: ./start_snmp_emulator.sh ./data 11011 snmp-emulator-rittal-rizone.log
-  ports:
-    - 11011:11011/udp
-  environment:
-    - VAPOR_DEBUG=true
 
 # This is the container running the emulator to test against
 # for the OpenDCRE-TestDevice1 (board1) snmp emulator.

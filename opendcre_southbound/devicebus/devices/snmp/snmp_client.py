@@ -30,7 +30,7 @@ class SnmpClient(object):
     def get(self, oid):
         """
         Snmp wrapper taking a string oid.
-        :param oid: A string oid such as 1.3.6.1.4.1.2606.6.5.1.2.1.10.3.
+        :param oid: A string oid such as 1.3.6.1.4.1.61439.6.5.1.2.1.10.3.
         :return: The single row result.
         """
         cmd_generator = cmdgen.CommandGenerator()
@@ -51,7 +51,7 @@ class SnmpClient(object):
 
     def set(self, data):
         """
-        SNMP set wrapper taking a community string and a string oid such as '1.3.6.1.4.1.2606.6.5.1.2.1.10.3'
+        SNMP set wrapper taking a community string and a string oid such as '1.3.6.1.4.1.61439.6.5.1.2.1.10.3'
         :param data: A tuple of OID and the data to set at the OID.
         :return: The updated data on success.
         :raises: ValueError when there is no OID to set or caller does not have write credentials.
