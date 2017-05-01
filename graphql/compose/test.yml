@@ -5,7 +5,7 @@ services:
     image: vaporio/synse-graphql-test
     build:
       context: ..
-      dockerfile: dockerfile/test.dockerfile
+      dockerfile: test.dockerfile
     volumes:
       - ..:/graphql_frontend
     links:
