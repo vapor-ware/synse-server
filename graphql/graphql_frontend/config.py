@@ -16,13 +16,13 @@ parser.add('-c', '--my-config', is_config_file=True, help='config file path')
 parser.add(
     '--port',
     env_var='PORT',
-    default=5001,
+    default=5000,
     help='Port to listen on.')
 parser.add(
     '--backend',
     env_var='BACKEND',
-    default='demo.vapor.io:5000',
-    help='Path to the backend to use. example: "demo.vapor.io:5000"')
+    default='localhost:5000',
+    help='Path to the backend to use. example: "192.168.99.100:5000"')
 
 options = None
 
