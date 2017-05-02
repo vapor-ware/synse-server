@@ -20,7 +20,7 @@ in the image, e.g. the inclusion of site-specific TLS certificates, nginx config
 The included dockerfile can be used to package up the distribution:
 ::
 
-    docker build -t opendcre:custom-v1.3.0 -f dockerfile/Dockerfile.x64 .
+    docker build -t opendcre:custom-v1.3.0 -f Dockerfile.x64 .
 
 A Makefile recipe also exists to build the OpenDCRE image and tag it as ``vaporio/opendcre-<arch>:1.3``, where *<arch>*
 specifies the architecture (e.g., x64). For the *x64* architecture, this recipe is:
