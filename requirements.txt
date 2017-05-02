@@ -1,0 +1,4 @@
+pyserial==2.7
+RPi.GPIO
+pyghmi
+grequests

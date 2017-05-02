@@ -28,7 +28,8 @@ real-dev:
 	-docker exec -it synse-graphql-test /bin/sh
 
 real-test:
-	-docker exec -it synse-graphql-test /bin/sh -c "bin/wait && tox"
+	# Removed the -t on docker exec since Jenkins does not have a tty.
+	-docker exec -i synse-graphql-test /bin/sh -c "bin/wait && tox"
 
 clean:
 	$(call clean)

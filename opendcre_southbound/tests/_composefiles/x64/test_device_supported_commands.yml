@@ -1,7 +1,7 @@
 test-container-x64:
   container_name: test-container-x64
   build: ../../../..
-  dockerfile: dockerfile/Dockerfile.x64
+  dockerfile: Dockerfile.x64
   command: python ./opendcre_southbound/tests/test-device-supported-commands.py
   environment:
     - VAPOR_DEBUG=true

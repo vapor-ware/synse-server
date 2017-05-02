@@ -3,7 +3,8 @@ MAINTAINER Andrew Cencini <andrew@vapor.io>
 
 ENV VAPOR_SERVICE_NAME=opendcre
 
-ADD ./graphql/requirements.txt requirements.txt
+ADD ./requirements.txt requirements.txt
+ADD ./graphql/requirements.txt graphql-requirements.txt
 
 # Update sources.list so that we can get the snmp packages.
 RUN echo deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted  >> /etc/apt/sources.list && \
@@ -21,14 +22,16 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install -I \
-    pyserial==2.7 \
-    pyghmi==1.0.18 \
-    pymodbus==1.2.0 \
-    grequests==0.3.0 \
-    pysnmp==4.3.4 \
-    pyasn1==0.2.3 && \
-    pip3 install -r requirements.txt
+    rm -r -f /var/lib/apt/lists/* && apt-get clean
+
+# Wheel and setuptools need to be installed first in order to install the other python requirements.
+RUN pip2 install --upgrade pip
+RUN pip2 install wheel setuptools
+RUN pip3 install --upgrade pip
+RUN pip3 install wheel setuptools
+
+RUN pip2 install -r requirements.txt && \
+    pip3 install -r graphql-requirements.txt
 
 RUN mkdir -p /etc/uwsgi/vassals && \
     mkdir -p /etc/uwsgi/plugins && \
@@ -49,7 +52,7 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     PYTHON=python3.4 ./uwsgi --build-plugin "plugins/python python34" && \
     cp python27_plugin.so /etc/uwsgi/plugins/ && \
     cp python34_plugin.so /etc/uwsgi/plugins/ && \
-    UWSGI_PROFILE=nolang python setup.py install
+    UWSGI_PROFILE=nolang python setup.py install || true
 
 
 # this should correspond to the opendcre/southbound-api dir
