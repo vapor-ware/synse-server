@@ -12,11 +12,11 @@ RUN echo deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted 
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    socat=1.7.2.3-1 \
-    libftdi-dev=0.20-1ubuntu1 \
-    swig=2.0.11-1ubuntu2 \
-    make=3.81-8.2ubuntu3 \
-    snmp=5.7.2~dfsg-8.1ubuntu3.2 \
+    socat\
+    libftdi-dev \
+    swig \
+    make \
+    snmp \
     curl \
     python3-pip \
     python3-dev \
