@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ OpenDCRE Southbound SNMP testDevice1 Implementation.
     This is a made up device to test OpenDCRE commands to an SNMP server that
-     the RiZone will not support.
+    another device will not support.
 
     \\//
      \/apor IO

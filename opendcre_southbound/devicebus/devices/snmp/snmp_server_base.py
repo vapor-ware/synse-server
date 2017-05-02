@@ -98,8 +98,8 @@ class SnmpServerBase(object):
                             "device_info": "temperature",
                             "device_type": "temperature",
                             "snmp_row": {
-                                "base_oid": "1.3.6.1.4.1.2606.6.4.2.2.1.{}.11",
-                                "table_name": "Rittal-RiZone-Variable-Table"
+                                "base_oid": "1.3.6.1.4.1.61439.6.4.2.2.1.{}.11",
+                                "table_name": "Emulator-Test-Variable-Table"
                             }
                         },
                         {
@@ -107,18 +107,18 @@ class SnmpServerBase(object):
                             "device_info": "temperature",
                             "device_type": "temperature",
                             "snmp_row": {
-                                "base_oid": "1.3.6.1.4.1.2606.6.4.2.2.1.{}.2",
-                                "table_name": "Rittal-RiZone-Variable-Table"
+                                "base_oid": "1.3.6.1.4.1.61439.6.4.2.2.1.{}.2",
+                                "table_name": "Emulator-Test-Variable-Table"
                             }
                         }
                     ]
                 }
             ],
             "hostnames": [
-                "snmp-emulator-rittal-rizone"
+                "snmp-emulator-test"
             ],
             "ip_addresses": [
-                "snmp-emulator-rittal-rizone"
+                "snmp-emulator-test"
             ],
             "rack_id": "rack_1"
             }
@@ -212,7 +212,6 @@ class SnmpServerBase(object):
                 object, containing the data from the version response.
         """
         # Make sure that the board exists.
-        # logger.debug('RiZone version command {}'.format(vars(command)))
         board_id = '{0:08x}'.format(command.data['board_id'])  # Convert from int to string.
         board = self.get_board_on_rack(command.data['rack_id'], board_id)
         if not board:
@@ -239,12 +238,12 @@ class SnmpServerBase(object):
     def convert_snmp_result_set(results):
         """Raw walk results and aggregated get results from SNMP client are
         heavily typed, for example some rows:
-        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.2606.6.5.1.2.1.8.19')), OctetString('Portez ce'))]
-        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.2606.6.5.1.2.1.9.15')), Integer(25))]
+        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.8.19')), OctetString('Portez ce'))]
+        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.9.15')), Integer(25))]
 
         It's easier to work with a dictionary of string OIDs and data values, for example:
-        '1.3.6.1.4.1.2606.6.4.2.2.1.6.23': 17
-        '1.3.6.1.4.1.2606.6.4.2.2.1.3.6': 'TestPowerVariable'
+        '1.3.6.1.4.1.61439.6.4.2.2.1.6.23': 17
+        '1.3.6.1.4.1.61439.6.4.2.2.1.3.6': 'TestPowerVariable'
 
         :param results: The raw walk results from SnmpClient.walk()
         :return: Converted walk results as a dictionary.

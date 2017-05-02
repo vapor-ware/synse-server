@@ -29,7 +29,7 @@ class SnmpServerFactory(object):
         """Initialize SNMP server specific class that handles OpenDCRE calls.
         :param server_type: server_type string from the json config (snmp_config.json by default.
             Supported server_types:
-                Rittal-RiZone
+                Emulator-Test
                 OpenDCRE-testDevice1
         :param app_cfg: The OpenDCRE app config.
         :param kwargs: kwargs from the json config.

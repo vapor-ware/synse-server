@@ -26,7 +26,7 @@ class SnmpTable(object):
 
         # This is how we identify what table we are working on internally.
         # SnmpTable is a generic table class. VariableTable is a specific
-        # table class to the Rittal RiZone MIB.
+        # table class to the Emulator Test MIB.
         self.table_name = ArgumentChecker.check_instance(basestring, kwargs['table_name'])
 
         # This is the OID to walk the whole table.

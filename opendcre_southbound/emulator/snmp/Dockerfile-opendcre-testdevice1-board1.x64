@@ -15,6 +15,8 @@ ADD . /home/snmp
 # These SNMP emulator files are specfic to the device being emulated.
 # Data are just places in /home/snmp/data on the emulator to keep it simple.
 ADD data/opendcre-test/test-device1/board1/test-device1.snmprec /home/snmp/data/test-device1.snmprec
+ADD data/emulator-test/public.snmprec /home/snmp/data/public.snmprec
+ADD data/emulator-test/private.snmprec /home/snmp/data/private.snmprec
 ADD python-mibs/* ~/.pysnmp/mibs/
 
 # snmpsmi variation modules (like writecache) are getting installed to a location not in the search path,

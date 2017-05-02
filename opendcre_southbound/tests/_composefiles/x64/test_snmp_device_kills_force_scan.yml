@@ -3,20 +3,21 @@
 test-container-x64:
   container_name: test-container-x64
   build: ../../../..
-  dockerfile: dockerfile/Dockerfile.x64
+  dockerfile: Dockerfile.x64
   command: bash -c "sleep 15 && python ./opendcre_southbound/tests/test-snmp-device-kills-force-scan.py"
   links:
     - opendcre-southbound-test-container
     # These links are here to support pinging emulator containers from the test container..
-    - snmp-emulator-rittal-rizone
     - snmp-emulator-opendcre-testdevice1-board1
     - snmp-emulator-opendcre-testdevice1-board2
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
 
 # This container is where opendcre is running.
 # Allows us to make web service calls against it.
 opendcre-southbound-test-container:
   build: ../../../..
-  dockerfile: dockerfile/Dockerfile.x64
+  dockerfile: Dockerfile.x64
   command: ./start_opendcre.sh
   ports:
     - 5000:5000
@@ -26,23 +27,8 @@ opendcre-southbound-test-container:
   environment:
     - VAPOR_DEBUG=true
   links:
-    - snmp-emulator-rittal-rizone
     - snmp-emulator-opendcre-testdevice1-board1
     - snmp-emulator-opendcre-testdevice1-board2
-
-
-# This is the container running the emulator to test against
-# for the Rittal-RiZone snmp emulator.
-snmp-emulator-rittal-rizone:
-  container_name: snmp-emulator-rittal-rizone
-  build: ../../../emulator/snmp
-  dockerfile: Dockerfile-rittal-rizone.x64
-  # This command will override what is in the dockerfile.
-  command: ./start_snmp_emulator.sh ./data 11011 snmp-emulator-rittal-rizone.log
-  ports:
-    - 11011:11011/udp
-  environment:
-    - VAPOR_DEBUG=true
 
 # This is the container running the emulator to test against
 # for the OpenDCRE-TestDevice1 (board1) snmp emulator.

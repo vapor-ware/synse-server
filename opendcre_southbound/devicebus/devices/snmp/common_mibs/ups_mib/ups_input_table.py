@@ -23,7 +23,7 @@ class UpsInputTable(SnmpTable):
             row_base='1',
             readable_column='2',
             column_list=[
-                'index',        # The MIB says that this is not accessible, but it's in the Rittal walk.
+                'index',        # The MIB says that this is not accessible, but it's in the walk.
                 'frequency',    # .1 Hertz
                 'current',      # .1 RMS Amp
                 'voltage',      # RMS Volts
