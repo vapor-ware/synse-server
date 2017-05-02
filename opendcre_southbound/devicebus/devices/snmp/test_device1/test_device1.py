@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ OpenDCRE Southbound SNMP testDevice1 Implementation.
     This is a made up device to test OpenDCRE commands to an SNMP server that
-    another device would will not support.
+    another device will not support.
 
     \\//
      \/apor IO
@@ -150,7 +150,6 @@ class TestDevice1(SnmpServerBase):
 
         base_oid = device['snmp_row']['base_oid']       # base_oid of the row we need to read.
         table_name = device['snmp_row']['table_name']   # Which table to read
-        logger.debug('TableName : {}'.format(table_name))
 
         if table_name != 'OpenDcre-TestDevice1-Power-Table':
             raise CommandNotSupported('Power command not supported on this device.')
