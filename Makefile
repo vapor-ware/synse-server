@@ -112,13 +112,13 @@ graphql-build-release:
 graphql-test-service:
 	docker-compose -f compose/graphql-test.yml up -d
 
-dev test: %: graphql-build-test graphql-test-service graphql-real-%
+graphql-dev graphql-test: %: graphql-build-test graphql-test-service real-%
 	$(call graphql-clean)
 
-graphql-real-dev:
+real-graphql-dev:
 	-docker exec -it synse-graphql-test /bin/sh
 
-graphql-real-test:
+real-graphql-test:
 	# Removed the -t on docker exec since Jenkins does not have a tty.
 	-docker exec -i synse-graphql-test /bin/sh -c "bin/wait && tox"
 

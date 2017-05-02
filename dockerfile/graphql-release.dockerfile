@@ -3,7 +3,7 @@ MAINTAINER Thomas Rampelberg <thomasr@vapor.io>
 
 RUN mkdir /logs
 # Run the dependencies as a single layer
-COPY graphql/requirements.txt /graphql_frontend/requirements.txt
+COPY graphql /graphql_frontend
 RUN pip install -r /graphql_frontend/requirements.txt
 
 COPY . /graphql_frontend
