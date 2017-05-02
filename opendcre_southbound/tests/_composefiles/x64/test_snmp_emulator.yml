@@ -1,0 +1,19 @@
+# This is the container running the tests.
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "sleep 5 && python ./opendcre_southbound/tests/test-snmp-emulator.py"
+  links:
+    - snmp-emulator-test
+
+# This is the container running the emulator to test against.
+snmp-emulator-test:
+  container_name: snmp-emulator
+  build: ../../../emulator/snmp
+  dockerfile: Dockerfile-opendcre-testdevice1-board1.x64
+  command: ./start_snmp_emulator.sh ./data 11012 snmp-emulator.log
+  ports:
+    - 11012:11012/udp
+  environment:
+    - VAPOR_DEBUG=true

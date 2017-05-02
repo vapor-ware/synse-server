@@ -35,9 +35,7 @@ class ArgumentChecker(object):
     If a parameter is invalid:
         - TypeError is thrown if the input type is unexpected.
         - ValueError is thrown if the type is correct but the input value is
-        unexpected.
-    """
-
+        unexpected."""
     @staticmethod
     def check_instance(expected_type, variable):
         """If the variable is not an instance of the specified type, raise a ValueError."""

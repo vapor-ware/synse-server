@@ -42,6 +42,7 @@ class DevicebusInterface(object):
     Primarily, this defines some common methods that can be used or overridden
     by its subclasses. Of note, the `_instance_name` member should be used by
     terminal subclasses to specify the name of the device that class represents.
+    This is particularly useful for identifying individual I2C and RS485 devices.
 
     A `handle` method is also defined and should not be overridden. It provides
     the device logic to process an incoming Command and dispatch it to the Device's
@@ -174,11 +175,13 @@ class DevicebusInterface(object):
         is incorrect.
 
         Args:
-            app_cache (tuple): a three-tuple which contains the mutable structures
-                used by the application to track the currently registered devicebus
-                instances.
+            app_cache (tuple): a 2-tuple where the first item is a mutable dictionary
+                which is used to map a DevicebusInterfaces' UUID to the DevicebusInterface
+                instance and the second item is a mutable dictionary which maps the
+                board id(s) for a given DevicebusInterface to its instance. These mutable
+                structures are used as lookup tables by the Flask application.
         """
-        if len(app_cache) != 3:
+        if len(app_cache) != 2:
             raise ValueError(
-                'App cache passed to registrar expects 3 collections but found {}'.format(len(app_cache))
+                'App cache does not contain 2 collections: {}'.format(app_cache)
             )

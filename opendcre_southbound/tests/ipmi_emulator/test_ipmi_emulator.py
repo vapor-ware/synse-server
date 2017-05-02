@@ -6,24 +6,6 @@
     
     \\//
      \/apor IO
-
--------------------------------
-Copyright (C) 2015-17  Vapor IO
-
-This file is part of OpenDCRE.
-
-OpenDCRE is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-OpenDCRE is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 from pyghmi.ipmi.command import Command
@@ -391,8 +373,12 @@ class IPMIEmulatorTestCase(unittest.TestCase):
         self.assertIn('data', res)
         self.assertIsInstance(res['data'], list)
 
-        # here we will only check the current, min, max and avg
-        self.assertEqual(res['data'][1:3], [0xb9, 0x00])  # current watts
+        # Here we will only check the current, min, max and avg.
+        # There is slop in the current watts since the emulator emits different
+        # results for each client call. Just check that we get something in the
+        # min / max range.
+        self.assertTrue(0x96 <= res['data'][1] <= 0xFA)  # Current watts low byte. 150 <= reading <=250.
+        self.assertEqual(res['data'][2], 0x00)  # Current watts high byte.
         self.assertEqual(res['data'][3:5], [0x96, 0x00])  # min watts
         self.assertEqual(res['data'][5:7], [0xfa, 0x00])  # max watts
         self.assertEqual(res['data'][7:9], [0xc8, 0x00])  # avg watts

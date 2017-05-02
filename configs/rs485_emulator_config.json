@@ -1,0 +1,36 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "device_name": "/dev/ttyVapor004",
+      "lockfile": "/tmp/rs485-0.lock",
+      "hardware_type": "emulator",
+      "devices": [
+        {
+          "device_type": "vapor_fan",
+          "device_id": "0001",
+          "base_address": "0000",
+          "device_model": "gs3-2010",
+          "device_unit": 1,
+          "device_info": "chamber fan"
+        },
+        {
+          "device_type": "humidity",
+          "device_id": "0001",
+          "base_address": "3000",
+          "device_model": "sht31",
+          "device_unit": 1,
+          "device_info": "cec humidity 1"
+        },
+        {
+          "device_type": "airflow",
+          "device_id": "0001",
+          "base_address": "4000",
+          "device_model": "d6f-w10a1",
+          "device_unit": 1,
+          "device_info": "cec airflow"
+        }
+      ]
+    }
+  ]
+}

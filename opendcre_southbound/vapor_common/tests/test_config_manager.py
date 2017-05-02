@@ -26,8 +26,10 @@ You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
+import logging
 
 from config_manager.test_config_manager import ConfigurationManagerTestCase
+from vapor_common.test_utils import run_suite, exit_suite
 
 
 def get_suite():
@@ -37,5 +39,6 @@ def get_suite():
     return suite
 
 
-runner = unittest.TextTestRunner()
-runner.run(get_suite())
+if __name__ == '__main__':
+    result = run_suite('test-config-manager', get_suite(), loglevel=logging.ERROR)
+    exit_suite(result)

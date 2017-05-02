@@ -28,7 +28,7 @@ along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 import sys, logging
-from vapor_common.test_utils import run_suite
+from vapor_common.test_utils import run_suite, exit_suite
 
 from endpoint_utilities.test_endpoint_utils import EndpointUtilitiesTestCase
 

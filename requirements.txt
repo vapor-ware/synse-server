@@ -1,4 +1,6 @@
 pyserial==2.7
-RPi.GPIO
-pyghmi
+pyghmi==1.0.18
+pymodbus==1.2.0
 grequests
+pysnmp==4.3.4
+pyasn1==0.2.3
