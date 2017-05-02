@@ -4,10 +4,9 @@ services:
     container_name: synse-server
     build:
       context: ..
-      dockerfile: dockerfile/Dockerfile.x64
+      dockerfile: Dockerfile.x64
 
     ports:
       - 5000:5000
     environment:
       - VAPOR_DEBUG=true
-

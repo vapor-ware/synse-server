@@ -565,7 +565,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 185.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
     def test_037_power(self):
         """ Test power control with IPMI.
@@ -583,7 +583,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 188.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
     def test_038_power(self):
         """ Test power control with IPMI.
@@ -601,7 +601,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 186.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
     def test_039_power(self):
         """ Test power control with IPMI.
@@ -619,7 +619,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 189.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/40000000/0100/off')
         self.assertTrue(http.request_ok(r.status_code))
@@ -664,7 +664,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 188.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/40000000/0100')
         self.assertTrue(http.request_ok(r.status_code))
@@ -679,7 +679,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 192.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
     def test_040_power(self):
         """ Test power control with IPMI.
@@ -2407,7 +2407,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 195.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/192.168.2.100/0100')
         self.assertTrue(http.request_ok(r.status_code))
@@ -2422,7 +2422,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 199.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/test-1/0100')
         self.assertTrue(http.request_ok(r.status_code))
@@ -2437,7 +2437,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 210.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/test-2/0100')
         self.assertTrue(http.request_ok(r.status_code))
@@ -2452,7 +2452,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 211.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
     def test_150_test_power_by_bad_ip_host(self):
         """ Test the host info endpoint in IPMI mode.
@@ -3313,7 +3313,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 213.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/192.168.2.100/power')
         self.assertTrue(http.request_ok(r.status_code))
@@ -3328,7 +3328,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 211.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/test-1/power')
         self.assertTrue(http.request_ok(r.status_code))
@@ -3343,7 +3343,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 212.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
         r = http.get(PREFIX + '/power/rack_1/test-2/power')
         self.assertTrue(http.request_ok(r.status_code))
@@ -3358,7 +3358,7 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
-        self.assertEqual(response['input_power'], 210.0)
+        self.assertTrue(150 <= response['input_power'] <= 250)
 
     def test_172_test_power_by_bad_ip_host_device(self):
         """ Test the host info endpoint in IPMI mode.

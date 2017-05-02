@@ -45,8 +45,15 @@ build-hub:
 		-t vaporio/hub:latest \
 		-t vaporio/hub:2.3.0-pre9 .
 
+# packagecloud is used to upload the packages to repos
+# FIXME: The version is hardcoded right now, should be dynamic.
+build-packagecloud:
+	docker build -f dockerfile/packagecloud.dockerfile \
+		-t vaporio/packagecloud:latest \
+		-t vaporio/packagecloud:0.2.42 .
+
 build:
-	docker build -f dockerfile/Dockerfile.x64 \
+	docker build -f Dockerfile.x64 \
 		-t vaporio/synse-server:latest \
 		-t vaporio/synse-server:$(PKG_VER) \
 		-t vaporio/synse-server:$(GIT_VER) .
@@ -59,6 +66,7 @@ ubuntu1604:
 	docker run -it -v $(PWD)/packages:/data vaporio/fpm \
 	-t deb \
 	--iteration ubuntu1604 \
+	--depends "docker-ce > 17" \
 	$(FPM_OPTS) .
 
 deb: ubuntu1604
@@ -67,16 +75,25 @@ el7:
 	docker run -it -v $(PWD)/packages:/data vaporio/fpm \
 	-t rpm \
 	--iteration el7 \
+	--depends "docker-engine > 17" \
 	$(FPM_OPTS) .
 
 rpm: el7
 
-release: deb rpm
+release-github:
 	docker run -it -v $(PWD):/data vaporio/hub \
 		release create -d \
 		-a packages/synse-server-$(PKG_VER)*rpm \
 		-a packages/synse-server_$(PKG_VER)*deb \
 		-m "v$(PKG_VER)" v$(PKG_VER)
+
+release-packagecloud:
+	docker run -it -v $(PWD):/data vaporio/packagecloud \
+		push VaporIO/synse/el/7 /data/$(shell ls packages/*.rpm)
+	docker run -it -v $(PWD):/data vaporio/packagecloud \
+		push VaporIO/synse/ubuntu/xenial /data/$(shell ls packages/*.deb)
+
+release: deb rpm release-github release-packagecloud
 
 # -----------------------------------------------
 # GraphQL Commands
