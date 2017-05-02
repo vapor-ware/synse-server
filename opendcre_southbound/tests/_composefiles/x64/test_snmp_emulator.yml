@@ -2,7 +2,7 @@
 test-container-x64:
   container_name: test-container-x64
   build: ../../../..
-  dockerfile: dockerfile/Dockerfile.x64
+  dockerfile: Dockerfile.x64
   command: bash -c "sleep 5 && python ./opendcre_southbound/tests/test-snmp-emulator.py"
   links:
     - snmp-emulator-test
