@@ -53,7 +53,7 @@ build-packagecloud:
 		-t vaporio/packagecloud:0.2.42 .
 
 build:
-	docker build -f dockerfile/Dockerfile.x64 \
+	docker build -f Dockerfile.x64 \
 		-t vaporio/synse-server:latest \
 		-t vaporio/synse-server:$(PKG_VER) \
 		-t vaporio/synse-server:$(GIT_VER) .
