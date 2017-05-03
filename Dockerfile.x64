@@ -12,10 +12,8 @@ RUN echo deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted 
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    socat\
+    socat \
     libftdi-dev \
-    swig \
-    make \
     snmp \
     curl \
     python3-pip \
@@ -37,12 +35,6 @@ RUN mkdir -p /etc/uwsgi/vassals && \
     mkdir -p /etc/uwsgi/plugins && \
     touch /etc/uwsgi/reload && \
     chown -R www-data:www-data /etc/uwsgi
-
-
-ADD ./libmpsse/src /build
-WORKDIR /build
-RUN ./configure && make && make install
-
 
 RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     tar -xvzf uwsgi-2.0.15.tar.gz && \
