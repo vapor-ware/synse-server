@@ -94,7 +94,7 @@ node {
 
             // Test the backend.
             buildAndTest('synse-server', synse_server_branch,
-                'synse-server/opendcre_southbound/tests/', 'make test-x64')
+                'synse-server/synse/tests/', 'make test-x64')
         } finally {
             echo('Cleaning up.')
             cleanupHack()

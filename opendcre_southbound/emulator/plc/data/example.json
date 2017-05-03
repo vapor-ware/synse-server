@@ -1,4 +1,0 @@
-{
-  "serial_device": "/dev/ttyVapor001",
-  "emulator_data": "./opendcre_southbound/tests/data/emulator-data.json"
-}

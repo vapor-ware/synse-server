@@ -1,0 +1,36 @@
+FROM vaporio/vapor-endpoint-base-x64:1.0
+MAINTAINER Matt Hink <mhink@vapor.io>
+
+RUN pip install -I \
+    snmpsim==0.3.0 \
+    pysnmp==4.3.4 \
+    pyasn1==0.2.3
+
+# The emulator will not start as root, so we need to add a user.
+# snmp-emulator    | ERROR: cant drop priveleges: Must drop priveleges to a non-priveleged user&group (sic)
+#
+RUN groupadd -r docker && useradd -r -g docker snmp
+ADD . /home/snmp
+
+# These SNMP emulator files are specfic to the device being emulated.
+# Data are just places in /home/snmp/data on the emulator to keep it simple.
+ADD data/synse-test/test-device1/board2/test-device1.snmprec /home/snmp/data/test-device1.snmprec
+ADD python-mibs/* ~/.pysnmp/mibs/
+
+# snmpsmi variation modules (like writecache) are getting installed to a location not in the search path,
+# so copy where it will be found.
+#
+RUN mkdir -p /home/snmp/.snmpsim/variation && \
+    cp /usr/local/snmpsim/variation/* /home/snmp/.snmpsim/variation && \
+    chown snmp:docker /home/snmp -R && \
+    chown snmp:docker /logs -R
+USER snmp
+WORKDIR /home/snmp
+
+EXPOSE 11013/udp
+
+# Args are:
+# data directory (typically /home/snmp/data)
+# port (normally using 11011 for single emulator)
+# log file name (trying to keep these names unique)
+CMD ["./start_snmp_emulator.sh","./data","11013","snmp-emulator-synse-test-device1.log"]

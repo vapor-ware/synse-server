@@ -36,7 +36,7 @@ SESSION = requests.Session()
 
 
 def make_request(url):
-    base = "http://{0}/opendcre/1.3/".format(
+    base = "http://{0}/synse/1.4/".format(
         config.options.get('backend'))
     result = SESSION.get(requests.compat.urljoin(base, url))
     result.raise_for_status()

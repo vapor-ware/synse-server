@@ -105,18 +105,18 @@ make x64
 
 ## Emulators
 
-To use OpenDCRE with data available, you can run it with the IPMI emulator (Redfish emulator exists as well, see the full [documentation][docs] for more). This can be done simply with:
+To use Synse with data available, you can run it with the IPMI emulator (Redfish emulator exists as well, see the full [documentation][docs] for more). This can be done simply with:
 
 ```
 docker run \
     -p 5000:5000 \
-    -v `pwd`/sample/config_plc.json:/opendcre/override/config.json \
-    vaporio/opendcre ./start_opendcre_plc_emulator.sh
+    -v `pwd`/sample/config_plc.json:/synse/override/config.json \
+    vaporio/synse-server ./start_synse_plc_emulator.sh
 ```
 
 ## Tests
 
-The tests for OpenDCRE exist in the `opendcre_southbound/tests` directory. The OpenDCRE documentation goes into more detail on the test setup.
+The tests for Synse exist in the `synse/tests` directory. The Synse documentation goes into more detail on the test setup.
 
 All tests are containerized for consistency and ease of deployment and integration. There are many test cases, so running the full suite of tests may take some time.
 
@@ -160,6 +160,6 @@ you'd like to use a different synse-server, change the config.
 - `make test`
 
 ## License
-OpenDCRE is released under GPLv2 - see LICENSE for more information.
+Synse is released under GPLv2 - see LICENSE for more information.
 
 [docs]: http://opendcre.com

@@ -18,8 +18,8 @@ services:
     ports:
       - 5000
     volumes:
-      - ../../test/config/bmc.json:/opendcre/bmc_config.json
-      - ../../test/config/ipmi.json:/opendcre/override/config.json
+      - ../../test/config/bmc.json:/synse/bmc_config.json
+      - ../../test/config/ipmi.json:/synse/override/config.json
     links:
       - ipmi-emulator:ipmi-emulator-1-1
       - ipmi-emulator:ipmi-emulator-1-2
