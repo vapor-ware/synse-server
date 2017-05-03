@@ -6,7 +6,5 @@ RUN mkdir /logs
 COPY graphql /graphql_frontend
 RUN pip install -r /graphql_frontend/requirements.txt
 
-COPY . /graphql_frontend
-
 WORKDIR /graphql_frontend
-CMD python graphql/runserver.py
+CMD python runserver.py
