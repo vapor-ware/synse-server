@@ -1,6 +1,7 @@
 # OpenDCRE specific components
 dockerfile
 tools
+docs
 
 # JetBrains (PyCharm, WebStorm, etc.)
 .idea
@@ -11,6 +12,7 @@ tools
 *~
 .directory
 .Trash-*
+**/packages
 
 # OSX
 .DS_Store
@@ -27,13 +29,20 @@ tools
 
 # Python
 *.py[cod]
-__pycache__
+**/__pycache__
+**/.tox
+.pep8
 
 # Logs
 *.log
 
 # Docker
 Dockerfile.*
+**/*.dockerfile
 
-# Markdown
-*.md
+# Docs
+**/*.md
+**/*.rst
+
+# Images
+**/*.png
