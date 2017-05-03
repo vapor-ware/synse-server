@@ -1,10 +1,28 @@
-#
-# PySNMP MIB module UPS-MIB (http://pysnmp.sf.net)
-# ASN.1 source http://mibs.snmplabs.com:80/asn1/UPS-MIB
-# Produced by pysmi-0.0.7 at Wed Feb 22 08:57:43 2017
-# On host elektrode platform Darwin version 16.4.0 by user mhink
-# Using Python version 2.7.10 (default, Jul 30 2016, 19:40:32) 
-#
+"""
+PySNMP MIB module UPS-MIB (http://pysnmp.sf.net)
+ASN.1 source http://mibs.snmplabs.com:80/asn1/UPS-MIB
+Produced by pysmi-0.0.7 at Wed Feb 22 08:57:43 2017
+On host elektrode platform Darwin version 16.4.0 by user mhink
+Using Python version 2.7.10 (default, Jul 30 2016, 19:40:32)
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
+
+This file is part of Synse.
+
+Synse is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+Synse is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
+"""
 ( Integer, ObjectIdentifier, OctetString, ) = mibBuilder.importSymbols("ASN1", "Integer", "ObjectIdentifier", "OctetString")
 ( NamedValues, ) = mibBuilder.importSymbols("ASN1-ENUMERATION", "NamedValues")
 ( ConstraintsUnion, SingleValueConstraint, ConstraintsIntersection, ValueSizeConstraint, ValueRangeConstraint, ) = mibBuilder.importSymbols("ASN1-REFINEMENT", "ConstraintsUnion", "SingleValueConstraint", "ConstraintsIntersection", "ValueSizeConstraint", "ValueRangeConstraint")
