@@ -95,6 +95,146 @@ release-packagecloud:
 
 release: deb rpm release-github release-packagecloud
 
+#################################################
+# Testing and Development
+#################################################
+SHELL := /bin/bash
+
+# -----------------------------------------------
+#  Variables / functions.
+# -----------------------------------------------
+
+# This gets the exit code for a docker container named test-container
+# that has exited. No evaluation is done, it just hands out the exit code.
+TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
+						 awk '{print $1}' | \
+						 xargs docker inspect --format='{{ .State.ExitCode }}')
+
+# This starts the test container with the yml file given at $(1), waits for the
+# test container to exit, then gets the container exit code and exits make if
+# the exit code is non-zero.
+START_TEST_CONTAINER =                                                 \
+	docker-compose -f $(1) up --build test-container-x64 ;             \
+	if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ] ;                \
+		then exit $(value TEST_CONTAINER_EXIT_CODE) ;                  \
+	fi
+
+
+# convenience method for running general tests. these tests do not
+# require any sense of "trust"
+define run_test
+	make delete-containers
+	$(call START_TEST_CONTAINER,opendcre_southbound/tests/_composefiles/x64/$(1).yml)
+	docker-compose -f opendcre_southbound/tests/_composefiles/x64/$(1).yml kill
+endef
+
+
+# -----------------------------------------------
+#  x64
+# -----------------------------------------------
+
+# PLC
+# ....................
+
+test-plc-endpoints:
+	$(call run_test,test_plc_endpoints)
+
+test-plc-scanall:
+	$(call run_test,test_plc_scanall)
+
+test-plc-endurance:
+	$(call run_test,test_plc_endurance)
+
+test-plc-emulator:
+	$(call run_test,test_plc_emulator)
+
+test-plc-endpointless:
+	$(call run_test,test_plc_endpointless)
+
+
+# IPMI
+# ....................
+
+test-ipmi-emulator:
+	$(call run_test,test_ipmi_emulator)
+
+test-ipmi-endpoints:
+	$(call run_test,test_ipmi_endpoints)
+
+test-ipmi-throughput:
+	$(call run_test,test_ipmi_emulator_throughput)
+
+test-ipmi-device-registration:
+	$(call run_test,test_ipmi_device_registration)
+
+test-ipmi-scan-cache-registration:
+	$(call run_test,test_ipmi_scan_cache_registration)
+
+test-ipmi-no-init-scan:
+	$(call run_test,test_ipmi_no_init_scan)
+
+
+# REDFISH
+# ....................
+
+test-redfish-endpoints:
+	$(call run_test,test_redfish_endpoints)
+
+test-redfish-endurance:
+	$(call run_test,test_redfish_endurance)
+
+test-redfish-emulator:
+	$(call run_test,test_redfish_emulator)
+
+
+# GENERAL
+# ....................
+
+test-device-supported-commands:
+	$(call run_test,test_device_supported_commands)
+
+test-endpoint-utils:
+	$(call run_test,test_endpoint_utils)
+
+
+# SUITES
+# ....................
+
+test-plc: \
+	test-plc-endpoints \
+	test-plc-scanall \
+	test-plc-endurance \
+	test-plc-emulator \
+	test-plc-endpointless
+
+
+test-ipmi: \
+	test-ipmi-endpoints \
+	test-ipmi-throughput \
+	test-ipmi-no-init-scan \
+	test-ipmi-device-registration \
+	test-ipmi-scan-cache-registration \
+	test-ipmi-emulator
+
+
+test-redfish: \
+    test-redfish-endpoints \
+    test-redfish-endurance \
+    test-redfish-emulator
+
+
+test-general: \
+    test-device-supported-commands \
+    test-endpoint-utils
+
+
+test: \
+	test-plc \
+	test-ipmi \
+	test-redfish \
+	test-general
+
+
 # -----------------------------------------------
 # GraphQL Commands
 # -----------------------------------------------
