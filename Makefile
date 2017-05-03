@@ -96,6 +96,40 @@ release-packagecloud:
 release: deb rpm release-github release-packagecloud
 
 # -----------------------------------------------
+# GraphQL Commands
+# -----------------------------------------------
+define graphql-clean
+	docker-compose -f compose/graphql-test.yml down --remove-orphans
+	docker-compose -f compose/graphql-release.yml down --remove-orphans
+endef
+
+graphql-build-test:
+	docker-compose -f compose/graphql-test.yml build
+
+graphql-build-release:
+	docker-compose -f compose/graphql-release.yml build
+
+graphql-test-service:
+	docker-compose -f compose/graphql-test.yml up -d
+
+graphql-dev graphql-test: %: graphql-build-test graphql-test-service real-%
+	$(call graphql-clean)
+
+real-graphql-dev:
+	-docker exec -it synse-graphql-test /bin/sh
+
+real-graphql-test:
+	# Removed the -t on docker exec since Jenkins does not have a tty.
+	-docker exec -i synse-graphql-test /bin/sh -c "bin/wait && tox"
+
+graphql-clean:
+	$(call graphql-clean)
+
+graphql-run: graphql-build-release
+	docker-compose -f compose/graphql-release.yml up
+
+
+# -----------------------------------------------
 # Docker Cleanup
 #
 # NOTE:

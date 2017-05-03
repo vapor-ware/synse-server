@@ -1,10 +1,10 @@
 version: "2"
 services:
-  release:
+  graphql-release:
     container_name: synse_graphql
     image: vaporio/synse_graphql
     build:
       context: ..
-      dockerfile: release.dockerfile
+      dockerfile: dockerfile/graphql-release.dockerfile
     ports:
       - "5001:5001"

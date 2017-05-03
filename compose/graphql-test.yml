@@ -1,14 +1,14 @@
 version: "2"
 services:
-  test:
+  graphql-test:
     container_name: synse-graphql-test
     image: vaporio/synse-graphql-test
     build:
       context: ..
-      dockerfile: test.dockerfile
+      dockerfile: dockerfile/graphql-test.dockerfile
     volumes:
-      - ..:/graphql_frontend
-      - ../../VERSION:/VERSION
+      - ../graphql:/graphql_frontend
+      - ../VERSION:/VERSION
     links:
       - synse-server
 
@@ -18,8 +18,8 @@ services:
     ports:
       - 5000
     volumes:
-      - ../../test/config/bmc.json:/opendcre/bmc_config.json
-      - ../../test/config/ipmi.json:/opendcre/override/config.json
+      - ../test/config/bmc.json:/opendcre/bmc_config.json
+      - ../test/config/ipmi.json:/opendcre/override/config.json
     links:
       - ipmi-emulator:ipmi-emulator-1-1
       - ipmi-emulator:ipmi-emulator-1-2
