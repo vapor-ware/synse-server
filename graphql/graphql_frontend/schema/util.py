@@ -30,14 +30,14 @@ import functools
 import requests
 import requests.compat
 
-from graphql_frontend import config
+from graphql_frontend import config, version
 
 SESSION = requests.Session()
 
 
 def make_request(url):
-    base = "http://{0}/synse/1.4/".format(
-        config.options.get('backend'))
+    base = "http://{0}/synse/{1}/".format(
+        config.options.get('backend'), version.__api_version__)
     result = SESSION.get(requests.compat.urljoin(base, url))
     result.raise_for_status()
     return result.json()
