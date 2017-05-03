@@ -57,10 +57,12 @@ WORKDIR /opendcre
 
 
 # run command for nginx configuration
-RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
-    ln -s /opendcre/opendcre_uwsgi.ini /etc/uwsgi/vassals/opendcre_uwsgi.ini && \
-    ln -s /opendcre/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
-    ln -s /opendcre/emperor.ini /etc/uwsgi/emperor.ini && \
+RUN chmod 755 /synse/configure_nginx_config.sh && \
+    /synse/configure_nginx_config.sh && \
+    ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
+    ln -s /synse/synse_uwsgi.ini /etc/uwsgi/vassals/synse_uwsgi.ini && \
+    ln -s /synse/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
+    ln -s /synse/emperor.ini /etc/uwsgi/emperor.ini && \
     chown -R www-data:www-data /etc/uwsgi && \
     rm -f /etc/logrotate.d/nginx && \
     cp /opendcre/configs/nginx.logrotate /etc/logrotate.d/nginx && \
