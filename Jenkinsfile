@@ -90,7 +90,7 @@ node {
 
             // Test graphql.
             buildAndTest('synse-server', synse_server_branch,
-                'synse-server/graphql', 'make test')
+                'synse-server', 'make graphql-test')
 
             // Test the backend.
             buildAndTest('synse-server', synse_server_branch,
