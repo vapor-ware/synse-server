@@ -12,26 +12,26 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import json
 import logging
 import sys
 
-import opendcre_southbound.vapor_common.vapor_logging as vapor_logging
+import vapor_common.vapor_logging as vapor_logging
 from opendcre_southbound.definitions import SCAN_ALL_BIT, SAVE_BIT, SHUFFLE_BIT
 from opendcre_southbound.utils import *
 from opendcre_southbound.devicebus.devices.plc.plc_bus import *

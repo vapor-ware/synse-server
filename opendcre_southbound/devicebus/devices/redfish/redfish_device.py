@@ -10,20 +10,20 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import vapor_redfish
 import logging
@@ -31,6 +31,8 @@ import threading
 import json
 
 from redfish_connection import find_links
+
+import opendcre_southbound.strings as _s_
 from opendcre_southbound.devicebus.constants import CommandId as cid
 from opendcre_southbound import constants as const
 from opendcre_southbound.devicebus.response import Response
@@ -160,18 +162,15 @@ class RedfishDevice(LANDevice):
                 for the Redfish devices themselves.
             app_config (dict): Flask application config, where application-wide
                 configurations and constants are stored.
-            app_cache (tuple): a three-tuple which contains the mutable structures
+            app_cache (tuple): a tuple which contains the mutable structures
                 which make up the app's device cache and lookup tables. The first
                 item is a mapping of UUIDs to the devices registered here. The second
-                item is a collection of "single board devices". The third item is a
-                collection of "range devices". All collections are mutated by this
-                method to add all devices which are successfully registered, making
-                them available to the Flask app.
+                item is a collection of "single board devices". All collections are
+                mutated by this method to add all devices which are successfully
+                registered, making them available to the Flask app.
         """
-        if len(app_cache) != 3:
-            raise ValueError('App cache passed to registrar expects 3 collections, but found {}'.format(len(app_cache)))
-
-        device_cache, single_board_devices, range_devices = app_cache
+        cls.validate_app_state(app_cache)
+        device_cache, single_board_devices = app_cache
 
         # define a thread lock so we can have synchronous mutations to the input
         # lists and dicts
@@ -228,7 +227,7 @@ class RedfishDevice(LANDevice):
                                 device_init_failure, mutate_lock, device_cache, single_board_devices
                             )
 
-                            # FIXME (etd) -
+                            # FIXME (etd) - (likely related: https://github.com/vapor-ware/opendcre-core/issues/375)
                             #   a GIL issue appears to be causing the threaded _process_server resolution to hang. this
                             #   can likely be fixed by figuring out what the GIL is deadlocking on (probably an import
                             #   dependency?) and updating OpenDCRE's caching component to import in the main thread.
@@ -248,7 +247,7 @@ class RedfishDevice(LANDevice):
                             device_init_failure, mutate_lock, device_cache, single_board_devices
                         )
 
-                        # FIXME (etd) -
+                        # FIXME (etd) - (likely related: https://github.com/vapor-ware/opendcre-core/issues/375)
                         #   a GIL issue appears to be causing the threaded _process_server resolution to hang. this
                         #   can likely be fixed by figuring out what the GIL is deadlocking on (probably an import
                         #   dependency?) and updating OpenDCRE's caching component to import in the main thread.
@@ -384,7 +383,7 @@ class RedfishDevice(LANDevice):
                 object, containing the data from the scan all response.
         """
         # get the command data out from the incoming command
-        force = command.data.get('force', False)
+        force = command.data.get(_s_.FORCE, False)
 
         if force:
             self._redfish_links = find_links(self.redfish_ip, self.redfish_port, **self._redfish_request_kwargs)
@@ -415,17 +414,19 @@ class RedfishDevice(LANDevice):
                 object, containing the data from the read response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        device_type_string = command.data['device_type_string']
+        device_id = command.data[_s_.DEVICE_ID]
+        device_type_string = command.data[_s_.DEVICE_TYPE_STRING]
         response = dict()
 
-        if device_type_string.lower() == 'fan_speed':
+        _device_type_string = device_type_string.lower()
+
+        if _device_type_string == const.DEVICE_FAN_SPEED:
             device_type = 'Fans'
-        elif device_type_string.lower() == 'temperature':
+        elif _device_type_string == const.DEVICE_TEMPERATURE:
             device_type = 'Temperatures'
-        elif device_type_string.lower() == 'voltage':
+        elif _device_type_string == const.DEVICE_VOLTAGE:
             device_type = 'Voltages'
-        elif device_type_string.lower() == 'power_supply':
+        elif _device_type_string == const.DEVICE_POWER_SUPPLY:
             device_type = 'PowerSupplies'
         else:
             logger.error('Unsupported device type for Redfish device: {}'.format(device_type_string))
@@ -436,7 +437,7 @@ class RedfishDevice(LANDevice):
             device = self._get_device_by_id(device_id, device_type_string)
             device_name = device['device_info']
 
-            if device_type_string.lower() in ['fan_speed', 'temperature']:
+            if _device_type_string in [const.DEVICE_FAN_SPEED, const.DEVICE_TEMPERATURE]:
                 links_list = [self._redfish_links['thermal']]
                 response = vapor_redfish.get_thermal_sensor(
                     device_type=device_type,
@@ -444,7 +445,7 @@ class RedfishDevice(LANDevice):
                     links=links_list,
                     **self._redfish_request_kwargs
                 )
-            elif device_type_string.lower() in ['voltage', 'power_supply']:
+            elif _device_type_string in [const.DEVICE_VOLTAGE, const.DEVICE_POWER_SUPPLY]:
                 links_list = [self._redfish_links['power']]
                 response = vapor_redfish.get_power_sensor(
                     device_type=device_type,
@@ -479,17 +480,17 @@ class RedfishDevice(LANDevice):
                 object, containing the data from the power response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        power_action = command.data['power_action']
+        device_id = command.data[_s_.DEVICE_ID]
+        power_action = command.data[_s_.POWER_ACTION]
 
         try:
             # validate device supports power control
-            self._get_device_by_id(device_id, 'power')
+            self._get_device_by_id(device_id, const.DEVICE_POWER)
 
-            if power_action not in ['on', 'off', 'cycle', 'status']:
+            if power_action not in [_s_.PWR_ON, _s_.PWR_OFF, _s_.PWR_CYCLE, _s_.PWR_STATUS]:
                 raise ValueError(
                     'Invalid Redfish power action {} for board {} device {}.'.format(
-                        power_action, hex(self.board_id), hex(device_id))
+                        power_action, self.board_id, device_id)
                 )
             else:
                 links_list = [self._redfish_links['system'], self._redfish_links['power']]
@@ -526,11 +527,11 @@ class RedfishDevice(LANDevice):
                 object, containing the data from the asset response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
+        device_id = command.data[_s_.DEVICE_ID]
 
         try:
             # validate that asset is supported for the device
-            self._get_device_by_id(device_id, 'system')
+            self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
 
             links_list = [self._redfish_links['chassis'], self._redfish_links['system'], self._redfish_links['bmc']]
 
@@ -566,19 +567,19 @@ class RedfishDevice(LANDevice):
                 object, containing the data from the boot target response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        boot_target = command.data['boot_target']
+        device_id = command.data[_s_.DEVICE_ID]
+        boot_target = command.data[_s_.BOOT_TARGET]
 
         try:
             # check if the device raises an exception
-            self._get_device_by_id(device_id, 'system')
+            self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
 
             links_list = [self._redfish_links['system']]
 
             if boot_target in [None, 'status']:
                 response = vapor_redfish.get_boot(links=links_list, **self._redfish_request_kwargs)
             else:
-                boot_target = 'no_override' if boot_target not in ['pxe', 'hdd'] else boot_target
+                boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] else boot_target
                 response = vapor_redfish.set_boot(target=boot_target, links=links_list, **self._redfish_request_kwargs)
 
             if response:
@@ -612,18 +613,18 @@ class RedfishDevice(LANDevice):
                 object, containing the data from the LED response.
         """
         # get the command data from the incoming command:
-        device_id = command.data['device_id']
-        led_state = command.data['led_state']
+        device_id = command.data[_s_.DEVICE_ID]
+        led_state = command.data[_s_.LED_STATE]
 
         try:
             # check if the device raises an exception
-            self._get_device_by_id(device_id, 'led')
+            self._get_device_by_id(device_id, const.DEVICE_LED)
 
             links_list = [self._redfish_links['chassis']]
 
-            if led_state is not None and led_state.lower() != 'no_override':
-                if led_state.lower() in ['on', 'off']:
-                    led_state = 'Off' if led_state.lower() == 'off' else 'Lit'
+            if led_state is not None and led_state.lower() != _s_.LED_NO_OVERRIDE:
+                if led_state.lower() in [_s_.LED_ON, _s_.LED_OFF]:
+                    led_state = 'Off' if led_state.lower() == _s_.LED_OFF else 'Lit'
                     response = vapor_redfish.set_led(led_state=led_state, links=links_list, **self._redfish_request_kwargs)
                 else:
                     logger.error('LED state unsupported for LED control operation: {}'.format(led_state))
@@ -661,9 +662,9 @@ class RedfishDevice(LANDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the fan response.
         """
-        device_id = command.data['device_id']
-        device_name = command.data['device_name']
-        fan_speed = command.data['fan_speed']
+        device_id = command.data[_s_.DEVICE_ID]
+        device_name = command.data[_s_.DEVICE_NAME]
+        fan_speed = command.data[_s_.FAN_SPEED]
 
         try:
             if fan_speed is not None:
@@ -671,8 +672,8 @@ class RedfishDevice(LANDevice):
 
             else:
                 # check if the device raises an exception
-                device = self._get_device_by_id(device_id, 'fan_speed')
-                if device['device_type'] != 'fan_speed':
+                device = self._get_device_by_id(device_id, const.DEVICE_FAN_SPEED)
+                if device['device_type'] != const.DEVICE_FAN_SPEED:
                     raise OpenDCREException("Attempt to get fan speed for non-fan device.")
 
                 links_list = [self._redfish_links['thermal']]

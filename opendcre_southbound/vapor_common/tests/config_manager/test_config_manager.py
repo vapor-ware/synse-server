@@ -6,30 +6,13 @@
 
     \\//
      \/apor IO
-
--------------------------------
-Copyright (C) 2015-17  Vapor IO
-
-This file is part of OpenDCRE.
-
-OpenDCRE is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-OpenDCRE is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import json
 import os
 import unittest
 
 from vapor_common.vapor_config import ConfigManager
+from vapor_common.constants import PACKAGE_INSTALL_DIR
 
 
 class ConfigurationManagerTestCase(unittest.TestCase):
@@ -50,15 +33,17 @@ class ConfigurationManagerTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.nonexistent_file = '/tests/vapor_common/tests/data/not_a_file.json'
-        cls.invalid_file = '/tests/vapor_common/tests/data/invalid_contents.json'
-        cls.valid_file = '/tests/vapor_common/tests/data/config.json'
-        cls.out_file = '/tests/vapor_common/tests/data/out.json'
+        base_dir = os.path.join(PACKAGE_INSTALL_DIR, 'vapor_common', 'tests')
 
-        cls.default_file = '/tests/vapor_common/tests/data/default/default.json'
-        cls.empty_override = '/tests/vapor_common/tests/data/override1'
-        cls.invalid_override = '/tests/vapor_common/tests/data/override2'
-        cls.valid_override = '/tests/vapor_common/tests/data/override3'
+        cls.nonexistent_file = os.path.join(base_dir, 'data/not_a_file.json')
+        cls.invalid_file = os.path.join(base_dir, 'data/invalid_contents.json')
+        cls.valid_file = os.path.join(base_dir, 'data/config.json')
+        cls.out_file = os.path.join(base_dir, 'data/out.json')
+
+        cls.default_file = os.path.join(base_dir, 'data/default/default.json')
+        cls.empty_override = os.path.join(base_dir, 'data/override1')
+        cls.invalid_override = os.path.join(base_dir, 'data/override2')
+        cls.valid_override = os.path.join(base_dir, 'data/override3')
 
     @classmethod
     def tearDownClass(cls):

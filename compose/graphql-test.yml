@@ -8,6 +8,7 @@ services:
       dockerfile: dockerfile/graphql-test.dockerfile
     volumes:
       - ../graphql:/graphql_frontend
+      - ../VERSION:/VERSION
     links:
       - synse-server
 

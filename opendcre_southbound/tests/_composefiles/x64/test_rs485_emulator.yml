@@ -1,0 +1,6 @@
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "( ( ./start_opendcre_rs485_emulator.sh ./opendcre_southbound/tests/data/rs485_emulator/rs485-001.json) & ) && sleep 2 && python ./opendcre_southbound/tests/test-rs485-emulator.py"
+

@@ -10,20 +10,20 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
 import json
@@ -42,6 +42,7 @@ class DevicebusInterface(object):
     Primarily, this defines some common methods that can be used or overridden
     by its subclasses. Of note, the `_instance_name` member should be used by
     terminal subclasses to specify the name of the device that class represents.
+    This is particularly useful for identifying individual I2C and RS485 devices.
 
     A `handle` method is also defined and should not be overridden. It provides
     the device logic to process an incoming Command and dispatch it to the Device's
@@ -174,11 +175,13 @@ class DevicebusInterface(object):
         is incorrect.
 
         Args:
-            app_cache (tuple): a three-tuple which contains the mutable structures
-                used by the application to track the currently registered devicebus
-                instances.
+            app_cache (tuple): a 2-tuple where the first item is a mutable dictionary
+                which is used to map a DevicebusInterfaces' UUID to the DevicebusInterface
+                instance and the second item is a mutable dictionary which maps the
+                board id(s) for a given DevicebusInterface to its instance. These mutable
+                structures are used as lookup tables by the Flask application.
         """
-        if len(app_cache) != 3:
+        if len(app_cache) != 2:
             raise ValueError(
-                'App cache passed to registrar expects 3 collections but found {}'.format(len(app_cache))
+                'App cache does not contain 2 collections: {}'.format(app_cache)
             )

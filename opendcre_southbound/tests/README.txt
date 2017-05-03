@@ -29,7 +29,7 @@ devicebus implementations using the recipe:
 
   $ make test-64-<devicebus impl>
 
-where `<devicebus impl>` is one of 'plc', 'ipmi', or 'redfish'
+where `<devicebus impl>` is one of 'plc', 'ipmi', 'rs485', or 'i2c'
 
 Additionally, the Makefile contains an option to remove the test containers.
 

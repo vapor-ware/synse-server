@@ -5,7 +5,7 @@
 
   "devices": {
     "ipmi": {
-      "device_initializer_threads": 4,
+      "device_initializer_threads": 1,
       "scan_on_init": true,
       "from_config": "bmc_config.json"
     }

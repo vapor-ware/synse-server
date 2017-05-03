@@ -6,25 +6,14 @@
 
     \\//
      \/apor IO
-
--------------------------------
-Copyright (C) 2015-17  Vapor IO
-
-This file is part of OpenDCRE.
-
-OpenDCRE is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-OpenDCRE is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import os
+
+# Where any package is installed to on the container.
+PACKAGE_INSTALL_DIR = '/usr/local/lib/python2.7/dist-packages/'
+# Where the vapor_common package is installed on any container.
+VAPOR_COMMON_PACKAGE_INSTALL_DIR = os.path.join(PACKAGE_INSTALL_DIR, 'vapor_common')
 
 MAX_VAPOR_FAN_SPEED_RPM = 2000
 MIN_VAPOR_FAN_SPEED_RPM = 0

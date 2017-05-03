@@ -10,20 +10,20 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import errno
 import json
@@ -34,7 +34,8 @@ from Queue import Queue
 
 from flask import current_app
 
-from constants import device_name_codes, DEVICE_NONE
+import constants as const
+import strings as _s_
 from errors import OpenDCREException
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,30 @@ logger = logging.getLogger(__name__)
 # -------------------------------------
 # Board ID Utilities
 # -------------------------------------
+
+def normalize_board_id(board_id):
+    """ Normalize the board id to a human readable string.
+
+    Generally, this should only be used for creating human-readable
+    output for logging or error messages.
+
+    Since the board id can be aliased via the ip address or the
+    hostname, we will not always have a 4-byte hex string (or
+    int equivalent). If the given board id is determined to be an
+    alias, it will be returned as-is. If it is determined to be an
+    int, it will be converted to a hex string.
+
+    Args:
+        board_id (int | str): the board id to normalize.
+
+    Returns:
+        str: a normalized version of the board id.
+    """
+    if isinstance(board_id, int):
+        return board_id_to_hex_string(board_id)
+    else:
+        return board_id
+
 
 def board_id_to_hex_string(hex_value):
     """ Convenience method to convert a hexadecimal board_id value into its hex
@@ -115,6 +140,29 @@ def board_id_join_bytes(board_id_bytes):
 # -------------------------------------
 # Device ID Utilities
 # -------------------------------------
+
+def normalize_device_id(device_id):
+    """ Normalize the device id to a human readable string.
+
+    Generally, this should only be used for creating human-readable
+    output for logging or error messages.
+
+    Since the device id can be aliased via a device name, we will
+    not always have a 2-byte hex string (or int equivalent). If the
+    given device id is determined to be an alias, it will be returned
+    as-is. If it is determined to be an int, it will be converted to
+    a hex string.
+
+    Args:
+        device_id (int | str): the device id to normalize.
+
+    Returns:
+        str: a normalized version of the device id.
+    """
+    if isinstance(device_id, int):
+        return device_id_to_hex_string(device_id)
+    else:
+        return device_id
 
 
 def device_id_to_hex_string(hex_value):
@@ -193,10 +241,10 @@ def get_device_type_code(device_type):
     Returns:
         int: device type code. 0xFF if device_type is not recognized.
     """
-    if device_type in device_name_codes:
-        return device_name_codes[device_type]
+    if device_type in const.device_name_codes:
+        return const.device_name_codes[device_type]
     else:
-        return device_name_codes[DEVICE_NONE]
+        return const.device_name_codes[const.DEVICE_NONE]
 
 
 def get_device_type_name(device_code):
@@ -209,16 +257,31 @@ def get_device_type_name(device_code):
     Returns:
         str: device type name. 'none' if device_code is not recognized.
     """
-    for name in device_name_codes:
-        if device_name_codes[name] == device_code:
+    for name in const.device_name_codes:
+        if const.device_name_codes[name] == device_code:
             return name
-    return DEVICE_NONE
+    return const.DEVICE_NONE
+
+
+def get_measure_for_device_type(device_type):
+    """ Get a unit of measure for a given device type.
+
+    Args:
+        device_type (str): the device type to get the unit of measure for.
+
+    Returns:
+        str: the unit of measure for the given device type.
+        None: the given device type has no specified unit of measure.
+    """
+    return const.uom_map.get(device_type, None)
 
 
 # -------------------------------------
 # Validation Utilities
 # -------------------------------------
 
+
+## TODO (etd) -- perhaps rename to 'normalize'
 
 def check_valid_board_and_device(board_id=None, device_id=None):
     """ Validate that the board and device IDs are valid for the operation, and
@@ -234,12 +297,13 @@ def check_valid_board_and_device(board_id=None, device_id=None):
     board_id_int = check_valid_board(board_id)
     try:
         device_id_int = int(device_id, 16)
-        if device_id_int < 0:
-            raise ValueError('Device ID must be a positive numeric value.')
-    except ValueError:
+    except (ValueError, TypeError):
         # we still allow the process to proceed, as device_id may be the device_id string where applicable
         logger.debug('Error converting device_id to int: {}'.format(device_id))
         return board_id_int, device_id
+    else:
+        if device_id_int > 0xFFFF or device_id_int < 0:
+            raise ValueError('Device ID {} is out of range.'.format(device_id))
 
     return board_id_int, device_id_int
 
@@ -256,12 +320,13 @@ def check_valid_board(board_id=None):
     """
     try:
         board_num_int = int(board_id, 16)
-        if board_num_int > 0xFFFFFFFF or board_num_int < 0x00:
-            raise ValueError('Board number {} specified is out of range.'.format(board_id))
-    except ValueError:
+    except (ValueError, TypeError):
         # we still allow the process to proceed, as board_id may be ip/hostname where applicable
         logger.debug('Error converting board_id to int: {}'.format(board_id))
         return board_id
+    else:
+        if board_num_int > 0xFFFFFFFF or board_num_int < 0x00:
+            raise ValueError('Board number {} specified is out of range.'.format(board_id))
 
     return board_num_int
 
@@ -319,14 +384,14 @@ def write_scan_cache(data):
 # Device Interface Utilities
 # -------------------------------------
 
+## TODO (etd) perhaps rename to get_devicebus_instance
+
 def get_device_instance(board_id):
     """ Get a device instance for a given board ID.
 
     This function first checks with all single-board devices for a matching instance,
     and if located, returns the device (which presumably can then be used to handle a
-    command); if not found, then the range-devices are checked, and if the board_id
-    falls within the given range, we return that device. If nothing is found, an
-    OpenDCRE exception is raised.
+    command); if not found, an OpenDCRE exception is raised.
 
     The board_id passed in here need not be just a board_id. Since we can do lookups
     based on the IP / hostname, the board_id may also be one of those.
@@ -340,26 +405,18 @@ def get_device_instance(board_id):
     Raises:
         OpenDCREException: no device bus interface is found for the given board_id
     """
-    logger.debug('get_device_instance board_id {}'.format(board_id))
+    logger.debug('getting device instance for board_id: {}'.format(normalize_board_id(board_id)))
+
     if board_id is None:
         raise OpenDCREException('Board ID must be specified in retrieving devicebus instance.')
 
     device = current_app.config['SINGLE_BOARD_DEVICES'].get(board_id, None)
     if device is not None:
         return device
-    else:
-        logger.debug('current_app.config[RANGE_DEVICES] {}'.format(current_app.config['RANGE_DEVICES']))
 
-        for range_device in current_app.config['RANGE_DEVICES']:
-            # Does this work for multiple range devices? It just returns the first one. (Code review)
-            if range_device.board_id_range[0] <= board_id <= range_device.board_id_range[1]:
-                return range_device
-
-        raise OpenDCREException(
-            'Board ID ({}) not associated with any registered devicebus handler.'.format(
-                hex(board_id) if isinstance(board_id, int) else board_id
-            )
-        )
+    raise OpenDCREException(
+        'Board ID ({}) not associated with any registered devicebus handler.'.format(board_id)
+    )
 
 
 # -------------------------------------

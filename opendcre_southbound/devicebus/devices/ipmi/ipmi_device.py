@@ -10,20 +10,20 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
 import json
@@ -32,13 +32,14 @@ import sys
 from pyghmi.exceptions import *
 import os
 
+import opendcre_southbound.strings as _s_
 from opendcre_southbound.devicebus.constants import CommandId as cid
 from opendcre_southbound.devicebus.devices.ipmi import vapor_ipmi
 from opendcre_southbound import constants as const
 from opendcre_southbound.devicebus.response import Response
 from opendcre_southbound.errors import OpenDCREException
 from opendcre_southbound.definitions import BMC_PORT
-from opendcre_southbound.utils import ThreadPool
+from opendcre_southbound.utils import ThreadPool, get_measure_for_device_type
 from opendcre_southbound.version import __api_version__, __version__
 from opendcre_southbound.devicebus.devices.lan_device import LANDevice
 
@@ -256,9 +257,9 @@ class IPMIDevice(LANDevice):
             if sensor_type in ['temperature', 'fan', 'voltage', 'power supply']:
                 if sensor_type == 'fan':
                     # special case to map to our sensor type for fan speed
-                    sensor_type = 'fan_speed'
+                    sensor_type = const.DEVICE_FAN_SPEED
                 elif sensor_type == 'power supply':
-                    sensor_type = 'power_supply'
+                    sensor_type = const.DEVICE_POWER_SUPPLY
 
                 board_record['devices'].append(
                     {
@@ -282,16 +283,15 @@ class IPMIDevice(LANDevice):
                 for the IPMI devices themselves.
             app_config (dict): Flask application config, where application-wide
                 configurations and constants are stored.
-            app_cache (tuple): a three-tuple which contains the mutable structures
+            app_cache (tuple): a tuple which contains the mutable structures
                 which make up the app's device cache and lookup tables. The first
                 item is a mapping of UUIDs to the devices registered here. The second
-                item is a collection of 'single board devices'. The third item is a
-                collection of 'range devices'. All collections are mutated by this
-                method to add all devices which are successfully registered, making
-                them available to the Flask app.
+                item is a collection of "single board devices". All collections are
+                mutated by this method to add all devices which are successfully
+                registered, making them available to the Flask app.
         """
         cls.validate_app_state(app_cache)
-        device_cache, single_board_devices, range_devices = app_cache
+        device_cache, single_board_devices = app_cache
 
         device_config = cls.get_device_config(devicebus_config)
         if not device_config:
@@ -465,7 +465,7 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the scan all response.
         """
         # get the command data out from the incoming command
-        force = command.data.get('force', False)
+        force = command.data.get(_s_.FORCE, False)
 
         if force:
             self.board_record = self._get_board_record()
@@ -500,8 +500,8 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the read response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        device_type_string = command.data['device_type_string']
+        device_id = command.data[_s_.DEVICE_ID]
+        device_type_string = command.data[_s_.DEVICE_TYPE_STRING]
 
         try:
             device = self._get_device_by_id(device_id, device_type_string)
@@ -509,16 +509,9 @@ class IPMIDevice(LANDevice):
             reading = vapor_ipmi.read_sensor(sensor_name=device['device_info'], **self._ipmi_kwargs)
             response = dict()
 
-            # TODO (etd) - this could be consolidated a bit if we had a helper fn which did device type -> reading
-            #   measure lookup, e.g. lookup('temperature') --> 'temperature_c' ; could also be useful in other places
-            if device['device_type'] == const.DEVICE_TEMPERATURE:
-                response['temperature_c'] = reading['sensor_reading']
-
-            elif device['device_type'] == const.DEVICE_FAN_SPEED:
-                response['speed_rpm'] = reading['sensor_reading']
-
-            elif device['device_type'] == const.DEVICE_VOLTAGE:
-                response['voltage'] = reading['sensor_reading']
+            uom = get_measure_for_device_type(device['device_type'])
+            if uom is not None:
+                response[uom] = reading['sensor_reading']
 
             response['health'] = reading['health']
             response['states'] = reading['states']
@@ -534,7 +527,7 @@ class IPMIDevice(LANDevice):
             raise OpenDCREException('No sensor reading returned from BMC.')
 
         except Exception:
-            raise OpenDCREException('Error reading IPMI sensor (device id: {})'.format(hex(device_id))), None, sys.exc_info()[2]
+            raise OpenDCREException('Error reading IPMI sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _power(self, command):
         """ Power control command for a given board and device.
@@ -548,14 +541,14 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the power response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        power_action = command.data['power_action']
+        device_id = command.data[_s_.DEVICE_ID]
+        power_action = command.data[_s_.POWER_ACTION]
 
         try:
-            if power_action not in ['on', 'off', 'cycle', 'status']:
-                raise ValueError('Invalid IPMI power action {} for board {} device {}.'.format(power_action,
-                                                                                               hex(self.board_id),
-                                                                                               hex(device_id)))
+            if power_action not in [_s_.PWR_ON, _s_.PWR_OFF, _s_.PWR_CYCLE, _s_.PWR_STATUS]:
+                raise ValueError('Invalid IPMI power action {} for board {} device {}.'.format(
+                    power_action, self.board_id, device_id
+                ))
             # determine if there are OEM considerations
             # for reading power
             reading_method = None
@@ -569,7 +562,7 @@ class IPMIDevice(LANDevice):
                     reading_method = 'flex-victoria'
 
             # validate device supports power control
-            self._get_device_by_id(device_id, 'power')
+            self._get_device_by_id(device_id, const.DEVICE_POWER)
 
             power_status = vapor_ipmi.power(cmd=power_action, reading_method=reading_method,**self._ipmi_kwargs)
 
@@ -594,7 +587,7 @@ class IPMIDevice(LANDevice):
             raise OpenDCREException('No response from BMC for power control action.')
 
         except Exception:
-            raise OpenDCREException('Error for power control via IPMI (device id: {}).'.format(hex(device_id))), None, sys.exc_info()[2]
+            raise OpenDCREException('Error for power control via IPMI (device id: {}).'.format(device_id)), None, sys.exc_info()[2]
 
     def _asset(self, command):
         """ Asset info command for a given board and device.
@@ -608,11 +601,11 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the asset response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
+        device_id = command.data[_s_.DEVICE_ID]
 
         try:
             # validate that asset is supported for the device
-            self._get_device_by_id(device_id, 'system')
+            self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
             asset_data = vapor_ipmi.get_inventory(**self._ipmi_kwargs)
             asset_data['bmc_ip'] = self.bmc_ip
 
@@ -626,7 +619,7 @@ class IPMIDevice(LANDevice):
             raise OpenDCREException('No response from BMC when retrieving asset information via IPMI.')
 
         except Exception:
-            raise OpenDCREException('Error getting IPMI asset info (device id: {})'.format(hex(device_id))), None, sys.exc_info()[2]
+            raise OpenDCREException('Error getting IPMI asset info (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _boot_target(self, command):
         """ Boot target command for a given board and device.
@@ -643,16 +636,16 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the boot target response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        boot_target = command.data['boot_target']
+        device_id = command.data[_s_.DEVICE_ID]
+        boot_target = command.data[_s_.BOOT_TARGET]
 
         try:
             if boot_target is None or boot_target == 'status':
-                self._get_device_by_id(device_id, 'system')
+                self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
                 boot_info = vapor_ipmi.get_boot(**self._ipmi_kwargs)
             else:
-                boot_target = 'no_override' if boot_target not in ['pxe', 'hdd'] else boot_target
-                self._get_device_by_id(device_id, 'system')
+                boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] else boot_target
+                self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
                 boot_info = vapor_ipmi.set_boot(target=boot_target, **self._ipmi_kwargs)
 
             if boot_info is not None:
@@ -665,7 +658,7 @@ class IPMIDevice(LANDevice):
             raise OpenDCREException('No response from BMC on boot target operation via IPMI.')
 
         except Exception:
-            raise OpenDCREException('Error getting or setting IPMI boot target (device id: {})'.format(hex(device_id))), None, sys.exc_info()[2]
+            raise OpenDCREException('Error getting or setting IPMI boot target (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _led(self, command):
         """ LED command for a given board and device.
@@ -683,17 +676,17 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the LED response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        led_state = command.data['led_state']
+        device_id = command.data[_s_.DEVICE_ID]
+        led_state = command.data[_s_.LED_STATE]
 
         try:
             if led_state is not None:
-                self._get_device_by_id(device_id, 'led')
-                led_state = 0 if led_state.lower() == 'off' else 1
+                self._get_device_by_id(device_id, const.DEVICE_LED)
+                led_state = 0 if led_state.lower() == _s_.LED_OFF else 1
                 led_response = vapor_ipmi.set_identify(led_state=led_state, **self._ipmi_kwargs)
-                led_response['led_state'] = 'off' if led_response['led_state'] == 0 else 'on'
+                led_response['led_state'] = _s_.LED_OFF if led_response['led_state'] == 0 else _s_.LED_ON
             else:
-                self._get_device_by_id(device_id, 'led')
+                self._get_device_by_id(device_id, const.DEVICE_LED)
                 led_response = vapor_ipmi.get_identify(**self._ipmi_kwargs)
 
             if led_response is not None:
@@ -724,19 +717,19 @@ class IPMIDevice(LANDevice):
                 object, containing the data from the fan response.
         """
         # get the command data out from the incoming command
-        device_id = command.data['device_id']
-        device_name = command.data['device_name']
-        fan_speed = command.data['fan_speed']
+        device_id = command.data[_s_.DEVICE_ID]
+        device_name = command.data[_s_.DEVICE_NAME]
+        fan_speed = command.data[_s_.FAN_SPEED]
 
         try:
             if fan_speed is not None:
                 raise OpenDCREException('Setting of fan speed is not permitted for this device.')
             else:
-                device = self._get_device_by_id(device_id, 'fan_speed')
+                device = self._get_device_by_id(device_id, const.DEVICE_FAN_SPEED)
                 reading = vapor_ipmi.read_sensor(sensor_name=device_name, **self._ipmi_kwargs)
                 response = dict()
-                if device['device_type'] == 'fan_speed':
-                    response['speed_rpm'] = reading['sensor_reading']
+                if device['device_type'] == const.DEVICE_FAN_SPEED:
+                    response[const.UOM_FAN_SPEED] = reading['sensor_reading']
                 else:
                     raise OpenDCREException('Attempt to get fan speed for non-fan device.')
 
@@ -753,7 +746,7 @@ class IPMIDevice(LANDevice):
             raise OpenDCREException('No response from BMC on fan operation via IPMI.')
 
         except Exception:
-            raise OpenDCREException('Error with fan control (device id: {})'.format(hex(device_id))), None, sys.exc_info()[2]
+            raise OpenDCREException('Error with fan control (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _host_info(self, command):
         """ Get the host information for a given board.

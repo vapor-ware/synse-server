@@ -3,27 +3,27 @@
 
     Author: Erick Daniszewski
     Date:   09/07/2016
-    
+
     \\//
      \/apor IO
 
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 from opendcre_southbound.tests.test_config import PREFIX
@@ -43,7 +43,7 @@ class IPMIEmulatorThroughputTestCase(unittest.TestCase):
 
     # number of requests to make at a time
     SIZE = 5
-    
+
     # request timeout (seconds)
     TIMEOUT = 5
 

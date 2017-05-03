@@ -1,0 +1,113 @@
+{
+  "serial_device": "/dev/ttyVapor003",
+  "devices": [
+    {
+      "device_address": 1,
+      "holding_registers": {
+        "0000": "bb01"
+      }
+    },
+    {
+      "device_address": 2,
+      "holding_registers": {
+        "0000": "bb02"
+      }
+    },
+    {
+      "device_address": 3,
+      "holding_registers": {
+        "0000": "bb03"
+      }
+    },
+    {
+      "device_address": 4,
+      "holding_registers": {
+        "0000": "bb04"
+      }
+    },
+    {
+      "device_address": 5,
+      "holding_registers": {
+        "0000": "bb05"
+      }
+    },
+    {
+      "device_address": 6,
+      "holding_registers": {
+        "0000": "bb06"
+      }
+    },
+    {
+      "device_address": 7,
+      "holding_registers": {
+        "0000": "bb07"
+      }
+    },
+    {
+      "device_address": 8,
+      "holding_registers": {
+        "0000": "bb08"
+      }
+    },
+    {
+      "device_address": 9,
+      "holding_registers": {
+        "0000": "bb09"
+      }
+    },
+    {
+      "device_address": 10,
+      "holding_registers": {
+        "0000": "bb0a"
+      }
+    },
+    {
+      "device_address": 11,
+      "holding_registers": {
+        "0000": "cc00",
+        "0001": "cc01",
+        "0002": "cc02",
+        "0003": "cc03",
+        "0004": "cc04",
+        "0005": "cc05",
+        "0006": "cc06",
+        "0007": "cc07",
+        "0008": "cc08",
+        "0009": "cc09",
+        "000a": "cc0a",
+        "0010": "cd01",
+        "0bee": "cd02",
+        "7ac0": "cd03"
+      }
+    },
+    {
+      "device_address": 12,
+      "holding_registers": {
+        "0000": "cc00",
+        "0001": "cc01",
+        "0002": "cc02",
+        "0003": "cc03",
+        "0004": "cc04",
+        "0005": "cc05",
+        "0006": "cc06",
+        "0007": "cc07",
+        "0008": "cc08",
+        "0009": "cc09",
+        "000a": "cc0a",
+        "0010": "cd01",
+        "0bee": "cd02",
+        "7ac0": "cd03"
+      }
+    },
+    {
+      "device_address": 13,
+      "holding_registers": {
+        "0000": ["ee00", "ee01", "ee02", "ee03"],
+        "0001": "00aa",
+        "0002": ["00bb"],
+        "0003": ["00cc", "cccc"],
+        "0004": "00dd"
+      }
+    }
+  ]
+}

@@ -10,24 +10,27 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
+import threading
 import uuid
+import time
 from itertools import count
+from bson import ObjectId
 
 import opendcre_southbound as sb
 
@@ -48,8 +51,9 @@ class MockApp(object):
             'SCAN_CACHE': '/tmp/opendcre/cache.json',
             'DEVICES': {},
             'SINGLE_BOARD_DEVICES': {},
-            'RANGE_DEVICES': [],
             'IPMI_BOARD_OFFSET': count(),
+            'I2C_BOARD_OFFSET': count(),
+            'RS485_BOARD_OFFSET': count(),
             'PLC_BOARD_OFFSET': count(),
             'REDFISH_BOARD_OFFSET': count()
         }
@@ -63,7 +67,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
     def setUpClass(cls):
 
         cls.sample_plc_device = {
-            'device_name': '/dev/ttyAMA00',
+            'device_name': '/dev/ttyVapor002',
             'hardware_type': 'emulator',
             'lockfile': '/tmp/test-lock',
             'timeout': 0.25,
@@ -118,7 +122,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         'hardware_type': 'emulator',
                         'devices': [
                             {
-                                'device_name': '/dev/ttyAMA0',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
@@ -139,7 +143,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the plc device(s)
         PLCDevice.register(
@@ -147,8 +150,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -161,15 +163,13 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             self.assertIsInstance(uid, uuid.UUID)
             self.assertIsInstance(device, PLCDevice)
 
+        # the PLC emulator uses a config with 4 boards, so we should expect 4 items
+        # in the lookup table.
         single_board_devices = app.config['SINGLE_BOARD_DEVICES']
         self.assertIsInstance(single_board_devices, dict)
-        self.assertEqual(len(single_board_devices), 0)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), len(plc_devices['config']['racks'][0]['devices']))
-        for device in range_devices:
-            self.assertIsInstance(device, PLCDevice)
+        self.assertEqual(len(single_board_devices), 4)
+        for item in single_board_devices.values():
+            self.assertIsInstance(item, PLCDevice)
 
     def test_002_register_plc(self):
         """ Test registering multiple PLC devices.
@@ -184,21 +184,21 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         'hardware_type': 'emulator',
                         'devices': [
                             {
-                                'device_name': '/dev/ttyAMA0',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA1',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA2',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
@@ -219,7 +219,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the plc device(s)
         PLCDevice.register(
@@ -227,8 +226,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -241,15 +239,14 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             self.assertIsInstance(uid, uuid.UUID)
             self.assertIsInstance(device, PLCDevice)
 
+        # we will still get only 4 devices populated here, even though we are
+        # scanning more than 1 bus. this is because we are scanning the same
+        # bus multiple times, and the board IDs will be the same for each scan
         single_board_devices = app.config['SINGLE_BOARD_DEVICES']
         self.assertIsInstance(single_board_devices, dict)
-        self.assertEqual(len(single_board_devices), 0)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), len(plc_devices['config']['racks'][0]['devices']))
-        for device in range_devices:
-            self.assertIsInstance(device, PLCDevice)
+        self.assertEqual(len(single_board_devices), 4)
+        for item in single_board_devices.values():
+            self.assertIsInstance(item, PLCDevice)
 
     def test_003_register_plc(self):
         """ Test registering no PLC devices.
@@ -266,19 +263,20 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the plc device(s)
-        with self.assertRaises(ValueError):
-            PLCDevice.register(
-                devicebus_config=plc_devices,
-                app_config=app.config,
-                app_cache=(
-                    app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
-                )
+        PLCDevice.register(
+            devicebus_config=plc_devices,
+            app_config=app.config,
+            app_cache=(
+                app.config['DEVICES'],
+                app.config['SINGLE_BOARD_DEVICES']
             )
+        )
+
+        # verify that nothing changed
+        self.assertEqual(len(app.config['DEVICES']), 0)
+        self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
 
     def test_004_register_plc(self):
         """ Test registering a single PLC device when other config already
@@ -294,7 +292,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         'hardware_type': 'emulator',
                         'devices': [
                             {
-                                'device_name': '/dev/ttyAMA0',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
@@ -317,7 +315,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
 
         app.config['DEVICES'] = {uuid.uuid4(): _plc_device}
         app.config['SINGLE_BOARD_DEVICES'] = {}
-        app.config['RANGE_DEVICES'] = [_plc_device]
 
         sb.app = app
 
@@ -325,7 +322,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 1)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 1)
 
         # register the plc device(s)
         PLCDevice.register(
@@ -333,8 +329,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -347,15 +342,13 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             self.assertIsInstance(uid, uuid.UUID)
             self.assertIsInstance(device, PLCDevice)
 
+        # the PLC emulator uses a config with 4 boards, so we should expect 4 items
+        # in the lookup table.
         single_board_devices = app.config['SINGLE_BOARD_DEVICES']
         self.assertIsInstance(single_board_devices, dict)
-        self.assertEqual(len(single_board_devices), 0)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), len(plc_devices['config']['racks'][0]['devices']) + 1)
-        for device in range_devices:
-            self.assertIsInstance(device, PLCDevice)
+        self.assertEqual(len(single_board_devices), 4)
+        for item in single_board_devices.values():
+            self.assertIsInstance(item, PLCDevice)
 
     def test_005_register_plc(self):
         """ Test registering multiple PLC devices when other config already
@@ -371,21 +364,21 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         'hardware_type': 'emulator',
                         'devices': [
                             {
-                                'device_name': '/dev/ttyAMA0',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA1',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA2',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
@@ -408,7 +401,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
 
         app.config['DEVICES'] = {uuid.uuid4(): _plc_device}
         app.config['SINGLE_BOARD_DEVICES'] = {}
-        app.config['RANGE_DEVICES'] = [_plc_device]
 
         sb.app = app
 
@@ -416,7 +408,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 1)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 1)
 
         # register the plc device(s)
         PLCDevice.register(
@@ -424,8 +415,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -438,15 +428,14 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             self.assertIsInstance(uid, uuid.UUID)
             self.assertIsInstance(device, PLCDevice)
 
+        # we will get only 4 devices populated here, even though we are
+        # scanning more than 1 bus. this is because we are scanning the same
+        # bus multiple times, and the board IDs will be the same for each scan
         single_board_devices = app.config['SINGLE_BOARD_DEVICES']
         self.assertIsInstance(single_board_devices, dict)
-        self.assertEqual(len(single_board_devices), 0)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), len(plc_devices['config']['racks'][0]['devices']) + 1)
-        for device in range_devices:
-            self.assertIsInstance(device, PLCDevice)
+        self.assertEqual(len(single_board_devices), 4)
+        for item in single_board_devices.values():
+            self.assertIsInstance(item, PLCDevice)
 
     def test_006_register_plc(self):
         """ Test registering a single PLC device when a value is missing from
@@ -482,7 +471,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(KeyError):
             # register the plc device(s)
@@ -491,15 +479,13 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
         # verify that the failure above did not mutate any state
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_007_register_plc(self):
         """ Test registering multiple PLC devices when a value is missing from
@@ -521,14 +507,14 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA1',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA2',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
@@ -549,7 +535,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(KeyError):
             # register the plc device(s)
@@ -559,14 +544,12 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_cache=(
                     app.config['DEVICES'],
                     app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
                 )
             )
 
         # verify that the failure above did not mutate any state
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_008_register_plc(self):
         """ Test registering multiple PLC devices when a value is missing from
@@ -582,14 +565,14 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         'hardware_type': 'emulator',
                         'devices': [
                             {
-                                'device_name': '/dev/ttyAMA0',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
                                 'bps': 115200
                             },
                             {
-                                'device_name': '/dev/ttyAMA1',
+                                'device_name': '/dev/ttyVapor002',
                                 'retry_limit': 3,
                                 'timeout': 0.25,
                                 'time_slice': 75,
@@ -616,7 +599,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the plc device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(KeyError):
             # register the plc device(s)
@@ -625,18 +607,18 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
-        # here, we will get mutated state since valid configs were found
-        # before the invalid config. this is okay though because it raises
-        # a ValueError which should cause OpenDCRE southbound to terminate,
-        # effectively disallowing invalid configuration.
-        self.assertEqual(len(app.config['DEVICES']), 2)
-        self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 2)
+        # we will still get only 4 devices populated here, even though we are
+        # scanning more than 1 bus. this is because we are scanning the same
+        # bus multiple times, and the board IDs will be the same for each scan
+        single_board_devices = app.config['SINGLE_BOARD_DEVICES']
+        self.assertIsInstance(single_board_devices, dict)
+        self.assertEqual(len(single_board_devices), 4)
+        for item in single_board_devices.values():
+            self.assertIsInstance(item, PLCDevice)
 
     def test_009_register_ipmi(self):
         """ Test registering a single IPMI device.
@@ -673,7 +655,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -681,8 +662,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -726,10 +706,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_010_register_ipmi(self):
         """ Test registering a single IPMI device. In this case, the IPMI
         device config has multiple hostname and ip_address entries.
@@ -766,7 +742,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -774,8 +749,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -819,10 +793,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_011_register_ipmi(self):
         """ Test registering a single IPMI device. In this case, the IPMI
         device config has no hostname and ip_address entries.
@@ -857,7 +827,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -865,8 +834,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -912,10 +880,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                     for ip_address in bmc['ip_addresses']:
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_012_register_ipmi(self):
         """ Test registering multiple IPMI devices.
@@ -968,7 +932,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -976,8 +939,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1021,10 +983,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_013_register_ipmi(self):
         """ Test registering no IPMI devices.
         """
@@ -1040,7 +998,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         with self.assertRaises(ValueError):
@@ -1049,8 +1006,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
@@ -1080,7 +1036,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1088,8 +1043,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1102,10 +1056,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         single_board_devices = app.config['SINGLE_BOARD_DEVICES']
         self.assertIsInstance(single_board_devices, dict)
         self.assertEqual(len(single_board_devices), 0)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_015_register_ipmi(self):
         """ Test registering a single IPMI device when other config already
@@ -1150,7 +1100,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             self.sample_ipmi_device['hostnames'][0]: _ipmi_device,
             self.sample_ipmi_device['ip_addresses'][0]: _ipmi_device
         }
-        app.config['RANGE_DEVICES'] = []
 
         sb.app = app
 
@@ -1158,7 +1107,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 1)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 3)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1166,8 +1114,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1213,10 +1160,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                     for ip_address in bmc['ip_addresses']:
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_016_register_ipmi(self):
         """ Test registering a single IPMI device when other config already
@@ -1277,7 +1220,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             self.sample_ipmi_device['hostnames'][0]: _ipmi_device,
             self.sample_ipmi_device['ip_addresses'][0]: _ipmi_device
         }
-        app.config['RANGE_DEVICES'] = []
 
         sb.app = app
 
@@ -1285,7 +1227,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 1)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 3)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1293,8 +1234,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1342,10 +1282,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_017_register_ipmi(self):
         """ Test registering a single IPMI device when a device value is missing
         from the given config.
@@ -1381,7 +1317,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(OpenDCREException):
             # register the ipmi device(s)
@@ -1390,15 +1325,13 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
         # verify that the failure did not mutate any state
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_018_register_ipmi(self):
         """ Test registering multiple IPMI devices when a device value is missing
@@ -1451,7 +1384,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(OpenDCREException):
             # register the ipmi device(s)
@@ -1460,8 +1392,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
@@ -1469,7 +1400,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # state mutated despite the bad config
         self.assertEqual(len(app.config['DEVICES']), 2)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 6)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_019_register_ipmi(self):
         """ Test registering multiple IPMI devices when a device value is missing
@@ -1522,7 +1452,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(OpenDCREException):
             # register the ipmi device(s)
@@ -1531,8 +1460,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
@@ -1542,7 +1470,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # effectively disallowing invalid configuration.
         self.assertEqual(len(app.config['DEVICES']), 2)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 6)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_020_register_ipmi(self):
         """ Test registering a single IPMI device. In this case, we will have
@@ -1581,7 +1508,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1589,8 +1515,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1633,10 +1558,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                     for ip_address in bmc['ip_addresses']:
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_021_register_ipmi(self):
         """ Test registering a single IPMI device. In this case, we will have
@@ -1675,7 +1596,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1683,8 +1603,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1728,10 +1647,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_022_register_ipmi(self):
         """ Test registering a single IPMI device, where the provided IP will not resolve.
 
@@ -1769,7 +1684,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1777,8 +1691,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1821,10 +1734,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                     for ip_address in bmc['ip_addresses']:
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_023_register_ipmi(self):
         """ Test registering multiple IPMI devices, where one of the provided IP will
@@ -1880,7 +1789,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1888,8 +1796,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -1932,10 +1839,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                     for ip_address in bmc['ip_addresses']:
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_024_register_ipmi(self):
         """ Test registering multiple IPMI devices, where multiple of the provided IPs will
@@ -1991,7 +1894,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the ipmi device(s)
         IPMIDevice.register(
@@ -1999,8 +1901,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -2044,10 +1945,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], IPMIDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_025_register_ipmi(self):
         """ Test registering an IPMI device where an invalid hostname is given as the BMC
         IP. Unlike the case where an IP can be specified and it need not connect (e.g. can
@@ -2086,7 +1983,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(OpenDCREException):
             # register the ipmi device(s)
@@ -2095,8 +1991,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
@@ -2104,7 +1999,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # the state.
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_026_register_ipmi(self):
         """ Test registering multiple IPMI devices when a device value is missing
@@ -2157,7 +2051,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the ipmi device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(OpenDCREException):
             # register the ipmi device(s)
@@ -2166,8 +2059,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
@@ -2177,7 +2069,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # effectively disallowing invalid configuration.
         self.assertEqual(len(app.config['DEVICES']), 2)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 6)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_031_register_redfish(self):
         """ Test registering a single Redfish device.
@@ -2215,7 +2106,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the redfish device(s)
         RedfishDevice.register(
@@ -2223,8 +2113,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -2268,10 +2157,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], RedfishDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_032_register_redfish(self):
         """ Test registering a single Redfish device. In this case, the Redfish
         device config has no hostname, ip_address, or timeout entries.
@@ -2306,7 +2191,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the redfish device(s)
         RedfishDevice.register(
@@ -2314,8 +2198,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -2362,10 +2245,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], RedfishDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_033_register_redfish(self):
         """ Test registering no Redfish devices.
         """
@@ -2381,7 +2260,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the redfish device(s)
         with self.assertRaises(ValueError):
@@ -2390,8 +2268,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
@@ -2421,7 +2298,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the redfish device(s)
         RedfishDevice.register(
@@ -2429,8 +2305,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -2443,10 +2318,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         single_board_devices = app.config['SINGLE_BOARD_DEVICES']
         self.assertIsInstance(single_board_devices, dict)
         self.assertEqual(len(single_board_devices), 0)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
 
     def test_035_register_redfish(self):
         """ Test registering a single Redfish device when a device value is missing
@@ -2484,7 +2355,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         with self.assertRaises(KeyError):
             # register the redfish device(s)
@@ -2493,15 +2363,13 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                 app_config=app.config,
                 app_cache=(
                     app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES'],
-                    app.config['RANGE_DEVICES']
+                    app.config['SINGLE_BOARD_DEVICES']
                 )
             )
 
         # verify that the failure did not mutate any state
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
     def test_036_register_redfish(self):
         """ Test registering a single Redfish device. In this case, we will have
@@ -2541,7 +2409,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the redfish device(s)
         RedfishDevice.register(
@@ -2549,8 +2416,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -2595,10 +2461,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], RedfishDevice)
 
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)
-
     def test_037_register_redfish(self):
         """ Test registering a single Redfish device. In this case, we will have
         duplicate ip_addresses - we want to be sure that the duplicate ips do not
@@ -2637,7 +2499,6 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         # contain information on the redfish device(s)
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
-        self.assertEqual(len(app.config['RANGE_DEVICES']), 0)
 
         # register the redfish device(s)
         RedfishDevice.register(
@@ -2645,8 +2506,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
             app_config=app.config,
             app_cache=(
                 app.config['DEVICES'],
-                app.config['SINGLE_BOARD_DEVICES'],
-                app.config['RANGE_DEVICES']
+                app.config['SINGLE_BOARD_DEVICES']
             )
         )
 
@@ -2689,7 +2549,3 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
                     for ip_address in server['ip_addresses']:
                         self.assertIn(ip_address, single_board_devices)
                         self.assertIsInstance(single_board_devices[ip_address], RedfishDevice)
-
-        range_devices = app.config['RANGE_DEVICES']
-        self.assertIsInstance(range_devices, list)
-        self.assertEqual(len(range_devices), 0)

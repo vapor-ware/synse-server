@@ -10,23 +10,25 @@
 -------------------------------
 Copyright (C) 2015-17  Vapor IO
 
-This file is part of OpenDCRE.
+This file is part of Synse.
 
-OpenDCRE is free software: you can redistribute it and/or modify
+Synse is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
 (at your option) any later version.
 
-OpenDCRE is distributed in the hope that it will be useful,
+Synse is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 from threading import Thread
 from functools import wraps
+from .test_config import PREFIX
+from vapor_common.tests.utils.strings import _S
 
 import sys
 import Queue
@@ -128,3 +130,71 @@ def threaded(*args):
             return _threaded(args[0])
         thread_count = args[0]
     return _threaded
+
+
+class Uri(object):
+    """Helper class for creating test URIs.
+    This is intentionally not standing on requests.compat.urljoin in order to
+    be able to create malformed URIs for testing."""
+
+    @staticmethod
+    def create(base_uri, *args):
+        """Create a URI for OpenDCRE testing.
+        :param base_uri: The OpenDCRE uri component after the prefix. Example /scan
+        :param args: Uri components after the base_uri.
+        :returns: An OpenDCRE URI suitable for testing."""
+        result = PREFIX + base_uri
+        if len(args) > 0:
+            result = result + '/' + '/'.join(args)
+        return result
+
+    @staticmethod
+    def append(uri, *args):
+        """Appends arguments to a URI.
+        :param uri: The initial URI without a trailing slash.
+        :param args: Uri components to append."""
+        if len(args) > 0:
+            uri = uri + '/' + '/'.join(args)
+        return uri
+
+    @staticmethod
+    def read_fan_speed(*args):
+        """Create a URI to read the fan speed.
+        :param args: Uri components to append after /read/fan_speed."""
+        uri = Uri.create(_S.URI_READ, _S.DEVICE_TYPE_FAN_SPEED)
+        uri = Uri.append(uri, *args)
+        return uri
+
+    @staticmethod
+    def read_humidity(*args):
+        """Create a URI to read humidity.
+        :param args: Uri components to append after /read/humidity. Reading
+        humidity is not currently supported by OpenDCRE."""
+        uri = Uri.create(_S.URI_READ, _S.DEVICE_TYPE_HUMIDITY)
+        uri = Uri.append(uri, *args)
+        return uri
+
+    @staticmethod
+    def read_pressure(*args):
+        """Create a URI to read pressure.
+        :param args: Uri components to append after /read/pressure. Reading
+        pressure is not currently supported by OpenDCRE."""
+        uri = Uri.create(_S.URI_READ, _S.DEVICE_TYPE_PRESSURE)
+        uri = Uri.append(uri, *args)
+        return uri
+
+    @staticmethod
+    def read_temperature(*args):
+        """Create a URI to read temperature.
+        :param args: Uri components to append after /read/temperature."""
+        uri = Uri.create(_S.URI_READ, _S.DEVICE_TYPE_TEMPERATURE)
+        uri = Uri.append(uri, *args)
+        return uri
+
+    @staticmethod
+    def read_voltage(*args):
+        """Create a URI to read voltage.
+        :param args: Uri components to append after /read/voltage."""
+        uri = Uri.create(_S.URI_READ, _S.DEVICE_TYPE_VOLTAGE)
+        uri = Uri.append(uri, *args)
+        return uri

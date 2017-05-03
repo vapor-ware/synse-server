@@ -1,0 +1,82 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "device_name": "/dev/ttyVapor006",
+      "lockfile": "/tmp/i2c-0.lock",
+      "hardware_type": "real",
+      "devices": [
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0000",
+          "device_model": "max-11608",
+          "device_info": "Rack Temperature Top Left"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0001",
+          "device_model": "max-11608",
+          "device_info": "Rack Temperature Middle Left"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0002",
+          "device_model": "max-11608",
+          "device_info": "Rack Temperature Bottom Left"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0003",
+          "device_model": "max-11608",
+          "device_info": "Rack Temperature Top Right"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0004",
+          "device_model": "max-11608",
+          "device_info": "Rack Temperature Middle Right"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0005",
+          "device_model": "max-11608",
+          "device_info": "Rack Temperature Bottom Right"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0001",
+          "device_model": "sdp-610",
+          "device_info": "Rack Differential Pressure Top"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0002",
+          "device_model": "sdp-610",
+          "device_info": "Rack Differential Pressure Middle"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0004",
+          "device_model": "sdp-610",
+          "device_info": "Rack Differential Pressure Bottom"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "0014",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED"
+        }
+      ]
+    }
+  ]
+}
