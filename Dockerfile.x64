@@ -68,4 +68,4 @@ ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 # Expose our API endpoint port.
 EXPOSE 5000
 
-ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["./synse.sh"]
