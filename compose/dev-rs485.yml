@@ -1,0 +1,18 @@
+synse-server-dev:
+  container_name: synse-server-dev
+  build: ..
+  dockerfile: Dockerfile.x64
+  links:
+    - synse-test-container
+
+synse-test-container:
+  build: ..
+  dockerfile: Dockerfile.x64
+  command: bash -c "./start_synse_rs485_emulator.sh ./synse/tests/data/rs485_emulator/rs485-002.json"
+  expose:
+    - "5000"
+  environment:
+    - VAPOR_DEBUG=true
+    - VAPOR_TEST=true
+  volumes:
+    - ../synse/tests/data/rs485_emulator/rs485_emulator_config-002.json:/synse/rs485_config.json
