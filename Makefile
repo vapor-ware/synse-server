@@ -124,8 +124,8 @@ START_TEST_CONTAINER =                                                 \
 # require any sense of "trust"
 define run_test
 	make delete-containers
-	$(call START_TEST_CONTAINER,opendcre_southbound/tests/_composefiles/x64/$(1).yml)
-	docker-compose -f opendcre_southbound/tests/_composefiles/x64/$(1).yml kill
+	$(call START_TEST_CONTAINER,synse/tests/_composefiles/x64/$(1).yml)
+	docker-compose -f synse/tests/_composefiles/x64/$(1).yml kill
 endef
 
 
