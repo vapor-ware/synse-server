@@ -19,6 +19,6 @@
 # ---------------------------------------------------------------------
 
 VERSION_SENTINEL="SYNSE_VERSION"
-SYNSE_VERSION=`python /synse/synse/version.py`
+SYNSE_VERSION=`cat VERSION | head -c 3`
 
 sed -i -e "s/$VERSION_SENTINEL/$SYNSE_VERSION/g" synse_nginx.conf
