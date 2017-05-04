@@ -17,23 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 # ---------------------------------------------------------------------
+set -o errexit -o pipefail
 
 version="$(python synse/version.py)"
 
 
-setup_container_environment() {
-    if [[ ${VAPOR_DEBUG} && ${VAPOR_DEBUG} = "true" ]]
-    then
-        mv -f /synse/configs/logging_synse_debug.json /synse/logging_synse.json
-        mv -f /synse/configs/logging_emulator_debug.json /synse/logging_emulator.json
-    fi
-
-    chown root:www-data /logs
-    chmod 775 /logs
-}
-
-
-show_help() {
+# help
+#   display usage information
+function -h {
 cat <<USAGE
    __
   / _\_   _ _ __  ___  ___
@@ -67,21 +58,23 @@ cat <<USAGE
             Start the RS485 emulator, using the specified file
             as the emulator's backing data file.
 USAGE
-}
+}; function --help { -h ;}
 
 
-start_plc_emulator() {
+# emulate PLC
+#   start the PLC emulator with either a specified
+#   configuration, or a default configuration file.
+function --emulate-plc-with-cfg {
     socat PTY,link=/dev/ttyVapor001,mode=666 PTY,link=/dev/ttyVapor002,mode=666 &
+    python -u ./synse/emulator/plc/devicebus_emulator.py $1 &
 
-    if [ $# -eq 1 ]; then
-        python -u ./synse/emulator/plc/devicebus_emulator.py $1 &
-    else
-        python -u ./synse/emulator/plc/devicebus_emulator.py ./synse/emulator/plc/data/example.json &
-    fi
-}
+}; function --emulate-plc { --emulate-plc-with-cfg ./synse/emulator/plc/data/example.json ;}
 
 
-start_i2c_emulator() {
+# emulate I2C
+#   start the I2C emulator with either a specified
+#   configuration, or a default configuration file.
+function --emulate-i2c-with-cfg {
     cp ./configs/synse_config_i2c_emulator.json ./default/default.json
 
     # test flag to let us bypass the default prop-in of i2c config for bind-mount from test yml
@@ -90,16 +83,15 @@ start_i2c_emulator() {
     fi
 
     socat PTY,link=/dev/ttyVapor005,mode=666 PTY,link=/dev/ttyVapor006,mode=666 &
+    python -u ./synse/emulator/i2c/i2c_emulator.py $1 &
 
-    if [ $# -eq 1 ]; then
-        python -u ./synse/emulator/i2c/i2c_emulator.py $1 &
-    else
-        python -u ./synse/emulator/i2c/i2c_emulator.py ./synse/emulator/i2c/data/example.json &
-    fi
-}
+}; function --emulate-i2c { --emulate-i2c-with-cfg ./synse/emulator/i2c/data/example.json ;}
 
 
-start_rs485_emulator() {
+# emulate RS485
+#   start the RS485 emulator with either a specified
+#   configuration, or a default configuration file.
+function --emulate-rs485-with-cfg {
     cp ./configs/synse_config_rs485_emulator.json ./default/default.json
 
     # test flag to let us bypass the default prop-in of rs485 config for bind-mount from test yml
@@ -108,61 +100,39 @@ start_rs485_emulator() {
     fi
 
     socat PTY,link=/dev/ttyVapor003,mode=666 PTY,link=/dev/ttyVapor004,mode=666 &
+    python -u ./synse/emulator/rs485/rs485_emulator.py $1 &
 
-    if [ $# -eq 1 ]; then
-        python -u ./synse/emulator/rs485/rs485_emulator.py $1 &
-    else
-        python -u ./synse/emulator/rs485/rs485_emulator.py ./synse/emulator/rs485/data/example.json &
+}; function --emulate-rs485 { --emulate-rs485-with-cfg ./synse/emulator/rs485/data/example.json ;}
+
+
+_setup_container_environment() {
+    if [[ ${VAPOR_DEBUG} && ${VAPOR_DEBUG} = "true" ]]
+    then
+        mv -f /synse/configs/logging_synse_debug.json /synse/logging_synse.json
+        mv -f /synse/configs/logging_emulator_debug.json /synse/logging_emulator.json
     fi
+
+    chown root:www-data /logs
+    chmod 775 /logs
 }
 
 
-# -----------------------------
-# Synse Startup
-# -----------------------------
+function msg { out "$*" >&2 ;}
+function err { local x=$? ; msg "$*" ; return $(( $x == 0 ? 1 : $x )) ;}
+function out { printf '%s\n' "$*" ;}
 
-# first, setup the container environment - this sets permissions where needed
-# and checks to see if we should be using a debug logger.
-setup_container_environment
 
-# make sure nginx is running
+# if any arguments were passed in, act on them now. arguments
+# will either prompt the usage to be displayed or will start
+# a single emulator.
+#
+# note that only a single emulator can be started with a single
+# synse instance.
+if [[ ${1:-} ]] && declare -F | cut -d' ' -f3 | fgrep -qx -- "${1:-}"
+then "$@"
+fi
+
+# start synse
+_setup_container_environment
 service nginx restart 2>&1
-
-# parse any arguments passed to synse. arguments passed to synse are used to
-# enable and configure emulators to run alongside Synse for development, testing,
-# or just getting a feel for synse in a safe environment.
-while [[ "$#" > 0 ]]; do
-    case $1 in
-        --emulate-plc)
-            start_plc_emulator
-            ;;
-        --emulate-plc-with-cfg)
-            shift;
-            start_plc_emulator $1
-            ;;
-        --emulate-i2c)
-            start_i2c_emulator
-            ;;
-        --emulate-i2c-with-cfg)
-            shift;
-            start_i2c_emulator $1
-            ;;
-        --emulate-rs485)
-            start_rs485_emulator
-            ;;
-        --emulate-rs485-with-cfg)
-            shift;
-            start_rs485_emulator $1
-            ;;
-        --help|-h)
-            show_help
-            ;;
-        *)
-            break
-            ;;
-    esac
-    shift;
-done
-
-# finally, start synse
 uwsgi --emperor /etc/uwsgi/emperor.ini 2>&1
