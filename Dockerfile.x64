@@ -46,12 +46,13 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     cp python34_plugin.so /etc/uwsgi/plugins/ && \
     UWSGI_PROFILE=nolang python setup.py install || true
 
-
 ADD . /synse
 WORKDIR /synse
 
+# run command for custom configuration layer
+RUN /synse/configure_nginx_config.sh
 
-# run command for nginx configuration
+# run command for nginx uwsgi configuration
 RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
     ln -s /synse/synse_uwsgi.ini /etc/uwsgi/vassals/synse_uwsgi.ini && \
     ln -s /synse/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
