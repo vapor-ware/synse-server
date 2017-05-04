@@ -60,10 +60,6 @@ RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
     cp /synse/configs/nginx.logrotate /etc/logrotate.d/nginx && \
     ln -sf /proc/1/fd/1 /logs/err
 
-# update the python path to include the synse module so that it
-# can be successfully be imported
-ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
-
 # Expose our API endpoint port.
 EXPOSE 5000
 
