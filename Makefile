@@ -139,6 +139,10 @@ endef
 test-plc-endpoints:
 	$(call run_test,test_plc_endpoints)
 
+test-plc-bad-scan:
+
+	$(call run_test,test_plc_bad_scan)
+
 test-plc-scanall:
 	$(call run_test,test_plc_scanall)
 
@@ -148,9 +152,8 @@ test-plc-endurance:
 test-plc-emulator:
 	$(call run_test,test_plc_emulator)
 
-test-plc-endpointless:
-	$(call run_test,test_plc_endpointless)
-
+test-plc-devicebus:
+	$(call run_test,test_plc_devicebus)
 
 # IPMI
 # ....................
@@ -172,6 +175,41 @@ test-ipmi-scan-cache-registration:
 
 test-ipmi-no-init-scan:
 	$(call run_test,test_ipmi_no_init_scan)
+
+# RS485
+# ....................
+
+test-rs485-emulator:
+	$(call run_test,test_rs485_emulator)
+
+test-rs485-endpoints:
+	$(call run_test,test_rs485_endpoints)
+
+
+# I2C
+# ....................
+
+test-i2c-endpoints:
+	$(call run_test,test_i2c_endpoints)
+
+test-i2c-devices:
+	$(call run_test,test_i2c_devices)
+
+
+# SNMP
+# ....................
+
+test-snmp-emulator:
+	$(call run_test,test_snmp_emulator)
+
+test-snmp-device-registration: delete-vapor-containers
+	$(call run_test,test_snmp_device_registration)
+
+test-snmp-device-kills: delete-vapor-containers
+	$(call run_test,test_snmp_device_kills)
+
+test-snmp-device-kills-force-scan: delete-vapor-containers
+	$(call run_test,test_snmp_device_kills_force_scan)
 
 
 # REDFISH
@@ -196,6 +234,11 @@ test-device-supported-commands:
 test-endpoint-utils:
 	$(call run_test,test_endpoint_utils)
 
+test-utils:
+	$(call run_test,test_utils)
+
+test-location:
+	$(call run_test,test_location)
 
 # SUITES
 # ....................
@@ -205,8 +248,8 @@ test-plc: \
 	test-plc-scanall \
 	test-plc-endurance \
 	test-plc-emulator \
-	test-plc-endpointless
-
+	test-plc-bad-scan \
+	test-plc-devicebus
 
 test-ipmi: \
 	test-ipmi-endpoints \
@@ -216,6 +259,19 @@ test-ipmi: \
 	test-ipmi-scan-cache-registration \
 	test-ipmi-emulator
 
+test-rs485: \
+	test-rs485-endpoints \
+	test-rs485-emulator
+
+test-i2c: \
+	test-i2c-endpoints \
+	test-i2c-devices
+
+test-snmp: \
+	test-snmp-emulator \
+	test-snmp-device-registration \
+	test-snmp-device-kills \
+	test-snmp-device-kills-force-scan
 
 test-redfish: \
     test-redfish-endpoints \
@@ -224,15 +280,21 @@ test-redfish: \
 
 
 test-general: \
-    test-device-supported-commands \
-    test-endpoint-utils
+	test-utils \
+	test-location \
+	test-device-supported-commands \
+	test-endpoint-utils
 
 
 test: \
 	test-plc \
 	test-ipmi \
+	test-rs485 \
+	test-i2c \
+	test-snmp \
 	test-redfish \
-	test-general
+	test-general \
+	graphql-test
 
 
 # -----------------------------------------------
