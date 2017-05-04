@@ -299,23 +299,8 @@ test: \
 dev: run
 	-docker exec -it synse-server /bin/sh
 
-dev-ipmi:
-	docker-compose -f compose/dev-ipmi.yml up -d && docker exec -it synse-server-dev /bin/bash
-
-dev-plc:
-	docker-compose -f compose/dev-plc.yml up -d && docker exec -it synse-server-dev /bin/bash
-
-dev-i2c:
-	docker-compose -f compose/dev-i2c.yml up -d && docker exec -it synse-server-dev /bin/bash
-
-dev-redfish:
-	docker-compose -f compose/dev-redfish.yml up -d && docker exec -it synse-server-dev /bin/bash
-
-dev-rs485:
-	docker-compose -f compose/dev-rs485.yml up -d && docker exec -it synse-server-dev /bin/bash
-
-dev-snmp:
-	docker-compose -f compose/dev-snmp.yml up -d && docker exec -it synse-server-dev /bin/bash
+dev-ipmi dev-plc dev-i2c dev-redfish dev-rs485 dev-snmp:
+	docker-compose -f compose/$@.yml up -d && docker exec -it synse-server-dev /bin/bash
 
 # -----------------------------------------------
 # GraphQL Commands
