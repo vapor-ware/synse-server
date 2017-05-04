@@ -111,9 +111,6 @@ _setup_container_environment() {
         mv -f /synse/configs/logging_synse_debug.json /synse/logging_synse.json
         mv -f /synse/configs/logging_emulator_debug.json /synse/logging_emulator.json
     fi
-
-    chown root:www-data /logs
-    chmod 775 /logs
 }
 
 
