@@ -2,6 +2,7 @@ test-container-x64:
   container_name: test-container-x64
   build: ../../../..
   dockerfile: Dockerfile.x64
+  entrypoint: []
   command: bash -c "sleep 5 && python ./synse/tests/test-i2c-endpoints.py"
   links:
     - synse-test-container
@@ -9,9 +10,9 @@ test-container-x64:
 synse-test-container:
   build: ../../../..
   dockerfile: Dockerfile.x64
-  command: bash -c "./start_synse_i2c_emulator.sh ./synse/tests/data/i2c_emulator/i2c-001.json"
+  command: emulate-i2c-with-cfg ./synse/tests/data/i2c_emulator/i2c-001.json
   expose:
-    - "5000"
+    - 5000
   environment:
     - VAPOR_DEBUG=true
     - VAPOR_TEST=true

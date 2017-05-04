@@ -67,5 +67,4 @@ ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 # Expose our API endpoint port.
 EXPOSE 5000
 
-# Define default command
-CMD ["./start_synse.sh"]
+ENTRYPOINT ["./synse.sh"]

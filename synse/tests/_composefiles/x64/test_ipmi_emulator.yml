@@ -2,6 +2,7 @@ test-container-x64:
   container_name: test-container-x64
   build: ../../../..
   dockerfile: Dockerfile.x64
+  entrypoint: []
   command: bash -c "sleep 5 && python ./synse/tests/test-ipmi-emulator.py"
   links:
     - ipmi-emulator
