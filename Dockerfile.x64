@@ -46,13 +46,8 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     cp python34_plugin.so /etc/uwsgi/plugins/ && \
     UWSGI_PROFILE=nolang python setup.py install || true
 
-
 ADD . /synse
 WORKDIR /synse
-
-
-# Install our packages.
-#RUN pip install -I vapor_common-1.0.tar.gz synse-1.0.tar.gz
 
 # run command for custom configuration layer
 RUN /synse/configure_nginx_config.sh

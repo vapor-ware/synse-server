@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" OpenDCRE Server Runner - Used to launch OpenDCRE from package
+""" Synse Server Runner - Used to launch Synse from package
 via flask/nginx
 
     Author:  andrew
@@ -26,11 +26,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from opendcre_southbound import main
+from synse import main
 import sys
 
 # leave this import, it is used by uwsgi
-from opendcre_southbound import app
+from synse import app
 
 if len(sys.argv) == 3:
     main(serial_port=sys.argv[1], hardware=sys.argv[2])

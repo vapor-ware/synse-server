@@ -1,0 +1,29 @@
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "sleep 15 && python ./synse/tests/test-ipmi-endpoints.py"
+  links:
+    - synse-test-container
+
+synse-test-container:
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: ./start_synse_plc_emulator.sh
+  ports:
+    - 5000:5000
+  volumes:
+    - ../../data/synse_config.json:/synse/default/default.json
+    - ../../data/bmc_config/bmc_config002.json:/synse/bmc_config.json
+  environment:
+    - VAPOR_DEBUG=true
+  links:
+    - ipmi-emulator
+
+ipmi-emulator:
+  build: ../../../emulator/ipmi
+  dockerfile: Dockerfile.x64
+  ports:
+    - 623:623/udp
+  environment:
+    - VAPOR_DEBUG=true

@@ -88,13 +88,19 @@ node {
         try {
             cleanupDocker()
 
+            // TEMP: build the synse-server image - since it currently doesn't
+            // exit in dockerhub and is required by the graphql tests, we need
+            // to build it locally.
+            buildAndTest('synse-server', synse_server_branch,
+                'synse-server', 'make build')
+
             // Test graphql.
             buildAndTest('synse-server', synse_server_branch,
                 'synse-server', 'make graphql-test')
 
             // Test the backend.
             buildAndTest('synse-server', synse_server_branch,
-                'synse-server/opendcre_southbound/tests/', 'make test-x64')
+                'synse-server/synse/tests/', 'make test-x64')
         } finally {
             echo('Cleaning up.')
             cleanupHack()
