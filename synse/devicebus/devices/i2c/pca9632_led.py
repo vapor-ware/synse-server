@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse I2C LED control via PCA9632
+""" Synse I2C LED control via PCA9632.
 
     Author: Andrew Cencini
     Date:   10/25/2016
@@ -182,17 +182,18 @@ class PCA9632Led(I2CDevice):
             raise SynseException('Error setting LED status (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _control_led(self, state=None, blink=None, red=None, green=None, blue=None):
-        """
+        """ Internal method for LED control.
 
         Args:
-            state:
-            blink:
-            red:
-            green:
-            blue:
+            state (str): the LED state. can be either 'on' or 'off'.
+            blink (str): the LED blink state. can be either 'steady' or 'blink'.
+            red (int): the value for red (between 0x00 and 0xFF).
+            green (int): the value for green (between 0x00 and 0xFF).
+            blue (int): the value for blue (between 0x00 and 0xFF).
 
         Returns:
-
+            dict: a dictionary containing the LED state, which includes its
+                color, state, and blink state.
         """
         with self._lock:
             if self.hardware_type == 'emulator':

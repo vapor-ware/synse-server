@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """ Synse SNMP testDevice1 Implementation.
-    This is a made up device to test Synse commands to an SNMP server that
-    another device will not support.
+
+This is a made up device to test Synse commands to an SNMP server that
+another device will not support.
 
     \\//
      \/apor IO
@@ -53,10 +54,14 @@ class TestDevice1(SnmpServerBase):
     This is a specific SNMP device/server interface for the Synse-testDevice1 Server.
     """
 
+    # FIXME (etd) - should this be **kwargs?
     def __init__(self, app_cfg, kwargs):
-        """Construct the command map and do a scan.
-        :param app_cfg: The app config from flask.
-        :param kwargs: Same kwargs as passed to SnmpDevice."""
+        """ Construct the command map and do a scan.
+
+        Args:
+            app_cfg: the app config from Flask.
+            kwargs (dict): same kwargs as passed to SnmpDevice.
+        """
         logger.debug('Initializing testDevice1')
         logger.debug('testDevice1 kwargs: {}'.format(kwargs))
         super(TestDevice1, self).__init__(app_cfg, kwargs)
@@ -81,6 +86,17 @@ class TestDevice1(SnmpServerBase):
 
     # region Commands
     def _fan(self, command):
+        """ Synse API fan command implementation for the TestDevice1 SNMP
+        server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Response: a Response object for the incoming Command object
+                containing the data for the fan response.
+        """
         logger.debug('TestDevice1 _fan')
         logger.debug('vars(command) {}'.format(vars(command)))
 
@@ -119,10 +135,13 @@ class TestDevice1(SnmpServerBase):
         )
 
     def _led(self, command):
-        """ Synse API power command implementation for the TestDevice1 SNMP server.
+        """ Synse API LED command implementation for the TestDevice1 SNMP
+        server.
+
         Args:
             command (Command): the command issued by the Synse endpoint
                 containing the data and sequence for the request.
+
         Returns:
             Response: a Response object for the incoming Command object
                 containing the data for the LED response.
@@ -149,7 +168,8 @@ class TestDevice1(SnmpServerBase):
         )
 
     def _power(self, command):
-        """Synse API power command implementation for the TestDevice1 SNMP server.
+        """ Synse API power command implementation for the TestDevice1 SNMP
+        server.
 
         Args:
             command (Command): the command issued by the Synse endpoint
@@ -179,7 +199,8 @@ class TestDevice1(SnmpServerBase):
         )
 
     def _read(self, command):
-        """Synse API read command implementation for the TestDevice1 SNMP server.
+        """ Synse API read command implementation for the TestDevice1 SNMP
+        server.
 
         Args:
             command (Command): the command issued by the Synse endpoint
@@ -230,7 +251,8 @@ class TestDevice1(SnmpServerBase):
     # region private non-command map methods.
 
     def _led_internal(self, command, base_oid):
-        """Lower level of the LED command."""
+        """ Lower level of the LED command.
+        """
         logger.debug('_led_internal')
         logger.debug('command: {}'.format(vars(command)))
         logger.debug('base_oid: {}'.format(base_oid))
@@ -274,12 +296,15 @@ class TestDevice1(SnmpServerBase):
     # NOTE: Isn't snmp_server just self here?
     # NO but comes from self: self.device_config['connection']['snmp_server']
     def _read_test_device1(self, scan_results, snmp_server, rack_id):
-        """At this point we know we are reading the device we are responsible
+        """ At this point we know we are reading the device we are responsible
         for in the scan. Create the internal scan results.
-        :param scan_results: Accumulator for the internal scan results.
-        :param snmp_server: The name of the SNMP server from the caller's
-        device_config. Example 'snmp-emulator-synse-testdevice1-board2'.
-        :param rack: The rack id where the snmp_server is located. Example 'rack_1'."""
+
+        Args:
+            scan_results: accumulator for the internal scan results.
+            snmp_server: the name of the SNMP server from the caller's
+                device_config. example 'snmp-emulator-synse-testdevice1-board2'.
+            rack_id: the rack id where the snmp_server is located. example 'rack_1'.
+        """
         logger.debug('scanning TestDevice1')
         logger.debug('rack_id {}'.format(rack_id))
 
@@ -321,13 +346,15 @@ class TestDevice1(SnmpServerBase):
         scan_results['racks'].append(scan_rack)
 
     def _read_tables(self):
-        """Create and load fan, power, and led tables."""
+        """ Create and load fan, power, and LED tables.
+        """
         self.fan_table = FanTable(snmp_server=self)
         self.led_table = LedTable(snmp_server=self)
         self.power_table = PowerTable(snmp_server=self)
 
     def _power_internal(self, command, base_oid):
-        """Lower level of the power command."""
+        """ Lower level of the power command.
+        """
         logger.debug('_power_internal')
         logger.debug('command: {}'.format(vars(command)))
         logger.debug('base_oid: {}'.format(base_oid))
@@ -369,8 +396,9 @@ class TestDevice1(SnmpServerBase):
         return response_data
 
     def _scan_internal(self):
-        """Internal scan results with private data including a mapping of
-        devices to SNMP rows."""
+        """ Internal scan results with private data including a mapping of
+        devices to SNMP rows.
+        """
         logger.debug('TestDevice1 _scan_internal.')
 
         scan_results = {'racks': []}
@@ -392,12 +420,17 @@ class TestDevice1(SnmpServerBase):
             separators=(',', ': ')))
 
     def _set_led_blink(self, base_oid, command_led_blink):
-        """Set LED blink state and return the SNMP data we set.
-        :param base_oid: The base SNMP OID for the LED device.
-        The device to base_oid mapping will show up in the internal scan results.
-        :param command_led_blink: This is 'blink' or 'steady' from the URI.
-        :returns: The led blink_state as a string for the response,
-        either blink or steady."""
+        """ Set LED blink state and return the SNMP data we set.
+
+        Args:
+            base_oid: the base SNMP OID for the LED device. The device to
+                base_oid mapping will show up in the internal scan results.
+            command_led_blink: this is 'blink' or 'steady' from the URI.
+
+        Returns:
+            str: the led blink_state as a string for the response, either
+                'blink' or 'steady'.
+        """
         if command_led_blink == 'steady':
             data = Integer(1)
         elif command_led_blink == 'blink':
@@ -419,13 +452,18 @@ class TestDevice1(SnmpServerBase):
         return led_blink
 
     def _set_led_color(self, base_oid, command_led_color):
-        """Set LED color  and return the SNMP data we set.
-        :param base_oid: The base SNMP OID for the LED device.
-        The device to base_oid mapping will show up in the internal scan results.
-        :param command_led_color: This is a 6 character (3 byte)
-        hex string from the URI.
-        :returns: The led color as a hex string for the response,
-        without a leading 0x."""
+        """ Set LED color and return the SNMP data we set.
+
+        Args:
+            base_oid: the base SNMP OID for the LED device. the device to
+                base_oid mapping will show up in the internal scan results.
+            command_led_color: this is a 6 character (3 byte) hex string from
+                the URI.
+
+        Returns:
+            str: the led color as a hex string for the response, without
+                a leading 0x.
+        """
         led_color_setting = int(command_led_color, 16)
         if led_color_setting > 0xFFFFFF:
             raise ValueError("Maximum color is 0xffffff, got {:6x}.".format(
@@ -449,12 +487,17 @@ class TestDevice1(SnmpServerBase):
         return led_color
 
     def _set_led_state(self, base_oid, command_led_state):
-        """Set LED state and return the SNMP data we set.
-        :param base_oid: The base SNMP OID for the LED device.
-        The device to base_oid mapping will show up in the internal scan results.
-        :param command_led_state: This is 'on' or 'off' from the URI.
-        :returns: The led state as a string for the response,
-        either off or on."""
+        """ Set LED state and return the SNMP data we set.
+
+        Args:
+            base_oid: the base SNMP OID for the LED device. the device to
+                base_oid mapping will show up in the internal scan results.
+            command_led_state: this is 'on' or 'off' from the URI.
+
+        Returns:
+            str: the led state as a string for the response, either 'off'
+                or 'on'.
+        """
         if command_led_state == 'off':
             data = Integer(1)
         elif command_led_state == 'on':
@@ -476,13 +519,17 @@ class TestDevice1(SnmpServerBase):
         return led_state
 
     def _set_power(self, base_oid, data):
-        """Set power and return the SNMP data we set.
-        :param snmp_client: The client to talke to the SNMP emulator with.
-        :param base_oid: The base SNMP OID for the power device.
-        The device to base_oid mapping will show up in the internal scan results.
-        :param data: Here this is Integer(1) for off and Integer(2) for on.
-        :returns: The power state as a string for the response,
-        either off or on."""
+        """ Set power and return the SNMP data we set.
+
+        Args:
+            base_oid: the base SNMP OID for the power device. the device to
+                base_oid mapping will show up in the internal scan results.
+            data: here this is Integer(1) for off and Integer(2) for on.
+
+        Returns:
+            str: the power state as a string for the response, either 'off'
+                or 'on'.
+        """
         write_oid, write_index = SnmpServerBase.get_write_oid(
             self.power_table, base_oid, 'state')
         result = self.snmp_set(write_oid, data)
@@ -512,11 +559,18 @@ class TestDevice1(SnmpServerBase):
 
     @staticmethod
     def _translate_led_blink_state(state):
-        """Translate the LED blink state from the SNMP int to a string.
-        :param state: The color state as an integer.
-                For this table 1 is blink off (steady) and 2 is blink on (blink).
-        :returns: 'steady' or 'blink'.
-        :raises ValueError: color is out of valid range."""
+        """ Translate the LED blink state from the SNMP int to a string.
+
+        Args:
+            state: the blink state as an integer. for this table 1 is blink
+                off (steady) and 2 is blink on (blink).
+
+        Returns:
+            str: the blink state, either 'steady' or 'blink'.
+
+        Raises:
+            ValueError: invalid blink state specified.
+        """
         if state == 1:
             state = 'steady'
         elif state == 2:
@@ -527,21 +581,35 @@ class TestDevice1(SnmpServerBase):
 
     @staticmethod
     def _translate_led_color(color):
-        """Translate the LED color state from the SNMP int to a string.
-        :param color: The color state as an integer.
-        :returns: A six character hex color representation.
-        :raises ValueError: color is out of valid range."""
+        """ Translate the LED color state from the SNMP int to a string.
+
+        Args:
+            color: the color state as an integer.
+
+        Returns:
+            str: a six character hex color representation.
+
+        Raises:
+            ValueError: color is out of valid range.
+        """
         if color > 0xFFFFFF:
             raise ValueError('Invalid led color {}.'.format(color))
         return '{0:06x}'.format(color)
 
     @staticmethod
     def _translate_led_state(state):
-        """Translate the power state from the SNMP int to a string.
-        :param state: The power state as an integer.
-        For this table 1 is off and 2 is on.
-        :returns: 'on' or 'off'.
-        :raises ValueError: state is out of valid range."""
+        """ Translate the LED state from the SNMP int to a string.
+
+        Args:
+            state: the LED state as an integer. for this table 1 is off
+                and 2 is on.
+
+        Returns:
+            str: the LED state, either 'on' or 'off'.
+
+        Raises:
+            ValueError: invalid LED state is given.
+        """
         if state == 1:
             state = 'off'
         elif state == 2:
@@ -552,10 +620,18 @@ class TestDevice1(SnmpServerBase):
 
     @staticmethod
     def _translate_power_state(state):
-        """Translate the power state from the SNMP int to a string.
-        :param state: The power state as an integer.
-        For this table 1 is off and 2 is on.
-        :raises ValueError: state is out of valid range."""
+        """ Translate the power state from the SNMP int to a string.
+
+        Args:
+            state: the power state as an integer. for this table 1 is off
+                and 2 is on.
+
+        Returns:
+            str: the power state, ether 'on' or 'off'.
+
+        Raises:
+            ValueError: invalid power state is given.
+        """
         if state == 1:
             state = 'off'
         elif state == 2:

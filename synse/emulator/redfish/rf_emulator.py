@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """ Redfish Emulator
 
-Starts up the flask app and serves resources. Reads in parameters from emulator_config.json
-and passes it to the server with those values unless they are overridden on start up.
+Starts up the flask app and serves resources. Reads in parameters from
+emulator_config.json and passes it to the server with those values
+unless they are overridden on start up.
 
-This was based off of DMTF's Redfish-Profile-Simulator (see LICENSE.txt in the redfish emulator
-directory, and attribution, below) - https://github.com/DMTF/Redfish-Profile-Simulator
+This was based off of DMTF's Redfish-Profile-Simulator (see LICENSE.txt
+in the redfish emulator directory, and attribution, below):
+https://github.com/DMTF/Redfish-Profile-Simulator
 
     Author:  Linh Hoang
     Date:    02/09/17
@@ -87,8 +89,8 @@ def main():
         from basic_server import basic_server
         import redfish_resources
 
-        mockup_path = os.path.normpath("./Resources/{}".format(mockup))
-        root_path = os.path.normpath("redfish/v1")
+        mockup_path = os.path.normpath('./Resources/{}'.format(mockup))
+        root_path = os.path.normpath('redfish/v1')
 
         redfish_resources.get_all_resources(mockup)
         basic_server(mockup_path, root_path, host_name=host, port_number=port, tokens=tokens)

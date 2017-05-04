@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse IPMI Device
+""" Synse IPMI Device.
 
     Author: Erick Daniszewski
     Date:   09/15/2016
@@ -111,8 +111,7 @@ class IPMIDevice(LANDevice):
             # initialize the board through 'normal' means next.
             self._load_from_cache(scan_cache)
 
-        # assign board_id based on incoming data - ipmi devices are single-board devices, so we expose a single
-        # board_id property; the alternate approach, as in PLC, is a 'dumb' device, where a board_id range is exposed
+        # assign board_id based on incoming data
         if self.board_id is None:
             self.board_id = int(kwargs['board_offset']) + int(kwargs['board_id_range'][0])
 
@@ -182,8 +181,9 @@ class IPMIDevice(LANDevice):
             other (dict): dictionary representing an IPMI device config.
 
         Returns:
-            bool: True if duplicate; False otherwise
+            bool: True if duplicate; False otherwise.
         """
+        # FIXME (etd): could become __eq__
         return \
             self.bmc_ip == other.get('bmc_ip') and \
             self.bmc_rack == other.get('bmc_rack') and \
@@ -194,12 +194,12 @@ class IPMIDevice(LANDevice):
             self.ip_addresses == other.get('ip_addresses', [other['bmc_ip']])
 
     def _get_dcmi_power_capabilities(self):
-        """ Get DCMI capabilities relative to power management (is the power management platform capability
-        supported?)
+        """ Get DCMI capabilities relative to power management (is the power management
+        platform capability supported?)
 
         Returns:
-            bool: True if 'DCMI Get Power Reading' is presumably supported, False otherwise. If
-                an error is raised, this command returns False.
+            bool: True if 'DCMI Get Power Reading' is presumably supported, False
+                otherwise. If an error is raised, this command returns False.
         """
         try:
             # 0x01 is the parameter selector for the general capabilities, which includes power management
@@ -211,8 +211,8 @@ class IPMIDevice(LANDevice):
         """ Get FRU information for the given BMC (if possible).
 
         Returns:
-            dict: the FRU information that is typically returned by the get_inventory IPMI method,
-                or None if there is an error.
+            dict: the FRU information that is typically returned by the get_inventory
+                IPMI method, or None if there is an error.
         """
         try:
             return vapor_ipmi.get_inventory(**self._ipmi_kwargs)
@@ -352,7 +352,7 @@ class IPMIDevice(LANDevice):
 
     @staticmethod
     def _process_bmc(bmc, app_config, rack_id, board_range, device_init_failure, mutate_lock, devices, single_board_devices):
-        """ A private method to handle the construction of the ipmi device from
+        """ A private method to handle the construction of the IPMI device from
         the bmc record.
 
         Args:
@@ -706,7 +706,7 @@ class IPMIDevice(LANDevice):
 
         Gets the fan speed for a given device. Since this is not NOT a Vapor
         Fan, we can not control the fan speed, so any attempts to set the
-        fan speed are met with an SynseException being raised.
+        fan speed are met with a SynseException being raised.
 
         Args:
             command (Command): the command issued by the Synse endpoint

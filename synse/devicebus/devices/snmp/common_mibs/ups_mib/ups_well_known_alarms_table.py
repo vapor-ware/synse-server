@@ -27,7 +27,8 @@ from ......devicebus.devices.snmp.snmp_table import SnmpTable
 
 
 class UpsWellKnownAlarmsTable(SnmpTable):
-    """SNMP table specific to the UPS MIB."""
+    """ SNMP table specific to the UPS MIB.
+    """
 
     def __init__(self, **kwargs):
 

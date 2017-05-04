@@ -51,4 +51,4 @@ class Notification(graphene.ObjectType):
     @staticmethod
     def build(body):
         return Notification(
-            source=NotificationSource(**body.pop("source")), **body)
+            source=NotificationSource(**body.pop('source')), **body)

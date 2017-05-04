@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-""" Synse Base class for specific SNMP Entity State MIB
-implementations.
+""" Synse Base class for specific SNMP Entity State MIB implementations.
 
     \\//
      \/apor IO
@@ -32,7 +31,8 @@ from .entity_state_groups import EntityStateGroupsTable
 
 
 class EntityStateMib(SnmpMib):
-    """Container for all SNMP tables defined in the Entity State MIB (rfc4268)."""
+    """ Container for all SNMP tables defined in the Entity State MIB (rfc4268).
+    """
 
     def __init__(self, snmp_server):
         super(EntityStateMib, self).__init__()

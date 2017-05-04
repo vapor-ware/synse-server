@@ -35,13 +35,12 @@ logger = logging.getLogger(__name__)
 
 
 class SnmpTable(object):
-    """Given a base OID to walk the table with, a column list, and raw SNMP
+    """ Given a base OID to walk the table with, a column list, and raw SNMP
     walk data, construct an object to translate and encapsulate into meaningful
-    data."""
+    data.
+    """
 
     def __init__(self, **kwargs):
-        """Constructor."""
-
         # This is how we identify what table we are working on internally.
         # SnmpTable is a generic table class. VariableTable is a specific
         # table class to the Emulator Test MIB.
@@ -123,7 +122,8 @@ class SnmpTable(object):
         return row_indexes
 
     def _translate(self, table_data):
-        """Translate into a structure of SnmpRow."""
+        """ Translate into a structure of SnmpRow.
+        """
         self.rows = []
         row_indexes = self._get_row_indexes(table_data)  # Find the row indexes.
 
@@ -164,7 +164,8 @@ class SnmpTable(object):
             self.rows.append(row)
 
     def dump(self):
-        """Simple table dump to the log as CSV."""
+        """ Simple table dump to the log as CSV.
+        """
         logger.debug('Dumping {} table. {} rows'.format(
             self.table_name, len(self.rows)))
         logger.debug(', {}'.format(','.join(self.column_list)))
@@ -182,8 +183,16 @@ class SnmpTable(object):
             logger.debug(', {}'.format(','.join('{}'.format(x) for x in data)))
 
     def get(self, base_oid):
-        """Get the row with the given base OID from the table or None if not present.
-        This is just a get from the cache. It is not a get from the SNMP server."""
+        """ Get the row with the given base OID from the table or None if not present.
+        This is just a get from the cache. It is not a get from the SNMP server.
+
+        Args:
+            base_oid (str): the base OID of the row.
+
+        Returns:
+            SnmpRow: the SnmpRow corresponding to the given base OID
+            None: if no corresponding SnmpRow is found.
+        """
         for row in self.rows:
             logger.debug('base_oid {}'.format(row.base_oid))
             if row.base_oid == base_oid:
@@ -192,7 +201,8 @@ class SnmpTable(object):
         return None
 
     def load(self):
-        """Walk the walk_oid on the SNMP server. Translate the data to SnmpRows."""
+        """ Walk the walk_oid on the SNMP server. Translate the data to SnmpRows.
+        """
         var_binds = self.snmp_server.snmp_client.walk(self.walk_oid)
         table_data = SnmpServerBase.convert_snmp_result_set(var_binds)
         self._translate(table_data)
@@ -200,16 +210,20 @@ class SnmpTable(object):
             self.table_name, len(self.rows)))
 
     def unload(self):
-        """Unload cached row data once we're done with it. Long term we should
-        only need it during a forced scan."""
+        """ Unload cached row data once we're done with it.
+
+        Long term we should only need it during a forced scan.
+        """
         self.rows = None
         logger.debug('Unloaded SnmpTable {}.'.format(self.table_name))
 
     def update(self, row):
-        """Update the table by removing the row with the same base_oid as row,
+        """ Update the table by removing the row with the same base_oid as row,
         then adding row from the parameter list.
-        :param row: The row to update."""
 
+        Args:
+            row (SnmpRow): the row to update.
+        """
         # Delete the existing SNMP row in the variable table by base_oid.
         logger.debug('before delete row count {}'.format(len(self.rows)))
         self.rows = [x for x in self.rows if x.base_oid != row.base_oid]
@@ -220,10 +234,15 @@ class SnmpTable(object):
         logger.debug('after adding the row we read row count {}'.format(len(self.rows)))
 
     def update_cell(self, base_oid, index, data):
-        """Update the table data. Used on successful write.
-        :param base_oid: The base oid of the row to update.
-        :param index: The 1 based column index to update.
-        :param data: The data for the update.
+        """ Update the table data. Used on successful write.
+
+        Args:
+            base_oid (str): the base oid of the row to update.
+            index (int): the 1 based column index to update.
+            data: the data for the update.
+
+        Raises:
+            ValueError: unable to find a row with the specified base OID.
         """
         found_row = None
         for row in self.rows:

@@ -38,7 +38,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
 import datetime
-import threading
 from flask import Flask, jsonify
 from itertools import count
 
@@ -128,22 +127,25 @@ def _count(start=0x00, step=0x01):
 @app.route(PREFIX + '/test', methods=['GET', 'POST'])
 def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
-    relying on the serial bus layer.
+    relying on any backend layer.
     """
     return jsonify({'status': 'ok'})
 
 
 @app.route(const.endpoint_prefix + 'version', methods=['GET', 'POST'])
 def synse_version():
-    """ Get the API version used by Synse. This can be used in formulating
-    subsequent requests against the Synse REST API.
+    """ Get the API version used by Synse.
+
+    This can be used in formulating subsequent requests against the
+    Synse REST API.
     """
     return jsonify({'version': __api_version__})
 
 
 @app.route(PREFIX + '/plc_config', methods=['GET', 'POST'])
 def plc_config():
-    """ Test routine to return the PLC modem configuration parameters on the endpoint.
+    """ Test routine to return the PLC modem configuration parameters
+    on the endpoint.
     """
     raise SynseException('Unsupported hardware type in use. Unable to retrieve modem configuration.')
 
@@ -239,11 +241,11 @@ def main(serial_port=None, hardware=None):
         # add a command factory to the app context
         app.config['CMD_FACTORY'] = CommandFactory(app.config['COUNTER'])
 
-        # register the configured devicebus interfaces with the app. no failure handing here
-        # so that if this stage fails, we know about it immediately.
+        # define device lookup tables - these will be populated during device
+        # registration. 'devices' maps a devices' UUID to the devicebus instance.
+        # 'single board devices' maps the board id or other alias to the
+        # devicebus instance being registered.
         app.config['DEVICES'] = {}
-
-        # single board devices can be accessed by board_id to get device instance
         app.config['SINGLE_BOARD_DEVICES'] = {}
 
         app.register_blueprint(core)

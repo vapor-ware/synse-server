@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-""" Command object which models a Synse command to be handled by a
-devicebus implementation. Each Synse endpoint will generate a Command
-object and will pass it along to the appropriate devicebus interface. It
-is left to the interface to handle (or refuse to handle) the command.
+""" A general Command object which models a Synse command to be handled by
+a devicebus implementation.
+
+Each Synse endpoint will generate a Command object and will pass it along
+to the appropriate devicebus interface. It is left to the interface to
+handle (or refuse to handle) the command.
 
     Author: Erick Daniszewski
     Date:   09/15/2016
@@ -36,15 +38,12 @@ class Command(object):
     """
 
     def __init__(self, cmd_id, data, sequence):
-        """ Initialize a new Command instance.
+        """ Constructor for a new Command instance.
 
         Args:
             cmd_id (int): the integer id which specifies the command type.
-            data (dict): the data associated with the command.
+            data (dict): the context data associated with the command.
             sequence (int): the sequence number of the command.
-
-        Returns:
-            Command: a new instance of Command.
         """
         self.cmd_id = cmd_id
         self.data = data

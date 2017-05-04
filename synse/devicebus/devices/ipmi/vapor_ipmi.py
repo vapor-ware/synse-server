@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-""" Synse IPMI Bridge
+""" Synse IPMI Bridge.
 
-Uses pyghmi as back-end IPMI library (replaces old vapor_ipmi module).
+Uses OpenStack's pyghmi as back-end IPMI library.
+see: https://github.com/openstack/pyghmi
 
     Author:  andrew
     Date:    6/16/2016
@@ -42,10 +43,10 @@ def power(username=None, password=None, ip_address=None, port=BMC_PORT, cmd=None
     """ Get/set power status for remote host.
 
     Args:
-        username (str): Username to connect to BMC with
-        password (str): Password to connect to BMC with
-        ip_address (str): BMC IP Address
-        port (int): BMC port
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
         cmd (str): 'on', 'off', 'cycle', 'status'
         reading_method (str): designation for routing power consumption readings.
             If 'flex-victoria', then the Flex OEM reading method is used.
@@ -103,16 +104,16 @@ def power(username=None, password=None, ip_address=None, port=BMC_PORT, cmd=None
 
 
 def sensors(username=None, password=None, ip_address=None, port=BMC_PORT):
-    """ Get list of sensors from remote system.
+    """ Get a list of sensors from remote system.
 
     Args:
-        username (str): The username to use to connect to the remote BMC.
-        password (str): The password to use to connect to the remote BMC.
-        ip_address (str): The IP Address of the BMC.
-        port (int): BMC port
+        username (str): the username to use to connect to the remote BMC.
+        password (str): the password to use to connect to the remote BMC.
+        ip_address (str): the IP address of the BMC.
+        port (int): BMC port.
 
     Returns:
-        list: Sensor number, id string, and type for each sensor available.
+        list[dict]: sensor number, id string, and type for each sensor available.
     """
     with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
         sdr = ipmicmd.init_sdr()
@@ -131,7 +132,7 @@ def _convert_health_to_string(health):
     """ Convert a numeric health value to string.
 
     Args:
-        health (int): the numeric value to convert
+        health (int): the numeric value to convert.
 
     Returns:
         str: the string value of the converted health indicator. returns
@@ -153,19 +154,25 @@ def _convert_health_to_string(health):
 
 
 def read_sensor(sensor_name, username=None, password=None, ip_address=None, port=BMC_PORT):
-    """ Get a converted sensor reading back from the remote system for a given sensor_name.
+    """ Get a converted sensor reading back from the remote system for a
+    given sensor_name.
 
     Args:
-        username (str): Username to connect to BMC with.
-        password (str): Password to connect to BMC with.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
         sensor_name (str): the id_string of the sensor to read.
-            (NB ABC: this is a vestige of pyghmi, it would be better to read by sensor number)
+            (NB ABC: this is a vestige of pyghmi, it would be
+            better to read by sensor number)
 
     Returns:
-        dict: the converted sensor reading for the given sensor_name. Will raise an IpmiException
-            if the the sensor is not available (e.g. the power is off).
+        dict: the converted sensor reading for the given sensor_name.
+
+    Raises:
+        IpmiException: if the the sensor is not available (e.g. the
+            power is off).
+        ValueError: invalid sensor name was specified.
     """
     if sensor_name is not None:
         result = dict()
@@ -183,10 +190,10 @@ def get_boot(username=None, password=None, ip_address=None, port=BMC_PORT):
     """ Get boot target from remote host.
 
     Args:
-        username (str): Username to connect to BMC with.
-        password (str): Password to connect to BMC with.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
 
     Returns:
         dict: boot target as observed, or IpmiException from pyghmi.
@@ -212,15 +219,14 @@ def set_boot(username=None, password=None, ip_address=None, port=BMC_PORT, targe
     """ Set the boot target on remote host.
 
     Args:
-        username (str): Username to connect to BMC with.
-        password (str): Password to connect to BMC with.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
-        target (str): The boot target to set the remote host to.
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
+        target (str): the boot target to set the remote host to.
 
     Returns:
         dict: boot target as observed, or IpmiException from pyghmi.
-
     """
     response = dict()
     with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
@@ -244,10 +250,10 @@ def get_inventory(username=None, password=None, ip_address=None, port=BMC_PORT):
     """ Get inventory information from the FRU of the remote system.
 
     Args:
-        username (str): The username to connect to BMC with.
-        password (str): The password to connect to BMC with.
-        ip_address (str): The IP Address of the BMC.
-        port (int): BMC port
+        username (str): the username to connect to BMC with.
+        password (str): the password to connect to BMC with.
+        ip_address (str): the IP address of the BMC.
+        port (int): BMC port.
 
     Returns:
         dict: inventory information from the remote system.
@@ -280,20 +286,21 @@ def get_inventory(username=None, password=None, ip_address=None, port=BMC_PORT):
 
 
 def _get_temperature_readings(username=None, password=None, ip_address=None, port=BMC_PORT, entity=None):
-    """ Internal wrapper for Get Temperature Reading DCMI command.
+    """ Internal wrapper for 'Get Temperature Reading' DCMI command.
 
     Args:
-        username (str): The username to connect to BMC with.
-        password (str): The password to connect to BMC with.
-        ip_address (str): The IP address of the BMC to connect to.
-        port (int): BMC port
-        entity (str): Which entity to get temperature readings for:
-            'inlet', 'cpu', and 'system_board'.
+        username (str): the username to connect to BMC with.
+        password (str): the password to connect to BMC with.
+        ip_address (str): the IP address of the BMC to connect to.
+        port (int): BMC port.
+        entity (str): the entity to get temperature readings for:
+            'inlet', 'cpu', or 'system_board'.
 
     Returns:
-        dict: A dictionary of 'readings' containing a list of readings retrieved for
-            the given entity type. These readings include entity and instance IDs for
-            use elsewhere, in addition to a temperature_c reading.
+        dict: a dictionary of 'readings' containing a list of readings
+            retrieved for the given entity type. These readings include
+            entity and instance IDs for use elsewhere, in addition to a
+            temperature_c reading.
     """
     with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
         cmd_data = [0xdc, 0x01]
@@ -338,19 +345,19 @@ def _get_temperature_readings(username=None, password=None, ip_address=None, por
 
 
 def _get_power_reading(username=None, password=None, ip_address=None, port=BMC_PORT):
-    """ Internal wrapper for the Get Power Reading DCMI command.
+    """ Internal wrapper for the 'Get Power Reading' DCMI command.
 
     Args:
-        username (str): The username to connect to BMC with.
-        password (str): The password to connect to BMC with.
-        ip_address (str): The IP Address of the BMC.
-        port (int): BMC port
+        username (str): the username to connect to BMC with.
+        password (str): the password to connect to BMC with.
+        ip_address (str): the IP address of the BMC.
+        port (int): BMC port.
 
     Returns:
-        dict: Power reading information from the remote system.
+        dict: power reading information from the remote system.
 
     Raises:
-        SynseException in cases where power reading is not active.
+        SynseException: in cases where power reading is not active.
     """
     with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
         result = ipmicmd.raw_command(netfn=0x2c, command=0x02, data=(0xdc, 0x01, 0x00, 0x00))
@@ -367,16 +374,16 @@ def _get_power_reading(username=None, password=None, ip_address=None, port=BMC_P
 
 
 def _get_chassis_status(username=None, password=None, ip_address=None, port=BMC_PORT):
-    """ Internal wrapper for the Get Chassis Status IPMI command.
+    """ Internal wrapper for the 'Get Chassis Status' IPMI command.
 
     Args:
-        username (str): The username to connect to BMC with.
-        password (str): The password to connect to BMC with.
-        ip_address (str): The IP Address of the BMC.
-        port (int): BMC port
+        username (str): the username to connect to BMC with.
+        password (str): the password to connect to BMC with.
+        ip_address (str): the IP address of the BMC.
+        port (int): BMC port.
 
     Returns:
-        dict: Chassis status information from the remote system.
+        dict: chassis status information from the remote system.
     """
     response = dict()
     with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
@@ -457,13 +464,13 @@ def get_identify(username=None, password=None, ip_address=None, port=BMC_PORT):
     """ Retrieve remote system LED status.
 
     Args:
-        username (str): Username to connect to BMC.
-        password (str): Password to connect to BMC.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
+        username (str): username to connect to BMC.
+        password (str): password to connect to BMC.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
 
     Returns:
-        dict: LED Status as reported by remote system.
+        dict: LED status as reported by remote system.
     """
     return {'led_state': _get_chassis_status(username, password, ip_address, port=port).get('led_state', 'unknown')}
 
@@ -472,14 +479,14 @@ def set_identify(username=None, password=None, ip_address=None, port=BMC_PORT, l
     """ Turn the remote system LED on or off.
 
     Args:
-        username (str): Username to connect to BMC with.
-        password (str): Password to connect to BMC with.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
         led_state (int): 1 == Force on, 0 == Force off.
 
     Returns:
-        dict: LED State as set.
+        dict: LED state as set.
     """
     # Force on if True, Force off if False (indefinite duration)
     state = led_state == 1
@@ -492,14 +499,17 @@ def get_dcmi_capabilities(username=None, password=None, ip_address=None, port=BM
     """ Get DCMI capabilities from the remote BMC.
 
     Args:
-        username (str): Username to connect to BMC with.
-        password (str): Password to connect to BMC with.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
-        parameter_selector (int): The ID of the parameter to retrieve.
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
+        parameter_selector (int): the ID of the parameter to retrieve.
 
     Returns:
-        dict: The formatted DCMI capabilities.  Raises an SynseException if error.
+        dict: the formatted DCMI capabilities.
+
+    Raises:
+        SynseException: IPMI command failed or provided invalid response.
     """
     if parameter_selector is None or (parameter_selector < 1 or parameter_selector > 5):
         raise ValueError('Invalid parameter selector provided to get_dcmi_capabilities.')
@@ -579,13 +589,16 @@ def get_dcmi_management_controller_id(username=None, password=None, ip_address=N
     """ Get DCMI management controller ID from remote BMC.
 
     Args:
-        username (str): Username to connect to BMC with.
-        password (str): Password to connect to BMC with.
-        ip_address (str): BMC IP Address.
-        port (int): BMC port
+        username (str): username to connect to BMC with.
+        password (str): password to connect to BMC with.
+        ip_address (str): BMC IP address.
+        port (int): BMC port.
 
     Returns:
-        str: The management controller ID.  Raises an Exception if error.
+        str: the management controller ID.
+
+    Raises:
+        SynseException: IPMI command failed or provided invalid response.
     """
     id_string = ''
 

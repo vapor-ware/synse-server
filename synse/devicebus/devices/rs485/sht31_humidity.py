@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse RS485 SHT31 Device
+""" Synse SHT31 Humidity RS485 Device.
 
     Author: Andrew Cencini
     Date:   10/12/2016
@@ -113,10 +113,10 @@ class SHT31Humidity(RS485Device):
             raise SynseException('Error reading SHT31 humidity sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
-        """
+        """ Internal method for reading data off of the SHT31 Humidity device.
         
         Returns:
-
+            dict: the temperature and humidity reading values.
         """
         with self._lock:
             with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:

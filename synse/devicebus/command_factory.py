@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """ A Factory to make new Commands for Synse.
 
-This factory is largely used for convenience and organization. All Command objects
-built for Synse should be built through this factory.
+This factory is largely used for convenience and organization. All Command
+objects built for Synse should be built through this factory.
 
     Author: Erick Daniszewski
     Date:   09/15/2016
@@ -66,7 +66,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Version
+            Command: the generated command for Version.
         """
         return Command(CommandId.VERSION, data, self._get_next_sequence())
 
@@ -77,18 +77,18 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Scan
+            Command: the generated command for Scan.
         """
         return Command(CommandId.SCAN, data, self._get_next_sequence())
 
     def get_scan_all_command(self, data):
-        """ Generate a Scan All Command
+        """ Generate a Scan All Command.
 
         Args:
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Scan All
+            Command: the generated command for Scan All.
         """
         return Command(CommandId.SCAN_ALL, data, self._get_next_sequence())
 
@@ -99,7 +99,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Read
+            Command: the generated command for Read.
         """
         return Command(CommandId.READ, data, self._get_next_sequence())
 
@@ -110,7 +110,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Write
+            Command: the generated command for Write.
         """
         return Command(CommandId.WRITE, data, self._get_next_sequence())
 
@@ -121,7 +121,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Power
+            Command: the generated command for Power.
         """
         return Command(CommandId.POWER, data, self._get_next_sequence())
 
@@ -132,7 +132,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Asset
+            Command: the generated command for Asset.
         """
         return Command(CommandId.ASSET, data, self._get_next_sequence())
 
@@ -143,7 +143,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Boot Target
+            Command: the generated command for Boot Target.
         """
         return Command(CommandId.BOOT_TARGET, data, self._get_next_sequence())
 
@@ -154,7 +154,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Location
+            Command: the generated command for Location.
         """
         return Command(CommandId.LOCATION, data, self._get_next_sequence())
 
@@ -165,7 +165,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Chamber LED
+            Command: the generated command for Chamber LED.
         """
         return Command(CommandId.CHAMBER_LED, data, self._get_next_sequence())
 
@@ -176,7 +176,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for LED
+            Command: the generated command for LED.
         """
         return Command(CommandId.LED, data, self._get_next_sequence())
 
@@ -187,7 +187,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Fan
+            Command: the generated command for Fan.
         """
         return Command(CommandId.FAN, data, self._get_next_sequence())
 
@@ -198,7 +198,7 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Host Info
+            Command: the generated command for Host Info.
         """
         return Command(CommandId.HOST_INFO, data, self._get_next_sequence())
 
@@ -209,6 +209,6 @@ class CommandFactory(object):
             data (dict): any key-value data that makes up the command context.
 
         Returns:
-            Command: the generated command for Retry
+            Command: the generated command for Retry.
         """
         return Command(CommandId.RETRY, data, self._get_next_sequence())

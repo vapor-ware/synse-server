@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class UpsBatteryTable(SnmpTable):
-    """SNMP table specific to the UPS MIB."""
+    """ SNMP table specific to the UPS MIB.
+    """
 
     def __init__(self, **kwargs):
 
@@ -60,9 +61,15 @@ class UpsBatteryTable(SnmpTable):
 
     @staticmethod
     def _get_device_status(status):
-        """Get a string representation of the device status from the
+        """ Get a string representation of the device status from the
         status column in this table.
-        :returns: 'ok', 'low', 'depleted', or 'unknown'."""
+
+        Args:
+            status (int): the status enum value, defined above.
+
+        Returns:
+            str: the device status ('ok', 'low', 'depleted', or 'unknown').
+        """
         if status == UpsBatteryTable.STATUS_NORMAL:
             return 'ok'
         elif status == UpsBatteryTable.STATUS_LOW:
@@ -72,7 +79,8 @@ class UpsBatteryTable(SnmpTable):
         return 'unknown'
 
     def get_scan_devices(self):
-        """Gets a list of devices we return on a scan for this table."""
+        """ Gets a list of devices we return on a scan for this table.
+        """
         scan_devices = []
         for row in self.rows:
             next_devices = self.get_scan_devices_public()
@@ -83,7 +91,8 @@ class UpsBatteryTable(SnmpTable):
         return scan_devices
 
     def get_scan_devices_public(self):
-        """Get a devices we return on a scan for this table."""
+        """ Get a devices we return on a scan for this table.
+        """
         scan_devices = []
         device_info = 'battery{}'.format(self.snmp_server.get_next_battery_id())
 
@@ -99,8 +108,14 @@ class UpsBatteryTable(SnmpTable):
         return scan_devices
 
     def get_row_temperature(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the temperature reading.
+        """
         logger.debug('UpsBatteryTable.get_row_temperature')
         reading = row['temperature']
         health = UpsBatteryTable._get_device_status(row['status'])
@@ -108,8 +123,14 @@ class UpsBatteryTable(SnmpTable):
         return response_data
 
     def get_row_voltage(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the voltage reading.
+        """
         logger.debug('UpsBatteryTable.get_row_voltage')
         # Look - No floating point math disasters.
         reading = float('{}.{}'.format(row['voltage'] / 10, row['voltage'] % 10))

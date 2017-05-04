@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-""" An RS485 emulator for use in testing RS485 capabilities of Synse.
+""" An I2C emulator used for testing I2C capabilities of Synse.
 
-    When invoked, takes a single command line argument pointing to the config file to be used by the emulator.
+When invoked, takes a single command line argument pointing to the
+config file to be used by the emulator.
 
     Author: Andrew Cencini
     Date:   10/11/2016
@@ -43,19 +44,19 @@ emulator_config = dict()
 def _flush_all(serial_device):
     """ Flush input and output for a given device.
 
-    :param serial_device: The device to flush.
-    :return: None.
+    Args:
+        serial_device: the device to flush.
     """
     serial_device.flushInput()
     serial_device.flushOutput()
 
 
 def main():
-    """ The main body of the emulator - listens for incoming requests and processes them.
+    """ The main body of the emulator - listens for incoming requests and
+    processes them.
 
-    Starts by initializing the context from config, then listening on the given serial device.
-
-    :return: None.
+    Starts by initializing the context from config, then listening on the
+    given serial device.
     """
     serial_device_name = emulator_config['serial_device']
     devices = emulator_config['devices']
@@ -64,7 +65,7 @@ def main():
     with serial.Serial(serial_device_name, baudrate=115200, timeout=None) as serial_device:
         _flush_all(serial_device)
 
-        logger.error("! Flushed serial input and output.")
+        logger.error('! Flushed serial input and output.')
 
         while True:
             try:
@@ -72,7 +73,7 @@ def main():
                 cmd = serial_device.read(1)
                 addr = str(ord(serial_device.read(1)))
                 write_buf_len = ord(serial_device.read(1))
-                logger.error("<< cmd {} addr {} write_buf_len {}".format(cmd, addr, write_buf_len))
+                logger.error('<< cmd {} addr {} write_buf_len {}'.format(cmd, addr, write_buf_len))
 
                 if cmd == 'R':
                     # look up addr in devices and counts and return its data (len is ignored on 'R')
@@ -82,33 +83,33 @@ def main():
                             _count = counts[addr] if addr in counts else 0
 
                             serial_device.write([int(x, 16) for x in devices[addr][_count]])
-                            logger.error(">> bytes: {}".format([int(x, 16) for x in devices[addr][_count]]))
+                            logger.error('>> bytes: {}'.format([int(x, 16) for x in devices[addr][_count]]))
 
                             _count += 1
                             counts[addr] = _count % len(devices[addr])
                         else:
                             serial_device.write([int(x, 16) for x in devices[addr]])
-                            logger.error(">> bytes: {}".format([int(x, 16) for x in devices[addr]]))
+                            logger.error('>> bytes: {}'.format([int(x, 16) for x in devices[addr]]))
                     else:
-                        logger.error("! Not found: {}".format(addr))
+                        logger.error('! Not found: {}'.format(addr))
 
                 elif cmd == 'W':
                     # look up addr in devices, and write len bytes (which are to be read here) to the device entry
                     buf = serial_device.read(write_buf_len)
                     if addr in devices:
                         devices[addr] = [format(ord(x), 'x') for x in buf]
-                        logger.error("<< bytes: {}".format([format(ord(x), 'x') for x in buf]))
+                        logger.error('<< bytes: {}'.format([format(ord(x), 'x') for x in buf]))
 
                         # the '1' means the write succeeded
                         serial_device.write(['1'])
-                        logger.error(">> response: ['1']")
+                        logger.error('>> response: ["1"]')
                     else:
-                        logger.error("! Not found: {}".format(addr))
+                        logger.error('! Not found: {}'.format(addr))
 
             except Exception, ex:
                 # let's clean up now, shall we
                 _flush_all(serial_device)
-                logger.error("! Flushed serial input and output. ({})".format(ex))
+                logger.error('! Flushed serial input and output. ({})'.format(ex))
 
 if __name__ == '__main__':
 
@@ -134,4 +135,4 @@ if __name__ == '__main__':
         try:
             main()
         except Exception as e:
-            logger.exception("Exception encountered. (%s)", e)
+            logger.exception('Exception encountered. (%s)', e)

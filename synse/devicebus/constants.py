@@ -53,7 +53,7 @@ class CommandId(object):
             command_id (int): the ID of the command.
 
         Returns:
-            str: the human readable command name
+            str: the human readable command name.
         """
         return {
             cls.VERSION: 'Version',

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-""" An RS485 emulator for use in testing RS485 capabilities of Synse.
+""" An RS485 emulator used for testing RS485 capabilities of Synse.
 
-    When invoked, takes a single command line argument pointing to the config file to be used by the emulator.
+When invoked, it takes a single command line argument pointing to the
+config file to be used by the emulator.
 
     Author: Andrew Cencini
     Date:   10/11/2016
@@ -70,12 +71,12 @@ class EmulatorDataBlock(BaseModbusDataBlock):
 
     def getValues(self, address, count=1):
         address -= 1    # 0-based addressing for Vapor applications
-        logger.debug("GET: Address {} Count {} Values {}".format(address, count, self.values))
+        logger.debug('GET: Address {} Count {} Values {}'.format(address, count, self.values))
         return [self._get_next_value(i) for i in range(address, address + count)]
 
     def setValues(self, address, values):
         address -= 1    # 0-based addressing for Vapor applications
-        logger.debug("SET: Address {} Values {}".format(address, values))
+        logger.debug('SET: Address {} Values {}'.format(address, values))
         if isinstance(values, dict):
             for idx, val in values.iteritems():
                 self.values[idx] = val
@@ -87,7 +88,7 @@ class EmulatorDataBlock(BaseModbusDataBlock):
 
     def validate(self, address, count=1):
         address -= 1    # 0-based addressing for Vapor applications
-        logger.debug("VALIDATE: Address {} Count {}".format(address, count))
+        logger.debug('VALIDATE: Address {} Count {}'.format(address, count))
         if count == 0:
             return False
         handle = set(range(address, address + count))
@@ -95,11 +96,11 @@ class EmulatorDataBlock(BaseModbusDataBlock):
 
 
 def main():
-    """ The main body of the emulator - listens for incoming requests and processes them.
+    """ The main body of the emulator.
 
-    Starts by initializing the context from config, then listening on the given serial device.
-
-    :return: None.
+    This listens for incoming requests and processes them. It starts by
+    initializing the context from config, then listening on the given
+    serial device.
     """
     slaves = dict()
     for device in emulator_config['devices']:
@@ -114,14 +115,14 @@ def main():
                 return int(v, 16)
 
         block = EmulatorDataBlock({int(k, 16): _convert_register(v) for k, v in device['holding_registers'].items()})
-        logger.error("Device: {} Block: {}".format(device['device_address'], block.values))
+        logger.error('Device: {} Block: {}'.format(device['device_address'], block.values))
         store = ModbusSlaveContext(di=block, co=block, hr=block, ir=block)
         slaves[device['device_address']] = store
 
     context = ModbusServerContext(slaves=slaves, single=False)
 
     for slave in context:
-        logger.error("Slaves: {}".format(slave[0]))
+        logger.error('Slaves: {}'.format(slave[0]))
 
     identity = ModbusDeviceIdentification()
     identity.VendorName = 'Vapor IO'
@@ -132,6 +133,7 @@ def main():
     server = ModbusSerialServer(context, framer=ModbusRtuFramer, identity=identity,
                                 port=emulator_config['serial_device'], timeout=0.01)
     server.serve_forever()
+
 
 if __name__ == '__main__':
 
@@ -152,4 +154,4 @@ if __name__ == '__main__':
         try:
             main()
         except Exception as e:
-            logger.error("Exception encountered. (%s)", e)
+            logger.error('Exception encountered. (%s)', e)

@@ -44,18 +44,19 @@ class Board(graphene.ObjectType):
 
     @staticmethod
     def build(parent, data):
-        return Board(id=data.get("board_id"), _data=data, _parent=parent)
+        return Board(id=data.get('board_id'), _data=data, _parent=parent)
 
-    def device_class(self, device_type):
+    @staticmethod
+    def device_class(device_type):
         return getattr(
             device,
-            "{0}Device".format(inflection.camelize(device_type)),
+            '{0}Device'.format(inflection.camelize(device_type)),
             device.SensorDevice)
 
     @graphene.resolve_only_args
     def resolve_devices(self, device_type=None):
-        return [self.device_class(d.get("device_type")).build(self, d)
+        return [self.device_class(d.get('device_type')).build(self, d)
                 for d in util.arg_filter(
                     device_type,
-                    lambda x: x.get("device_type") == device_type,
-                    self._data.get("devices"))]
+                    lambda x: x.get('device_type') == device_type,
+                    self._data.get('devices'))]

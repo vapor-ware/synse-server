@@ -1,5 +1,3 @@
-# Include common functionality for docker cleanup.
-include ../../../../../vapor_common/make_docker_common
 
 snmp-yml:
 	docker-compose -f snmp.yml build

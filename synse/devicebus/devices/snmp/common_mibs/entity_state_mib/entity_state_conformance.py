@@ -27,8 +27,10 @@ from ......devicebus.devices.snmp.snmp_table import SnmpTable
 
 
 class EntityStateConformanceTable(SnmpTable):
-    """SNMP table specific to the Entity State MIB. We have no real data
-    on these OIDs so this is untested."""
+    """ SNMP table specific to the Entity State MIB.
+
+    We have no real data on these OIDs so this is untested.
+    """
 
     def __init__(self, **kwargs):
 

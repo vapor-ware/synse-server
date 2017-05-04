@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse PLC Device
+""" Synse PLC Device.
 
     Author:  Andrew, Steven, Erick
     Date:    04/13/2015
@@ -147,11 +147,11 @@ class PLCDevice(SerialDevice):
         return self.__str__()
 
     def _get_board_records(self):
-        """ Get the board records for board found to be on the PLC bus via scan.
+        """ Get the board records for boards found on the PLC bus via scan.
 
         Returns:
-            dict[int:dict]: a dictionary whose key is the board_id and whose value is the
-                scan record for that board.
+            dict[int:dict]: a dictionary whose key is the board_id and whose
+                value is the scan record for that board.
         """
         records = {}
 
@@ -251,10 +251,11 @@ class PLCDevice(SerialDevice):
             logger.warning('PLC device configuration should specify "racks" but does not.')
 
     def _get_bus(self):
-        """ Convenience method to get a new instance of the DeviceBus.
+        """ Convenience method to get a new instance of a DeviceBus.
 
         Returns:
-            DeviceBus: a new instance of the DeviceBus object for PLC commands.
+            DeviceBus: a new instance of the DeviceBus object for issuing
+                PLC commands.
         """
         return plc_bus.DeviceBus(
             device_name=self.device_name,
@@ -265,9 +266,9 @@ class PLCDevice(SerialDevice):
     def _retry_command(self, bus, request, response_cls):
         """ Retry a PLC command.
 
-        This is a convenience method used to wrap the logic for PLC
-        command retries. If a command does not succeed after retry,
-        an SynseException is raised.
+        This is a convenience method used to wrap the logic for PLC command
+        retries. If a command does not succeed after retry, a SynseException
+        is raised.
 
         Args:
             bus (DeviceBus): a DeviceBus instance used for serial communication.
@@ -662,7 +663,8 @@ class PLCDevice(SerialDevice):
                     asset_data += chr(x)
 
                 def convert_asset_info(raw):
-                    """ Convert raw asset info to JSON.  Expects a delimited string (delimiter TBD) with 13 fields.
+                    """ Convert raw asset info to JSON. Expects a delimited string
+                    (delimiter: ',') with 13 fields.
 
                     Args:
                         raw: Raw data to convert.
@@ -762,7 +764,7 @@ class PLCDevice(SerialDevice):
                     else:
                         raise ValueError('Invalid raw boot target returned {}'.format(raw))
 
-                # now, convert raw reading into subfields
+                # now, convert raw reading into sub-fields
                 target_response = {
                     'target': convert_boot_target(target_raw)
                 }
@@ -1076,7 +1078,7 @@ class PLCDevice(SerialDevice):
             retry_count (int): the number of scan retries.
 
         Returns:
-            dict: A dictionary containing a list of all found boards, and all devices
+            dict: a dictionary containing a list of all found boards, and all devices
                 found on each board.
 
         Raises:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse RS485 Device
+""" Synse RS485 Device.
 
     Author: Erick Daniszewski
     Date:   09/15/2016
@@ -102,6 +102,10 @@ class RS485Device(SerialDevice):
                     rs485_device['device_name'] = rack['device_name']
                     rs485_device['lockfile'] = rack['lockfile']
 
+                    # since we are unable to import subclasses (circular import), but
+                    # we still need to initialize a subclassed device interface, we
+                    # match the configured 'device_model' with the '_instance_name' of
+                    # all subclasses to determine the correct subclass at runtime.
                     device_model = {
                         klass._instance_name: klass for klass in cls.__subclasses__()
                     }.get(rs485_device['device_model'].lower())

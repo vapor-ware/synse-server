@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" GraphQL Frontend
+""" Synse GraphQL Runner
 
     Author:  Thomas Rampelberg
     Date:    2/24/2017

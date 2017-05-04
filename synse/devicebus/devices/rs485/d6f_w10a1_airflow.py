@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse RS485 SHT31 Device
+""" Synse D6F-W10A1 Airflow RS485 Device.
 
     Author: Andrew Cencini
     Date:   10/12/2016
@@ -45,7 +45,8 @@ logger = logging.getLogger(__name__)
 class D6FW10A1Airflow(RS485Device):
     """ Device subclass for D6FW10A1 airflow sensor using RS485 comms.
 
-    Reads a 10-bit ADC value from the CEC MCU that maps to 1.00-5.00V, then converted to airflow_m_s.
+    Reads a 10-bit ADC value from the CEC MCU that maps to 1.00-5.00V,
+    then converted to airflow_m_s.
     """
     _instance_name = 'd6f-w10a1'
 
@@ -111,10 +112,10 @@ class D6FW10A1Airflow(RS485Device):
             raise SynseException('Error reading D6F-W10A airflow sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
-        """ Private method to get and convert the sensor reading.
+        """ Internal method to get and convert the sensor reading.
 
         Returns:
-            dict: the sensor reading value
+            dict: the sensor reading value.
         """
         with self._lock:
             with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:

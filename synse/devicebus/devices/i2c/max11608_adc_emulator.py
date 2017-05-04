@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse I2C thermistor via MAX11608 ADC
+""" Synse I2C thermistor sensor via emulator.
 
     Author: Andrew Cencini
     Date:   10/18/2016
