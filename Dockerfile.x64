@@ -1,7 +1,7 @@
 FROM vaporio/vapor-endpoint-base-x64:1.0
 MAINTAINER Andrew Cencini <andrew@vapor.io>
 
-ENV VAPOR_SERVICE_NAME=opendcre
+ENV VAPOR_SERVICE_NAME=synse
 
 ADD ./requirements.txt requirements.txt
 ADD ./graphql/requirements.txt graphql-requirements.txt
@@ -47,33 +47,33 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     UWSGI_PROFILE=nolang python setup.py install || true
 
 
-# this should correspond to the opendcre/southbound-api dir
-ADD . /opendcre
-WORKDIR /opendcre
+ADD . /synse
+WORKDIR /synse
 
 
 # Install our packages.
-#RUN pip install -I vapor_common-1.0.tar.gz crate_api-1.0.tar.gz opendcre-core-1.0.tar.gz
+#RUN pip install -I vapor_common-1.0.tar.gz synse-1.0.tar.gz
 
+# run command for custom configuration layer
+RUN chmod u+x /synse/configure_nginx_config.sh && \
+    /synse/configure_nginx_config.sh
 
-# run command for nginx configuration
-RUN chmod 755 /synse/configure_nginx_config.sh && \
-    /synse/configure_nginx_config.sh && \
-    ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
+# run command for nginx uwsgi configuration
+RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
     ln -s /synse/synse_uwsgi.ini /etc/uwsgi/vassals/synse_uwsgi.ini && \
     ln -s /synse/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
     ln -s /synse/emperor.ini /etc/uwsgi/emperor.ini && \
     chown -R www-data:www-data /etc/uwsgi && \
     rm -f /etc/logrotate.d/nginx && \
-    cp /opendcre/configs/nginx.logrotate /etc/logrotate.d/nginx && \
+    cp /synse/configs/nginx.logrotate /etc/logrotate.d/nginx && \
     ln -sf /proc/1/fd/1 /logs/err
 
-# update the python path to include the opendcre southbound module so that it
+# update the python path to include the synse module so that it
 # can be successfully be imported
-ENV PYTHONPATH="/opendcre/opendcre_southbound:${PYTHONPATH}"
+ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 
 # Expose our API endpoint port.
 EXPOSE 5000
 
 # Define default command
-CMD ["./start_opendcre.sh"]
+CMD ["./start_synse.sh"]
