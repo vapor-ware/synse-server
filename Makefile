@@ -1,14 +1,14 @@
 # ------------------------------------------------------------------------
 #  \\//
-#   \/aporIO - Vapor OpenDCRE Southbound
+#   \/aporIO - Synse
 #
-#  Build Vapor OpenDCRE Southbound docker images from the current directory.
+#  Build Vapor Synse docker images from the current directory.
 #
 #  Author: Andrew Cencini (andrew@vapor.io)
 #  Date:   01 Sept 2016
 # ------------------------------------------------------------------------
 
-PKG_VER := $(shell python opendcre_southbound/version.py)
+PKG_VER := $(shell python synse/version.py)
 GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 FPM_OPTS := -s dir -n synse-server -v $(PKG_VER) \
@@ -134,7 +134,7 @@ graphql-run: graphql-build-release
 #
 # NOTE:
 #   these recipes are primarily used in development. caution should
-#   be taken when using them, as they are NOT OpenDCRE-specific. they
+#   be taken when using them, as they are NOT Synse-specific. they
 #   will affect ALL containers/images on the host.
 # -----------------------------------------------
 RUNNING_CONTAINER_IDS=$(shell docker ps -q)

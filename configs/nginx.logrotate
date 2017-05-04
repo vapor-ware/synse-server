@@ -1,4 +1,4 @@
-/logs/opendcre.net*.log {
+/logs/synse.net*.log {
         size 100M
         missingok
         rotate 2

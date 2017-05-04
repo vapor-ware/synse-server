@@ -1,0 +1,18 @@
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "sleep 15 && python ./synse/tests/test-plc-emulator.py"
+  links:
+    - synse-test-container
+
+synse-test-container:
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: ./start_synse_plc_emulator.sh ./synse/emulator/plc/data/example.json
+  expose:
+    - 5000
+  volumes:
+    - ../../data/plc_override_config.json:/synse/override/config.json
+  environment:
+    - VAPOR_DEBUG=true

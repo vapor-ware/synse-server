@@ -1,0 +1,4 @@
+{
+  "serial_device": "/dev/ttyVapor001",
+  "emulator_data": "./synse/tests/data/scanall-data.json"
+}

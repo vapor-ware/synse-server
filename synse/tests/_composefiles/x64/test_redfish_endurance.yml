@@ -1,0 +1,29 @@
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "sleep 15 && python ./synse/tests/test-redfish-endurance.py"
+  links:
+    - synse-test-container
+
+synse-test-container:
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  ports:
+    - 5000:5000
+  volumes:
+    - ../../data/redfish_emulator/redfish_emulator_config.json:/synse/default/default.json
+    - ../../data/redfish_emulator/redfish_config.json:/synse/redfish_config.json
+  environment:
+    - VAPOR_DEBUG=true
+  links:
+    - redfish-emulator
+
+redfish-emulator:
+  container_name: redfish-emulator
+  build: ../../../emulator/redfish
+  dockerfile: Dockerfile.x64
+  ports:
+    - 5040:5040
+  environment:
+    - VAPOR_DEBUG=true

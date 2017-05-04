@@ -1,0 +1,57 @@
+# This is the container running the tests.
+# Link to the synse web service, not the SNMP emulator.
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "sleep 15 && python ./synse/tests/test-snmp-device-kills-force-scan.py"
+  links:
+    - synse-test-container
+    # These links are here to support pinging emulator containers from the test container..
+    - snmp-emulator-synse-testdevice1-board1
+    - snmp-emulator-synse-testdevice1-board2
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+
+# This container is where synse is running.
+# Allows us to make web service calls against it.
+synse-test-container:
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: ./start_synse.sh
+  ports:
+    - 5000:5000
+  volumes:
+    - ../../data/synse_snmp_config.json:/synse/override/config.json
+    - ../../data/snmp_config/merged/test_snmp_device_registration/snmp_config.json:/synse/snmp_config.json
+  environment:
+    - VAPOR_DEBUG=true
+  links:
+    - snmp-emulator-synse-testdevice1-board1
+    - snmp-emulator-synse-testdevice1-board2
+
+# This is the container running the emulator to test against
+# for the Synse-TestDevice1 (board1) snmp emulator.
+snmp-emulator-synse-testdevice1-board1:
+  container_name: snmp-emulator-synse-testdevice1-board1
+  build: ../../../emulator/snmp
+  dockerfile: Dockerfile-synse-testdevice1-board1.x64
+  # This command will override what is in the dockerfile.
+  command: ./start_snmp_emulator.sh ./data 11012 snmp-emulator-synse-testdevice1-board1.log
+  ports:
+    - 11012:11012/udp
+  environment:
+    - VAPOR_DEBUG=true
+
+# This is the container running the emulator to test against
+# for the Synse-TestDevice1 (board2) snmp emulator.
+snmp-emulator-synse-testdevice1-board2:
+  container_name: snmp-emulator-synse-testdevice1-board2
+  build: ../../../emulator/snmp
+  dockerfile: Dockerfile-synse-testdevice1-board2.x64
+  # This command will override what is in the dockerfile.
+  command: ./start_snmp_emulator.sh ./data 11013 snmp-emulator-synse-testdevice1-board2.log
+  ports:
+    - 11013:11013/udp
+  environment:
+    - VAPOR_DEBUG=true
