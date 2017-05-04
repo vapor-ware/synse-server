@@ -55,8 +55,7 @@ WORKDIR /synse
 #RUN pip install -I vapor_common-1.0.tar.gz synse-1.0.tar.gz
 
 # run command for custom configuration layer
-RUN chmod u+x /synse/configure_nginx_config.sh && \
-    /synse/configure_nginx_config.sh
+RUN /synse/configure_nginx_config.sh
 
 # run command for nginx uwsgi configuration
 RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
