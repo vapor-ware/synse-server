@@ -35,46 +35,72 @@ cat <<USAGE
 
     Vapor IO
 
-  By default, the Synse service will run. Additional flags
-  can be provided to the docker run command to modify the behavior,
-  e.g. 'docker run vaporio/synse-server [optional arguments]'
+  Synse provides an API for monitoring and control of data center
+  and IT equipment, including reading sensors and server power
+  control - via. IPMI, PLC, RS485, I2C, SNMP, and Redfish.
 
-  Optional Flags:
-    --help | -h         Show this message
-    --emulate-plc       Start the PLC emulator
-    --emulate-i2c       Start the I2C emulator
-    --emulate-rs485     Start the RS485 emulator
+  By default, the Synse service will run. Additional subcommands
+  can be specified to start up various emulators alongside Synse.
+  IPMI, SNMP, and Redfish emulators all run external to the
+  Synse container, but PLC, RS485, and I2C can be started parallel
+  to Synse.
 
-  Optional Parameters:
-    --emulate-plc-with-cfg [file]
+  USAGE:  docker run vaporio/synse-server [flag | subcommand]
+
+  Flags:
+    --help | -h     Show this message.
+    --version | -v  Show the version of Synse.
+
+  Subcommands:
+    emulate-plc
+            Start the PLC emulator. A default configuration
+            file will be used.
+
+    emulate-i2c
+            Start the I2C emulator. A default configuration
+            file will be used.
+
+    emulate-rs485
+            Start the RS485 emulator. A default configuration
+            file will be used.
+
+    emulate-plc-with-cfg [file]
             Start the PLC emulator, using the specified file
             as the emulator's backing data file.
 
-    --emulate-i2c-with-cfg [file]
+    emulate-i2c-with-cfg [file]
             Start the I2C emulator, using the specified file
             as the emulator's backing data file.
 
-    --emulate-rs485-with-cfg [file]
+    emulate-rs485-with-cfg [file]
             Start the RS485 emulator, using the specified file
             as the emulator's backing data file.
+
 USAGE
 }; function --help { -h ;}
+
+
+# version
+#   show the version of synse
+function -v {
+    echo "${version}"
+}; function --version { -v ;}
 
 
 # emulate PLC
 #   start the PLC emulator with either a specified
 #   configuration, or a default configuration file.
-function --emulate-plc-with-cfg {
+function emulate-plc-with-cfg {
     socat PTY,link=/dev/ttyVapor001,mode=666 PTY,link=/dev/ttyVapor002,mode=666 &
     python -u ./synse/emulator/plc/devicebus_emulator.py $1 &
 
-}; function --emulate-plc { --emulate-plc-with-cfg ./synse/emulator/plc/data/example.json ;}
+}; function emulate-plc { emulate-plc-with-cfg ./synse/emulator/plc/data/example.json ;}
 
 
 # emulate I2C
 #   start the I2C emulator with either a specified
 #   configuration, or a default configuration file.
-function --emulate-i2c-with-cfg {
+function emulate-i2c-with-cfg {
     cp ./configs/synse_config_i2c_emulator.json ./default/default.json
 
     # test flag to let us bypass the default prop-in of i2c config for bind-mount from test yml
@@ -85,13 +111,13 @@ function --emulate-i2c-with-cfg {
     socat PTY,link=/dev/ttyVapor005,mode=666 PTY,link=/dev/ttyVapor006,mode=666 &
     python -u ./synse/emulator/i2c/i2c_emulator.py $1 &
 
-}; function --emulate-i2c { --emulate-i2c-with-cfg ./synse/emulator/i2c/data/example.json ;}
+}; function emulate-i2c { emulate-i2c-with-cfg ./synse/emulator/i2c/data/example.json ;}
 
 
 # emulate RS485
 #   start the RS485 emulator with either a specified
 #   configuration, or a default configuration file.
-function --emulate-rs485-with-cfg {
+function emulate-rs485-with-cfg {
     cp ./configs/synse_config_rs485_emulator.json ./default/default.json
 
     # test flag to let us bypass the default prop-in of rs485 config for bind-mount from test yml
@@ -102,7 +128,7 @@ function --emulate-rs485-with-cfg {
     socat PTY,link=/dev/ttyVapor003,mode=666 PTY,link=/dev/ttyVapor004,mode=666 &
     python -u ./synse/emulator/rs485/rs485_emulator.py $1 &
 
-}; function --emulate-rs485 { --emulate-rs485-with-cfg ./synse/emulator/rs485/data/example.json ;}
+}; function emulate-rs485 { emulate-rs485-with-cfg ./synse/emulator/rs485/data/example.json ;}
 
 
 _setup_container_environment() {

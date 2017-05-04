@@ -10,7 +10,7 @@ test-container-x64:
 synse-test-container:
   build: ../../../..
   dockerfile: Dockerfile.x64
-  command: --emulate-rs485-with-cfg ./synse/tests/data/rs485_emulator/rs485-002.json
+  command: emulate-rs485-with-cfg ./synse/tests/data/rs485_emulator/rs485-002.json
   expose:
     - 5000
   environment:
