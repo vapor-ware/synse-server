@@ -4,6 +4,7 @@ test-container-x64:
   container_name: test-container-x64
   build: ../../../..
   dockerfile: Dockerfile.x64
+  entrypoint: []
   command: bash -c "sleep 15 && python ./synse/tests/test-snmp-device-registration.py"
   links:
     - synse-test-container
@@ -13,7 +14,6 @@ test-container-x64:
 synse-test-container:
   build: ../../../..
   dockerfile: Dockerfile.x64
-  command: ./start_synse.sh
   ports:
     - 5000:5000
   volumes:
