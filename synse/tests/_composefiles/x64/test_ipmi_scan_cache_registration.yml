@@ -1,0 +1,20 @@
+test-container-x64:
+  container_name: test-container-x64
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: bash -c "sleep 15 && python ./synse/tests/test-ipmi-scan-cache-registration.py"
+  links:
+    - synse-test-container
+
+synse-test-container:
+  build: ../../../..
+  dockerfile: Dockerfile.x64
+  command: ./start_synse_plc_emulator.sh
+  ports:
+    - 5000:5000
+  volumes:
+    - ../../data/synse_config.json:/synse/default/default.json
+    - ../../data/bmc_config/bmc_config005.json:/synse/bmc_config.json
+    - ../../data/scan_cache.json:/tmp/synse/cache.json
+  environment:
+    - VAPOR_DEBUG=true

@@ -1,7 +1,7 @@
 FROM vaporio/vapor-endpoint-base-x64:1.0
 MAINTAINER Andrew Cencini <andrew@vapor.io>
 
-ENV VAPOR_SERVICE_NAME=opendcre
+ENV VAPOR_SERVICE_NAME=synse
 
 ADD ./requirements.txt requirements.txt
 ADD ./graphql/requirements.txt graphql-requirements.txt
@@ -12,10 +12,8 @@ RUN echo deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted 
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    socat\
+    socat \
     libftdi-dev \
-    swig \
-    make \
     snmp \
     curl \
     python3-pip \
@@ -38,12 +36,6 @@ RUN mkdir -p /etc/uwsgi/vassals && \
     touch /etc/uwsgi/reload && \
     chown -R www-data:www-data /etc/uwsgi
 
-
-ADD ./libmpsse/src /build
-WORKDIR /build
-RUN ./configure && make && make install
-
-
 RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     tar -xvzf uwsgi-2.0.15.tar.gz && \
     cd uwsgi-2.0.15 && \
@@ -55,31 +47,26 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     UWSGI_PROFILE=nolang python setup.py install || true
 
 
-# this should correspond to the opendcre/southbound-api dir
-ADD . /opendcre
-WORKDIR /opendcre
-
-
-# Install our packages.
-#RUN pip install -I vapor_common-1.0.tar.gz crate_api-1.0.tar.gz opendcre-core-1.0.tar.gz
+ADD . /synse
+WORKDIR /synse
 
 
 # run command for nginx configuration
-RUN ln -s /opendcre/opendcre_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
-    ln -s /opendcre/opendcre_uwsgi.ini /etc/uwsgi/vassals/opendcre_uwsgi.ini && \
-    ln -s /opendcre/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
-    ln -s /opendcre/emperor.ini /etc/uwsgi/emperor.ini && \
+RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
+    ln -s /synse/synse_uwsgi.ini /etc/uwsgi/vassals/synse_uwsgi.ini && \
+    ln -s /synse/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
+    ln -s /synse/emperor.ini /etc/uwsgi/emperor.ini && \
     chown -R www-data:www-data /etc/uwsgi && \
     rm -f /etc/logrotate.d/nginx && \
-    cp /opendcre/configs/nginx.logrotate /etc/logrotate.d/nginx && \
+    cp /synse/configs/nginx.logrotate /etc/logrotate.d/nginx && \
     ln -sf /proc/1/fd/1 /logs/err
 
-# update the python path to include the opendcre southbound module so that it
+# update the python path to include the synse module so that it
 # can be successfully be imported
-ENV PYTHONPATH="/opendcre/opendcre_southbound:${PYTHONPATH}"
+ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 
 # Expose our API endpoint port.
 EXPOSE 5000
 
 # Define default command
-CMD ["./start_opendcre.sh"]
+CMD ["./start_synse.sh"]

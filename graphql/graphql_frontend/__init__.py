@@ -49,7 +49,7 @@ app = Flask(__name__)
 
 
 local_schema = graphql_frontend.schema.create()
-PREFIX = '/opendcre/{}'.format(graphql_frontend.version.__api_version__)
+PREFIX = '/synse/{}'.format(graphql_frontend.version.__api_version__)
 
 
 @app.route(PREFIX + '/graphql/test', methods=['GET', 'POST'])
