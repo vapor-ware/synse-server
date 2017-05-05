@@ -163,3 +163,8 @@ you'd like to use a different synse-server, change the config.
 Synse is released under GPLv2 - see LICENSE for more information.
 
 [docs]: http://opendcre.com
+
+### Troubleshooting
+
+#### Unable to access docker image.
+- Workaround is docker login, even if logged in already.
