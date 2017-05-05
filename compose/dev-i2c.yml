@@ -8,11 +8,8 @@ synse-server-dev:
 synse-test-container:
   build: ..
   dockerfile: Dockerfile.x64
-  command: bash -c "./start_synse_i2c_emulator.sh ./synse/tests/data/i2c_emulator/i2c-001.json"
+  command: emulate-i2c
   expose:
-    - "5000"
+    - 5000
   environment:
     - VAPOR_DEBUG=true
-    - VAPOR_TEST=true
-  volumes:
-    - ../synse/tests/data/i2c_emulator/i2c_emulator_config-001.json:/synse/i2c_config.json

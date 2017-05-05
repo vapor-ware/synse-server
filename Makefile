@@ -98,7 +98,6 @@ release: deb rpm release-github release-packagecloud
 #################################################
 # Testing and Development
 #################################################
-SHELL := /bin/bash
 
 # -----------------------------------------------
 #  Variables / functions.
@@ -137,108 +136,107 @@ endef
 # ....................
 
 test-plc-endpoints:
-	$(call run_test,test_plc_endpoints)
+	$(call run_test,test-plc-endpoints)
 
 test-plc-bad-scan:
-
-	$(call run_test,test_plc_bad_scan)
+	$(call run_test,test-plc-bad-scan)
 
 test-plc-scanall:
-	$(call run_test,test_plc_scanall)
+	$(call run_test,test-plc-scanall)
 
 test-plc-endurance:
-	$(call run_test,test_plc_endurance)
+	$(call run_test,test-plc-endurance)
 
 test-plc-emulator:
-	$(call run_test,test_plc_emulator)
+	$(call run_test,test-plc-emulator)
 
 test-plc-devicebus:
-	$(call run_test,test_plc_devicebus)
+	$(call run_test,test-plc-devicebus)
 
 # IPMI
 # ....................
 
 test-ipmi-emulator:
-	$(call run_test,test_ipmi_emulator)
+	$(call run_test,test-ipmi-emulator)
 
 test-ipmi-endpoints:
-	$(call run_test,test_ipmi_endpoints)
+	$(call run_test,test-ipmi-endpoints)
 
 test-ipmi-throughput:
-	$(call run_test,test_ipmi_emulator_throughput)
+	$(call run_test,test-ipmi-emulator-throughput)
 
 test-ipmi-device-registration:
-	$(call run_test,test_ipmi_device_registration)
+	$(call run_test,test-ipmi-device-registration)
 
 test-ipmi-scan-cache-registration:
-	$(call run_test,test_ipmi_scan_cache_registration)
+	$(call run_test,test-ipmi-scan-cache-registration)
 
 test-ipmi-no-init-scan:
-	$(call run_test,test_ipmi_no_init_scan)
+	$(call run_test,test-ipmi-no-init-scan)
 
 # RS485
 # ....................
 
 test-rs485-emulator:
-	$(call run_test,test_rs485_emulator)
+	$(call run_test,test-rs485-emulator)
 
 test-rs485-endpoints:
-	$(call run_test,test_rs485_endpoints)
+	$(call run_test,test-rs485-endpoints)
 
 
 # I2C
 # ....................
 
 test-i2c-endpoints:
-	$(call run_test,test_i2c_endpoints)
+	$(call run_test,test-i2c-endpoints)
 
 test-i2c-devices:
-	$(call run_test,test_i2c_devices)
+	$(call run_test,test-i2c-devices)
 
 
 # SNMP
 # ....................
 
 test-snmp-emulator:
-	$(call run_test,test_snmp_emulator)
+	$(call run_test,test-snmp-emulator)
 
-test-snmp-device-registration: delete-vapor-containers
-	$(call run_test,test_snmp_device_registration)
+test-snmp-device-registration:
+	$(call run_test,test-snmp-device-registration)
 
-test-snmp-device-kills: delete-vapor-containers
-	$(call run_test,test_snmp_device_kills)
+test-snmp-device-kills:
+	$(call run_test,test-snmp-device-kills)
 
-test-snmp-device-kills-force-scan: delete-vapor-containers
-	$(call run_test,test_snmp_device_kills_force_scan)
+test-snmp-device-kills-force-scan:
+	$(call run_test,test-snmp-device-kills-force-scan)
 
 
 # REDFISH
 # ....................
 
 test-redfish-endpoints:
-	$(call run_test,test_redfish_endpoints)
+	$(call run_test,test-redfish-endpoints)
 
 test-redfish-endurance:
-	$(call run_test,test_redfish_endurance)
+	$(call run_test,test-redfish-endurance)
 
 test-redfish-emulator:
-	$(call run_test,test_redfish_emulator)
+	$(call run_test,test-redfish-emulator)
 
 
 # GENERAL
 # ....................
 
 test-device-supported-commands:
-	$(call run_test,test_device_supported_commands)
+	$(call run_test,test-device-supported-commands)
 
 test-endpoint-utils:
-	$(call run_test,test_endpoint_utils)
+	$(call run_test,test-endpoint-utils)
 
 test-utils:
-	$(call run_test,test_utils)
+	$(call run_test,test-utils)
 
 test-location:
-	$(call run_test,test_location)
+	$(call run_test,test-location)
 
 # SUITES
 # ....................

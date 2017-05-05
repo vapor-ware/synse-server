@@ -8,10 +8,8 @@ synse-server-dev:
 synse-test-container:
   build: ..
   dockerfile: Dockerfile.x64
-  command: ./start_synse_plc_emulator.sh ./synse/emulator/plc/data/example.json
+  command: emulate-plc-with-cfg ./synse/emulator/plc/data/example.json
   expose:
     - 5000
-  volumes:
-    - ../synse/tests/data/plc_override_config.json:/synse/override/config.json
   environment:
     - VAPOR_DEBUG=true
