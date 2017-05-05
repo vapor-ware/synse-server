@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class UpsOutputTable(SnmpTable):
-    """SNMP table specific to the UPS MIB."""
+    """ SNMP table specific to the UPS MIB.
+    """
 
     def __init__(self, **kwargs):
 
@@ -51,7 +52,11 @@ class UpsOutputTable(SnmpTable):
         )
 
     def get_scan_devices(self):
-        """Gets a list of devices we return on a scan for this table."""
+        """ Gets a list of devices we return on a scan for this table.
+
+        Returns:
+            list: list of devices found from scan.
+        """
         scan_devices = []
         for row in self.rows:
             next_devices = self.get_scan_devices_public()
@@ -62,7 +67,11 @@ class UpsOutputTable(SnmpTable):
         return scan_devices
 
     def get_scan_devices_public(self):
-        """Get devices we return on a scan for this table."""
+        """ Get devices we return on a scan for this table.
+
+        Returns:
+            list: list of devices found from scan.
+        """
         scan_devices = []
         device_info = 'output{}'.format(self.snmp_server.get_next_output_power_id())
         device_types = {'voltage', 'current', 'power', 'percent_load'}
@@ -76,8 +85,14 @@ class UpsOutputTable(SnmpTable):
         return scan_devices
 
     def get_row_power(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the power reading.
+        """
         logger.debug('UpsOutputTable.get_row_power')
 
         reading = row['power']
@@ -95,8 +110,14 @@ class UpsOutputTable(SnmpTable):
         return response_data
 
     def get_row_voltage(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the voltage reading.
+        """
         logger.debug('UpsOutputTable.get_row_voltage')
         response_data = {'health': 'ok', 'states': [], 'voltage': row['voltage']}
         return response_data

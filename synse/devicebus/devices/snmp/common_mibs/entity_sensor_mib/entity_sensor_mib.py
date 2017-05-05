@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-""" Synse Base class for specific SNMP Entity Sensor MIB
-implementations.
+""" Synse Base class for specific SNMP Entity Sensor MIB implementations.
 
     \\//
      \/apor IO
@@ -36,7 +35,8 @@ logger = logging.getLogger(__name__)
 
 
 class EntitySensorMib(SnmpMib):
-    """Container for all SNMP tables defined in the Entity Sensor MIB (rfc3433)."""
+    """ Container for all SNMP tables defined in the Entity Sensor MIB (rfc3433).
+    """
 
     def __init__(self, snmp_server):
         super(EntitySensorMib, self).__init__()

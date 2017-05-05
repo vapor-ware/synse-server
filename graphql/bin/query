@@ -59,7 +59,7 @@ parser.add(
     help='Output all possible queries')
 parser.add(
     '--query_output',
-    choices=["graphql", "json"],
+    choices=['graphql', 'json'],
     help='Output only the query.')
 
 # Server configuration
@@ -77,7 +77,7 @@ parser.add(
 # Actual query contents
 parser.add(
     'query',
-    nargs="?",
+    nargs='?',
     help='Query to fetch')
 
 
@@ -114,10 +114,10 @@ def main(options):
         print('Look at a list of available queries: ./get_query.py --list')
         sys.exit(1)
 
-    with open(fname, "r") as myfile:
+    with open(fname, 'r') as myfile:
         content = myfile.read()
 
-    query = {"query": content}
+    query = {'query': content}
 
     if options.get('query_output') is not None:
         return output_query(options.get('query_output'), query)
@@ -129,7 +129,7 @@ def main(options):
         print(content)
 
     resp = requests.post(
-        "http://{0}/graphql".format(options.get('server')), data=query)
+        'http://{0}/graphql'.format(options.get('server')), data=query)
 
     if sys.stdout.isatty():
         print('\nResult')

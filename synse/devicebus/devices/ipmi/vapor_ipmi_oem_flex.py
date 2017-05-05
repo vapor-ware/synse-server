@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-""" Synse IPMI OEM Extensions - In this case, for Flex servers (Ciii Victoria 2508)
+""" Synse IPMI FLEX OEM Extensions
+
+In this case, for Flex servers (Ciii Victoria 2508)
 
     Author:  andrew
     Date:    9/29/2016
@@ -33,22 +35,25 @@ from vapor_ipmi_common import IpmiCommand
 def get_flex_victoria_power_reading(username=None, password=None, ip_address=None, port=BMC_PORT):
     """ Flex Ciii Victoria 2508 power reading retrieval.
 
-    Uses master r/w command to retrieve the power status from the two PSUs; the readings are then summed together
-    and returned.  As with many other commands, a 'good' power reading is only produced when chassis power is 'on'.
-    Otherwise, we end up seeing readings that are just 0W.  If a PSU is missing, we still read both PSUs, and sum
-    what we've got.  Even if only 1/2 of the PSUs are present, we can still get an accurate reading.
+    Uses master r/w command to retrieve the power status from the two PSUs;
+    the readings are then summed together and returned. As with many other
+    commands, a 'good' power reading is only produced when chassis power is
+    'on'. Otherwise, we end up seeing readings that are just 0W. If a PSU
+    is missing, we still read both PSUs, and sum what we've got. Even if
+    only 1/2 of the PSUs are present, we can still get an accurate reading.
 
     Args:
-        username (str): The username to connect to BMC with.
-        password (str): The password to connect to BMC with.
-        ip_address (str): The IP Address of the BMC.
-        port (int): BMC port
+        username (str): the username to connect to BMC with.
+        password (str): the password to connect to BMC with.
+        ip_address (str): the IP Address of the BMC.
+        port (int): BMC port.
 
     Returns:
-        dict: Power reading information from the remote system.
+        dict: power reading information from the remote system.
 
     Raises:
-        SynseException: in cases where BMC is unreachable or an error is encountered processing the command.
+        SynseException: in cases where BMC is unreachable or an error is
+            encountered processing the command.
     """
     psu0_power = 0
     psu1_power = 0
@@ -82,7 +87,8 @@ def get_flex_victoria_power_reading(username=None, password=None, ip_address=Non
 
 
 def _convert_linear_11(linear_value):
-    """ Convert a 16-bit (2-byte) value to float using linear data format conversion.
+    """ Convert a 16-bit (2-byte) value to float using linear data
+    format conversion.
 
     (see http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf 7.1 (p21))
 
@@ -96,10 +102,10 @@ def _convert_linear_11(linear_value):
     -------------------
 
     Args:
-        linear_value: The incoming linear-encoded value
+        linear_value (int): the incoming linear-encoded value.
 
     Returns:
-        float: The converted value.
+        float: the converted value.
     """
     def _twos_comp(val, bits):
         if (val & (1 << (bits - 1))) != 0:

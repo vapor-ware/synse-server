@@ -27,7 +27,8 @@ from ......devicebus.devices.snmp.snmp_table import SnmpTable
 
 
 class EntityPhysicalTable(SnmpTable):
-    """SNMP table specific to the Entity MIB."""
+    """ SNMP table specific to the Entity MIB.
+    """
 
     def __init__(self, **kwargs):
 

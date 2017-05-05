@@ -60,8 +60,14 @@ BOARD_TYPE_REDFISH = 6
 
 
 def get_board_type(board_id):
-    """Given the board id, what type of board is it?
-    :param board_id: The board id."""
+    """ Given the board id, what type of board is it?
+
+    Args:
+        board_id (int | str): The board id.
+
+    Returns:
+        int: the internal board type number.
+    """
 
     # Convert board_id from string to int if needed.
     if isinstance(board_id, basestring):

@@ -40,10 +40,11 @@ def has_location(device_id=None):
     or if it refers to a microserver.
 
     Args:
-        device_id:
+        device_id (int): the if of a device to check for encoded location
+            information.
 
     Returns:
-        bool: True if device_id has location bits encoded in it, False if
+        bool: True if device_id has location bits encoded in it; False if
             it has microserver ID bits in it.
     """
     if (device_id >> IS_MICRO_BIT) & 0x01:
@@ -60,7 +61,7 @@ def get_microserver_id(device_id=None):
     IS_MICRO_BIT = 1).
 
     Args:
-        device_id: The device_id to get microserver id for.
+        device_id (int): The device_id to get microserver id for.
 
     Returns:
         int: The microserver ID.
@@ -75,12 +76,17 @@ def get_chassis_location(device_id=None):
     opposed to microserver id).
 
     Args:
-        device_id:  The device id to get location for
+        device_id (int): The device id to get location for.
 
     Returns:
         dict: A dict containing the intra-chassis location of the device.
     """
-    chassis_location = {'depth': 'unknown', 'horiz_pos': 'unknown', 'vert_pos': 'unknown', 'server_node': 'unknown'}
+    chassis_location = {
+        'depth': 'unknown',
+        'horiz_pos': 'unknown',
+        'vert_pos': 'unknown',
+        'server_node': 'unknown'
+    }
 
     if has_location(device_id):
         if (device_id >> HORIZ_L_BIT) & 0x01:

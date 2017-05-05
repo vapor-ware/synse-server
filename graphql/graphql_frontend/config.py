@@ -28,7 +28,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import configargparse
 
 parser = configargparse.ArgParser(default_config_files=[
-    "/graphql_frontend/config.yaml"
+    '/graphql_frontend/config.yaml'
 ])
 parser.add('-c', '--my-config', is_config_file=True, help='config file path')
 parser.add(

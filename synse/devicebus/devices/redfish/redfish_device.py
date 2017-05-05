@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-""" Synse Redfish Device
+""" Synse Redfish Device.
 
-    Author: Morgan Morley Mills, based off IPMIDevice Class by Erick Daniszewski
+NOTE (v1.3): Redfish is still in Beta and is untested on live hardware.
+
+
+    Author: Morgan Morley Mills
+            Erick Daniszewski
     Date:   01/19/2017
 
     \\//
@@ -95,8 +99,7 @@ class RedfishDevice(LANDevice):
         # stores links for use within the command functions
         self._redfish_links = find_links(self.redfish_ip, self.redfish_port, **self._redfish_request_kwargs)
 
-        # assign board_id based on incoming data - redfish devices are single-board devices, so we expose a single
-        # board_id property; the alternate approach, as in PLC, is a 'dumb' device, where a board_id range is exposed
+        # assign board_id based on incoming data
         self.board_id = int(kwargs['board_offset']) + int(kwargs['board_id_range'][0])
 
         self.board_record = None
@@ -104,17 +107,18 @@ class RedfishDevice(LANDevice):
             self.board_record = self._get_board_record()
 
     def duplicate_config(self, other):
-        """ Check to see whether an redfish config has the same values as this redfish
+        """ Check to see whether an Redfish config has the same values as this Redfish
         device. This is primarily used in determining whether or not to add a new
         device to the application. In cases where there is a match, we do not want
         to add a new device to prevent duplicate devices.
 
         Args:
-            other (dict): dictionary representing an redfish device config.
+            other (dict): dictionary representing an Redfish device config.
 
         Returns:
-            bool: True if duplicate; False otherwise
+            bool: True if duplicate; False otherwise.
         """
+        # FIXME (etd) - this could become __eq__
         return \
             self.redfish_ip == other.get('redfish_ip') and \
             self.server_rack == other.get('server_rack') and \
@@ -127,10 +131,10 @@ class RedfishDevice(LANDevice):
             # TODO - for session capability, session tokens may be required.
 
     def _get_board_record(self):
-        """ Get available sensors via Redfish and
+        """ Get the board information and available sensors via Redfish.
 
         Returns:
-            dict: Dictionary containing board's devices.
+            dict: dictionary containing board's devices.
         """
         board_record = dict()
         board_record['board_id'] = format(self.board_id, '08x')
@@ -179,7 +183,7 @@ class RedfishDevice(LANDevice):
         # list to hold errors occurred during device initialization
         device_init_failure = []
 
-        # get config associated with all redfish devices
+        # get config associated with all Redfish devices
         thread_count = devicebus_config.get('device_initializer_threads', 1)
         scan_on_init = devicebus_config.get('scan_on_init', True)
 
@@ -201,15 +205,15 @@ class RedfishDevice(LANDevice):
                 'No valid device config found for Redfish configuration. Requires either the '
                 '"from_config" field or the "config" field.'
             )
-        # now, for each redfish server, we create a device instance
+        # now, for each Redfish server, we create a device instance
         if 'racks' in device_config:
             for rack in device_config['racks']:
                 rack_id = rack['rack_id']
                 for server in rack['servers']:
-                    # pass through scan on init value for all redfish devices
+                    # pass through scan on init value for all Redfish devices
                     server['scan_on_init'] = scan_on_init
 
-                    # check to see if there are any duplicate redfish servers already defined.
+                    # check to see if there are any duplicate Redfish servers already defined.
                     # this may be the case with the periodic registering of remote
                     # devices.
                     if device_cache:
@@ -270,16 +274,16 @@ class RedfishDevice(LANDevice):
 
     @staticmethod
     def _process_server(server, app_config, rack_id, board_range, device_init_failure, mutate_lock, devices, single_board_devices):
-        """ A private method to handle the construction of the redfish device from
-        the redfish server record.
+        """ A private method to handle the construction of the Redfish device from
+        the Redfish server record.
 
         Args:
-            server (dict): the record for the redfish server, containing its configurations
-            rack_id (str): the id of the rack which the redfish server is a part of
-            board_range (tuple): range of ids the board should fall within
+            server (dict): the record for the Redfish server, containing its configurations.
+            rack_id (str): the id of the rack which the Redfish server is on.
+            board_range (tuple): range of ids the board should fall within.
             device_init_failure (list): list to track any failures in the
-                registrar thread
-            mutate_lock (Lock): threading lock used when mutating shared state
+                registrar thread.
+            mutate_lock (Lock): threading lock used when mutating shared state.
             devices (list[dict]): a list of dictionary configurations for the
                 defined devices.
             single_board_devices (dict): collection of "single board devices"
@@ -305,8 +309,8 @@ class RedfishDevice(LANDevice):
             device_init_failure.append(e)
             raise
 
-        # now, with the redfish device initialized, we will need to update the app
-        # state for the redfish device.
+        # now, with the Redfish device initialized, we will need to update the app
+        # state for the Redfish device.
         with mutate_lock:
             devices[redfish_device.device_uuid] = redfish_device
 
@@ -651,8 +655,8 @@ class RedfishDevice(LANDevice):
         """ Fan speed control command for a given board and device.
 
         Gets the fan speed for a given device. Since this is not NOT a Vapor
-        Fan, we can not control the fan speed, so any attempts to set the
-        fan speed are met with an SynseException being raised.
+        Fan we can not control the fan speed, so any attempts to set the
+        fan speed are met with a SynseException being raised.
 
         Args:
             command (Command): the command issued by the Synse endpoint
@@ -674,7 +678,7 @@ class RedfishDevice(LANDevice):
                 # check if the device raises an exception
                 device = self._get_device_by_id(device_id, const.DEVICE_FAN_SPEED)
                 if device['device_type'] != const.DEVICE_FAN_SPEED:
-                    raise SynseException("Attempt to get fan speed for non-fan device.")
+                    raise SynseException('Attempt to get fan speed for non-fan device.')
 
                 links_list = [self._redfish_links['thermal']]
 

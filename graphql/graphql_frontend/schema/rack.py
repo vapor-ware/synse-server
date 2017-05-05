@@ -1,4 +1,4 @@
-""" Rack Schema
+""" Rack schema
 
     Author: Thomas Rampelberg
     Date:   2/27/2017
@@ -44,11 +44,11 @@ class Rack(graphene.ObjectType):
         id=graphene.String())
 
     def get_boards(self):
-        return self._info.get("boards")
+        return self._info.get('boards')
 
     @staticmethod
     def build(parent, info):
-        _id = info["rack_id"]
+        _id = info['rack_id']
 
         return Rack(id=_id, _parent=parent, _info=info, **info)
 
@@ -57,5 +57,5 @@ class Rack(graphene.ObjectType):
         return [Board.build(self, b)
                 for b in util.arg_filter(
                     id,
-                    lambda x: x.get("board_id") == id,
+                    lambda x: x.get('board_id') == id,
                     self.get_boards())]

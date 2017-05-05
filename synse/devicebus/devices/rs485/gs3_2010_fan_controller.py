@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse GS3-2010 Fan Control RS485 Device
+""" Synse GS3-2010 Fan Control RS485 Device.
 
     Author: Andrew Cencini
     Date:   10/13/2016
@@ -50,7 +50,8 @@ MAX_FAN_SPEED_RPM = 1200
 class GS32010Fan(RS485Device):
     """ Device subclass for GS3-2010 fan controller using RS485 comms.
 
-    FIXME: Currently reads a raw speed_rpm from RS485, will need to implement proper read/control shortly.
+    FIXME: Currently reads a raw speed_rpm from RS485, will need to implement
+    proper read/control shortly.
     """
     _instance_name = 'gs3-2010'
 
@@ -63,8 +64,8 @@ class GS32010Fan(RS485Device):
 
         self._lock = lockfile.LockFile(self.serial_lock)
 
-        # the register base is used to map multiple device instances to a device-specific base address
-        # such that each device has its own map of registers
+        # the register base is used to map multiple device instances to a device-specific
+        # base address such that each device has its own map of registers
         self.register_base = int(kwargs['base_address'], 16)
 
         # map of registers needed to read for fan control
@@ -164,14 +165,16 @@ class GS32010Fan(RS485Device):
             raise SynseException('Error controlling GS3-2010 fan controller (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _fan_control(self, action='status', speed_rpm=None):
-        """
+        """ Internal method for fan control action.
 
         Args:
-            action:
-            speed_rpm:
+            action (str): the fan control action to take. valid actions include:
+                'status', 'set_speed'
+            speed_rpm (int): the fan speed (in RPM) to set. note that the speed will
+                only be set if the action is 'set_speed'.
 
         Returns:
-
+            dict: the fan speed reading.
         """
         with self._lock:
             if action == 'set_speed' and speed_rpm is not None:

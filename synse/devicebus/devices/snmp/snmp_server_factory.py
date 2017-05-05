@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class SnmpServerFactory(object):
-    """Factory class for initializing specific SNMP server implementations.
+    """ Factory class for initializing specific SNMP server implementations.
+
     When we support a new SNMP server, add the server_type string in the
     json config file and call the constructor here.
     """
@@ -44,13 +45,15 @@ class SnmpServerFactory(object):
 
     @staticmethod
     def initialize_snmp_server(server_type, app_cfg, kwargs):
-        """Initialize SNMP server specific class that handles Synse calls.
-        :param server_type: server_type string from the json config (snmp_config.json by default.
-            Supported server_types:
-                Emulator-Test
-                Synse-testDevice1
-        :param app_cfg: The Synse app config.
-        :param kwargs: kwargs from the json config.
+        """ Initialize SNMP server specific class that handles Synse calls.
+
+        Args:
+            server_type (str): server_type string from the json config (snmp_config.json
+                by default. Supported server_types:
+                    Emulator-Test
+                    Synse-testDevice1
+            app_cfg (dict): the Synse app config.
+            kwargs (dict): kwargs from the json config.
         """
         constructor = SnmpServerFactory._CONFIG_TO_CONSTRUCTOR_MAP.get(server_type, None)
         if constructor is None:

@@ -110,7 +110,10 @@ class I2CDevice(SerialDevice):
                     # sensor configurations
                     i2c_device['altitude'] = _altitude_m
 
-                    # get the class of the I2C device being registered
+                    # since we are unable to import subclasses (circular import), but
+                    # we still need to initialize a subclassed device interface, we
+                    # match the configured 'device_model' with the '_instance_name' of
+                    # all subclasses to determine the correct subclass at runtime.
                     device_model = {
                         klass._instance_name: klass for klass in cls.__subclasses__()
                     }.get(i2c_device['device_model'].lower())

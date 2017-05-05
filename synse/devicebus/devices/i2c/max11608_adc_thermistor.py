@@ -118,10 +118,10 @@ class Max11608Thermistor(I2CDevice):
             raise SynseException('Error reading temperature sensor (device id {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
-        """
+        """ Internal method for reading data off of the device.
 
         Returns:
-
+            dict: the thermistor reading value.
         """
         with self._lock:
             if self.hardware_type == 'emulator':
@@ -204,29 +204,37 @@ class Max11608Thermistor(I2CDevice):
 
     @staticmethod
     def _convert_reading(ad_str):
-        # Calculate the Linear Fit temperature
-        # Equations based on Brian Elect Thermistor Plot MAX11608.xlxs
+        """ Calculate the linear for temperature.
+
+        Equations based on Brian Elect Thermistor Plot MAX11608.xlxs
+
+        Args:
+            ad_str (int): raw temperature reading.
+
+        Returns:
+            float: the converted temperature reading.
+        """
         if ad_str >= X1[0]:
             # Region 7
-            temperature = slope[0]*(ad_str - X1[0]) + Y1[0]
-        elif (X1[0]-1) >= ad_str >= X1[1]:
+            temperature = slope[0] * (ad_str - X1[0]) + Y1[0]
+        elif (X1[0] - 1) >= ad_str >= X1[1]:
             # Region 6
-            temperature = slope[1]*(ad_str - X1[1]) + Y1[1]
-        elif (X1[1]-1) >= ad_str >= X1[2]:
+            temperature = slope[1] * (ad_str - X1[1]) + Y1[1]
+        elif (X1[1] - 1) >= ad_str >= X1[2]:
             # Region 5
-            temperature = slope[2]*(ad_str - X1[2]) + Y1[2]
-        elif (X1[2]-1) >= ad_str >= X1[3]:
+            temperature = slope[2] * (ad_str - X1[2]) + Y1[2]
+        elif (X1[2] - 1) >= ad_str >= X1[3]:
             # Region 4
-            temperature = slope[3]*(ad_str - X1[3]) + Y1[3]
-        elif (X1[3]-1) >= ad_str >= X1[4]:
+            temperature = slope[3] * (ad_str - X1[3]) + Y1[3]
+        elif (X1[3] - 1) >= ad_str >= X1[4]:
             # Region 3
-            temperature = slope[4]*(ad_str - X1[4]) + Y1[4]
-        elif (X1[4]-1) >= ad_str >= X1[5]:
+            temperature = slope[4] * (ad_str - X1[4]) + Y1[4]
+        elif (X1[4] - 1) >= ad_str >= X1[5]:
             # Region 2
-            temperature = slope[5]*(ad_str - X1[5]) + Y1[5]
-        elif (X1[5]-1) >= ad_str >= X1[6]:
+            temperature = slope[5] * (ad_str - X1[5]) + Y1[5]
+        elif (X1[5] - 1) >= ad_str >= X1[6]:
             # Region 1
-            temperature = slope[6]*(ad_str - X1[6]) + Y1[6]
+            temperature = slope[6] * (ad_str - X1[6]) + Y1[6]
         else:
             # Hit max temperature of the thermistor
             temperature = 105.0

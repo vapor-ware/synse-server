@@ -27,8 +27,10 @@ from ......devicebus.devices.snmp.snmp_table import SnmpTable
 
 
 class EntitySensorCompliancesTable(SnmpTable):
-    """SNMP table specific to the Entity Sensor MIB. We have no real data
-     for these OIDs so this is not tested."""
+    """ SNMP table specific to the Entity Sensor MIB.
+
+    We have no real data for these OIDs so this is not tested.
+    """
 
     def __init__(self, **kwargs):
 

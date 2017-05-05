@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse I2C pressure via SDP610
+""" Synse I2C pressure via SDP610.
 
     Author: Andrew Cencini
     Date:   10/18/2016
@@ -50,7 +50,7 @@ SCALE_FACTOR = 60
 
 
 class SDP610Pressure(I2CDevice):
-    """ Device subclass for thermistor via MAX11608 I2C ADC.
+    """ Device subclass for thermistor via I2C SDP610 Pressure device.
     """
     _instance_name = 'sdp-610'
 
@@ -113,6 +113,11 @@ class SDP610Pressure(I2CDevice):
             raise SynseException('Error reading pressure sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
+        """ Internal method for reading data off of the device.
+
+        Returns:
+            dict: the pressure reading value.
+        """
         with self._lock:
             if self.hardware_type == 'emulator':
                 # -- EMULATOR --> test-only code path
@@ -204,7 +209,7 @@ class SDP610Pressure(I2CDevice):
         http://www.mouser.com/ds/2/682/Sensirion_Differential_Pressure_SDP6x0series_Datas-767275.pdf
 
         Args:
-            altitude (int): the altitude in meters above sea level.
+            altitude (int | float): the altitude in meters above sea level.
 
         Returns:
             float: the altitude correction factor.
@@ -236,14 +241,16 @@ class SDP610Pressure(I2CDevice):
 
     @staticmethod
     def _convert_reading(sensor_str, altitude):
-        """
+        """ Convert the pressure reading from a hex number string to an
+        integer, accounting for the altitude.
 
         Args:
-            sensor_str:
-            altitude:
+            sensor_str (str): hex number string for pressure reading.
+            altitude (int | float): the altitude at which the sensor
+                exists - set via configuration.
 
         Returns:
-
+            float: the converted pressure reading.
         """
         # convert to an int from hex number string
         sensor_int = int(hexlify(sensor_str), 16)
@@ -258,13 +265,14 @@ class SDP610Pressure(I2CDevice):
 
     @staticmethod
     def _crc8_check(data):
-        """ CRC checker, data must be in string form which is the output of the sensor
+        """ CRC checker, data must be in string form which is the output of
+        the sensor.
 
         Args:
-            data: Data to check CRC of
+            data: data to check CRC of.
 
         Returns:
-            bool: True if CRC check passes, False otherwise
+            bool: True if CRC check passes, False otherwise.
         """
         crc = 0
         for x in range(len(data) - 1):

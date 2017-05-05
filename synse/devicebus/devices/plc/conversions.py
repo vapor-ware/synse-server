@@ -29,7 +29,7 @@ from errors import BusDataException
 
 
 def convert_thermistor(adc):
-    """ Calculate a real world value from temperature device raw data.
+    """ Calculate a real world value from thermistor device raw data.
 
     Args:
         adc (int): the value from the device to be converted.
@@ -86,13 +86,13 @@ def convert_direct_pmbus(raw, reading_type, r_sense=1.0):
     value.
 
     Args:
-        raw (int): the raw PMBUS direct value
-        reading_type (str): the type of reading being converted. Supported
-            values include: 'current', 'voltage', and 'power'
+        raw (int): the raw PMBUS direct value.
+        reading_type (str): the type of reading being converted. supported
+            values include: 'current', 'voltage', and 'power'.
         r_sense (int): the milliohm value for the sense resistor, used to
             compute m coefficient. if r_sense causes m to be > 32767, then
             we must divide m by 10, and increase the R coefficient by 1
-            (per p30 of ADM1276 data sheet)
+            (per p30 of ADM1276 data sheet).
 
     Returns:
         float: a converted decimal value corresponding to the raw reading.

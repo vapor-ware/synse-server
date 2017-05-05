@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-""" Redfish Connection Methods for Synse Redfish Bridge
+""" Redfish Connection Methods for Synse Redfish Bridge.
+
+NOTE (v1.3): Redfish is still in Beta and is untested on live hardware.
+
 
     Author:  Morgan Morley Mills
     Date:    01/12/2017
@@ -34,15 +37,15 @@ logger = logging.getLogger(__name__)
 
 
 def _build_link(ip_address, port, path, timeout=None):
-    """ Builds a new link based upon the arguments passed in to query the redfish server.
+    """ Builds a new link based upon the arguments passed in to query the Redfish server.
 
     Args:
-        ip_address (str): the ip_address of the redfish server
-        port (str | int): the port of the redfish server
-        path (str): the location of the link within the redfish server. If this is the
-            root link, the path specified should be 'root.'
+        ip_address (str): the ip_address of the Redfish server.
+        port (str | int): the port of the Redfish server.
+        path (str): the location of the link within the Redfish server. if this is the
+            root link, the path specified should be 'root'.
         timeout (int | float): the number of seconds a GET will wait for a connection
-            before timing out on the request. This parameter is not None only when
+            before timing out on the request. this parameter is not None only when
             attempting to find the root path.
 
     Returns:
@@ -64,17 +67,17 @@ def _build_link(ip_address, port, path, timeout=None):
 
 
 def get_data(link, timeout, username=None, password=None):
-    """ Gets the json data from the Redfish server via the link specified.
+    """ Gets the JSON data from the Redfish server via the link specified.
 
     Args:
         link (str): the link to which information is requested.
         timeout (int | float): the number of seconds a GET will wait for a connection
-            before timing out on the request
+            before timing out on the request.
         username (str): the username for basic authentication.
         password (str): the password for basic authentication.
 
     Returns:
-        dict: a representation of the json data from the Redfish server.
+        dict: a representation of the JSON data from the Redfish server.
     """
     try:
         if username is not None and password is not None:
@@ -92,13 +95,13 @@ def get_data(link, timeout, username=None, password=None):
 
 
 def patch_data(link, payload, timeout, username, password):
-    """ Patches json data from the Redfish server via the link specified.
+    """ Patches JSON data from the Redfish server via the link specified.
 
     Args:
         link (str): the link to which information is requested.
-        payload (dict): the information to patch.
+        payload (dict): the data to patch.
         timeout (int | float): the number of seconds a PATCH will wait for a
-            connection before timing out on the request
+            connection before timing out on the request.
         username (str): the username for basic authentication.
         password (str): the password for basic authentication.
     """
@@ -112,10 +115,10 @@ def post_action(link, payload, timeout, username, password):
     """ Posts an action from to the Redfish server via the link specified.
 
     Args:
-        link (str): the link to which information is requested.
-        payload (dict): the information to post.
+        link (str): the link to which data is requested.
+        payload (dict): the data to POST.
         timeout (int | float): the number of seconds a POST will wait for a
-            connection before timing out on the request
+            connection before timing out on the request.
         username (str): the username for basic authentication.
         password (str): the password for basic authentication.
     """
@@ -129,12 +132,12 @@ def post_action(link, payload, timeout, username, password):
 
 
 def _get_members(json_data, ip_address, port):
-    """ Get all the members from the collection data on a redfish device.
+    """ Get all the members from the collection data on a Redfish device.
 
     Args:
         json_data (dict): the data too be searched through for a Member collection.
-        ip_address (str): the ip_address of the redfish server
-        port (str | int): the port of the redfish server
+        ip_address (str): the ip_address of the Redfish server.
+        port (str | int): the port of the Redfish server.
 
     Returns:
         list[str]: all the links from the members collection.
@@ -159,18 +162,18 @@ def _get_members(json_data, ip_address, port):
 def _get_inner_link(col, search_word, ip_address, port):
     """ Searches the various levels returned data may be in to find a link either
     whose key is the search_word, or whose URI contains a specific word which is
-    the search_word
+    the search_word.
 
     Args:
         col (dict | list): the collection to sort through, whether a list of URIs or
             all the data from a schema.
         search_word (str): the key to search for within the schema or a word within
             a URI from members list generated by _get_all_members().
-        ip_address (str): the ip_address of the redfish server
-        port (str | int): the port of the redfish server
+        ip_address (str): the ip_address of the Redfish server.
+        port (str | int): the port of the Redfish server.
 
     Returns:
-        str: the link that corresponds to the search-word specified.
+        str: the link that corresponds to the search_word specified.
     """
     if isinstance(col, dict):
         if search_word in col:
@@ -194,16 +197,16 @@ def find_links(ip_address, port, timeout, username, password):
     """ Find links to schemas on the remote system for scans or initialization.
 
     Args:
-        ip_address (str): the ip address of the redfish server
-        port (str | int): the port for the redfish server
+        ip_address (str): the ip address of the Redfish server.
+        port (str | int): the port for the Redfish server.
         timeout (int | float): the number of seconds a GET will wait for a connection
-            before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
-
+            before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: key: label of remote schema, value: corresponding URIs to schemas on the remote system.
+        dict: key: label of remote schema, value: corresponding URIs to schemas on
+            the remote system.
     """
     collections = dict()
     response = dict()

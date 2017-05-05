@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-""" Synse Redfish Bridge
+""" Synse Redfish Bridge.
+
+NOTE (v1.3): Redfish is still in Beta and is untested on live hardware.
 
     Author:  Morgan Morley Mills
     Date:    01/12/2017
@@ -41,14 +43,14 @@ def find_sensors(links, timeout, username, password):
     forced scans.
 
     Args:
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Identifying sensors information from the remote system.
+        dict: identifying sensors information from the remote system.
     """
     response = list()
     sensors = dict()
@@ -111,14 +113,14 @@ def get_power(links, timeout, username, password):
     """ Get power information from the remote system.
 
     Args:
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Power information from the remote system.
+        dict: power information from the remote system.
     """
     response = dict()
     power_data = dict()
@@ -161,15 +163,15 @@ def set_power(power_action, links, timeout, username, password):
 
     Args:
         power_action (str): 'on'/'off'/'cycle' - the state of the power of the
-            remote device
-        links (list[str]): the list of links to connect to via HTTP
+            remote device.
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a POST will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Power information from the remote system.
+        dict: power information from the remote system.
     """
     action_link = links[0] + '/Actions/ComputerSystem.Reset'
     _payload = str()
@@ -210,14 +212,14 @@ def get_asset(links, timeout, username, password):
     """ Get asset information from the remote system.
 
     Args:
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Asset information from the remote system.
+        dict: asset information from the remote system.
     """
     response = dict()
     asset_data = dict()
@@ -274,14 +276,14 @@ def get_led(links, timeout, username, password):
     """ Retrieve remote system LED status.
 
     Args:
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: LED Status as reported by remote system.
+        dict: LED status as reported by remote system.
     """
     response = dict()
 
@@ -309,15 +311,15 @@ def set_led(led_state, links, timeout, username, password):
     """ Turn the remote system LED on or off.
 
     Args:
-        led_state (str): the state to set the led to on the remote device
-        links (list[str]): the list of links to connect to via HTTP
+        led_state (str): the state to set the led to on the remote device.
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a PATCH will wait for
-            a connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            a connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: LED State as set.
+        dict: LED state as set.
     """
     _payload = {'IndicatorLED': led_state}
 
@@ -344,14 +346,14 @@ def get_thermal_sensor(device_type, device_name, links, timeout, username, passw
             the remote system.
         device_name (str): the name of the device to get information about
             on the remote system.
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Thermal sensor information from the remote system.
+        dict: thermal sensor information from the remote system.
     """
     response = dict()
 
@@ -392,16 +394,16 @@ def get_power_sensor(device_type, device_name, links, timeout, username, passwor
 
     Args:
         device_type (str): 'Voltages' for a voltage device, 'PowerSupplies'
-            for a power_supply device
+            for a power_supply device.
         device_name (str): the name of the device.
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for a
-            connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Power sensor information from  the remote system.
+        dict: power sensor information from the remote system.
     """
     response = dict()
 
@@ -439,14 +441,14 @@ def get_boot(links, timeout, username, password):
     """ Get boot target from remote host.
 
     Args:
-        links (list[str]): the list of links to connect to via HTTP
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET will wait for
-            a connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            a connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Boot target information from the remote system.
+        dict: boot target information from the remote system.
     """
     response = dict()
 
@@ -472,18 +474,18 @@ def get_boot(links, timeout, username, password):
 
 
 def set_boot(target, links, timeout, username, password):
-    """ Get boot target from remote host.
+    """ Set boot target on the remote host.
 
     Args:
-        target (str): the value to change boot target to
-        links (list[str]): the list of links to connect to via HTTP
+        target (str): the value to change boot target to.
+        links (list[str]): the list of links to connect to via HTTP.
         timeout (int | float): the number of seconds a GET/PATCH will wait for
-            a connection before timing out on the request
-        username (str): the username for basic HTTP authentication
-        password (str): the password for basic HTTP authentication
+            a connection before timing out on the request.
+        username (str): the username for basic HTTP authentication.
+        password (str): the password for basic HTTP authentication.
 
     Returns:
-        dict: Boot target information from the remote system.
+        dict: boot target information from the remote system.
     """
     response = dict()
 

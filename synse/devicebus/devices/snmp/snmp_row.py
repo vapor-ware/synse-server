@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse SNMP Table.
+""" Synse SNMP Row.
 
     \\//
      \/apor IO
@@ -31,12 +31,12 @@ logger = logging.getLogger(__name__)
 
 
 class SnmpRow(object):
-    """Encapsulate one row of SNMP data for a table. This could also be used
-    for single row SNMP queries. (TBD)"""
+    """ Encapsulate one row of SNMP data for a table.
+
+    This could also be used for single row SNMP queries. (TBD)
+    """
 
     def __init__(self, **kwargs):
-        """Constructor."""
-
         # This is different than the parent table.
         # For a table row this is an oid to walk to retrieve all columns.
         # For a single row this is the oid to get to retrieve the single column.
@@ -70,13 +70,17 @@ class SnmpRow(object):
                               column_list_len, row_data_len))
 
     def __getitem__(self, item):
-        """Accesses row data as if it's a dictionary by self['column_name'].
-        Internally row_data is a list to avoid additional and unnecessary copies."""
+        """ Accesses row data as if it's a dictionary by self['column_name'].
+
+        Internally row_data is a list to avoid additional and unnecessary copies.
+        """
         return self.row_data[self.table.column_list.index(item)]
 
     def to_scan_json(self):
-        """Serialize part of an SNMP row to json. This is used for/in the
-        internal scan results."""
+        """ Serialize part of an SNMP row to json.
+
+        This is used for/in the internal scan results.
+        """
         return {'table_name': self.table.table_name, 'base_oid': self.base_oid}
 
     def dump(self):

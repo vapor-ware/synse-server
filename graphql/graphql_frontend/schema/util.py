@@ -36,7 +36,7 @@ SESSION = requests.Session()
 
 
 def make_request(url):
-    base = "http://{0}/synse/{1}/".format(
+    base = 'http://{0}/synse/{1}/'.format(
         config.options.get('backend'), version.__api_version__)
     result = SESSION.get(requests.compat.urljoin(base, url))
     result.raise_for_status()
@@ -49,7 +49,7 @@ def get_asset(self, asset, *args, **kwargs):
     Gets converted into resolve_asset_name(). See _assets for the list that
     are using this method as resolve.
     """
-    return self._request_assets().get(asset, "")
+    return self._request_assets().get(asset, '')
 
 
 def resolve_assets(cls):
@@ -60,7 +60,7 @@ def resolve_assets(cls):
     for asset in cls._assets:
         setattr(
             cls,
-            "resolve_{0}".format(asset),
+            'resolve_{0}'.format(asset),
             functools.partialmethod(get_asset, asset))
     return cls
 

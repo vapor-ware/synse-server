@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse Device Bus Module
+""" Synse PLC Bus Module.
 
     Author:  andrew, steven
     Date:    4/13/2015
@@ -78,8 +78,8 @@ class DeviceBus(object):
     mediates access to the device bus based on the hardware profile in use.
     """
     def __init__(self, hardware_type=DEVICEBUS_UNKNOWN_HARDWARE, device_name=None, timeout=0.25, bps=115200):
-        """ Create a new instance of the DeviceBus used to communicate with
-        devices on the device bus.
+        """ Constructor for the DeviceBus, which is used to communicate with
+        devices on the configured bus.
 
         Depending on the hardware_type, different configuration actions may be
         taken. This also sets up the serial_device based on device_name, which
@@ -141,16 +141,16 @@ class DeviceBus(object):
             self.serial_device.flush()
 
     def read(self, length=0):
-        """ Read from the DeviceBus the given number of bytes.
+        """ Read the given number of bytes from the DeviceBus.
 
         This function wraps all hardware operations to ensure correct platform-
         specific functionality occurs as part of the read operation.
 
         Args:
-            length (int): the number of bytes to read.
+            length (int): the number of bytes to read (default: 0).
 
         Returns:
-            str: the byte data read. If the read times out, no bytes may be returned.
+            str: the byte data read. if the read times out, no bytes may be returned.
         """
         if self.serial_device is not None:
             # first, take any action to ensure the bus is readable - for
@@ -178,7 +178,7 @@ class DeviceBus(object):
             data: the bytes to write.
 
         Returns:
-            int: the number of bytes written. A write may time out, in which case
+            int: the number of bytes written. a write may time out, in which case
                 a SerialTimeoutException is raised.
         """
         if self.serial_device is not None:
@@ -206,11 +206,15 @@ class DeviceBusPacket(object):
     """
     def __init__(self, serial_reader=None, expected_sequence=None, data_bytes=None, sequence=0x01, device_type=0xFF,
                  board_id=0x00000000, device_id=0xFFFF, data=None):
-        """ Construct a new DeviceBusPacket. There are three real ways to do this -
-        either via the data_bytes parameter, or via the individual fields of the packet
-        itself (in that case, the header, length, checksum and trailer are all
-        automatically generated). Data must be a list of data_bytes. The third way is
-        to use serial_reader, which will read a generic packet from the serial stream.
+        """ Construct a new DeviceBusPacket.
+
+        There are three real ways to do this:
+            1.) via the data_bytes parameter
+            2.) via the individual fields of the packet itself (in that case,
+                the header, length, checksum and trailer are all automatically
+                generated). data must be a list of data_bytes.
+            3.) via the serial_reader, which will read a generic packet from
+                the serial stream.
         """
         if serial_reader is not None:
             # this routine will read from serial into a buffer as follows:
@@ -269,10 +273,11 @@ class DeviceBusPacket(object):
                 self.data = [data]
 
     def serialize(self):
-        """ Generate a serialized byte representation of the given packet. All of the
-        packet fields must be populated in the DeviceBusPacket instance for the
-        serialization to be successful. If any of the fields are missing, serialization
-        will fail with a BusDataException.
+        """ Generate a serialized byte representation of the given packet.
+
+        All of the packet fields must be populated in the DeviceBusPacket
+        instance for the serialization to be successful. If any of the fields
+        are missing, serialization will fail with a BusDataException.
 
         Raises:
             BusDataException: if any of the packet fields are missing.
@@ -305,7 +310,9 @@ class DeviceBusPacket(object):
     def deserialize(self, packet_bytes):
         """ Populate the fields of a DeviceBusPacket instance.
 
-        :param packet_bytes: - They bytes to use to populate the packet instance.
+        Args:
+            packet_bytes (list[int]): the bytes to use to populate the packet
+                instance.
 
         Raises:
             BusDataException: if the packet is smaller than the minimum packet
@@ -354,24 +361,26 @@ class DeviceBusPacket(object):
 
     @staticmethod
     def generate_checksum(sequence, device_type, board_id, device_id, data):
-        """ Generate and return packet checksum given its fields. Twos complement
-        of 0xFF & the sum of bytes from devicetype to data end.
+        """ Generate and return packet checksum given its fields.
+
+        Twos complement of 0xFF & the sum of bytes from device_type to data end.
 
         Args:
-            sequence: the sequence number.
-            device_type: the device type.
-            board_id: the board id.
-            device_id: the device id.
-            data: the data bytes.
+            sequence (int): the sequence number.
+            device_type (int): the device type.
+            board_id (str): the board id.
+            device_id (str): the device id.
+            data (list[int]): the data bytes.
 
-        Returns: The packet checksum
+        Returns:
+            int: the packet checksum.
         """
         board_id_bytes = board_id_to_bytes(board_id)
         device_id_bytes = device_id_to_bytes(device_id)
 
         checksum = sequence + device_type + sum(board_id_bytes) + sum(device_id_bytes)
         for x in data:
-            checksum = checksum + x
+            checksum += x
         twoscomp = ((~checksum) + 1) & 0xFF
         return twoscomp
 
@@ -386,13 +395,16 @@ class DumpCommand(DeviceBusPacket):
     is used to retrieve board and device info for a given board or all boards.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator). Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object. Finally, a DumpCommand may be constructed from a
-        board_id and sequence number - this is what is most likely to be used
-        by a client application (e.g. the flask server).
+        """ DumpCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a DumpCommand may be constructed from a board_id and sequence number
+            - this is what is most likely to be used by a client application
+            (e.g. the flask server).
         """
         if serial_reader is not None:
             super(DumpCommand, self).__init__(serial_reader=serial_reader)
@@ -409,14 +421,17 @@ class DumpResponse(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01,
                  device_id=0x0000, device_type=0x00, data=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, a DumpResponse may be constructed from a board_id,
-        sequence number, device_id, device_type and data - this is what is
-        most likely to be used when simulating responses (e.g. in the emulator).
+        """ DumpResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a DumpResponse may be constructed from a board_id, sequence number,
+            device_id, device_type and data - this is what is most likely to be
+            used when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(DumpResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -432,13 +447,16 @@ class VersionCommand(DeviceBusPacket):
     is used to retrieve the version of a given board_id.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator).  Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object. Finally, a VersionCommand may be constructed from a
-        board_id and sequence number - this is what is most likely to be used
-        by a client application (e.g. the flask server).
+        """ VersionCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a VersionCommand may be constructed from a board_id and sequence number
+            - this is what is most likely to be used by a client application
+            (e.g. the flask server).
         """
         if serial_reader is not None:
             super(VersionCommand, self).__init__(serial_reader=serial_reader)
@@ -455,14 +473,17 @@ class VersionResponse(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, version_string=None,
                  expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, a VersionResponse may be constructed from a board_id,
-        sequence number and version_string - this is what is most likely to be
-        used when simulating responses (e.g. in the emulator).
+        """ VersionResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a VersionResponse may be constructed from a board_id, sequence number
+            and version_string - this is what is most likely to be used when
+            simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(VersionResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -490,13 +511,16 @@ class DeviceReadCommand(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01,
                  device_type=0xFF, device_id=0xFFFF):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator). Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object. Finally, a DeviceReadCommand may be constructed from a
-        board_id, device_type and device_id (and sequence number) - this is what
-        is most likely to be used by a client application (e.g. the flask server).
+        """ DeviceReadCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a DeviceReadCommand may be constructed from a board_id, device_type
+            and device_id (and sequence number) - this is what is most likely
+            to be used by a client application (e.g. the flask server).
         """
         if serial_reader is not None:
             super(DeviceReadCommand, self).__init__(serial_reader=serial_reader)
@@ -513,14 +537,17 @@ class DeviceReadResponse(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01,
                  device_type=0xFF, device_id=0xFFFF, device_reading=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor, which
-        is deserialized and populates the appropriate fields of the object.
-        Finally, a DeviceReadResponse may be constructed from a board_id, sequence
-        number and device_reading - this is what is most likely to be used when
-        simulating responses (e.g. in the emulator).
+        """ DeviceReadResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a DeviceReadResponse may be constructed from a board_id, sequence number
+            and device_reading - this is what is most likely to be used when simulating
+            responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(DeviceReadResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -539,13 +566,16 @@ class DeviceWriteCommand(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01,
                  device_type=0xFF, raw_data=None, device_id=0xFFFF):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator). Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object. Finally, a DeviceWriteCommand may be constructed from a
-        board_id, device_type, raw_value, and device_id (and sequence number) - this is what
-        is most likely to be used by a client application (e.g. the flask server).
+        """ DeviceWriteCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a DeviceWriteCommand may be constructed from a board_id, device_type,
+            raw_value, and device_id (and sequence number) - this is what is most
+            likely to be used by a client application (e.g. the flask server).
         """
         if serial_reader is not None:
             super(DeviceWriteCommand, self).__init__(serial_reader=serial_reader)
@@ -567,19 +597,22 @@ class DeviceWriteCommand(DeviceBusPacket):
 
 class DeviceWriteResponse(DeviceBusPacket):
     """ DeviceWriteResponse is a special DeviceBusPacket that has a data field
-    containing the data returned for a write operation.  Typically W1 is succeeded, W0 is failed, as
-    is no response.
+    containing the data returned for a write operation. Typically W1 is succeeded,
+    W0 is failed, as is no response.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01,
                  device_type=0xFF, device_id=0xFFFF, device_response=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor, which
-        is deserialized and populates the appropriate fields of the object.
-        Finally, a DeviceWriteResponse may be constructed from a board_id, sequence
-        number and device_response - this is what is most likely to be used when
-        simulating responses (e.g. in the emulator).
+        """ DeviceWriteResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial, such
+            as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a DeviceWriteResponse may be constructed from a board_id, sequence
+            number and device_response - this is what is most likely to be used when
+            simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(DeviceWriteResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -599,13 +632,16 @@ class PowerControlCommand(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, power_action=None):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator).  Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object.  Finally, a PowerStatusCommand may be constructed from a
-        board_id and device_id (and sequence number) - this is what is most
-        likely to be used by a client application (e.g. the flask server).
+        """ PowerControlCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a PowerStatusCommand may be constructed from a board_id, device_id,
+            and sequence number - this is what is most likely to be used by a
+            client application (e.g. the flask server).
 
         The power_action param may be 'on', 'off', 'cycle' or 'status'.
         """
@@ -635,14 +671,17 @@ class PowerControlResponse(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, data=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, a PowerControlResponse may be constructed from a
-        board_id, sequence number and data - this is what is most likely to
-        be used when simulating responses (e.g. in the emulator).
+        """ PowerControlResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a PowerControlResponse may be constructed from a board_id, sequence
+            number and data - this is what is most likely to be used when simulating
+            responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(PowerControlResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -656,20 +695,23 @@ class PowerControlResponse(DeviceBusPacket):
 
 
 class ChamberLedControlCommand(DeviceBusPacket):
-    """ ChamberLedControlCommand is a special DeviceBusPacket that has a data field beginning with 'L'
-    and is used to control the state of a given rack's chamber LED.
+    """ ChamberLedControlCommand is a special DeviceBusPacket that has a data field
+    beginning with 'L' and is used to control the state of a given rack's chamber LED.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, led_state=None, led_color=None, rack_id=None, blink_state=None):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator).  Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object.  Finally, a ChamberLedControlCommand may be constructed from a
-        board_id and device_id (and sequence number) - this is what is most
-        likely to be used by a client application (e.g. the flask server).
+        """ ChamberLedControlCommand Constructor
 
-        Led_state, led_color, rack_id, and blink_state are all required.
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a ChamberLedControlCommand may be constructed from a board_id, device_id,
+            and sequence number - this is what is most likely to be used by a client
+            application (e.g. the flask server).
+
+        led_state, led_color, rack_id, and blink_state are all required.
         """
         if serial_reader is not None:
             super(ChamberLedControlCommand, self).__init__(serial_reader=serial_reader)
@@ -710,19 +752,22 @@ class ChamberLedControlCommand(DeviceBusPacket):
 
 
 class ChamberLedControlResponse(DeviceBusPacket):
-    """ PowerControlResponse is a special DeviceBusPacket that has a data field
-    containing the result of a power control action for a given board and device_id.
+    """ ChamberLedControlResponse is a special DeviceBusPacket that has a data field
+    containing the result of a Chamber LED control action for a given board and device_id.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, data=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, a PowerControlResponse may be constructed from a
-        board_id, sequence number and data - this is what is most likely to
-        be used when simulating responses (e.g. in the emulator).
+        """ ChamberLedControlResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a ChamberLedControlResponse may be constructed from a board_id, device_id,
+            sequence number, and data - this is what is most likely to be used when
+            simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(ChamberLedControlResponse, self).__init__(serial_reader=serial_reader,
@@ -733,23 +778,26 @@ class ChamberLedControlResponse(DeviceBusPacket):
         elif data_bytes is not None:
             super(ChamberLedControlResponse, self).__init__(data_bytes=data_bytes)
         else:
-            raise BusDataException('PowerControlResponse requires serial_reader, data_bytes or data.')
+            raise BusDataException('ChamberLedControlResponse requires serial_reader, data_bytes or data.')
 
 
 class BootTargetCommand(DeviceBusPacket):
     """ BootTargetCommand is a special DeviceBusPacket that has a data field of
-    'B?', 'B0', 'B1' or 'B2', and is used to control the boot target of a given board_id
-    and device_id combination.
+    'B?', 'B0', 'B1' or 'B2', and is used to control the boot target of a given
+    board_id and device_id combination.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, boot_target=None):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator).  Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object.  Finally, a BootTargetCommand may be constructed from a
-        board_id and device_id (and sequence number) - this is what is most
-        likely to be used by a client application (e.g. the flask server).
+        """ BootTargetCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a BootTargetCommand may be constructed from a board_id, device_id, and
+            sequence number - this is what is most likely to be used by a client
+            application (e.g. the flask server).
 
         The boot_target param may be 'no_override', 'hdd', 'pxe' or 'status'.
         """
@@ -779,14 +827,17 @@ class BootTargetResponse(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, data=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, a BootTargetResponse may be constructed from a
-        board_id, sequence number and data - this is what is most likely to
-        be used when simulating responses (e.g. in the emulator).
+        """ BootTargetResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a BootTargetResponse may be constructed from a board_id, device_id,
+            sequence number, and data - this is what is most likely to be used
+            when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(BootTargetResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -800,18 +851,21 @@ class BootTargetResponse(DeviceBusPacket):
 
 
 class AssetInfoCommand(DeviceBusPacket):
-    """ AssetInfoCommand is a special DeviceBusPacket that has a data field of
-    'A', and is used to get asset information for a given board_id and device_id combination.
+    """ AssetInfoCommand is a special DeviceBusPacket that has a data field of 'A',
+    and is used to get asset information for a given board_id and device_id combination.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator).  Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object.  Finally, an AssetInfoCommand may be constructed from a
-        board_id and device_id (and sequence number) - this is what is most
-        likely to be used by a client application (e.g. the flask server).
+        """ AssetInfoCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) an AssetInfoCommand may be constructed from a board_id, device_id, and
+            sequence number - this is what is most likely to be used by a client
+            application (e.g. the flask server).
         """
         if serial_reader is not None:
             super(AssetInfoCommand, self).__init__(serial_reader=serial_reader)
@@ -829,14 +883,17 @@ class AssetInfoResponse(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, data=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, an AssetInfoResponse may be constructed from a
-        board_id, sequence number and data - this is what is most likely to
-        be used when simulating responses (e.g. in the emulator).
+        """ AssetInfoResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) an AssetInfoResponse may be constructed from a board_id, device_id,
+            sequence number, and data - this is what is most likely to be used
+            when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(AssetInfoResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)
@@ -856,13 +913,16 @@ class RetryCommand(DeviceBusPacket):
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01,
                  device_type=0xFF, device_id=0xFFFF):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator). Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object. Finally, a RetryCommand may be constructed from a
-        board_id, device_type and device_id (and sequence number) - this is what
-        is most likely to be used by a client application (e.g. the flask server).
+        """ RetryCommand Constructor
+
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a RetryCommand may be constructed from a board_id, device_type,
+            device_id, and sequence number - this is what is most likely to be
+            used by a client application (e.g. the flask server).
         """
         if serial_reader is not None:
             super(RetryCommand, self).__init__(serial_reader=serial_reader)
@@ -878,20 +938,23 @@ class RetryCommand(DeviceBusPacket):
 
 
 class HostInfoCommand(DeviceBusPacket):
-    """ HostInfoCommand is a special (temporary) DeviceBusPacket that has a data field beginning with 'H'
-    and is used to get ip address and hostname from a 'system' device type.  In real PLC comms, TTY will be used
-    to retrieve this information.
+    """ HostInfoCommand is a special (temporary) DeviceBusPacket that has a data
+    field beginning with 'H' and is used to get ip address and hostname from a
+    'system' device type. In real PLC comms, TTY will be used to retrieve this
+    information.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF):
-        """ Three ways to initialize the command - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for testing with the
-        emulator).  Alternately, a byte buffer (data_bytes) may be given to the
-        constructor, which is deserialized and populates the appropriate fields
-        of the object.  Finally, a HostInfoCommand may be constructed from a
-        board_id and device_id (and sequence number) - this is what is most
-        likely to be used by a client application (e.g. the flask server).
+        """ HostInfoCommand Constructor
 
+        Three ways to initialize the command:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for testing with the emulator).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a HostInfoCommand may be constructed from a board_id, device_id, and
+            sequence number - this is what is most likely to be used by a client
+            application (e.g. the flask server).
         """
         if serial_reader is not None:
             super(HostInfoCommand, self).__init__(serial_reader=serial_reader)
@@ -904,19 +967,23 @@ class HostInfoCommand(DeviceBusPacket):
 
 
 class HostInfoResponse(DeviceBusPacket):
-    """ HostInfoResponse is a special (temporary) DeviceBusPacket that has a data field
-    containing the result of a host info action for a given board and device_id where device_type is 'system'.
+    """ HostInfoResponse is a special (temporary) DeviceBusPacket that has a data
+    field containing the result of a host info action for a given board and
+    device_id where device_type is 'system'.
     """
     def __init__(self, serial_reader=None, board_id=0x00000000, data_bytes=None, sequence=0x01, device_type=0xFF,
                  device_id=0xFFFF, data=None, expected_sequence=None):
-        """ Three ways to initialize the response - it may be read, when expected,
-        via a serial reader (via serial_reader - e.g. for use in client apps
-        that expect a response over serial, such as the flask server).
-        Alternately, a byte buffer (data_bytes) may be given to the constructor,
-        which is deserialized and populates the appropriate fields of the
-        object. Finally, a HostInfoResponse may be constructed from a
-        board_id, sequence number and data - this is what is most likely to
-        be used when simulating responses (e.g. in the emulator).
+        """ HostInfoResponse Constructor
+
+        Three ways to initialize the response:
+        1.) it may be read, when expected, via a serial reader (via serial_reader
+            - e.g. for use in client apps that expect a response over serial,
+            such as the flask server).
+        2.) a byte buffer (data_bytes) may be given to the constructor, which is
+            deserialized and populates the appropriate fields of the object.
+        3.) a HostInfoResponse may be constructed from a board_id, device_id,
+            sequence number, and data - this is what is most likely to be used
+            when simulating responses (e.g. in the emulator).
         """
         if serial_reader is not None:
             super(HostInfoResponse, self).__init__(serial_reader=serial_reader, expected_sequence=expected_sequence)

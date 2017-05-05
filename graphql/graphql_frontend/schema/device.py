@@ -36,7 +36,7 @@ def resolve_fields(cls):
     for field in cls._resolve_fields:
         setattr(
             cls,
-            "resolve_{0}".format(field),
+            'resolve_{0}'.format(field),
             functools.partialmethod(cls._request_data, field))
     return cls
 
@@ -45,7 +45,7 @@ def setup_resolve(cls):
     for field, field_cls in cls._fields:
         setattr(
             cls,
-            "resolve_{0}".format(field),
+            'resolve_{0}'.format(field),
             functools.partialmethod(resolve_class, field, field_cls)
         )
     return cls
@@ -72,8 +72,8 @@ class PhysicalLocation(graphene.ObjectType):
 class Location(graphene.ObjectType):
     _data = None
     _fields = [
-        ("chassis_location", ChassisLocation),
-        ("physical_location", PhysicalLocation)
+        ('chassis_location', ChassisLocation),
+        ('physical_location', PhysicalLocation)
     ]
 
     chassis_location = graphene.Field(ChassisLocation, required=True)
@@ -106,9 +106,9 @@ class ProductInfo(graphene.ObjectType):
 class Asset(graphene.ObjectType):
     _data = None
     _fields = [
-        ("board_info", BoardInfo),
-        ("chassis_info", ChassisInfo),
-        ("product_info", ProductInfo)
+        ('board_info', BoardInfo),
+        ('chassis_info', ChassisInfo),
+        ('product_info', ProductInfo)
     ]
 
     board_info = graphene.Field(BoardInfo, required=True)
@@ -142,9 +142,9 @@ class DeviceBase(graphene.ObjectType):
     @classmethod
     def build(cls, parent, data):
         return globals().get(cls.__name__)(
-            id=data.get("device_id"),
-            device_type=data.get("device_type"),
-            info=data.get("device_info", ""),
+            id=data.get('device_id'),
+            device_type=data.get('device_type'),
+            info=data.get('device_info', ''),
             _parent=parent,
             _data=data
         )
@@ -161,9 +161,9 @@ class DeviceBase(graphene.ObjectType):
     def _resolve_detail(self):
         root = self._root
         if root is None:
-            root = "read/{0}".format(self.device_type)
+            root = 'read/{0}'.format(self.device_type)
 
-        return util.make_request("{0}/{1}/{2}/{3}".format(
+        return util.make_request('{0}/{1}/{2}/{3}'.format(
             root,
             self.rack_id,
             self.board_id,
@@ -171,7 +171,7 @@ class DeviceBase(graphene.ObjectType):
 
     @functools.lru_cache(maxsize=1)
     def _location(self):
-        return util.make_request("location/{0}/{1}/{2}".format(
+        return util.make_request('location/{0}/{1}/{2}'.format(
             self.rack_id,
             self.board_id,
             self.id))
@@ -181,7 +181,7 @@ class DeviceBase(graphene.ObjectType):
 
     @functools.lru_cache(maxsize=1)
     def _asset(self):
-        return util.make_request("asset/{0}/{1}/{2}".format(
+        return util.make_request('asset/{0}/{1}/{2}'.format(
             self.rack_id,
             self.board_id,
             self.id))
@@ -195,7 +195,7 @@ class SensorDevice(DeviceBase):
 @resolve_fields
 class TemperatureDevice(DeviceBase):
     _resolve_fields = [
-        "temperature_c"
+        'temperature_c'
     ]
 
     class Meta:
@@ -207,11 +207,11 @@ class TemperatureDevice(DeviceBase):
 @resolve_fields
 class FanSpeedDevice(DeviceBase):
     _resolve_fields = [
-        "health",
-        "states",
-        "speed_rpm"
+        'health',
+        'states',
+        'speed_rpm'
     ]
-    _root = "fan"
+    _root = 'fan'
 
     class Meta:
         interfaces = (DeviceInterface, )
@@ -224,10 +224,10 @@ class FanSpeedDevice(DeviceBase):
 @resolve_fields
 class PowerDevice(DeviceBase):
     _resolve_fields = [
-        "input_power",
-        "over_current",
-        "power_ok",
-        "power_status",
+        'input_power',
+        'over_current',
+        'power_ok',
+        'power_status',
     ]
 
     class Meta:
@@ -240,7 +240,7 @@ class PowerDevice(DeviceBase):
 
     @functools.lru_cache(maxsize=1)
     def _resolve_detail(self):
-        return util.make_request("power/{0}/{1}/{2}/status".format(
+        return util.make_request('power/{0}/{1}/{2}/status'.format(
             self.rack_id,
             self.board_id,
             self.id))
@@ -249,9 +249,9 @@ class PowerDevice(DeviceBase):
 @resolve_fields
 class LedDevice(DeviceBase):
     _resolve_fields = [
-        "led_state"
+        'led_state'
     ]
-    _root = "led"
+    _root = 'led'
 
     class Meta:
         interfaces = (DeviceInterface, )
@@ -269,8 +269,8 @@ class SystemDevice(DeviceBase):
 
     @graphene.resolve_only_args
     def resolve_hostnames(self):
-        return self._parent._data.get("hostnames")
+        return self._parent._data.get('hostnames')
 
     @graphene.resolve_only_args
     def resolve_ip_addresses(self):
-        return self._parent._data.get("ip_addresses")
+        return self._parent._data.get('ip_addresses')

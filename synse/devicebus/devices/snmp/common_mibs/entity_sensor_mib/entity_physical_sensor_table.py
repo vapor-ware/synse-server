@@ -32,7 +32,8 @@ logger = logging.getLogger(__name__)
 
 
 class EntityPhysicalSensorTable(SnmpTable):
-    """SNMP table specific to the Entity Sensor MIB."""
+    """ SNMP table specific to the Entity Sensor MIB.
+    """
 
     def __init__(self, **kwargs):
 
@@ -116,9 +117,12 @@ class EntityPhysicalSensorTable(SnmpTable):
 
     @staticmethod
     def _get_device_status(operational_status):
-        """Get a string representation of the device status from the
+        """ Get a string representation of the device status from the
         operational_status column in this table.
-        :returns: 'ok' on success, else failure."""
+
+        Returns:
+            str: 'ok' on success, else failure.
+        """
         if operational_status == EntityPhysicalSensorTable.STATUS_OK:
             return 'ok'
         elif operational_status == EntityPhysicalSensorTable.STATUS_NONOPERATIONAL:
@@ -127,8 +131,14 @@ class EntityPhysicalSensorTable(SnmpTable):
 
     @staticmethod
     def _get_device_type(sensor_type):
-        """:param sensor_type: The sensor type in the format of this table.
-        :returns: The corresponding Synse device type."""
+        """ Get the device type for the specified sensor.
+
+        Args:
+            sensor_type (int): the sensor type in the format of this table.
+
+        Returns:
+            str: the corresponding Synse device type.
+        """
 
         # TODO: Localization for strings.
 
@@ -172,8 +182,14 @@ class EntityPhysicalSensorTable(SnmpTable):
 
     @staticmethod
     def _get_row_reading(row):
-        """Get the measurement from the row as a float. Raise ValueError on
-        error."""
+        """ Get the measurement from the row as a float.
+
+        Args:
+            row (SnmpRow): the row to get the reading from.
+
+        Raises:
+            ValueError: device operational status is not 'ok'.
+        """
         logger.debug('Getting reading for row:')
         row.dump()
         operational_status = EntityPhysicalSensorTable._get_device_status(
@@ -191,10 +207,15 @@ class EntityPhysicalSensorTable(SnmpTable):
         return reading
 
     def get_scan_device_public(self, sensor_type):
-        """Get a single device we return on a scan for this table.
-        :param sensor_type: From the type enum above.
-        :returns: Device information for a scan if the device type is supported
-         or can be supported in Synse, else None."""
+        """ Get a single device we return on a scan for this table.
+
+        Args:
+            sensor_type (int): sensor type value, from the type enum above.
+
+        Returns:
+            dict: device information for a scan if the device type is supported
+            or can be supported in Synse, else None.
+        """
         device_type = EntityPhysicalSensorTable._get_device_type(sensor_type)
         if device_type is None:
             return None
@@ -207,7 +228,11 @@ class EntityPhysicalSensorTable(SnmpTable):
         return scan_device
 
     def get_scan_devices(self):
-        """Gets a list of devices we return on a scan for this table."""
+        """ Gets a list of devices we return on a scan for this table.
+
+        Returns:
+            list: a list of devices from scan.
+        """
         scan_devices = []
         for row in self.rows:
             scan_device = self.get_scan_device_public(row['type'])
@@ -218,8 +243,14 @@ class EntityPhysicalSensorTable(SnmpTable):
         return scan_devices
 
     def get_row_power(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the power reading.
+        """
         logger.debug('EntityPhysicalSensorTable.get_row_power')
 
         # TODO: Localization
@@ -248,8 +279,14 @@ class EntityPhysicalSensorTable(SnmpTable):
         return response_data
 
     def get_row_temperature(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the temperature reading.
+        """
         logger.debug('EntityPhysicalSensorTable.get_row_temperature')
 
         # TODO: Localization
@@ -267,8 +304,14 @@ class EntityPhysicalSensorTable(SnmpTable):
         return response_data
 
     def get_row_voltage(self, row):
-        """Given an SnmpRow row, translate it to a reading.
-        :param row: The SnmpRow we read from the SNMP server."""
+        """ Given an SnmpRow row, translate it to a reading.
+
+        Args:
+            row (SnmpRow): The SnmpRow we read from the SNMP server.
+
+        Returns:
+            dict: the response data for the voltage reading.
+        """
         logger.debug('EntityPhysicalSensorTable.get_row_voltage')
 
         # TODO: Localization

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse I2C pressure sensor via emulator
+""" Synse I2C pressure sensor via emulator.
 
     Author: Andrew Cencini
     Date:   10/21/2016
