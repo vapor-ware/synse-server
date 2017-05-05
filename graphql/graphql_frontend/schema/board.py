@@ -1,4 +1,4 @@
-""" Board Schema
+""" Board schema
 
     Author: Thomas Rampelberg
     Date:   2/27/2017

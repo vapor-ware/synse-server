@@ -530,15 +530,15 @@ def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, bli
     """ Control the Vapor Chamber LED via PLC.
 
     Args:
-        board_id: the board id of the LED controller for vapor_led.
-        device_id: the device id of the LED controller for vapor_led.
-        led_state: the state to set the specified LED to. valid states
+        board_id (str): the board id of the LED controller for vapor_led.
+        device_id (str): the device id of the LED controller for vapor_led.
+        led_state (str): the state to set the specified LED to. valid states
             are: (on, off, no_override)
-        rack_id: the id of the rack whose LED segment is to be controlled
+        rack_id (str): the id of the rack whose LED segment is to be controlled
             (MIN_RACK_ID..MAX_RACK_ID)
-        led_color: the RGB hex value of the color to set the LED to, or
+        led_color (str): the RGB hex value of the color to set the LED to, or
             'no_override'.
-        blink_state: the blink state of the LED. valid blink states are:
+        blink_state (str): the blink state of the LED. valid blink states are:
             (blink, steady, no_override).
     """
     cmd = current_app.config['CMD_FACTORY'].get_chamber_led_command({

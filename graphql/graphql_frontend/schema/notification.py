@@ -1,4 +1,4 @@
-""" Notification Schema
+""" Notification schema
 
     Author: Thomas Rampelberg
     Date:   2/27/2017

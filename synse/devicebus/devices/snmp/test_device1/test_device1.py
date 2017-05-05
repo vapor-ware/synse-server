@@ -300,10 +300,10 @@ class TestDevice1(SnmpServerBase):
         for in the scan. Create the internal scan results.
 
         Args:
-            scan_results: accumulator for the internal scan results.
-            snmp_server: the name of the SNMP server from the caller's
+            scan_results (dict): accumulator for the internal scan results.
+            snmp_server (str): the name of the SNMP server from the caller's
                 device_config. example 'snmp-emulator-synse-testdevice1-board2'.
-            rack_id: the rack id where the snmp_server is located. example 'rack_1'.
+            rack_id (str): the rack id where the snmp_server is located. example 'rack_1'.
         """
         logger.debug('scanning TestDevice1')
         logger.debug('rack_id {}'.format(rack_id))
@@ -336,7 +336,7 @@ class TestDevice1(SnmpServerBase):
         }
         scan_boards = []
 
-        scan_board = {'board_id': "{0:08x}".format(self.board_id), 'devices': scan_devices}
+        scan_board = {'board_id': '{0:08x}'.format(self.board_id), 'devices': scan_devices}
         scan_boards.append(scan_board)
 
         scan_rack['hostnames'].append(snmp_server)
@@ -412,7 +412,7 @@ class TestDevice1(SnmpServerBase):
         self._scan_results_internal = scan_results
 
         # Trace this for now.
-        logger.debug("TestDevice1 Internal scan results:")
+        logger.debug('TestDevice1 Internal scan results:')
         logger.debug(json.dumps(
             self._scan_results_internal,
             sort_keys=True,
@@ -423,9 +423,9 @@ class TestDevice1(SnmpServerBase):
         """ Set LED blink state and return the SNMP data we set.
 
         Args:
-            base_oid: the base SNMP OID for the LED device. The device to
+            base_oid (str): the base SNMP OID for the LED device. The device to
                 base_oid mapping will show up in the internal scan results.
-            command_led_blink: this is 'blink' or 'steady' from the URI.
+            command_led_blink (str): this is 'blink' or 'steady' from the URI.
 
         Returns:
             str: the led blink_state as a string for the response, either
@@ -436,7 +436,7 @@ class TestDevice1(SnmpServerBase):
         elif command_led_blink == 'blink':
             data = Integer(2)
         else:
-            raise ValueError("LED color can only be blink or steady, got {}.".format(
+            raise ValueError('LED color can only be blink or steady, got {}.'.format(
                 command_led_blink))  # TODO: Test
         write_oid, write_index = self.get_write_oid(
             self.led_table, base_oid, 'blink_state')
@@ -455,9 +455,9 @@ class TestDevice1(SnmpServerBase):
         """ Set LED color and return the SNMP data we set.
 
         Args:
-            base_oid: the base SNMP OID for the LED device. the device to
+            base_oid (str): the base SNMP OID for the LED device. the device to
                 base_oid mapping will show up in the internal scan results.
-            command_led_color: this is a 6 character (3 byte) hex string from
+            command_led_color (str): this is a 6 character (3 byte) hex string from
                 the URI.
 
         Returns:
@@ -490,9 +490,9 @@ class TestDevice1(SnmpServerBase):
         """ Set LED state and return the SNMP data we set.
 
         Args:
-            base_oid: the base SNMP OID for the LED device. the device to
+            base_oid (str): the base SNMP OID for the LED device. the device to
                 base_oid mapping will show up in the internal scan results.
-            command_led_state: this is 'on' or 'off' from the URI.
+            command_led_state (str): this is 'on' or 'off' from the URI.
 
         Returns:
             str: the led state as a string for the response, either 'off'
@@ -522,9 +522,9 @@ class TestDevice1(SnmpServerBase):
         """ Set power and return the SNMP data we set.
 
         Args:
-            base_oid: the base SNMP OID for the power device. the device to
+            base_oid (str): the base SNMP OID for the power device. the device to
                 base_oid mapping will show up in the internal scan results.
-            data: here this is Integer(1) for off and Integer(2) for on.
+            data (Integer): here this is Integer(1) for off and Integer(2) for on.
 
         Returns:
             str: the power state as a string for the response, either 'off'
@@ -562,8 +562,8 @@ class TestDevice1(SnmpServerBase):
         """ Translate the LED blink state from the SNMP int to a string.
 
         Args:
-            state: the blink state as an integer. for this table 1 is blink
-                off (steady) and 2 is blink on (blink).
+            state (str): the blink state as an integer. for this table 1 is
+                blink off (steady) and 2 is blink on (blink).
 
         Returns:
             str: the blink state, either 'steady' or 'blink'.
@@ -584,7 +584,7 @@ class TestDevice1(SnmpServerBase):
         """ Translate the LED color state from the SNMP int to a string.
 
         Args:
-            color: the color state as an integer.
+            color (int): the color state as an integer.
 
         Returns:
             str: a six character hex color representation.
@@ -601,8 +601,8 @@ class TestDevice1(SnmpServerBase):
         """ Translate the LED state from the SNMP int to a string.
 
         Args:
-            state: the LED state as an integer. for this table 1 is off
-                and 2 is on.
+            state (int): the LED state as an integer. for this table 1 is
+                off and 2 is on.
 
         Returns:
             str: the LED state, either 'on' or 'off'.
@@ -623,8 +623,8 @@ class TestDevice1(SnmpServerBase):
         """ Translate the power state from the SNMP int to a string.
 
         Args:
-            state: the power state as an integer. for this table 1 is off
-                and 2 is on.
+            state (int): the power state as an integer. for this table 1 is
+                off and 2 is on.
 
         Returns:
             str: the power state, ether 'on' or 'off'.

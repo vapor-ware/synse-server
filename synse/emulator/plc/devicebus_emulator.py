@@ -156,12 +156,12 @@ def generate_emulator_checksum(raw_bytes, start, end):
     Redundant to what is in devicebus, but added in this form for simplicity.
 
     Args:
-        raw_bytes: The byte buffer to compute checksum for.
-        start: The starting index of the buffer.
-        end: The ending index of the buffer to checksum.
+        raw_bytes (list): the byte buffer to compute checksum for.
+        start (int): the starting index of the buffer.
+        end (int): the ending index of the buffer to checksum.
 
     Returns: 
-        int: The checksum over the specified buffer range.
+        int: the checksum over the specified buffer range.
     """
     checksum = 0
     for x in raw_bytes[start:end]:
@@ -176,11 +176,11 @@ def transform_raw(raw_bytes, seq_no):
     computing the correct checksum if the CK_SENTINEL is present.
 
     Args:
-        raw_bytes: The raw byte stream from the emulator config.
-        seq_no: The sequence number to drop in.
+        raw_bytes (list): the raw byte stream from the emulator config.
+        seq_no (int): the sequence number to drop in.
 
     Returns: 
-        list: A transformed list of bytes based on the input.
+        list: a transformed list of bytes based on the input.
     """
     # copy bytes so we do not stomp the emulator config for later uses of the
     # same bytes (otherwise, on the first use, the sentinels are removed for the lifetime of the emulator)
@@ -199,10 +199,10 @@ def inject_error(raw_bytes):
     but the bytes within the packet are.
 
     Args:
-        raw_bytes: The raw bytes to inject an error into.
+        raw_bytes (list): the raw bytes to inject an error into.
 
     Returns: 
-        list: A transformed list of raw bytes with erroneous data within.
+        list: a transformed list of raw bytes with erroneous data within.
     """
     for i in range(len(raw_bytes)):
         if raw_bytes[i] != PKT_VALID_HEADER and raw_bytes[i] != PKT_VALID_TRAILER:
@@ -214,7 +214,7 @@ def main(emulator_device):
     """ The main emulator control loop. Runs until it is time to stop.
 
     Args:
-        emulator_device: The serial port device name (e.g. /dev/ttyVapor002 
+        emulator_device (str): the serial port device name (e.g. /dev/ttyVapor002
             or /dev/ttyAMA0) to listen on.
     """
     emulator = DeviceBus(hardware_type=DEVICEBUS_EMULATOR_V1, device_name=emulator_device, timeout=None)

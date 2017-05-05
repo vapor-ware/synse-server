@@ -120,7 +120,7 @@ class DevicebusInterface(object):
             # look up device by device_id and return its record if found
             for device in self.board_record['devices']:
                 if (format(device_id, '04x')) == device['device_id'] and \
-                   device_type_string == device['device_type']:
+                        device_type_string == device['device_type']:
                     return device
 
         elif isinstance(device_id, basestring):
@@ -128,7 +128,7 @@ class DevicebusInterface(object):
             for device in self.board_record['devices']:
                 if 'device_info' in device:
                     if device_id.lower() == device['device_info'].lower() and \
-                       device_type_string == device['device_type']:
+                            device_type_string == device['device_type']:
                         return device
 
         # if we get here, numeric and string device_id search has failed, so raise exception

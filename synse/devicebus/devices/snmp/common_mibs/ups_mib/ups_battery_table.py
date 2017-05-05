@@ -91,7 +91,7 @@ class UpsBatteryTable(SnmpTable):
         return scan_devices
 
     def get_scan_devices_public(self):
-        """ Get a devices we return on a scan for this table.
+        """ Get the devices we return on a scan for this table.
         """
         scan_devices = []
         device_info = 'battery{}'.format(self.snmp_server.get_next_battery_id())

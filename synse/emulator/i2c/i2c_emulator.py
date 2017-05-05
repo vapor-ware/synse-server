@@ -45,7 +45,7 @@ def _flush_all(serial_device):
     """ Flush input and output for a given device.
 
     Args:
-        serial_device: the device to flush.
+        serial_device (serial.Serial): the device to flush.
     """
     serial_device.flushInput()
     serial_device.flushOutput()

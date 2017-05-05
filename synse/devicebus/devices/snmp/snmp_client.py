@@ -123,7 +123,7 @@ class SnmpClient(object):
             oid (str): a string OID (Object Identifier).
 
         Returns:
-            the SNMP result set.
+            list: he SNMP result set.
 
         Raises:
             ValueError: on any failure.
@@ -147,10 +147,10 @@ class SnmpClient(object):
         if any errors.
 
         Args:
-            error_indication: True value indicates SNMP engine error.
-            error_status: True value indicates SNMP PDU error.
-            error_index: non-zero value refers to varBinds[errorIndex-1]
-            var_binds: a sequence of ObjectType class instances representing
+            error_indication (str): True value indicates SNMP engine error.
+            error_status (str): True value indicates SNMP PDU error.
+            error_index (int): non-zero value refers to varBinds[errorIndex-1]
+            var_binds (tuple): a sequence of ObjectType class instances representing
                 MIB variables returned in SNMP response.
         """
         if error_indication:
@@ -169,6 +169,13 @@ class SnmpClient(object):
 
         Filter them out here for now. This code should not need to be here,
         it's a safety for a previous issue.
+
+        Args:
+            var_binds (list): walk results to filter.
+            walk_oid (str): the OID of the row we are filtering.
+
+        Returns:
+            list: filtered list of walk results.
         """
         logger.debug('Filtering walk results. walk_oid {} count {}'.format(walk_oid, len(var_binds)))
         filtered_results = []

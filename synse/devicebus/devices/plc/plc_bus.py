@@ -311,7 +311,8 @@ class DeviceBusPacket(object):
         """ Populate the fields of a DeviceBusPacket instance.
 
         Args:
-            packet_bytes: the bytes to use to populate the packet instance.
+            packet_bytes (list[int]): the bytes to use to populate the packet
+                instance.
 
         Raises:
             BusDataException: if the packet is smaller than the minimum packet

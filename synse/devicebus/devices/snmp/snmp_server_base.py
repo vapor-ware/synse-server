@@ -270,7 +270,7 @@ class SnmpServerBase(object):
         '1.3.6.1.4.1.61439.6.4.2.2.1.3.6': 'TestPowerVariable'
 
         Args:
-            results: the raw walk results from SnmpClient.walk()
+            results (list): the raw walk results from SnmpClient.walk()
 
         Returns:
             dict: converted walk results as a dictionary.
@@ -339,8 +339,8 @@ class SnmpServerBase(object):
         the device_id.
 
         Args:
-            board: the board id to find the device on.
-            device_id: the id of the device to find.
+            board (dict): the board record to find the device on.
+            device_id (str): the id of the device to find.
 
         Returns:
             dict: the device record.
@@ -476,11 +476,10 @@ class SnmpServerBase(object):
         """ Get the SNMP OID to write to for an SNMP set.
 
         Args:
-            table: identifies the SnmpTable to write to.
-            base_oid: identifies the row. Same as in the internal scan cache
+            table (SnmpTable): identifies the SnmpTable to write to.
+            base_oid (str): identifies the row. Same as in the internal scan cache
                 for the device.
-            column_name: identifies the column name to write to in the table
-                (string).
+            column_name (str): identifies the column name to write to in the table.
 
         Returns:
             tuple: the OID to write and the SNMP column index to write to.
@@ -503,8 +502,8 @@ class SnmpServerBase(object):
         Creates an SnmpRow with the newly read data and returns it.
 
         Args:
-            table: the table to read from.
-            snmp_row: the row to read from the SNMP server. snmp_row comes
+            table (SnmpTable): the table to read from.
+            snmp_row (SnmpRow): the row to read from the SNMP server. snmp_row comes
                 from the scan results.
 
         Returns:
@@ -617,9 +616,9 @@ class SnmpServerBase(object):
         the columns with those in the table. ASCII sort is insufficient.
 
         Args:
-            table: the table we are operating on.
-            snmp_row: the initial row from the scan results that we are reading.
-            raw_row: the raw SNMP read from _read_raw_row.
+            table (SnmpTable): the table we are operating on.
+            snmp_row (SnmpRow): the initial row from the scan results that we are reading.
+            raw_row (list): the raw SNMP read from _read_raw_row.
 
         Returns:
             list: sorted row read data.
