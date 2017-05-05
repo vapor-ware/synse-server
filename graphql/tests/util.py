@@ -42,7 +42,7 @@ class BaseSchemaTest(testtools.TestCase):
 
     def setUp(self):
         super(BaseSchemaTest, self).setUp()
-        setup_logging("logging-test.json")
+        setup_logging('logging-test.json')
 
         if graphql_frontend.config.options is None:
             graphql_frontend.config.parse_args([
@@ -53,8 +53,8 @@ class BaseSchemaTest(testtools.TestCase):
 
     def get_query(self, name):
         path = os.path.normpath(os.path.join(
-            os.path.dirname(__file__), "queries", "{0}.graphql".format(name)))
-        with open(path, "r") as fobj:
+            os.path.dirname(__file__), 'queries', '{0}.graphql'.format(name)))
+        with open(path, 'r') as fobj:
             return fobj.read()
 
     def output(self, result):
@@ -65,8 +65,8 @@ class BaseSchemaTest(testtools.TestCase):
             result.errors = []
 
         for error in result.errors:
-            logging.exception("Query error", exc_info=error)
-            if hasattr(error, "message"):
+            logging.exception('Query error', exc_info=error)
+            if hasattr(error, 'message'):
                 logging.debug(error.message)
 
         self.assertFalse(result.errors)

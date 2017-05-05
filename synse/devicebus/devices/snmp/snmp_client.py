@@ -30,11 +30,14 @@ logger = logging.getLogger(__name__)
 
 
 class SnmpClient(object):
-    """SNMP client is a thin wrapper around pysnmp. Everything here is generic
-    SNMP. No translation layer to Synse belongs here."""
+    """ SNMP client is a thin wrapper around pysnmp.
+
+    Everything here is generic SNMP. No translation layer to Synse belongs here.
+    """
 
     def __init__(self, **kwargs):
-        """Constructor. All kwargs are required."""
+        """ Constructor. All kwargs are required.
+        """
 
         # Name or IP of the SNMP server.
         self.snmp_server = kwargs['snmp_server']
@@ -51,10 +54,13 @@ class SnmpClient(object):
             raise ValueError('Only SNMP v2c is supported at this time.')
 
     def get(self, oid):
-        """
-        Snmp wrapper taking a string oid.
-        :param oid: A string oid such as 1.3.6.1.4.1.61439.6.5.1.2.1.10.3.
-        :return: The single row result.
+        """ Snmp wrapper taking a string oid.
+
+        Args:
+            oid (str): a string oid such as 1.3.6.1.4.1.61439.6.5.1.2.1.10.3.
+
+        Returns:
+            the single row result.
         """
         cmd_generator = cmdgen.CommandGenerator()
 
@@ -73,11 +79,18 @@ class SnmpClient(object):
         return var_binds
 
     def set(self, data):
-        """
-        SNMP set wrapper taking a community string and a string oid such as '1.3.6.1.4.1.61439.6.5.1.2.1.10.3'
-        :param data: A tuple of OID and the data to set at the OID.
-        :return: The updated data on success.
-        :raises: ValueError when there is no OID to set or caller does not have write credentials.
+        """ SNMP set wrapper taking a community string and a string oid such
+        as '1.3.6.1.4.1.61439.6.5.1.2.1.10.3'
+
+        Args:
+            data (tuple): a tuple of OID and the data to set at the OID.
+
+        Returns:
+            the updated data on success.
+
+        Raises:
+            ValueError: there is no OID to set or caller does not have write
+                credentials.
         """
         logger.debug('SnmpClient set {}'.format(data))
         cmd_generator = cmdgen.CommandGenerator()
@@ -104,11 +117,16 @@ class SnmpClient(object):
         return var_binds[0]
 
     def walk(self, oid):
-        """
-        Snmp walk wrapper taking a string oid such as '1.3.6.1'
-        :param oid: A string OID (Object Identifier).
-        :return: The SNMP result set.
-        :raises: ValueError on any failure.
+        """ Snmp walk wrapper taking a string oid such as '1.3.6.1'
+
+        Args:
+            oid (str): a string OID (Object Identifier).
+
+        Returns:
+            list: he SNMP result set.
+
+        Raises:
+            ValueError: on any failure.
         """
         logger.debug('SnmpClient walk {}'.format(oid))
         cmd_generator = cmdgen.CommandGenerator()
@@ -125,14 +143,15 @@ class SnmpClient(object):
 
     @staticmethod
     def _check_for_errors(error_indication, error_status, error_index, var_binds):
-        """
-        Checks for errors from any of the SNMP commands. Fails the test if any errors.
-        :param error_indication: True value indicates SNMP engine error.
-        :param error_status: True value indicates SNMP PDU error.
-        :param error_index: Non-zero value refers to varBinds[errorIndex-1]
-        :param var_binds: A sequence of ObjectType class instances representing
-        MIB variables returned in SNMP response.
-        :return: Nothing.
+        """ Checks for errors from any of the SNMP commands. Fails the test
+        if any errors.
+
+        Args:
+            error_indication (str): True value indicates SNMP engine error.
+            error_status (str): True value indicates SNMP PDU error.
+            error_index (int): non-zero value refers to varBinds[errorIndex-1]
+            var_binds (tuple): a sequence of ObjectType class instances representing
+                MIB variables returned in SNMP response.
         """
         if error_indication:
             msg = 'Error Indication: {}'.format(error_indication)
@@ -146,9 +165,18 @@ class SnmpClient(object):
 
     @staticmethod
     def _filter_walk_results(var_binds, walk_oid):
-        """This is a workaround for a ticket where walk can return extra rows.
+        """ This is a workaround for a ticket where walk can return extra rows.
+
         Filter them out here for now. This code should not need to be here,
-        it's a safety for a previous issue."""
+        it's a safety for a previous issue.
+
+        Args:
+            var_binds (list): walk results to filter.
+            walk_oid (str): the OID of the row we are filtering.
+
+        Returns:
+            list: filtered list of walk results.
+        """
         logger.debug('Filtering walk results. walk_oid {} count {}'.format(walk_oid, len(var_binds)))
         filtered_results = []
         excluded = []

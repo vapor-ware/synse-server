@@ -114,10 +114,24 @@ class SnmpDevice(LANDevice):
     # region private
 
     def run_command(self, command):
-        """Wrapper for SnmpServerBase.run_command. This is needed when
-        initialization fails for the SNMP server. Synse should continue to
-        run normally and web API calls cannot access the SNMP server that
-        failed to initialize."""
+        """ Wrapper for SnmpServerBase.run_command.
+
+        This is needed when initialization fails for the SNMP server. Synse
+        should continue to run normally and API calls cannot access the SNMP
+        server that failed to initialize.
+
+        Args:
+            command (Command): the incoming command object to dispatch to the
+                appropriate command handler for the Devicebus object.
+
+        Returns:
+            Response: the response data for the requested Command.
+
+        Raises:
+            CommandNotSupported: the given command does not have a corresponding
+                handler defined for the Devicebus instance - this means that the
+                given instance does not support any actions for that command.
+        """
         if not self.snmp_server:    # Null check snmp_server.
             # If we fail to initialize a server, don't fail all of Synse.
             message = 'SNMP Server not initialized. Unable to run command.'
@@ -138,7 +152,7 @@ class SnmpDevice(LANDevice):
 
     @classmethod
     def register(cls, devicebus_config, app_config, app_cache):
-        """Register SNMP devices.
+        """ Register SNMP devices.
 
         Args:
             devicebus_config (dict): a dictionary containing the devicebus configurations

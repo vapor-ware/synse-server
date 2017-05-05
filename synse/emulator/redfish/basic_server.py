@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Flask Server to direct requests
+""" Flask Server to direct requests.
 
 A basic flask app that serves mockup resources. Specifies what request methods are supported
 for specific resources. Emulates behavior of a Redfish service. Gets requested resources
@@ -57,14 +57,14 @@ from templates.power_template import POWER_TEMPLATE
 
 
 def basic_server(mockup_path, root_path, host_name, port_number, tokens):
-    """
-    Called on emulator start up to create the flask app and direct requests.
-    :param mockup_path: the file path to the mockup directory in Resources
-    :param root_path: redfish/v1
-    :param host_name: 0.0.0.0
-    :param port_number: 5040
-    """
+    """ Called on emulator start up to create the flask app and direct requests.
 
+    Args:
+        mockup_path (str): the file path to the mockup directory in Resources
+        root_path (str): the root Redfish URI, e.g. redfish/v1.
+        host_name (str): the host to serve on, e.g. '0.0.0.0'.
+        port_number (int): the port to serve on, e.g. 5040.
+    """
     app = Flask(__name__)
     auth = RfAuthentication()
 
@@ -138,7 +138,7 @@ def basic_server(mockup_path, root_path, host_name, port_number, tokens):
         res_path = os.path.join(mockup_path, root_path, collection_name, path)
         rdata = request.get_json()
         if rdata is not None:
-             # properties not specified in PUT are reset to default values, generally null
+            # properties not specified in PUT are reset to default values, generally null
             for key in database[res_path]:
                 if key in rdata.keys():
                     database[res_path][key] = rdata[key]
@@ -197,14 +197,14 @@ def basic_server(mockup_path, root_path, host_name, port_number, tokens):
         path = os.path.join(mockup_path, root_path, 'Systems', system_name)
         rdata = request.get_json()
         if rdata is not None and 'ResetType' in rdata and rdata['ResetType'] in [
-                "On",
-                "ForceOff",
-                "GracefulShutdown",
-                "GracefulRestart",
-                "ForceRestart",
-                "Nmi",
-                "ForceOn",
-                "PushPowerButton"]:
+                'On',
+                'ForceOff',
+                'GracefulShutdown',
+                'GracefulRestart',
+                'ForceRestart',
+                'Nmi',
+                'ForceOn',
+                'PushPowerButton']:
             database[path]['Actions']['#ComputerSystem.Reset'] = {'ResetType': rdata['ResetType'],
                                                                   'target': '/redfish/v1/Systems/{}/Actions/ComputerSystem.Reset'.format(system_name)}
             if rdata['ResetType'] in ['On', 'ForceRestart', 'GracefulRestart']:

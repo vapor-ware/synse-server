@@ -2,6 +2,7 @@ test-container-x64:
   container_name: test-container-x64
   build: ../../../..
   dockerfile: Dockerfile.x64
+  entrypoint: []
   # the redfish and ipmi emulators run in a separate container, but the PLC emulator runs
   # in the same container - we want to start up the PLC emulator here. FIXME: these tests should
   # perhaps be broken out into device-specific tests

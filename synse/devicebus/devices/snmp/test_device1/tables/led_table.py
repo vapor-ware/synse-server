@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse TestTable1 led table.
+""" Synse TestTable1 LED table.
 
     \\//
      \/apor IO
@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class LedTable(SnmpTable):
-    """SNMP table specific to the test variable table."""
+    """ SNMP table specific to the test variable table.
+    """
 
     def __init__(self, **kwargs):
 
@@ -52,7 +53,11 @@ class LedTable(SnmpTable):
         )
 
     def get_scan_devices(self):
-        """Gets a list of devices we return on a scan for this table."""
+        """ Gets a list of devices we return on a scan for this table.
+
+        Returns:
+            list: list of devices found from scan.
+        """
         scan_devices = []
         for row in self.rows:
             scan_device = self.get_scan_device_public()
@@ -62,7 +67,11 @@ class LedTable(SnmpTable):
         return scan_devices
 
     def get_scan_device_public(self):
-        """Get a single device we return on a scan for this table."""
+        """ Get a single device we return on a scan for this table.
+
+        Returns:
+            dict: single device from scan.
+        """
         scan_device = {
             'device_id': self.snmp_server.get_next_device_id(),
             'device_info': 'led',

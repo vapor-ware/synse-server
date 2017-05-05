@@ -35,33 +35,35 @@ class SynseInternalException(Exception):
 
 
 class BusTimeoutException(SynseInternalException):
-    """ Exception raised when a command fails to receive a response from the
-    device bus. This may be for many reasons, which it may be difficult or
+    """ Exception raised when a PLC command fails to receive a response from
+    the device bus. This may be for many reasons, which may be difficult or
     impossible to pinpoint, so no more specific error is available.
     """
     pass
 
 
 class BusDataException(SynseInternalException):
-    """ Exception raised either when the client requests an invalid state or when the
-    device responds with an invalid packet.
+    """ Exception raised either when the client requests an invalid state or
+    when a PLC device responds with an invalid packet.
     """
     pass
 
 
 class ChecksumException(SynseInternalException):
-    """ Exception raised when checksum validation fails. ChecksumExceptions should
-    use a retry mechanism to resend the packets.
+    """ Exception raised when checksum validation fails on a PLC packet.
+    ChecksumExceptions should use a retry mechanism to resend the packets.
     """
     pass
 
 
 class BusCommunicationError(SynseInternalException):
-    """ Exception raised when multiple retries fail after catching ChecksumExceptions.
+    """ Exception raised when multiple retries fail after catching
+    ChecksumExceptions.
 
-    Corrupt data may slip through, raising the ChecksumException (which should then
-    execute a retry mechanism). If corrupt data continues to get through such that the
-    ChecksumException retry limit is reached, this exception should be thrown.
+    Corrupt data may slip through, raising the ChecksumException (which should
+    then execute a retry mechanism). If corrupt data continues to get through
+    such that the ChecksumException retry limit is reached, this exception
+    should be thrown.
     """
     pass
 
@@ -71,8 +73,7 @@ class BusCommunicationError(SynseInternalException):
 
 
 class SynseException(Exception):
-    """ Generic exception used for Synse endpoint exceptions, generally raised only
-    in the Synse endpoints.
+    """ Generic exception used for Synse endpoint exceptions.
     """
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse I2C LED control via emulator
+""" Synse I2C LED control via emulator.
 
     Author: Andrew Cencini
     Date:   10/25/2016

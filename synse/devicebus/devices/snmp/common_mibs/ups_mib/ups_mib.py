@@ -47,7 +47,8 @@ from .ups_full_groups_table import UpsFullGroupsTable
 
 
 class UpsMib(SnmpMib):
-    """Container for all SNMP tables defined in the UPS MIB (rfc1628)."""
+    """ Container for all SNMP tables defined in the UPS MIB (rfc1628).
+    """
 
     def __init__(self, snmp_server):
         super(UpsMib, self).__init__()

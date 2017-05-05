@@ -41,7 +41,8 @@ logger = logging.getLogger(__name__)
 
 
 class EntityMib(SnmpMib):
-    """Container for all SNMP tables defined in the Entity MIB (rfc4133)."""
+    """ Container for all SNMP tables defined in the Entity MIB (rfc4133).
+    """
 
     def __init__(self, snmp_server):
         super(EntityMib, self).__init__()

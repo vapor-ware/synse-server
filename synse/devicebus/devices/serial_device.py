@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse Serial Devices
+""" Synse Serial Device Base
 
     Author: Erick Daniszewski
     Date:   09/15/2016

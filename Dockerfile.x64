@@ -6,10 +6,6 @@ ENV VAPOR_SERVICE_NAME=synse
 ADD ./requirements.txt requirements.txt
 ADD ./graphql/requirements.txt graphql-requirements.txt
 
-# Update sources.list so that we can get the snmp packages.
-RUN echo deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted  >> /etc/apt/sources.list && \
-    echo deb-src http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted  >> /etc/apt/sources.list
-
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     socat \
@@ -36,22 +32,25 @@ RUN mkdir -p /etc/uwsgi/vassals && \
     touch /etc/uwsgi/reload && \
     chown -R www-data:www-data /etc/uwsgi
 
+WORKDIR /tmp
 RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     tar -xvzf uwsgi-2.0.15.tar.gz && \
     cd uwsgi-2.0.15 && \
     python uwsgiconfig.py --build nolang && \
     PYTHON=python2.7 ./uwsgi --build-plugin "plugins/python python27" && \
-    PYTHON=python3.4 ./uwsgi --build-plugin "plugins/python python34" && \
+    PYTHON=python3.5 ./uwsgi --build-plugin "plugins/python python35" && \
     cp python27_plugin.so /etc/uwsgi/plugins/ && \
-    cp python34_plugin.so /etc/uwsgi/plugins/ && \
-    UWSGI_PROFILE=nolang python setup.py install || true
-
+    cp python35_plugin.so /etc/uwsgi/plugins/ && \
+    UWSGI_PROFILE=nolang python setup.py install && \
+    cd /tmp && rm -rf /tmp/uwsgi*
 
 ADD . /synse
 WORKDIR /synse
 
+# run command for custom configuration layer
+RUN /synse/configure_nginx_config.sh
 
-# run command for nginx configuration
+# run command for nginx uwsgi configuration
 RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
     ln -s /synse/synse_uwsgi.ini /etc/uwsgi/vassals/synse_uwsgi.ini && \
     ln -s /synse/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
@@ -68,5 +67,4 @@ ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 # Expose our API endpoint port.
 EXPOSE 5000
 
-# Define default command
-CMD ["./start_synse.sh"]
+ENTRYPOINT ["./synse.sh"]

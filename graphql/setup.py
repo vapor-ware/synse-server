@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-VERSION = "0.1"
+VERSION = '0.1'
 
 config = {
     'name': 'graphql_frontend',
@@ -26,7 +26,7 @@ config = {
     'test_suite': 'nose.collector'
 }
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from setuptools import setup
 
     setup(**config)

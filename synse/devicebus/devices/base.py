@@ -42,14 +42,17 @@ class DevicebusInterface(object):
     Primarily, this defines some common methods that can be used or overridden
     by its subclasses. Of note, the `_instance_name` member should be used by
     terminal subclasses to specify the name of the device that class represents.
-    This is particularly useful for identifying individual I2C and RS485 devices.
+    This is particularly useful for identifying individual device types, as is
+    done for I2C and RS485 devices.
 
-    A `handle` method is also defined and should not be overridden. It provides
+    A `handle` method is also defined and should NOT be overridden. It provides
     the device logic to process an incoming Command and dispatch it to the Device's
     appropriate handler method, if it exists.
 
-    Finally, a `register` method is defined but not implemented, as device
-    registration is dependent on the type of devicebus instance being registered.
+    Finally, a `register` method is defined but not implemented. Device
+    registration is dependent on the type of devicebus instance being registered,
+    therefore it is left to the specific devicebus instance to define its own
+    register method.
     """
     _instance_name = None
 
@@ -60,6 +63,9 @@ class DevicebusInterface(object):
         # behavior is to consider that command unsupported for the given devicebus
         # interface and raise an exception.
         self._command_map = {}
+
+        # each device will have its own UUID. this id is used internally for quicker
+        # lookups when routing commands to specific devices.
         self.device_uuid = uuid()
 
     @classmethod
@@ -72,16 +78,16 @@ class DevicebusInterface(object):
         """ Handle an incoming Synse command.
 
         Args:
-            command (Command): The incoming command object to dispatch to the appropriate
-                command handler for the Devicebus object.
+            command (Command): the incoming command object to dispatch to the
+                appropriate command handler for the Devicebus object.
 
         Returns:
-            Response: The response data for the requested Command.
+            Response: the response data for the requested Command.
 
         Raises:
-            CommandNotSupported: The given command does not have a corresponding handler
-                defined for the Devicebus instance - this means that the given instance
-                does not support any actions for that command.
+            CommandNotSupported: The given command does not have a corresponding
+                handler defined for the Devicebus instance - this means that the
+                given instance does not support any actions for that command.
         """
         cmd_fn = self._command_map.get(command.cmd_id, None)
         if cmd_fn is None:
@@ -98,8 +104,8 @@ class DevicebusInterface(object):
         """ Get a device that can be used for device-relative commands.
 
         When device_id is numeric, this can be used to validate the device_id and
-        type match, and get its device entry for use elsewhere.  When it's a string
-        value we validate the device_info and device_type match what is given, and
+        type match, and get its device entry for use elsewhere.  When its a string
+        value, we validate the device_info and device_type match what is given, and
         return the device entry.
 
         Args:
@@ -113,14 +119,16 @@ class DevicebusInterface(object):
         if isinstance(device_id, int):
             # look up device by device_id and return its record if found
             for device in self.board_record['devices']:
-                if (format(device_id, '04x')) == device['device_id'] and device_type_string == device['device_type']:
+                if (format(device_id, '04x')) == device['device_id'] and \
+                        device_type_string == device['device_type']:
                     return device
+
         elif isinstance(device_id, basestring):
             # if this is a non-numeric device_id, we'll look for the device by the string id and return its record
             for device in self.board_record['devices']:
                 if 'device_info' in device:
                     if device_id.lower() == device['device_info'].lower() and \
-                                    device_type_string == device['device_type']:
+                            device_type_string == device['device_type']:
                         return device
 
         # if we get here, numeric and string device_id search has failed, so raise exception

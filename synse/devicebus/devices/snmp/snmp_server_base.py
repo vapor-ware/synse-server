@@ -47,15 +47,18 @@ logger = logging.getLogger(__name__)
 
 
 class SnmpServerBase(object):
-    """Abstract base class for server specific SNMP implementations.
+    """ Abstract base class for server specific SNMP implementations.
+
     Contains the SNMP client, the app config, the device config, and helpers
-    that should be useful in derived classes."""
+    that should be useful in derived classes.
+    """
 
     __metaclass__ = ABCMeta
 
     def __init__(self, app_cfg, kwargs):
-        """Initialize the SNMP client, app config, and board id range for the
-        base class."""
+        """ Initialize the SNMP client, app config, and board id range for the
+        base class.
+        """
 
         self._app_cfg = app_cfg
 
@@ -92,10 +95,12 @@ class SnmpServerBase(object):
 
     @abstractmethod
     def _scan_internal(self):
-        """This method should produce scan results for an SNMP server as a
-        single board. Additionally each device has a non-public snmp_row
-        field that allows Synse to map an API call to a Synse device
-         to the proper row in an SNMP table on the device.
+        """ This method should produce scan results for an SNMP server as a
+        single board.
+
+        Additionally each device has a non-public snmp_row field that allows
+        Synse to map an API call to a Synse device to the proper row in an
+        SNMP table on the device.
 
         base_oid is the SNMP OID for the row. The brackets are a placeholder
         for the SNMP row column.
@@ -150,7 +155,7 @@ class SnmpServerBase(object):
     # region Common Synse commands.
 
     def _scan(self, command):
-        """Synse API scan command implementation for an SNMP server.
+        """ Synse API scan command implementation for an SNMP server.
 
         Args:
             command (Command): the command issued by the Synse endpoint
@@ -194,7 +199,7 @@ class SnmpServerBase(object):
         return Response(command=command, response_data=public_scan_results)
 
     def _scan_all(self, command):
-        """Synse API scan all command implementation for an SNMP server.
+        """ Synse API scan all command implementation for an SNMP server.
 
         Args:
             command (Command): the command issued by the Synse endpoint
@@ -219,7 +224,7 @@ class SnmpServerBase(object):
         return Response(command=command, response_data=public_scan_results)
 
     def _version(self, command):
-        """ Get the version information for a given board.
+        """ Synse API version command implementation for an SNMP server.
 
         Args:
             command (Command): the command issued by the Synse endpoint
@@ -254,8 +259,9 @@ class SnmpServerBase(object):
 
     @staticmethod
     def convert_snmp_result_set(results):
-        """Raw walk results and aggregated get results from SNMP client are
+        """ Raw walk results and aggregated get results from SNMP client are
         heavily typed, for example some rows:
+
         [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.8.19')), OctetString('Portez ce'))]
         [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.9.15')), Integer(25))]
 
@@ -263,8 +269,11 @@ class SnmpServerBase(object):
         '1.3.6.1.4.1.61439.6.4.2.2.1.6.23': 17
         '1.3.6.1.4.1.61439.6.4.2.2.1.3.6': 'TestPowerVariable'
 
-        :param results: The raw walk results from SnmpClient.walk()
-        :return: Converted walk results as a dictionary.
+        Args:
+            results (list): the raw walk results from SnmpClient.walk()
+
+        Returns:
+            dict: converted walk results as a dictionary.
         """
         converted = {}
         for row in results:
@@ -278,9 +287,18 @@ class SnmpServerBase(object):
         return converted
 
     def get_board_on_any_rack(self, board_id):
-        """Get the board from the internal scan results given the board id.
+        """ Get the board from the internal scan results given the board id.
+
         This call will check all racks.
-        board_id is an 8 character hex string without the leading 0x. Example 60000000"""
+
+        Args:
+            board_id (str): an 8 character hex string without the leading 0x.
+                Example 60000000
+
+        Returns:
+            dict: the board record.
+            None: no board record found.
+        """
         logger.debug('_get_board_on_any_rack {}'.format(board_id))
         if self._scan_results_internal is not None:
             for rack in self._scan_results_internal['racks']:
@@ -292,8 +310,17 @@ class SnmpServerBase(object):
         return None  # Not found.
 
     def get_board_on_rack(self, rack_id, board_id):
-        """Get the board from the internal scan results given the board id.
-        board_id is an 8 character hex string without the leading 0x. Example 60000000"""
+        """ Get the board from the internal scan results given the board id.
+
+        Args:
+            rack_id (str): the id of the rack containing the target board.
+            board_id (str): an 8 character hex string without the leading 0x.
+                Example 60000000
+
+        Returns:
+            dict: the board record.
+            None: no board record found.
+        """
         logger.debug('_get_board_on_any_rack {}'.format(board_id))
         logger.debug('get_board_on_rack {} {}'.format(rack_id, board_id))
         if self._scan_results_internal is not None:
@@ -308,17 +335,34 @@ class SnmpServerBase(object):
 
     @staticmethod
     def get_device(board, device_id):
-        """"Get the device from the internal scan results given the board and
+        """" Get the device from the internal scan results given the board and
         the device_id.
-        :param board: The board id to find the device on.
-        :param device_id: The id of the device to find."""
+
+        Args:
+            board (dict): the board record to find the device on.
+            device_id (str): the id of the device to find.
+
+        Returns:
+            dict: the device record.
+        """
         for device in board['devices']:
             if device['device_id'] == device_id:
                 return device
         return None
 
     def get_device_from_command(self, command):
-        """Parameter validator. Returns the device. Throws if not found."""
+        """ Parameter validator.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            dict: the device for command.
+
+        Raises:
+            SynseException: the board or device is not found.
+        """
         # Get the board (snmp-server)
         board_id = '{0:08x}'.format(command.data['board_id'])  # Convert from int to string.
         board = self.get_board_on_any_rack(board_id)
@@ -327,7 +371,7 @@ class SnmpServerBase(object):
             # the board id does not exist, the Synse server is not serving
             # anything at the URL specified by the client.
             # Therefore 404 Not Found.
-            raise SynseException("No board with id {}.".format(board_id))
+            raise SynseException('No board with id {}.'.format(board_id))
 
         device_id = '{0:04x}'.format(command.data['device_id'])
         device = SnmpServerBase.get_device(board, device_id)
@@ -336,47 +380,70 @@ class SnmpServerBase(object):
             # the device id does not exist, the Synse server is not serving
             # anything at the URL specified by the client.
             # Therefore 404 Not Found.
-            raise SynseException("No device with id {}.".format(device_id))
+            raise SynseException('No device with id {}.'.format(device_id))
 
         return device
 
     def get_next_battery_id(self):
-        """Get the next battery id to use on a scan for this SNMP server (board).
+        """ Get the next battery id to use on a scan for this SNMP server (board).
+
+        Returns:
+            str: the next battery id.
         """
         result = self._next_battery_id
         self._next_battery_id += 1
         return '{0:0{1}x}'.format(result, 4)
 
     def get_next_bypass_power_id(self):
-        """Get the next bypass power id to use on a scan for this SNMP server (board).
+        """ Get the next bypass power id to use on a scan for this SNMP server (board).
+
+        Returns:
+            str: the next bypass power id.
         """
         result = self._next_bypass_power_id
         self._next_bypass_power_id += 1
         return '{0:0{1}x}'.format(result, 4)
 
     def get_next_device_id(self):
-        """Get the next device id to use on a scan for this SNMP server (board).
+        """ Get the next device id to use on a scan for this SNMP server (board).
+
+        Returns:
+            str: the next device id.
         """
         result = self._next_device_id
         self._next_device_id += 1
         return '{0:0{1}x}'.format(result, 4)
 
     def get_next_input_power_id(self):
-        """Get the next input power id to use on a scan for this SNMP server (board).
+        """ Get the next input power id to use on a scan for this SNMP server (board).
+
+        Returns:
+            str: the next input power id.
         """
         result = self._next_input_power_id
         self._next_input_power_id += 1
         return '{0:0{1}x}'.format(result, 4)
 
     def get_next_output_power_id(self):
-        """Get the next output power id to use on a scan for this SNMP server (board).
+        """ Get the next output power id to use on a scan for this SNMP server (board).
+
+        Returns:
+            str: the next output power id.
         """
         result = self._next_output_power_id
         self._next_output_power_id += 1
         return '{0:0{1}x}'.format(result, 4)
 
     def get_rack(self, rack_id):
-        """Get the rack from the internal scan results given the rack id."""
+        """ Get the rack from the internal scan results given the rack id.
+
+        Args:
+            rack_id (str): the id of the rack to get scan results for.
+
+        Returns:
+            dict: the scan results for the rack.
+            None: the specified rack was not found.
+        """
         logger.debug('_get_rack {}'.format(rack_id))
         if self._scan_results_internal is not None:
             for rack in self._scan_results_internal['racks']:
@@ -385,7 +452,11 @@ class SnmpServerBase(object):
         return None  # Not found.
 
     def get_public_scan_results(self):
-        """Get the public part of the scan all results from the internal cache."""
+        """ Get the public part of the scan all results from the internal cache.
+
+        Returns:
+            dict: the public scan results.
+        """
         public_scan_results = copy.deepcopy(self._scan_results_internal)
 
         # Strip out the SNMP rows in the private data.
@@ -402,13 +473,16 @@ class SnmpServerBase(object):
 
     @staticmethod
     def get_write_oid(table, base_oid, column_name):
-        """Get the SNMP OID to write to for an SNMP set.
-        :param table: Identifies the SnmpTable to write to.
-        :param base_oid: Identifies the row. Same as in the internal scan cache
-         for the device.
-        :param column_name: Identifies the column name to write to in the table
-         (string).
-        :return: The OID to write and the SNMP column index to write to.
+        """ Get the SNMP OID to write to for an SNMP set.
+
+        Args:
+            table (SnmpTable): identifies the SnmpTable to write to.
+            base_oid (str): identifies the row. Same as in the internal scan cache
+                for the device.
+            column_name (str): identifies the column name to write to in the table.
+
+        Returns:
+            tuple: the OID to write and the SNMP column index to write to.
         """
         logger.debug('get_write_oid base_oid, column_name: {}, {}'.format(base_oid, column_name))
         # The index of the oid we need to write is the index of rpm in the
@@ -421,13 +495,20 @@ class SnmpServerBase(object):
         return write_oid, write_index
 
     def read_row(self, table, snmp_row):
-        """Wrapper for reading a row.
+        """ Wrapper for reading a row.
+
         Does the SNMP read from the SNMP server at each OID in the row.
         Sorts the data by column index in the table.
         Creates an SnmpRow with the newly read data and returns it.
-        :param table: The table to read from.
-        :param snmp_row: The row to read from the SNMP server. snmp_row comes
-        from the scan results."""
+
+        Args:
+            table (SnmpTable): the table to read from.
+            snmp_row (SnmpRow): the row to read from the SNMP server. snmp_row comes
+                from the scan results.
+
+        Returns:
+            SnmpRow: a SnmpRow with the read data.
+        """
         raw_row = self._read_raw_row(snmp_row)
         sorted_row_data = SnmpServerBase._sort_raw_row(table, snmp_row, raw_row)
         result = SnmpRow(
@@ -438,16 +519,22 @@ class SnmpServerBase(object):
         return result
 
     def read_table(self, oid):
-        """SNMP walk a table a the given SNMP OID and return the results in a
-        usable format that can be passed to an SnmpTable constructor.
-        :param oid: The base oid to SNMP walk to get the table data."""
+        """ SNMP walk a table a the given SNMP OID and return the results
+        in a usable format that can be passed to an SnmpTable constructor.
+
+        Args:
+            oid (str): the base oid to SNMP walk to get the table data.
+
+        Returns:
+            dict: the table walk results.
+        """
         var_binds = self.snmp_client.walk(oid)
         result = SnmpServerBase.convert_snmp_result_set(var_binds)
         logger.debug('walk count {}, result {}'.format(len(var_binds), result))
         return result
 
     def reset_next_device_id(self):
-        """Reset to the initial device id. Called on a new scan.
+        """ Reset to the initial device id. Called on a new scan.
         Also resetting ids for device_info.
         """
         self._next_device_id = 0
@@ -479,11 +566,16 @@ class SnmpServerBase(object):
         return response
 
     def snmp_set(self, write_oid, data):
-        """Write to the SNMP server.
-        :param write_oid: The SNMP OID to write to.
-        :param data: The data to write. data needs to be converted to the
-        correct SNMP type by the caller.
-        :returns: The written data in result[1]."""
+        """ Write to the SNMP server.
+
+        Args:
+            write_oid (str): the SNMP OID to write to.
+            data: the data to write. data needs to be converted to the correct
+                SNMP type by the caller.
+
+        Returns:
+            the written data in result[1].
+        """
         logger.debug('_snmp_set write_oid, data: {}, {}'.format(write_oid, data))
         # SNMP write as a tuple of (OID, data).
         power_state = data
@@ -496,14 +588,21 @@ class SnmpServerBase(object):
     # region Private Helpers
 
     def _read_raw_row(self, snmp_row):
-        """Read a row from the SNMP server. Does no table specific translation.
-        The OIDs we read are the same as in the given snmp_row.
-        The result will be a list of OID, data."""
+        """ Read a row from the SNMP server. Does no table specific translation.
+
+        The OIDs we read are the same as in the given snmp_row. The result will
+        be a list of OID, data.
+
+        Args:
+            snmp_row (SnmpRow): the row to read.
+
+        Returns:
+            list: a list of tuples specifying OID, data.
+        """
         column_list_len = len(snmp_row.table.column_list)
         row_data = []
         for column in range(1, column_list_len + 1):
             oid = snmp_row.base_oid.format(column)
-            # logger.debug('Reading oid {}'.format(oid))
             data = self.snmp_client.get(oid)
             row_data.append(data)
         row_data = SnmpServerBase.convert_snmp_result_set(row_data)
@@ -513,11 +612,16 @@ class SnmpServerBase(object):
 
     @staticmethod
     def _sort_raw_row(table, snmp_row, raw_row):
-        """We need to sort the raw SNMP read data by OID in order to line up
+        """ We need to sort the raw SNMP read data by OID in order to line up
         the columns with those in the table. ASCII sort is insufficient.
-        :param table: The table we are operating on.
-        :param snmp_row: The initial row from the scan results that we are reading.
-        :param raw_row: The raw SNMP read from _read_raw_row.
+
+        Args:
+            table (SnmpTable): the table we are operating on.
+            snmp_row (SnmpRow): the initial row from the scan results that we are reading.
+            raw_row (list): the raw SNMP read from _read_raw_row.
+
+        Returns:
+            list: sorted row read data.
         """
         logger.debug('sorting read_row')
         column_index = 1

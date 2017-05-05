@@ -18,17 +18,7 @@
 # along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 # ---------------------------------------------------------------------
 
-# first, determine if we are in debug mode, in which case we prop debug log config over prod log config
-if [[ $VAPOR_DEBUG && ${VAPOR_DEBUG} = "true" ]]
-then
-    mv -f /synse/configs/logging_synse_debug.json /synse/logging_synse.json
-    mv -f /synse/configs/logging_emulator_debug.json /synse/logging_emulator.json
-fi
+VERSION_SENTINEL="SYNSE_VERSION"
+SYNSE_VERSION=`cat VERSION | head -c 3`
 
-chown root:www-data /logs
-chmod 775 /logs
-
-service nginx restart 2>&1
-
-
-uwsgi --emperor /etc/uwsgi/emperor.ini 2>&1
+sed -i -e "s/$VERSION_SENTINEL/$SYNSE_VERSION/g" synse_nginx.conf
