@@ -104,109 +104,109 @@ endef
 # ....................
 
 test-plc-endpoints-x64:
-	$(call run_test,test_plc_endpoints)
+	$(call run_test,test-plc-endpoints)
 
 test-plc-bad-scan-x64:
-	$(call run_test,test_plc_bad_scan)
+	$(call run_test,test-plc-bad-scan)
 
 test-plc-scanall-x64:
-	$(call run_test,test_plc_scanall)
+	$(call run_test,test-plc-scanall)
 
 test-plc-endurance-x64:
-	$(call run_test,test_plc_endurance)
+	$(call run_test,test-plc-endurance)
 
 test-plc-emulator-x64:
-	$(call run_test,test_plc_emulator)
+	$(call run_test,test-plc-emulator)
 
 test-plc-devicebus-x64:
-	$(call run_test,test_plc_devicebus)
+	$(call run_test,test-plc-devicebus)
 
 
 # IPMI
 # ....................
 
 test-ipmi-emulator-x64:
-	$(call run_test,test_ipmi_emulator)
+	$(call run_test,test-ipmi-emulator)
 
 test-ipmi-endpoints-x64:
-	$(call run_test,test_ipmi_endpoints)
+	$(call run_test,test-ipmi-endpoints)
 
 test-ipmi-throughput-x64:
-	$(call run_test,test_ipmi_emulator_throughput)
+	$(call run_test,test-ipmi-emulator-throughput)
 
 test-ipmi-device-registration-x64:
-	$(call run_test,test_ipmi_device_registration)
+	$(call run_test,test-ipmi-device-registration)
 
 test-ipmi-scan-cache-registration-x64:
-	$(call run_test,test_ipmi_scan_cache_registration)
+	$(call run_test,test-ipmi-scan-cache-registration)
 
 test-ipmi-no-init-scan-x64:
-	$(call run_test,test_ipmi_no_init_scan)
+	$(call run_test,test-ipmi-no-init-scan)
 
 
 # RS485
 # ....................
 
 test-rs485-emulator-x64:
-	$(call run_test,test_rs485_emulator)
+	$(call run_test,test-rs485-emulator)
 
 test-rs485-endpoints-x64:
-	$(call run_test,test_rs485_endpoints)
+	$(call run_test,test-rs485-endpoints)
 
 
 # I2C
 # ....................
 
 test-i2c-endpoints-x64:
-	$(call run_test,test_i2c_endpoints)
+	$(call run_test,test-i2c-endpoints)
 
 test-i2c-devices-x64:
-	$(call run_test,test_i2c_devices)
+	$(call run_test,test-i2c-devices)
 
 
 # SNMP
 # ....................
 
 test-snmp-emulator-x64:
-	$(call run_test,test_snmp_emulator)
+	$(call run_test,test-snmp-emulator)
 
 test-snmp-device-registration-x64: delete-vapor-containers
-	$(call run_test,test_snmp_device_registration)
+	$(call run_test,test-snmp-device-registration)
 
 test-snmp-device-kills-x64: delete-vapor-containers
-	$(call run_test,test_snmp_device_kills)
+	$(call run_test,test-snmp-device-kills)
 
 test-snmp-device-kills-force-scan-x64: delete-vapor-containers
-	$(call run_test,test_snmp_device_kills_force_scan)
+	$(call run_test,test-snmp-device-kills-force-scan)
 
 
 # REDFISH
 # ....................
 
 test-redfish-endpoints-x64:
-	$(call run_test,test_redfish_endpoints)
+	$(call run_test,test-redfish-endpoints)
 
 test-redfish-endurance-x64:
-	$(call run_test,test_redfish_endurance)
+	$(call run_test,test-redfish-endurance)
 
 test-redfish-emulator-x64:
-	$(call run_test,test_redfish_emulator)
+	$(call run_test,test-redfish-emulator)
 
 
 # GENERAL
 # ....................
 
 test-device-supported-commands-x64:
-	$(call run_test,test_device_supported_commands)
+	$(call run_test,test-device-supported-commands)
 
 test-endpoint-utils-x64:
-	$(call run_test,test_endpoint_utils)
+	$(call run_test,test-endpoint-utils)
 
 test-utils-x64:
-	$(call run_test,test_utils)
+	$(call run_test,test-utils)
 
 test-location-x64:
-	$(call run_test,test_location)
+	$(call run_test,test-location)
 
 
 # SUITES
