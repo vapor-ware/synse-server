@@ -1,0 +1,15 @@
+synse-server-dev:
+  container_name: synse-server-dev
+  build: ..
+  dockerfile: Dockerfile.x64
+  links:
+    - synse-test-container
+
+synse-test-container:
+  build: ..
+  dockerfile: Dockerfile.x64
+  command: emulate-i2c
+  expose:
+    - 5000
+  environment:
+    - VAPOR_DEBUG=true
