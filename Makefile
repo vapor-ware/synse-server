@@ -141,7 +141,7 @@ test-%:
 # SUITES
 # ....................
 
-test-plc: \
+plc-tests: \
 	test-plc-endpoints \
 	test-plc-scanall \
 	test-plc-endurance \
@@ -149,35 +149,35 @@ test-plc: \
 	test-plc-bad-scan \
 	test-plc-devicebus
 
-test-ipmi: \
+ipmi-tests: \
 	test-ipmi-endpoints \
-	test-ipmi-throughput \
+	test-ipmi-emulator-throughput \
 	test-ipmi-no-init-scan \
 	test-ipmi-device-registration \
 	test-ipmi-scan-cache-registration \
 	test-ipmi-emulator
 
-test-rs485: \
+rs485-tests: \
 	test-rs485-endpoints \
 	test-rs485-emulator
 
-test-i2c: \
+i2c-tests: \
 	test-i2c-endpoints \
 	test-i2c-devices
 
-test-snmp: \
+snmp-tests: \
 	test-snmp-emulator \
 	test-snmp-device-registration \
 	test-snmp-device-kills \
 	test-snmp-device-kills-force-scan
 
-test-redfish: \
+redfish-tests: \
     test-redfish-endpoints \
     test-redfish-endurance \
     test-redfish-emulator
 
 
-test-general: \
+general-tests: \
 	test-utils \
 	test-location \
 	test-device-supported-commands \
@@ -185,13 +185,13 @@ test-general: \
 
 
 test: \
-	test-plc \
-	test-ipmi \
-	test-rs485 \
-	test-i2c \
-	test-snmp \
-	test-redfish \
-	test-general \
+	plc-tests \
+	ipmi-tests \
+	rs485-tests \
+	i2c-tests \
+	snmp-tests \
+	redfish-tests \
+	general-tests \
 	graphql-test
 
 dev: run
