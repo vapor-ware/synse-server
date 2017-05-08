@@ -22,6 +22,10 @@ This product contains software (https://github.com/moby/moby)
 developed by Docker, Inc., licensed under the Apache License, Version
 2.0. Copyright (c) 2012-2017 Docker, Inc.
 
+This product contains software (https://github.com/docker/compose)
+developed by Docker, Inc., licensed under the Apache License, Version
+2.0. Copyright (c) 2014-2017 Docker, Inc.
+
 This product contains software (https://www.python.org/)
 developed by Python Software Foundation, licensed under the PSF
 license, Version 2. Copyright © 2001, 2002, 2003, 2004, 2005, 2006,
@@ -32,7 +36,7 @@ Research Initiatives.  All rights reserved.  Copyright (c) 1991-1995
 Stichting Mathematisch Centrum. All rights reserved.
 
 This product contains software (https://github.com/gcc-mirror/gcc)
-developed at the GNU Complier Collection, licensed under the GNU
+developed at the GNU Compiler Collection, licensed under the GNU
 General Public License, Version 3. Copyright years on GCC source files
 may be listed using range notation, e.g., 1987-2012, indicating that
 every year in the range, inclusive, is a copyrightable year that could
@@ -84,39 +88,9 @@ This product contains software (https://pypi.python.org/pypi/setuptools)
 developed by PyPA and licensed under the MIT License. Copyright (c)
 2016, Jason R Coombs.
 
-This product contains software (https://golang.org/) developed by the
-Go Authors and licensed under the BSD License.  Copyright (c) 2012 The
-Go Authors.  All rights reserved.
-
-This product contains software (https://linuxcontainers.org/) licensed
-under the terms of the GNU LGPLv2.1+ License, with some Android
-compatibility bits licensed under a standard 2-clause BSD license and
-some binaries and templates licensed under the GNU General Public
-License Version 2.
-
 This product contains software (https://github.com/openstack/pyghmi)
 developed by OpenStack and licensed under the terms of the Apache
 License Version 2.0.
-
-This product contains software (https://pypi.python.org/pypi/Twisted)
-licensed under the terms of the MIT License.  Copyright (c) 2001-2017
-Allen Short, Amber Hawkie Brown, Andrew Bennetts, Andy Gayton, Antoine
-Pitrou, Apple Computer, Inc., Ashwini Oruganti, Benjamin Bruheim, Bob
-Ippolito, Canonical Limited, Christopher Armstrong, David Reid, Divmod
-Inc., Donovan Preston, Eric Mangold, Eyal Lotem, Google Inc., Hybrid
-Logic Ltd., Hynek Schlawack, Itamar Turner-Trauring, James Knight, Jason
-A. Mobarak, Jean-Paul Calderone, Jessica McKellar, Jonathan D. Simms,
-Jonathan Jacobs, Jonathan Lange, Julian Berman, Jürgen Hermann, Kevin
-Horn, Kevin Turner, Laurens Van Houtven, Mary Gardiner, Massachusetts
-Institute of Technology, Matthew Lefkowitz, Moshe Zadka, Paul Swartz,
-Pavel Pergamenshchik, Rackspace, US Inc., Ralph Meijer, Richard Wall,
-Sean Riley, Software Freedom Conservancy, Tavendo GmbH, Thijs Triemstra,
-Thomas Herve, Timothy Allen, Tom Prince, Travis B. Hartwell and others
-that have contributed code to the public domain.
-
-This product contains software (https://pypi.python.org/pypi/zope.interface)
-licensed under the Zope Public License Ver. 2.1. Copyright (c) Zope Foundation
-and Contributors.
 
 This product contains software (https://github.com/DMTF/Redfish-Profile-Simulator)
 licensed under the BSD 3-clause license. Copyright (c) 2016 Distributed Management
@@ -157,6 +131,9 @@ rights reserved.
 
 This product contains software (https://pypi.python.org/pypi/wheel) licensed
 under the MIT license. Copyright (c) 2012-2014 Daniel Holth and contributors.
+
+This product contains software (https://github.com/tox-dev/tox) licensed
+under the MIT license. Copyright (c) 2015, Holger Krekel and others.
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
