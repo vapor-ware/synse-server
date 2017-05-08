@@ -4,8 +4,8 @@
   "cache_threshold": 500,
 
   "devices": {
-    "rs485": {
-        "from_config": "rs485_config.json"
-      }
+    "plc": {
+      "from_config": "plc_config.json"
+    }
   }
 }

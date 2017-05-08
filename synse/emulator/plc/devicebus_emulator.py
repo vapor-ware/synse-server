@@ -1093,7 +1093,7 @@ def main(emulator_device):
 
 if __name__ == '__main__':
 
-    vapor_logging.setup_logging(default_path='logging_emulator.json')
+    vapor_logging.setup_logging(default_path='/synse/configs/logging/emulator.json')
     logger.info('========================================')
     logger.info('Starting DeviceBus Emulator.')
 

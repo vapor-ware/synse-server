@@ -6,7 +6,7 @@
   "devices": {
     "redfish": {
       "scan_on_init": true,
-      "device_initializer_threads": 4,
+      "device_initializer_threads": 1,
       "from_config": "redfish_config.json"
     }
   }

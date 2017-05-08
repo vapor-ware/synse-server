@@ -19,6 +19,6 @@
 # ---------------------------------------------------------------------
 
 VERSION_SENTINEL="SYNSE_VERSION"
-SYNSE_VERSION=`cat VERSION | head -c 3`
+SYNSE_VERSION=`cat /synse/VERSION | head -c 3`
 
-sed -i -e "s/$VERSION_SENTINEL/$SYNSE_VERSION/g" synse_nginx.conf
+sed -i -e "s/$VERSION_SENTINEL/$SYNSE_VERSION/g" /synse/configs/nginx/nginx.conf

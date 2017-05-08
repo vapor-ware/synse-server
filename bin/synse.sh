@@ -19,7 +19,7 @@
 # ---------------------------------------------------------------------
 set -o errexit -o pipefail
 
-version="$(python synse/version.py)"
+version="$(python /synse/synse/version.py)"
 
 
 # help
@@ -92,50 +92,50 @@ function -v {
 #   configuration, or a default configuration file.
 function emulate-plc-with-cfg {
     socat PTY,link=/dev/ttyVapor001,mode=666 PTY,link=/dev/ttyVapor002,mode=666 &
-    python -u ./synse/emulator/plc/devicebus_emulator.py $1 &
+    python -u /synse/synse/emulator/plc/devicebus_emulator.py $1 &
 
-}; function emulate-plc { emulate-plc-with-cfg ./synse/emulator/plc/data/example.json ;}
+}; function emulate-plc { emulate-plc-with-cfg /synse/synse/emulator/plc/data/example.json ;}
 
 
 # emulate I2C
 #   start the I2C emulator with either a specified
 #   configuration, or a default configuration file.
 function emulate-i2c-with-cfg {
-    cp ./configs/synse_config_i2c_emulator.json ./default/default.json
+    cp /synse/configs/synse/i2c/synse_config.json /synse/override/i2c_config.json
 
     # test flag to let us bypass the default prop-in of i2c config for bind-mount from test yml
     if [ ! ${VAPOR_TEST} ]; then
-        cp ./configs/i2c_emulator_config.json ./i2c_config.json
+        cp /synse/configs/synse/i2c/i2c_config.json /synse/i2c_config.json
     fi
 
     socat PTY,link=/dev/ttyVapor005,mode=666 PTY,link=/dev/ttyVapor006,mode=666 &
-    python -u ./synse/emulator/i2c/i2c_emulator.py $1 &
+    python -u /synse/synse/emulator/i2c/i2c_emulator.py $1 &
 
-}; function emulate-i2c { emulate-i2c-with-cfg ./synse/emulator/i2c/data/example.json ;}
+}; function emulate-i2c { emulate-i2c-with-cfg /synse/synse/emulator/i2c/data/example.json ;}
 
 
 # emulate RS485
 #   start the RS485 emulator with either a specified
 #   configuration, or a default configuration file.
 function emulate-rs485-with-cfg {
-    cp ./configs/synse_config_rs485_emulator.json ./default/default.json
+    cp /synse/configs/synse/rs485/synse_config.json /synse/override/rs485_config.json
 
     # test flag to let us bypass the default prop-in of rs485 config for bind-mount from test yml
     if [ ! ${VAPOR_TEST} ]; then
-        cp ./configs/rs485_emulator_config.json ./rs485_config.json
+        cp /synse/configs/synse/rs485/rs485_config.json /synse/rs485_config.json
     fi
 
     socat PTY,link=/dev/ttyVapor003,mode=666 PTY,link=/dev/ttyVapor004,mode=666 &
-    python -u ./synse/emulator/rs485/rs485_emulator.py $1 &
+    python -u /synse/synse/emulator/rs485/rs485_emulator.py $1 &
 
-}; function emulate-rs485 { emulate-rs485-with-cfg ./synse/emulator/rs485/data/example.json ;}
+}; function emulate-rs485 { emulate-rs485-with-cfg /synse/synse/emulator/rs485/data/example.json ;}
 
 
 _setup_container_environment() {
     if [[ ${VAPOR_DEBUG} && ${VAPOR_DEBUG} = "true" ]]
     then
-        mv -f /synse/configs/logging_synse_debug.json /synse/logging_synse.json
-        mv -f /synse/configs/logging_emulator_debug.json /synse/logging_emulator.json
+        mv -f /synse/configs/logging/synse_debug.json /synse/configs/logging/synse.json
+        mv -f /synse/configs/logging/emulator_debug.json /synse/configs/logging/emulator.json
     fi
 }
 

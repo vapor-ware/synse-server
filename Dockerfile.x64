@@ -48,16 +48,16 @@ ADD . /synse
 WORKDIR /synse
 
 # run command for custom configuration layer
-RUN /synse/configure_nginx_config.sh
+RUN /synse/bin/configure_nginx_config.sh
 
 # run command for nginx uwsgi configuration
-RUN ln -s /synse/synse_nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
-    ln -s /synse/synse_uwsgi.ini /etc/uwsgi/vassals/synse_uwsgi.ini && \
-    ln -s /synse/graphql_uwsgi.ini /etc/uwsgi/vassals/graphql_uwsgi.ini && \
-    ln -s /synse/emperor.ini /etc/uwsgi/emperor.ini && \
+RUN ln -s /synse/configs/nginx/nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
+    ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/vassals/synse.ini && \
+    ln -s /synse/configs/uwsgi/graphql.ini /etc/uwsgi/vassals/graphql.ini && \
+    ln -s /synse/configs/uwsgi/emperor.ini /etc/uwsgi/emperor.ini && \
     chown -R www-data:www-data /etc/uwsgi && \
     rm -f /etc/logrotate.d/nginx && \
-    cp /synse/configs/nginx.logrotate /etc/logrotate.d/nginx && \
+    cp /synse/configs/nginx/nginx.logrotate /etc/logrotate.d/nginx && \
     ln -sf /proc/1/fd/1 /logs/err
 
 # update the python path to include the synse module so that it
@@ -67,4 +67,4 @@ ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 # Expose our API endpoint port.
 EXPOSE 5000
 
-ENTRYPOINT ["./synse.sh"]
+ENTRYPOINT ["/synse/bin/synse.sh"]

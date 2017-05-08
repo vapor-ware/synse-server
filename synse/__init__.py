@@ -205,7 +205,7 @@ def main(serial_port=None, hardware=None):
             for values -> by default we use the emulator, but may use VEC; this
             dictates what type of configuration we do on startup and throughout.
     """
-    setup_logging(default_path='logging_synse.json')
+    setup_logging(default_path='/synse/configs/logging/synse.json')
 
     logger.info('=====================================')
     logger.info('Starting Synse Endpoint')

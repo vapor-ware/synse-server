@@ -2,12 +2,10 @@
   "scan_cache_file": "/tmp/synse/cache.json",
   "cache_timeout": 600,
   "cache_threshold": 500,
+
   "devices": {
-    "i2c": {
-        "from_config": "i2c_config.json"
-      },
-    "ipmi": {
-        "from_config": "bmc_config.json"
+    "rs485": {
+        "from_config": "rs485_config.json"
       }
   }
 }

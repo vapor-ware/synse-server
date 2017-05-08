@@ -113,7 +113,7 @@ def main():
 
 if __name__ == '__main__':
 
-    vapor_logging.setup_logging(default_path='logging_emulator.json')
+    vapor_logging.setup_logging(default_path='/synse/configs/logging/emulator.json')
 
     # the emulator config file is the one and only param passed to the emulator
     emulator_config_file = sys.argv[1]

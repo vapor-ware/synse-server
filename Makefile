@@ -132,9 +132,6 @@ endef
 #  x64
 # -----------------------------------------------
 
-# PLC
-# ....................
-
 test-%:
 	$(call run_test,$@)
 
@@ -175,7 +172,6 @@ redfish-tests: \
     test-redfish-endpoints \
     test-redfish-endurance \
     test-redfish-emulator
-
 
 general-tests: \
 	test-utils \

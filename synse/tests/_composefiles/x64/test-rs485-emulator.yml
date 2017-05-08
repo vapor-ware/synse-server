@@ -3,5 +3,5 @@ test-container-x64:
   build: ../../../..
   dockerfile: Dockerfile.x64
   entrypoint: []
-  command: bash -c "( ( ./synse.sh emulate-rs485-with-cfg ./synse/tests/data/rs485_emulator/rs485-001.json) & ) && sleep 2 && python ./synse/tests/test-rs485-emulator.py"
+  command: bash -c "( ( ./bin/synse.sh emulate-rs485-with-cfg ./synse/tests/data/rs485_emulator/rs485-001.json) & ) && sleep 2 && python ./synse/tests/test-rs485-emulator.py"
 
