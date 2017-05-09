@@ -1,4 +1,4 @@
-![logo](https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png)
+<img src="https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png" width=25% align=right>
 
 # Synse Server
 
