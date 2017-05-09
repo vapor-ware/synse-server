@@ -1,8 +1,12 @@
-test-container-x64:
-  container_name: test-container-x64
-  build: ../../../..
-  dockerfile: Dockerfile.x64
-  entrypoint: []
-  command: python ./synse/tests/test-device-supported-commands.py
-  environment:
-    - VAPOR_DEBUG=true
+version: '3'
+services:
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: Dockerfile.x64
+    entrypoint: []
+    command: python ./synse/tests/test-device-supported-commands.py
+    environment:
+      - VAPOR_DEBUG=true

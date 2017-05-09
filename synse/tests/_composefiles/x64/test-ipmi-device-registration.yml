@@ -1,63 +1,73 @@
-test-container-x64:
-  container_name: test-container-x64
-  build: ../../../..
-  dockerfile: Dockerfile.x64
-  entrypoint: []
-  command: bash -c "sleep 15 && python ./synse/tests/test-ipmi-device-registration.py"
-  links:
-    - synse-test-container
+version: '3'
+services:
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: Dockerfile.x64
+    entrypoint: []
+    command: bash -c "sleep 15 && python ./synse/tests/test-ipmi-device-registration.py"
+    links:
+      - synse-test-container
 
-synse-test-container:
-  build: ../../../..
-  dockerfile: Dockerfile.x64
-  ports:
-    - 5000:5000
-  volumes:
-    - ../../data/synse_config.json:/synse/default/default.json
-    - ../../data/bmc_config/bmc_config003.json:/synse/bmc_config.json
-  environment:
-    - VAPOR_DEBUG=true
-  links:
-    - ipmi-emulator-1
-    - ipmi-emulator-2
-    - ipmi-emulator-3
-    - ipmi-emulator-4
+  synse-test-container:
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: Dockerfile.x64
+    ports:
+      - 5000:5000
+    volumes:
+      - ../../data/synse_config.json:/synse/default/default.json
+      - ../../data/bmc_config/bmc_config003.json:/synse/bmc_config.json
+    environment:
+      - VAPOR_DEBUG=true
+    links:
+      - ipmi-emulator-1
+      - ipmi-emulator-2
+      - ipmi-emulator-3
+      - ipmi-emulator-4
 
-ipmi-emulator-1:
-  container_name: ipmi-emulator-1
-  build: ../../../emulator/ipmi
-  dockerfile: Dockerfile.x64
-  ports:
-    - 623:623/udp
-  environment:
-    - VAPOR_DEBUG=true
+  ipmi-emulator-1:
+    container_name: ipmi-emulator-1
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    ports:
+      - 623:623/udp
+    environment:
+      - VAPOR_DEBUG=true
 
-ipmi-emulator-2:
-  container_name: ipmi-emulator-2
-  build: ../../../emulator/ipmi
-  dockerfile: Dockerfile.x64
-  command: -p 624
-  ports:
-    - 624:624/udp
-  environment:
-    - VAPOR_DEBUG=true
+  ipmi-emulator-2:
+    container_name: ipmi-emulator-2
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    command: -p 624
+    ports:
+      - 624:624/udp
+    environment:
+      - VAPOR_DEBUG=true
 
-ipmi-emulator-3:
-  container_name: ipmi-emulator-3
-  build: ../../../emulator/ipmi
-  dockerfile: Dockerfile.x64
-  command: -p 625
-  ports:
-    - 625:625/udp
-  environment:
-    - VAPOR_DEBUG=true
+  ipmi-emulator-3:
+    container_name: ipmi-emulator-3
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    command: -p 625
+    ports:
+      - 625:625/udp
+    environment:
+      - VAPOR_DEBUG=true
 
-ipmi-emulator-4:
-  container_name: ipmi-emulator-4
-  build: ../../../emulator/ipmi
-  dockerfile: Dockerfile.x64
-  command: -p 626
-  ports:
-    - 626:626/udp
-  environment:
-    - VAPOR_DEBUG=true
+  ipmi-emulator-4:
+    container_name: ipmi-emulator-4
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    command: -p 626
+    ports:
+      - 626:626/udp
+    environment:
+      - VAPOR_DEBUG=true

@@ -1,6 +1,8 @@
 FROM vaporio/vapor-endpoint-base-x64:1.0
 MAINTAINER Matt Hink <mhink@vapor.io>
 
+RUN pip2 install --upgrade pip
+RUN pip2 install wheel setuptools
 RUN pip install -I \
     snmpsim==0.3.0 \
     pysnmp==4.3.4 \
