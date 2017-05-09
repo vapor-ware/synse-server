@@ -77,6 +77,7 @@ cat <<USAGE
             as the emulator's backing data file.
 
 USAGE
+exit 0
 }; function --help { -h ;}
 
 
