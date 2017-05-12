@@ -373,7 +373,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
                 Uri.read_temperature(RACK_1, BOARD_60000000, '0001'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_voltage_rack1(self):
         """SNMP read of voltage variable. Sad case. Emulator is dead."""
@@ -382,7 +382,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(Uri.read_voltage(RACK_1, BOARD_60000000, '0004'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_fan_speed_rack1(self):
         """SNMP read of fan speed (rpm_ variable). Sad case. Emulator is dead."""
@@ -391,7 +391,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(Uri.read_fan_speed(RACK_1, BOARD_60000000, '0005'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     # NOTE: Power supply read is NYI. Need the use case to implement this.
     # PDUs and smart power strips can just be power until we get a customer ask
@@ -423,7 +423,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_wrong_device_type_in_url_rack1(self):
         """Read a valid device, but wrong type in the url. Read voltage, but
@@ -433,7 +433,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_fan_speed_rack1_board0(self):
         """SNMP read of fan speed. Sad case. Emulator is dead."""
@@ -443,7 +443,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_fan_speed_rack2_board1(self):
         """SNMP read of fan speed. Happy case."""
@@ -460,7 +460,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
 
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_voltage_rack2_board1(self):
         """SNMP read of voltage variable. Happy case."""
@@ -482,7 +482,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(Uri.read_fan_speed(RACK_1, BOARD_60000000, '0000'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     # endregion
 
@@ -496,7 +496,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_write_fan_speed_rack2_board1(self):
         """SNMP read of fan speed. Happy case. Read, write, set back to the original.
@@ -605,7 +605,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(Uri.create(_S.URI_POWER, RACK_1, BOARD_60000000, '0011'), timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_power_read_rack2_not_supported(self):
         """Sad case power read on the second rack. Power command on a fan."""
@@ -628,7 +628,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_write_power_rack2_board1(self):
         """SNMP read/write of power. Happy case. Simulates an SNMP PDU.
@@ -708,7 +708,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             http.get(base_uri, timeout=7)
             self.fail(EXPECTED_VAPOR_HTTP_ERROR)
         except VaporHTTPError as e:
-            self._verify_vapor_http_error(e, 500, _S.SNMP_READ_TIMEOUT)
+            self._verify_vapor_http_error(e, 500, _S.SNMP_EMULATOR_DOWN)
 
     def test_read_write_led_rack2_board1(self):
         """SNMP read/write of LED. Happy case.

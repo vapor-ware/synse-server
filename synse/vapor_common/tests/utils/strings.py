@@ -72,6 +72,8 @@ class _S(object):
     POWER_STATUS = 'power_status'
     RACK_ID = 'rack_id'
     RACKS = 'racks'
+    SNMP_EMULATOR_DOWN = 'Bad IPv4/UDP transport address snmp-emulator-synse-testdevice1-board1@11012: ' \
+                         '[Errno -2] Name or service not known'
     SNMP_READ_TIMEOUT = 'Error Indication: No SNMP response received before timeout'
     SNMP_V2C = 'v2c'
     SNMP_VERSION = 'snmp_version'

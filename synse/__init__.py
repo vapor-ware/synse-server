@@ -37,14 +37,15 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
+import arrow
 import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, g
 from itertools import count
 
 import constants as const
 from errors import SynseException
 
-from utils import ThreadPool, cache_registration_dependencies
+from utils import ThreadPool, cache_registration_dependencies, make_json_response
 
 from synse.devicebus.devices.plc import *
 from synse.devicebus.devices.ipmi import *
@@ -120,6 +121,16 @@ def _count(start=0x00, step=0x01):
         n %= 0xff
 
 
+@app.before_request
+def before_synse_request():
+    """ Method to perform all pre-request actions.
+
+    Currently, this includes:
+        - track request metadata (time received)
+    """
+    g.request_received = arrow.utcnow().timestamp
+
+
 ################################################################################
 # DEBUG METHODS
 ################################################################################
@@ -129,7 +140,7 @@ def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
     relying on any backend layer.
     """
-    return jsonify({'status': 'ok'})
+    return make_json_response({'status': 'ok'})
 
 
 @app.route(const.endpoint_prefix + 'version', methods=['GET', 'POST'])
@@ -139,7 +150,7 @@ def synse_version():
     This can be used in formulating subsequent requests against the
     Synse REST API.
     """
-    return jsonify({'version': __api_version__})
+    return make_json_response({'version': __api_version__})
 
 
 @app.route(PREFIX + '/plc_config', methods=['GET', 'POST'])

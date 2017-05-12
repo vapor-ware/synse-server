@@ -30,7 +30,7 @@ import logging
 import copy
 import json
 
-from flask import current_app, Blueprint, jsonify
+from flask import current_app, Blueprint
 
 from vapor_common.utils.endpoint import make_url_builder
 import synse.constants as const
@@ -53,7 +53,8 @@ from synse.utils import (
     get_device_type_code,
     get_scan_cache,
     write_scan_cache,
-    get_device_instance
+    get_device_instance,
+    make_json_response
 )
 
 # add the api_version to the prefix
@@ -209,7 +210,7 @@ def get_board_version(rack_id, board_id):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/scan'), methods=['GET'])
@@ -226,17 +227,17 @@ def scan_all():
 
     _cache = get_scan_cache()
     if _cache:
-        return jsonify(_filter_cache_meta(_cache))
+        return make_json_response(_filter_cache_meta(_cache))
 
     for _id, device in current_app.config['DEVICES'].iteritems():
         cmd = current_app.config['CMD_FACTORY'].get_scan_all_command({
             _s_.FORCE: False
         })
         response = device.handle(cmd)
-        scan_response = _merge_scan_results(scan_response, response.data)
+        scan_response = _merge_scan_results(scan_response, response.get_response_data())
 
     write_scan_cache(_add_device_mapping(scan_response))
-    return jsonify(scan_response)
+    return make_json_response(scan_response)
 
 
 @core.route(url('/scan/force'))
@@ -258,10 +259,10 @@ def force_scan():
             _s_.FORCE: True,
         })
         response = device.handle(cmd)
-        scan_response = _merge_scan_results(scan_response, response.data)
+        scan_response = _merge_scan_results(scan_response, response.get_response_data())
 
     write_scan_cache(_add_device_mapping(scan_response))
-    return jsonify(scan_response)
+    return make_json_response(scan_response)
 
 
 @core.route(url('/scan/<rack_id>'), methods=['GET'])
@@ -289,7 +290,7 @@ def get_board_devices(rack_id, board_id=None):
         data = json.loads(scanall.data)
         for rack in data['racks']:
             if rack['rack_id'] == rack_id:
-                return jsonify({'racks': [rack]})
+                return make_json_response({'racks': [rack]})
         raise SynseException('No rack found with id: {}'.format(rack_id))
 
     board_id = check_valid_board(board_id)
@@ -305,7 +306,7 @@ def get_board_devices(rack_id, board_id=None):
             if rack['rack_id'] == rack_id:
                 for board in rack['boards']:
                     if int(board['board_id'], 16) == board_id:
-                        return jsonify({'boards': [board]})
+                        return make_json_response({'boards': [board]})
                     else:
                         break
     """
@@ -318,7 +319,7 @@ def get_board_devices(rack_id, board_id=None):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/read/<device_type>/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
@@ -351,7 +352,7 @@ def read_device(rack_id, device_type, board_id, device_id):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/power/<rack_id>/<board_id>/<device_id>/<power_action>'), methods=['GET'])
@@ -399,7 +400,7 @@ def power_control(power_action='status', rack_id=None, board_id=None, device_id=
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/asset/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
@@ -429,7 +430,7 @@ def asset_info(rack_id, board_id, device_id):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/boot_target/<rack_id>/<board_id>/<device_id>/<target>'), methods=['GET'])
@@ -469,7 +470,7 @@ def boot_target(rack_id, board_id, device_id, target=None):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/location/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
@@ -516,12 +517,12 @@ def device_location(rack_id, board_id=None, device_id=None):
     }
 
     if device_id is not None:
-        return jsonify({
+        return make_json_response({
             _s_.PHYSICAL_LOC: physical_location,
             _s_.CHASSIS_LOC: get_chassis_location(device_id)
         })
     else:
-        return jsonify({
+        return make_json_response({
             _s_.PHYSICAL_LOC: physical_location
         })
 
@@ -556,7 +557,7 @@ def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, bli
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
@@ -623,7 +624,7 @@ def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, bl
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
@@ -674,7 +675,7 @@ def fan_control(rack_id, board_id, device_id, fan_speed=None):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())
 
 
 @core.route(url('/host_info/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
@@ -706,4 +707,4 @@ def host_info(rack_id, board_id, device_id):
     device = get_device_instance(board_id)
     response = device.handle(cmd)
 
-    return jsonify(response.data)
+    return make_json_response(response.get_response_data())

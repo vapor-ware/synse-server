@@ -465,11 +465,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'off')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -557,11 +559,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -575,11 +579,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -593,11 +599,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -611,11 +619,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -626,11 +636,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'off')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -641,11 +653,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'off')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -656,11 +670,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -671,11 +687,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -704,7 +722,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -1016,7 +1037,8 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
+        self.assertIn('request_received', response)
         self.assertIn('physical_location', response)
 
         physical_location = response['physical_location']
@@ -1045,9 +1067,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1079,9 +1102,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1113,9 +1137,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1147,9 +1172,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1181,9 +1207,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1215,9 +1242,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1249,9 +1277,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1283,9 +1312,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1317,9 +1347,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1351,9 +1382,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1385,9 +1417,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1419,9 +1452,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1453,9 +1487,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1487,9 +1522,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1521,9 +1557,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -1559,9 +1596,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
         # not exist, we will just get back location information for 'unknown'
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 2)
+        self.assertEqual(len(response), 3)
         self.assertIn('physical_location', response)
         self.assertIn('chassis_location', response)
+        self.assertIn('request_received', response)
 
     def test_093_led(self):
         """ Test the led endpoint in IPMI mode.
@@ -2399,11 +2437,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -2414,11 +2454,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -2429,11 +2471,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -2444,11 +2488,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -2473,7 +2519,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -2502,7 +2551,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -2534,7 +2586,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -2563,7 +2618,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -2853,8 +2911,9 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
         self.assertIn('physical_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -2871,8 +2930,9 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
         self.assertIn('physical_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -2889,8 +2949,9 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
         self.assertIn('physical_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -2907,8 +2968,9 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 1)
+        self.assertEqual(len(response), 2)
         self.assertIn('physical_location', response)
+        self.assertIn('request_received', response)
 
         physical_location = response['physical_location']
         self.assertIsInstance(physical_location, dict)
@@ -3305,11 +3367,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -3320,11 +3384,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -3335,11 +3401,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -3350,11 +3418,13 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
         self.assertIn('power_status', response)
         self.assertIn('power_ok', response)
         self.assertIn('over_current', response)
         self.assertIn('input_power', response)
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertEqual(response['power_status'], 'on')
         self.assertEqual(response['power_ok'], True)
         self.assertEqual(response['over_current'], False)
@@ -3382,7 +3452,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -3411,7 +3484,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -3443,7 +3519,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']
@@ -3472,7 +3551,10 @@ class IPMIEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('bmc_ip', response)
         bmc_ip = response['bmc_ip']

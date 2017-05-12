@@ -247,7 +247,6 @@ test-x64-redfish: \
 	test-redfish-endurance-x64 \
 	test-redfish-emulator-x64
 
-
 test-x64-general: \
 	test-utils-x64 \
 	test-location-x64 \

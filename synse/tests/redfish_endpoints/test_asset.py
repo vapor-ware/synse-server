@@ -44,7 +44,10 @@ class RedfishAssetTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('redfish_ip', response)
         redfish_ip = response['redfish_ip']
@@ -126,7 +129,10 @@ class RedfishAssetTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('redfish_ip', response)
         redfish_ip = response['redfish_ip']
@@ -158,7 +164,10 @@ class RedfishAssetTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertEqual(len(response), 4)
+        self.assertEqual(len(response), 6)
+
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
 
         self.assertIn('redfish_ip', response)
         redfish_ip = response['redfish_ip']

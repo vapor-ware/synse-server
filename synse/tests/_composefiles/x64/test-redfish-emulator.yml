@@ -13,7 +13,9 @@ services:
 
   redfish-emulator:
     container_name: redfish-emulator
-    build: ../../../emulator/redfish
+    image: vaporio/redfish-emulator-x64
+    build:
+      context: ../../../emulator/redfish
       dockerfile: Dockerfile.x64
     ports:
       - 5040:5040

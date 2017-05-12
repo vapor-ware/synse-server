@@ -32,12 +32,37 @@ import os
 import threading
 from Queue import Queue
 
-from flask import current_app
+from flask import current_app, g, jsonify
 
 import constants as const
 from errors import SynseException
 
 logger = logging.getLogger(__name__)
+
+
+# -------------------------------------
+# Application Utilities
+# -------------------------------------
+
+def make_json_response(data):
+    """ Make a Flask Response given a dictionary of data.
+
+    This is a wrapper function which is used to augment the response
+    data with other pieces of metadata, e.g. timestamp.
+
+    Args:
+        data (dict): a JSON serializable dictionary that will be returned
+            as response data to the caller.
+
+    Returns:
+        Response: a Flask Response object.
+    """
+    logger.info('making response')
+    if hasattr(g, 'request_received'):
+        resp = dict(request_received=g.request_received, **data)
+    else:
+        resp = data
+    return jsonify(resp)
 
 
 # -------------------------------------
