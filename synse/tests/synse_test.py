@@ -118,7 +118,9 @@ class SynseHttpTest(unittest.TestCase):
         :param blink_state: The expected blink_state reading in the response.
         :raises On failure."""
         self.assertIsInstance(response, dict)
-        self.assertEquals(3, len(response))
+        self.assertEquals(5, len(response))
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertIn(_S.LED_STATE, response)
         self.assertEquals(led_state, response[_S.LED_STATE])
         self.assertIn(_S.LED_COLOR, response)
@@ -136,7 +138,9 @@ class SynseHttpTest(unittest.TestCase):
         :param power_status: The expected power_status reading in the response.
         :raises On failure."""
         self.assertIsInstance(response, dict)
-        self.assertEquals(4, len(response))
+        self.assertEquals(6, len(response))
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertIn(_S.INPUT_POWER, response)
         self.assertEquals(input_power, response[_S.INPUT_POWER])
         self.assertIn(_S.OVER_CURRENT, response)
@@ -154,7 +158,9 @@ class SynseHttpTest(unittest.TestCase):
         :param speed_rpm: The expected speed_rpm reading in the response.
         :raises On failure."""
         self.assertIsInstance(response, dict)
-        self.assertEquals(3, len(response))
+        self.assertEquals(5, len(response))
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertIn(_S.HEALTH, response)
         self.assertEquals(health, response[_S.HEALTH])
         self.assertIn(_S.STATES, response)
@@ -172,7 +178,9 @@ class SynseHttpTest(unittest.TestCase):
         :param temperature_c: The expected temperature_c reading in the response.
         :raises On failure."""
         self.assertIsInstance(response, dict)
-        self.assertEquals(3, len(response))
+        self.assertEquals(5, len(response))
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertIn(_S.HEALTH, response)
         self.assertEquals(health, response[_S.HEALTH])
         self.assertIn(_S.STATES, response)
@@ -189,7 +197,9 @@ class SynseHttpTest(unittest.TestCase):
         :param voltage: The expected voltage reading in the response.
         :raises On failure."""
         self.assertIsInstance(response, dict)
-        self.assertEquals(3, len(response))
+        self.assertEquals(5, len(response))
+        self.assertIn('request_received', response)
+        self.assertIn('timestamp', response)
         self.assertIn(_S.HEALTH, response)
         self.assertEquals(health, response[_S.HEALTH])
         self.assertIn(_S.STATES, response)

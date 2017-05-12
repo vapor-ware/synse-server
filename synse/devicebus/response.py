@@ -31,6 +31,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+import arrow
 
 
 class Response(object):
@@ -42,4 +43,22 @@ class Response(object):
         self.cmd_id = command.cmd_id
         self.sequence = command.sequence
 
+        # create a UTC timestamp for the response. note that this
+        # is not the actual timestamp of the operation (e.g. read),
+        # but the time at which the response is made, which is shortly
+        # after the operation completes. since the timestamp granularity
+        # is at the second level, the difference is negligible.
+        self.timestamp = arrow.utcnow().timestamp
+
         self.data = response_data
+
+    def get_response_data(self):
+        """ Get the data that makes up the Response.
+
+        This joins together the actual data from the operation with
+        any metadata associated with the response, e.g. timestamp.
+
+        Returns:
+            dict: a dictionary of response data.
+        """
+        return dict(timestamp=self.timestamp, **self.data)
