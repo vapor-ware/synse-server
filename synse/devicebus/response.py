@@ -61,4 +61,7 @@ class Response(object):
         Returns:
             dict: a dictionary of response data.
         """
-        return dict(timestamp=self.timestamp, **self.data)
+        data = self.data
+        if not data:
+            data = {}
+        return dict(timestamp=self.timestamp, **data)
