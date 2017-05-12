@@ -13,6 +13,7 @@ services:
 
   redfish-emulator:
     container_name: redfish-emulator
+    image: vaporio/redfish-emulator-x64
     build:
       context: ../../../emulator/redfish
       dockerfile: Dockerfile.x64
