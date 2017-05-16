@@ -124,6 +124,8 @@ class DeviceInterface(graphene.Interface):
     info = graphene.String(required=True)
     location = graphene.Field(Location, required=True)
     asset = graphene.Field(Asset, required=True)
+    timestamp = graphene.Int()
+    request_received = graphene.Int()
 
     @graphene.resolve_only_args
     def resolve_location(self):
@@ -132,6 +134,14 @@ class DeviceInterface(graphene.Interface):
     @graphene.resolve_only_args
     def resolve_asset(self):
         return Asset(_data=self._asset())
+
+    @graphene.resolve_only_args
+    def resolve_timestamp(self):
+        return self._resolve_detail().get('timestamp')
+
+    @graphene.resolve_only_args
+    def resolve_request_received(self):
+        return self._resolve_detail().get('request_received')
 
 
 class DeviceBase(graphene.ObjectType):
@@ -195,17 +205,13 @@ class SensorDevice(DeviceBase):
 @resolve_fields
 class TemperatureDevice(DeviceBase):
     _resolve_fields = [
-        'temperature_c',
-        'timestamp',
-        'request_received'
+        'temperature_c'
     ]
 
     class Meta:
         interfaces = (DeviceInterface, )
 
     temperature_c = graphene.Float(required=True)
-    timestamp = graphene.Int(required=True)
-    request_received = graphene.Int(required=True)
 
 
 @resolve_fields
@@ -213,9 +219,7 @@ class FanSpeedDevice(DeviceBase):
     _resolve_fields = [
         'health',
         'states',
-        'speed_rpm',
-        'timestamp',
-        'request_received'
+        'speed_rpm'
     ]
     _root = 'fan'
 
@@ -225,8 +229,6 @@ class FanSpeedDevice(DeviceBase):
     health = graphene.String(required=True)
     states = graphene.List(graphene.String, required=True)
     speed_rpm = graphene.Int(required=True)
-    timestamp = graphene.Int(required=True)
-    request_received = graphene.Int(required=True)
 
 
 @resolve_fields
@@ -235,9 +237,7 @@ class PowerDevice(DeviceBase):
         'input_power',
         'over_current',
         'power_ok',
-        'power_status',
-        'timestamp',
-        'request_received'
+        'power_status'
     ]
 
     class Meta:
@@ -247,8 +247,6 @@ class PowerDevice(DeviceBase):
     over_current = graphene.Boolean(required=True)
     power_ok = graphene.Boolean(required=True)
     power_status = graphene.String(required=True)
-    timestamp = graphene.Int(required=True)
-    request_received = graphene.Int(required=True)
 
     @functools.lru_cache(maxsize=1)
     def _resolve_detail(self):
@@ -261,9 +259,7 @@ class PowerDevice(DeviceBase):
 @resolve_fields
 class LedDevice(DeviceBase):
     _resolve_fields = [
-        'led_state',
-        'timestamp',
-        'request_received'
+        'led_state'
     ]
     _root = 'led'
 
@@ -271,24 +267,18 @@ class LedDevice(DeviceBase):
         interfaces = (DeviceInterface, )
 
     led_state = graphene.String(required=True)
-    timestamp = graphene.Int(required=True)
-    request_received = graphene.Int(required=True)
 
 
 @resolve_fields
 class VoltageDevice(DeviceBase):
     _resolve_fields = [
-        'voltage',
-        'timestamp',
-        'request_received'
+        'voltage'
     ]
 
     class Meta:
         interfaces = (DeviceInterface, )
 
     voltage = graphene.Float(required=True)
-    timestamp = graphene.Int(required=True)
-    request_received = graphene.Int(required=True)
 
 
 class SystemDevice(DeviceBase):
