@@ -137,17 +137,11 @@ class DeviceInterface(graphene.Interface):
 
     @graphene.resolve_only_args
     def resolve_timestamp(self):
-        try:
-            return self._resolve_detail().get('timestamp')
-        except:
-            return None
+        return self._resolve_detail().get('timestamp')
 
     @graphene.resolve_only_args
     def resolve_request_received(self):
-        try:
-            return self._resolve_detail().get('request_received')
-        except:
-            return None
+        return self._resolve_detail().get('request_received')
 
 
 class DeviceBase(graphene.ObjectType):
@@ -302,3 +296,9 @@ class SystemDevice(DeviceBase):
     @graphene.resolve_only_args
     def resolve_ip_addresses(self):
         return self._parent._data.get('ip_addresses')
+
+    # override to return empty dict for system devices -- since systems don't
+    # have a supported read action, we will forgo the request overhead and just
+    # return an empty dict, to be handled upstream.
+    def _resolve_detail(self):
+        return {}
