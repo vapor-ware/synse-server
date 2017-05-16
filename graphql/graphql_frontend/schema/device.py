@@ -137,11 +137,17 @@ class DeviceInterface(graphene.Interface):
 
     @graphene.resolve_only_args
     def resolve_timestamp(self):
-        return self._resolve_detail().get('timestamp')
+        try:
+            return self._resolve_detail().get('timestamp')
+        except:
+            return None
 
     @graphene.resolve_only_args
     def resolve_request_received(self):
-        return self._resolve_detail().get('request_received')
+        try:
+            return self._resolve_detail().get('request_received')
+        except:
+            return None
 
 
 class DeviceBase(graphene.ObjectType):

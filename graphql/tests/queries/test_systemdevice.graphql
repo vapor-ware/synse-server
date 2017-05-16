@@ -3,6 +3,8 @@
     boards {
       devices(device_type:"system") {
         device_type
+        timestamp
+        request_received
         ... on SystemDevice {
           hostnames
           ip_addresses

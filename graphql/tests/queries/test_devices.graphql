@@ -4,6 +4,8 @@
       devices {
         id
         device_type
+        timestamp
+        request_received
         location {
           chassis_location {
             depth

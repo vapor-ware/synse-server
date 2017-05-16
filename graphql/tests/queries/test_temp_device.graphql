@@ -4,6 +4,8 @@
       devices(device_type:"temperature") {
         ... on TemperatureDevice {
           temperature_c
+          timestamp
+          request_received
         }
       }
     }
