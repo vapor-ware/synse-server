@@ -46,6 +46,8 @@ class TestDevice(BaseSchemaTest):
         keys = {
             'id': {},
             'device_type': {},
+            'timestamp': {},
+            'request_received': {},
             'location': {
                 'chassis_location': {
                     'depth': {},
@@ -68,6 +70,8 @@ class TestDevice(BaseSchemaTest):
             'device_type': {},
             'ip_addresses': {},
             'hostnames': {},
+            'timestamp': {},
+            'request_received': {},
             'asset': {
                 'board_info': {
                   'manufacturer': {},
@@ -97,7 +101,9 @@ class TestDevice(BaseSchemaTest):
 
     def test_temperature(self):
         keys = [
-            'temperature_c'
+            'temperature_c',
+            'timestamp',
+            'request_received'
         ]
         self.assertItemsEqual(
             self.get_devices('test_temp_device')[0].keys(), keys)
@@ -107,14 +113,18 @@ class TestDevice(BaseSchemaTest):
             'input_power',
             'over_current',
             'power_ok',
-            'power_status'
+            'power_status',
+            'timestamp',
+            'request_received'
         ]
         self.assertItemsEqual(
             self.get_devices('test_power_device')[0].keys(), keys)
 
     def test_led(self):
         keys = [
-            'led_state'
+            'led_state',
+            'timestamp',
+            'request_received'
         ]
         self.assertItemsEqual(
             self.get_devices('test_led_device')[0].keys(), keys)
@@ -123,7 +133,18 @@ class TestDevice(BaseSchemaTest):
         keys = [
             'health',
             'states',
-            'speed_rpm'
+            'speed_rpm',
+            'timestamp',
+            'request_received'
         ]
         self.assertItemsEqual(
             self.get_devices('test_fan_speed_device')[0].keys(), keys)
+
+    def test_voltage(self):
+        keys = [
+            'voltage',
+            'timestamp',
+            'request_received'
+        ]
+        self.assertItemsEqual(
+            self.get_devices('test_voltage_device')[0].keys(), keys)

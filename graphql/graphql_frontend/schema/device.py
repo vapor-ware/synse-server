@@ -124,6 +124,8 @@ class DeviceInterface(graphene.Interface):
     info = graphene.String(required=True)
     location = graphene.Field(Location, required=True)
     asset = graphene.Field(Asset, required=True)
+    timestamp = graphene.Int()
+    request_received = graphene.Int()
 
     @graphene.resolve_only_args
     def resolve_location(self):
@@ -132,6 +134,14 @@ class DeviceInterface(graphene.Interface):
     @graphene.resolve_only_args
     def resolve_asset(self):
         return Asset(_data=self._asset())
+
+    @graphene.resolve_only_args
+    def resolve_timestamp(self):
+        return self._resolve_detail().get('timestamp')
+
+    @graphene.resolve_only_args
+    def resolve_request_received(self):
+        return self._resolve_detail().get('request_received')
 
 
 class DeviceBase(graphene.ObjectType):
@@ -227,7 +237,7 @@ class PowerDevice(DeviceBase):
         'input_power',
         'over_current',
         'power_ok',
-        'power_status',
+        'power_status'
     ]
 
     class Meta:
@@ -259,6 +269,18 @@ class LedDevice(DeviceBase):
     led_state = graphene.String(required=True)
 
 
+@resolve_fields
+class VoltageDevice(DeviceBase):
+    _resolve_fields = [
+        'voltage'
+    ]
+
+    class Meta:
+        interfaces = (DeviceInterface, )
+
+    voltage = graphene.Float(required=True)
+
+
 class SystemDevice(DeviceBase):
     class Meta:
         interfaces = (DeviceInterface, )
@@ -274,3 +296,9 @@ class SystemDevice(DeviceBase):
     @graphene.resolve_only_args
     def resolve_ip_addresses(self):
         return self._parent._data.get('ip_addresses')
+
+    # override to return empty dict for system devices -- since systems don't
+    # have a supported read action, we will forgo the request overhead and just
+    # return an empty dict, to be handled upstream.
+    def _resolve_detail(self):
+        return {}

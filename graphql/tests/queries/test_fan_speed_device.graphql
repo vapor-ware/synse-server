@@ -6,6 +6,8 @@
           health
           states
           speed_rpm
+          timestamp
+          request_received
         }
       }
     }

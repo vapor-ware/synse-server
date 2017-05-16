@@ -1,9 +1,9 @@
 {
   racks(id:"rack_1") {
     boards {
-      devices(device_type:"led") {
-        ... on LedDevice {
-          led_state
+      devices(device_type:"voltage") {
+        ... on VoltageDevice {
+          voltage
           timestamp
           request_received
         }
