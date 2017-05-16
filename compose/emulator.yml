@@ -3,6 +3,7 @@ services:
   synse-server:
     container_name: synse-server
     image: vaporio/synse-server
+    restart: always
     ports:
       - 5000:5000
     volumes:
@@ -49,5 +50,6 @@ services:
   ipmi-emulator:
     container_name: synse-server-ipmi-emulator
     image: vaporio/ipmi-emulator-x64
+    restart: on-failure
     expose:
       - 623/udp
