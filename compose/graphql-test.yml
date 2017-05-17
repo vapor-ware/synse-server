@@ -15,11 +15,16 @@ services:
   synse-server:
     container_name: synse-server
     image: vaporio/synse-server
+    # we need to start up an I2C emulator as well in order to get pressure
+    # sensor data while testing.
+    command: start-i2c-emulator i2c_emulator_config.json
     ports:
       - 5000
     volumes:
       - ../test/config/bmc.json:/synse/bmc_config.json
-      - ../test/config/ipmi.json:/synse/override/config.json
+      - ../test/config/i2c.json:/synse/i2c_config.json
+      - ../test/config/ipmi_i2c.json:/synse/override/config.json
+      - ../test/emulator/i2c.json:/synse/i2c_emulator_config.json
     links:
       - ipmi-emulator:ipmi-emulator-1-1
       - ipmi-emulator:ipmi-emulator-1-2

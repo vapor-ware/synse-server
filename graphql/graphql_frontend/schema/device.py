@@ -281,6 +281,18 @@ class VoltageDevice(DeviceBase):
     voltage = graphene.Float(required=True)
 
 
+@resolve_fields
+class PressureDevice(DeviceBase):
+    _resolve_fields = [
+        'pressure_kpa'
+    ]
+
+    class Meta:
+        interfaces = (DeviceInterface, )
+
+    pressure_kpa = graphene.Float(required=True)
+
+
 class SystemDevice(DeviceBase):
     class Meta:
         interfaces = (DeviceInterface, )

@@ -52,29 +52,56 @@ cat <<USAGE
     --version | -v  Show the version of Synse.
 
   Subcommands:
+    start-plc-emulator [file]
+            Start the PLC emulator without any Synse configurations
+            put into place. With this, it is up to the user to make
+            sure Synse has a PLC device (or devices) correctly
+            configured (in the default/override config for devices).
+
+            This can take a filename as a parameter to specify an
+            emulator configuration.
+
+    start-i2c-emulator [file]
+            Start the I2C emulator without any Synse configurations
+            put into place. With this, it is up to the user to make
+            sure Synse has an I2C device (or devices) correctly
+            configured (in the default/override config for devices).
+
+            This can take a filename as a parameter to specify an
+            emulator configuration.
+
+    start-rs485-emulator [file]
+            Start the RS485 emulator without any Synse configurations
+            put into place. With this, it is up to the user to make
+            sure Synse has an RS485 device (or devices) correctly
+            configured (in the default/override config for devices).
+
+            This can take a filename as a parameter to specify an
+            emulator configuration.
+
     emulate-plc
-            Start the PLC emulator. A default configuration
-            file will be used.
+            Start the PLC emulator. A default configuration file
+            will be used.
 
     emulate-i2c
-            Start the I2C emulator. A default configuration
-            file will be used.
+            Start the I2C emulator. A default configuration file
+            will be used.
 
     emulate-rs485
-            Start the RS485 emulator. A default configuration
-            file will be used.
+            Start the RS485 emulator. A default configuration file
+            will be used.
 
     emulate-plc-with-cfg [file]
-            Start the PLC emulator, using the specified file
-            as the emulator's backing data file.
+            Start the PLC emulator, using the specified file as the
+            emulator's backing data file.
 
     emulate-i2c-with-cfg [file]
-            Start the I2C emulator, using the specified file
-            as the emulator's backing data file.
+            Start the I2C emulator, using the specified file as the
+            emulator's backing data file.
 
     emulate-rs485-with-cfg [file]
-            Start the RS485 emulator, using the specified file
-            as the emulator's backing data file.
+            Start the RS485 emulator, using the specified file as the
+            emulator's backing data file.
 
 USAGE
 exit 0
@@ -91,9 +118,12 @@ function -v {
 # emulate PLC
 #   start the PLC emulator with either a specified
 #   configuration, or a default configuration file.
-function emulate-plc-with-cfg {
+function start-plc-emulator {
     socat PTY,link=/dev/ttyVapor001,mode=666 PTY,link=/dev/ttyVapor002,mode=666 &
     python -u /synse/synse/emulator/plc/devicebus_emulator.py $1 &
+
+}; function emulate-plc-with-cfg {
+    start-plc-emulator $1
 
 }; function emulate-plc { emulate-plc-with-cfg /synse/synse/emulator/plc/data/example.json ;}
 
@@ -101,7 +131,11 @@ function emulate-plc-with-cfg {
 # emulate I2C
 #   start the I2C emulator with either a specified
 #   configuration, or a default configuration file.
-function emulate-i2c-with-cfg {
+function start-i2c-emulator {
+    socat PTY,link=/dev/ttyVapor005,mode=666 PTY,link=/dev/ttyVapor006,mode=666 &
+    python -u /synse/synse/emulator/i2c/i2c_emulator.py $1 &
+
+}; function emulate-i2c-with-cfg {
     cp /synse/configs/synse/i2c/synse_config.json /synse/override/i2c_config.json
 
     # test flag to let us bypass the default prop-in of i2c config for bind-mount from test yml
@@ -109,8 +143,7 @@ function emulate-i2c-with-cfg {
         cp /synse/configs/synse/i2c/i2c_config.json /synse/i2c_config.json
     fi
 
-    socat PTY,link=/dev/ttyVapor005,mode=666 PTY,link=/dev/ttyVapor006,mode=666 &
-    python -u /synse/synse/emulator/i2c/i2c_emulator.py $1 &
+    start-i2c-emulator $1
 
 }; function emulate-i2c { emulate-i2c-with-cfg /synse/synse/emulator/i2c/data/example.json ;}
 
@@ -118,7 +151,11 @@ function emulate-i2c-with-cfg {
 # emulate RS485
 #   start the RS485 emulator with either a specified
 #   configuration, or a default configuration file.
-function emulate-rs485-with-cfg {
+function start-rs485-emulator {
+    socat PTY,link=/dev/ttyVapor003,mode=666 PTY,link=/dev/ttyVapor004,mode=666 &
+    python -u /synse/synse/emulator/rs485/rs485_emulator.py $1 &
+
+}; function emulate-rs485-with-cfg {
     cp /synse/configs/synse/rs485/synse_config.json /synse/override/rs485_config.json
 
     # test flag to let us bypass the default prop-in of rs485 config for bind-mount from test yml
@@ -126,8 +163,7 @@ function emulate-rs485-with-cfg {
         cp /synse/configs/synse/rs485/rs485_config.json /synse/rs485_config.json
     fi
 
-    socat PTY,link=/dev/ttyVapor003,mode=666 PTY,link=/dev/ttyVapor004,mode=666 &
-    python -u /synse/synse/emulator/rs485/rs485_emulator.py $1 &
+    start-rs485-emulator $1;
 
 }; function emulate-rs485 { emulate-rs485-with-cfg /synse/synse/emulator/rs485/data/example.json ;}
 

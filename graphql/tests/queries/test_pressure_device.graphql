@@ -1,0 +1,13 @@
+{
+  racks(id:"rack_7") {
+    boards {
+      devices(device_type:"pressure") {
+        ... on PressureDevice {
+          pressure_kpa
+          timestamp
+          request_received
+        }
+      }
+    }
+  }
+}
