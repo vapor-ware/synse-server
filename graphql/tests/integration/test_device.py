@@ -36,6 +36,45 @@ class TestDevice(BaseSchemaTest):
         return self.run_query(query).data.get('racks')[0].get('boards')[0].get(
             'devices')
 
+    def get_all_devices(self, query):
+        """ Gets all devices from a query.
+
+        Additionally, this filters out empty responses. This is needed for
+        I2C device queries in particular, e.g. we could get a response from
+        a pressure query looking like:
+            {
+              "racks": [
+                {
+                  "boards": [
+                    {
+                      "devices": []
+                    },
+                    {
+                      "devices": [
+                        {
+                          "pressure_kpa": -6.0,
+                          "timestamp": 1495036581,
+                          "request_received": 1495036581
+                        }
+                      ]
+                    },
+                    {
+                      "devices": []
+                    }
+                  ]
+                }
+              ]
+            }
+
+        If the device list is empty, it will be omitted.
+        """
+        res = self.run_query(query).data
+        for rack in res.get('racks'):
+            for board in rack['boards']:
+                for device in board['devices']:
+                    if device:
+                        yield device
+
     def check_keys(self, data, keys):
         self.assertItemsEqual(data.keys(), keys.keys())
         for k, v in keys.items():
@@ -148,3 +187,12 @@ class TestDevice(BaseSchemaTest):
         ]
         self.assertItemsEqual(
             self.get_devices('test_voltage_device')[0].keys(), keys)
+
+    def test_pressure(self):
+        keys = [
+            'pressure_kpa',
+            'timestamp',
+            'request_received'
+        ]
+        for device in self.get_all_devices('test_pressure_device'):
+            self.assertItemsEqual(device.keys(), keys)
