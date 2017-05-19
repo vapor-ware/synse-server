@@ -40,7 +40,7 @@ have hardware sitting around, it is possible to [run an emulator](#emulator) tha
 mocks out the data.
 
     ```
-    vi /etc/synse-server/config.json
+    vi /etc/synse/config.json
     ```
 
 3. Startup the server.
