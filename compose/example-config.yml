@@ -1,0 +1,5 @@
+scrape_configs:
+  - job_name: 'synse'
+
+    static_configs:
+      - targets: ['synse-prometheus:9243']
