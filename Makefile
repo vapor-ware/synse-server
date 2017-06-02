@@ -58,6 +58,19 @@ build:
 		-t vaporio/synse-server:$(PKG_VER) \
 		-t vaporio/synse-server:$(GIT_VER) .
 
+# Build and push an image for testing at Baselayer.
+baselayer:
+	docker rmi vaporio/synse-server:baselayer-2.0 || true
+	docker build -f Dockerfile.x64 \
+		-t vaporio/synse-server:latest \
+		-t vaporio/synse-server:$(PKG_VER) \
+		-t vaporio/synse-server:$(GIT_VER) \
+		-t vaporio/synse-server:baselayer-2.0 .
+	docker push vaporio/synse-server:baselayer-2.0
+
+# Shortcut for baselayer.
+bl: baselayer
+
 # -----------------------------------------------
 # Packages
 # -----------------------------------------------
