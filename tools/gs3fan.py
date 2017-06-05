@@ -68,16 +68,16 @@ FAN_CONTROLLER_REGISTERS = {
 
     # P3.X Digital Parameters
     0x0300: 'Source of Operation Command',
-    0x0301: 'Multi-function Input Terminals (DI1 - DI2)',
-    0x0302: 'Multi-function Input Terminal 3 (DI3)',
-    0x0303: 'Multi-function Input Terminal 4 (DI4)',
-    0x0304: 'Multi-function Input Terminal 5 (DI5)',
-    0x0305: 'Multi-function Input Terminal 6 (DI6)',
-    0x0306: 'Multi-function Input Terminal 7 (DI7)',
-    0x0307: 'Multi-function Input Terminal 8 (DI8)',
-    0x0308: 'Multi-function Input Terminal 9 (DI9)',
-    0x0309: 'Multi-function Input Terminal 10 (DI10)',
-    0x030a: 'Multi-function Input Terminal 11 (DI11)',
+    0x0301: 'Multi-Function Input Terminals (DI1 - DI2)',
+    0x0302: 'Multi-Function Input Terminal 3 (DI3)',
+    0x0303: 'Multi-Function Input Terminal 4 (DI4)',
+    0x0304: 'Multi-Function Input Terminal 5 (DI5)',
+    0x0305: 'Multi-Function Input Terminal 6 (DI6)',
+    0x0306: 'Multi-Function Input Terminal 7 (DI7)',
+    0x0307: 'Multi-Function Input Terminal 8 (DI8)',
+    0x0308: 'Multi-Function Input Terminal 9 (DI9)',
+    0x0309: 'Multi-Function Input Terminal 10 (DI10)',
+    0x030a: 'Multi-Function Input Terminal 11 (DI11)',
     0x030b: 'Multi-Function Output Terminal 1 (Relay Output)',
     0x030c: 'Multi-Function Output Terminal 2 (DO1)',
     0x030d: 'Multi-Function Output Terminal 3 (DO2)',
@@ -271,13 +271,13 @@ def _get(ser):
 def _print_usage():
     print 'sudo -HE env PATH=$PATH PYTHONPATH="../protocols:${PYTHONPATH}" ./gs3fan.py {get|set|temp} [options]'
     print '\tget options:'
-    print '\t\t <none> speed in RPM:'
+    print '\t\t <none>: speed in RPM.'
     print '\t\t all: registers.'
     print '\t\t register: fan register in the form of 0x91c'
     print '\tset options:'
     print '\t\t <integer> set speed in RPM (0 < 1755)'
-    print '\t\t register set fan register in the form of 0x91c {data}'
-    print '\ttemp gets temperature and humidity'
+    print '\t\t register: set fan register in the form of 0x91c {data}'
+    print '\ttemp: gets temperature and humidity'
 
 
 def _read_airflow(ser):
@@ -426,10 +426,6 @@ def write(ser, rpm):
 
 def _write_fan_register(ser, register, data):
     client = dkmodbus.dkmodbus(ser)
-    # register_data = client.read_holding_registers(1, register, 1)
-    # result = hexlify(register_data)
-    # print '0x{}'.format(result)
-    # return result
     client.write_multiple_registers(1, register, 1, 2, data)
 
 

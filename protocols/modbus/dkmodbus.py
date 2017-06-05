@@ -58,7 +58,7 @@ class dkmodbus(object):
     def read_holding_registers(self, slave_address, register, register_count):
         """Read one or more registers over modbus.
         :param slave_address: The slave address of the device to read, In
-        opendcre this is unfortuately called device_unit.
+        synse this is unfortunately called device_unit.
         :param register: The first register to read.
         :param register_count: The number of registers to read.
         :returns: A byte array with two bytes per register."""
@@ -72,7 +72,7 @@ class dkmodbus(object):
     def read_input_registers(self, slave_address, register, register_count):
         """Read one or more registers over modbus.
         :param slave_address: The slave address of the device to read, In
-        opendcre this is unfortuately called device_unit.
+        synse this is unfortunately called device_unit.
         :param register: The first register to read.
         :param register_count: The number of registers to read.
         :returns: A byte array with two bytes per register."""
@@ -106,7 +106,7 @@ class dkmodbus(object):
             self, slave_address, register, register_count, byte_count, data):
         """Write multiple registers over modbus.
         :param slave_address: The slave address of the device to write, In
-        opendcre this is unfortuately called device_unit.
+        synse this is unfortunately called device_unit.
         :param register: The first register to write.
         :param register_count: The number of registers to write.
         :param byte_count: The number of bytes to write. 1, 2, 4, or 8.
@@ -127,14 +127,13 @@ class dkmodbus(object):
     # region private
 
     @staticmethod
-    def _calculate_crc(data, length):
-        """:param data: The data to calculate the CRC for.
-        :param length: The length of the data to check."""
+    def _calculate_crc(data):
+        """:param data: The data to calculate the CRC for."""
 
         crc = 0xFFFF
         polynomial = 0xA001  # CRC Calculation
 
-        for x in range(length):
+        for x in range(len(data)):
             crc ^= ord(data[x])
             for y in range(8):
                 if crc & 0x0001:
@@ -149,17 +148,17 @@ class dkmodbus(object):
         """:param data: The data to check the CRC of."""
 
         # Do not include the 2 byte crc in crc calculation.
-        crc = dkmodbus._calculate_crc(data, len(data) - 2)
+        crc = dkmodbus._calculate_crc(data[:-2])
 
         # construct the received crc (last two bytes in packet), keep in mind the cec sends it backwards
-        rx_crx = data[len(data) - 1] + data[len(data) - 2]
+        rx_crx = data[-1] + data[-2]
         rx_crc = int(hexlify(rx_crx), 16)
         return crc == rx_crc
 
     def _send_receive_packet(self, packet):
         # Construct the ADU packet containing PDU packet above
         # Calculate CRC and append at the end of the ADU packet
-        crc = dkmodbus._calculate_crc(packet, len(packet))
+        crc = dkmodbus._calculate_crc(packet)
 
         # The modbus firmware wants the bytes in the wrong order for the crc
         # Send the LSB first
@@ -212,11 +211,9 @@ class dkmodbus(object):
                     # it's non zero.
                     if ord(response[pdu_length]) == 0:
                         # Null detected.
-                        # logger.debug('Null detected.')
                         cec_rx_packet = response[pdu_length + 1:len(response)]
                     else:
                         # No null detected.
-                        # logger.debug('No null detected.')
                         cec_rx_packet = response[pdu_length:len(response)]
 
                     logger.debug("Rx CEC:   (received) {}".format(hexlify(cec_rx_packet)))
@@ -255,7 +252,6 @@ class dkmodbus(object):
         # 02 bytes returned
         # 0000 register data
         # b844 CRC
-        #
         bytes_returned = struct.unpack('B', cec_rx_packet[2])[0]
         logger.debug('bytes_returned: {}'.format(bytes_returned))
 
