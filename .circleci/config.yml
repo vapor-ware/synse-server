@@ -20,6 +20,11 @@ jobs:
             tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
             mv /tmp/docker/* /usr/bin
       - run:
+          name: Setup Docker Images
+          command: |
+            docker pull timfallmk/endpoint-test:1
+            docker tag timfallmk/endpoint-test:1 vaporio/vapor-endpoint-base-x64:1.0
+      - run:
           name: Install Docker compose
           command: |
             set -x
