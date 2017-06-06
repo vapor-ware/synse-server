@@ -36,3 +36,13 @@ jobs:
       - run:
           name: Docker Compose Build GraphQL-Test
           command: docker-compose -f compose/graphql-test.yml build
+      - run:
+          name: Tests
+          command: |
+            make ipmi-tests
+            make rs485-tests
+            make i2c-tests
+            make snmp-tests
+            make redfish-tests
+            make general-tests
+            make graphql-test
