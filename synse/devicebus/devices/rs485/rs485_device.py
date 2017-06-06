@@ -27,6 +27,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
 import lockfile
+import serial
+from modbus import dkmodbus
 
 from synse.devicebus.devices.serial_device import SerialDevice
 from synse import constants as const
@@ -49,7 +51,7 @@ class RS485Device(SerialDevice):
         self.rack_id = kwargs['rack_id']
         self.unit = kwargs['device_unit']
 
-        self.timeout = kwargs.get('timeout', 0.25)
+        self.timeout = kwargs.get('timeout', 0.15)
         self.method = kwargs.get('method', 'rtu')
 
         self._lock = lockfile.LockFile(self.serial_lock)
@@ -192,3 +194,11 @@ class RS485Device(SerialDevice):
                 'firmware_version': 'Synse RS-485 Bridge v1.0'
             }
         )
+
+    def _create_modbus_client(self):
+        """Production hardware only wrapper for creating the serial device that
+         we use to speak modbus to the CEC (Central Exhaust Chamber) board.
+         This will not work for the emulator."""
+        ser = serial.Serial(self.device_name,  # Serial device name.
+                            baudrate=19200, parity='E', timeout=self.timeout)
+        return dkmodbus.dkmodbus(ser)

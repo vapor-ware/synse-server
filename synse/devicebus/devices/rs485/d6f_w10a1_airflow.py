@@ -37,7 +37,7 @@ from synse.errors import SynseException
 
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
-
+import conversions.conversions as conversions
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,8 @@ class D6FW10A1Airflow(RS485Device):
 
     def __init__(self, **kwargs):
         super(D6FW10A1Airflow, self).__init__(**kwargs)
+
+        logger.debug('D6FW10A1Airflow kwargs: {}'.format(kwargs))
 
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
@@ -78,6 +80,12 @@ class D6FW10A1Airflow(RS485Device):
                 'device_info': kwargs.get('device_info', 'cec airflow')
             }
         ]
+
+        # Get remainder from kwargs that is not accounted for.
+        self.slave_address = kwargs['device_unit']  # device_unit is the modbus slave address.
+        self.device_model = kwargs['device_model']
+
+        logger.debug('D6FW10A1Airflow self: {}'.format(dir(self)))
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -122,15 +130,24 @@ class D6FW10A1Airflow(RS485Device):
             dict: the sensor reading value.
         """
         with self._lock:
-            with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
-                # read airflow
-                result = client.read_holding_registers(self._register_map['airflow_reading'], count=1, unit=self.unit)
-                if result is None:
-                    raise SynseException('No response received for D6F-W10A airflow reading.')
-                elif isinstance(result, ExceptionResponse):
-                    raise SynseException('RS485 Exception: {}'.format(result))
+            if self.hardware_type == 'emulator':
+                with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
+                    # read airflow
+                    result = client.read_holding_registers(
+                        self._register_map['airflow_reading'], count=1, unit=self.unit)
+                    if result is None:
+                        raise SynseException('No response received for D6F-W10A airflow reading.')
+                    elif isinstance(result, ExceptionResponse):
+                        raise SynseException('RS485 Exception: {}'.format(result))
 
-                airflow = result.registers[0]  # pymodbus gives ints not bytes, no conversion needed.
+                    airflow = result.registers[0]  # pymodbus gives ints not bytes, no conversion needed.
 
-                # Return the reading.
-                return {const.UOM_AIRFLOW: airflow}
+            else:
+                # Production
+                client = self._create_modbus_client()
+
+                result = client.read_input_registers(self.slave_address, self.register_base,  1)
+                airflow = conversions.airflow_d6f_w10a1(result)
+
+            # Return the reading.
+            return {const.UOM_AIRFLOW: airflow}
