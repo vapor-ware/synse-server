@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 # establish constants for min/max fan speeds for this unit
 MIN_FAN_SPEED_RPM = 0
-MAX_FAN_SPEED_RPM = 1200
+MAX_FAN_SPEED_RPM = 1755
 
 
 class GS32010Fan(RS485Device):

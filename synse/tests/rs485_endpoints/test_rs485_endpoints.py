@@ -699,7 +699,7 @@ class Rs485EndpointsTestCase(unittest.TestCase):
         """ Test writing an RS485 device.  Set invalid speed.
         """
         with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/1201')
+            http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/1756')
 
         with self.assertRaises(VaporHTTPError):
             http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/-1')
