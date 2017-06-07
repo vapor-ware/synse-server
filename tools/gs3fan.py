@@ -11,6 +11,7 @@ from binascii import hexlify
 import struct
 from modbus import dkmodbus
 import time
+import conversions.conversions as conversions
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -284,9 +285,9 @@ def _read_airflow(ser):
     client = dkmodbus.dkmodbus(ser)
     result = client.read_input_registers(2, 8, 1)
     logger.debug('result {}'.format(hexlify(result)))
-    velocity_raw = int(hexlify(result[0:2]), 16)
-    print 'Airflow velocity = {} mm/s.'.format(velocity_raw)
-    velocity_cfm = velocity_raw * 6.28
+    velocity = conversions.airflow_d6f_w10a1(result)
+    print 'Airflow velocity = {} mm/s.'.format(velocity)
+    velocity_cfm = conversions.flow_mm_s_to_cfm(velocity)
     print 'Airflow velocity = {} CFM'.format(velocity_cfm)
 
 
@@ -299,17 +300,17 @@ def _read_all_fan(ser):
         register_data = client.read_holding_registers(1, register, 1)
 
         print '0x{:04x} 0x{} {:06d} {}'.format(
-            register,                               # Register as hex short.
-            hexlify(register_data),                 # Register data as hex.
-            struct.unpack('>H', register_data)[0],  # Register data as unsigned short.
-            FAN_CONTROLLER_REGISTERS[register])     # Description.
+            register,                                   # Register as hex short.
+            hexlify(register_data),                     # Register data as hex.
+            conversions.unpack_word(register_data),     # Register data as unsigned short.
+            FAN_CONTROLLER_REGISTERS[register])         # Description.
         time.sleep(.1)
 
 
 def _read_fan_register(ser, register):
     client = dkmodbus.dkmodbus(ser)
     register_data = client.read_holding_registers(1, register, 1)
-    result = hexlify(register_data)
+    result = conversions.unpack_word(register_data)
     print '0x{}'.format(result)
     return result
 
@@ -317,7 +318,7 @@ def _read_fan_register(ser, register):
 def _read_rpm(ser):
     client = dkmodbus.dkmodbus(ser)
     result = client.read_holding_registers(1, 0x2107, 1)
-    return int(hexlify(result), 16)
+    return conversions.unpack_word(result)
 
 
 def _read_temperature_and_humidity(ser):
@@ -331,8 +332,8 @@ def _read_temperature_and_humidity(ser):
     humidity_raw = int(hexlify(result[2:4]), 16)
     logger.debug('temperature_raw {}'.format(temperature_raw))
     logger.debug('humidity_raw {}'.format(humidity_raw))
-    temperature = ((temperature_raw / 65535.0) * 175) - 45
-    humidity = (humidity_raw / 65535.0) * 100
+    temperature = conversions.temperature_sht31(result)
+    humidity = conversions.humidity_sht31(result)
     print "Temperature = %0.2f C" % temperature
     print "Relative Humidity = %0.2f %%" % humidity
 
@@ -388,8 +389,8 @@ def _test1(ser):
             print '0x{:04x}   0x{}  {:06d}   {}'.format(
                 register,  # Register as hex short.
                 hexlify(register_data),  # Register data as hex.
-                struct.unpack('>H', register_data)[0],  # Register data as unsigned short.
-                FAN_CONTROLLER_REGISTERS[register])     # Description.
+                conversions.unpack_word(register_data),  # Register data as unsigned short.
+                FAN_CONTROLLER_REGISTERS[register])      # Description.
 
             time.sleep(.1)
 
@@ -407,13 +408,7 @@ def write(ser, rpm):
             '\x00\x00')      # Data to write.
 
     else:           # Turn the fan on at the desired RPM.
-        hz = float(rpm) / 29.22
-        logger.debug('Set rpm to {}, Hz to {}'.format(rpm, hz))
-        shifted_hz = int(hz * 10)
-        logger.debug('shifted_hz: {}'.format(shifted_hz))
-        packed_hz = struct.pack('>H', shifted_hz)
-        logger.debug('packed_hz {}'.format(hexlify(packed_hz)))
-
+        packed_hz = conversions.fan_gs3_2010_rpm_to_packed_hz(rpm)
         result = client.write_multiple_registers(
             1,      # Slave address.
             0x91A,  # Register to write to.

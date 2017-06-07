@@ -62,7 +62,7 @@ RUN ln -s /synse/configs/nginx/nginx.conf /etc/nginx/sites-enabled/nginx.conf &&
 
 # update the python path to include the synse module so that it
 # can be successfully be imported
-ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
+ENV PYTHONPATH="/synse/synse:/synse/protocols:${PYTHONPATH}"
 
 # Expose our API endpoint port.
 EXPOSE 5000

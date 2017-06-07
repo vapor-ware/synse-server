@@ -38,6 +38,8 @@ from synse.errors import SynseException
 
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
+import conversions.conversions as conversions
+from binascii import hexlify
 
 
 logger = logging.getLogger(__name__)
@@ -127,7 +129,7 @@ class SHT31Humidity(RS485Device):
                     raise SynseException('No response received for SHT31 temperature reading.')
                 elif isinstance(result, ExceptionResponse):
                     raise SynseException('RS485 Exception: {}'.format(result))
-                temperature = -45 + (175 * ((result.registers[0] * 1.0) / (pow(2, 16) - 1)))
+                temperature = conversions.temperature_sht31_int(result.registers[0])
 
                 # read humidity
                 result = client.read_holding_registers(self._register_map['humidity_register'], count=1, unit=self.unit)
@@ -135,7 +137,7 @@ class SHT31Humidity(RS485Device):
                     raise SynseException('No response received for SHT31 humidity reading.')
                 elif isinstance(result, ExceptionResponse):
                     raise SynseException('RS485 Exception: {}'.format(result))
-                humidity = 100 * ((result.registers[0] * 1.0) / (pow(2, 16) - 1))
+                humidity = conversions.humidity_sht31_int(result.registers[0])
 
-                # create client and read registers, composing a reading to return
+                # Return the reading.
                 return {const.UOM_HUMIDITY: humidity, const.UOM_TEMPERATURE: temperature}
