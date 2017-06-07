@@ -10,6 +10,7 @@ class _S(object):
     """String class to avoid hardcoded strings in tests.
     We will need a similar file for dev code."""
 
+    AIRFLOW_MILLIMETERS_PER_SECOND = 'airflow_mm_s'
     BLINK_OFF = 'steady'
     BLINK_ON = 'blink'
     BLINK_STATE = 'blink_state'

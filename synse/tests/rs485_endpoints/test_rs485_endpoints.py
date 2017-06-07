@@ -32,6 +32,7 @@ from synse.tests.test_config import PREFIX
 
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
+from vapor_common.tests.utils.strings import _S
 
 
 class Rs485EndpointsTestCase(unittest.TestCase):
@@ -457,28 +458,28 @@ class Rs485EndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('airflow_m_s', response)
-        self.assertIsInstance(response['airflow_m_s'], float)
-        self.assertEqual(response['airflow_m_s'], 0.0)
+        self.assertIn(_S.AIRFLOW_MILLIMETERS_PER_SECOND, response)
+        self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
+        self.assertEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 0.0)
 
         r = http.get(PREFIX + '/read/airflow/rack_1/50000004/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('airflow_m_s', response)
-        self.assertIsInstance(response['airflow_m_s'], float)
-        self.assertGreater(response['airflow_m_s'], 9.9)
-        self.assertLessEqual(response['airflow_m_s'], 10.0)
+        self.assertIn(_S.AIRFLOW_MILLIMETERS_PER_SECOND, response)
+        self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
+        self.assertGreater(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 9.9)
+        self.assertLessEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 10.0)
 
         r = http.get(PREFIX + '/read/airflow/rack_1/50000004/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('airflow_m_s', response)
-        self.assertIsInstance(response['airflow_m_s'], float)
-        self.assertEqual(response['airflow_m_s'], 0.0)
+        self.assertIn(_S.AIRFLOW_MILLIMETERS_PER_SECOND, response)
+        self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
+        self.assertEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 0.0)
 
     def test_016_read_steps(self):
         """ Test reading an RS485 device.  Read set of steps.
@@ -492,11 +493,11 @@ class Rs485EndpointsTestCase(unittest.TestCase):
 
             response = r.json()
             self.assertIsInstance(response, dict)
-            self.assertIn('airflow_m_s', response)
-            self.assertIsInstance(response['airflow_m_s'], float)
+            self.assertIn(_S.AIRFLOW_MILLIMETERS_PER_SECOND, response)
+            self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
             # within +/- 0.1 m/s
-            self.assertGreater(response['airflow_m_s'], target_readings[x]-0.1)
-            self.assertLessEqual(response['airflow_m_s'], target_readings[x]+0.1)
+            self.assertGreater(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], target_readings[x]-0.1)
+            self.assertLessEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], target_readings[x]+0.1)
 
     def test_017_read_bad_device(self):
         """ Test reading an RS485 device.  This device has bad register values behind it, so should raise 500.
@@ -533,27 +534,27 @@ class Rs485EndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIsInstance(response['airflow_m_s'], float)
-        self.assertGreater(response['airflow_m_s'], 9.9)
-        self.assertLessEqual(response['airflow_m_s'], 10.0)
+        self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
+        self.assertGreater(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 9.9)
+        self.assertLessEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 10.0)
 
         r = http.get(PREFIX + '/read/airflow/rack_1/50000004/cec airflow 2 - min max')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('airflow_m_s', response)
-        self.assertIsInstance(response['airflow_m_s'], float)
-        self.assertEqual(response['airflow_m_s'], 0.0)
+        self.assertIn(_S.AIRFLOW_MILLIMETERS_PER_SECOND, response)
+        self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
+        self.assertEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 0.0)
 
         r = http.get(PREFIX + '/read/airflow/rack_1/50000004/cec airflow 2 - min max')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIsInstance(response['airflow_m_s'], float)
-        self.assertGreater(response['airflow_m_s'], 9.9)
-        self.assertLessEqual(response['airflow_m_s'], 10.0)
+        self.assertIsInstance(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], float)
+        self.assertGreater(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 9.9)
+        self.assertLessEqual(response[_S.AIRFLOW_MILLIMETERS_PER_SECOND], 10.0)
 
     def test_019_read_invalid_device_type_or_command(self):
         """ Test reading an RS485 device.  Read wrong type of device, or use wrong command.
