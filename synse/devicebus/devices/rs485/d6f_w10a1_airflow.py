@@ -41,6 +41,8 @@ from pymodbus.pdu import ExceptionResponse
 
 logger = logging.getLogger(__name__)
 
+# TODO: Sensor has changed. This is a F660.
+
 
 class D6FW10A1Airflow(RS485Device):
     """ Device subclass for D6FW10A1 airflow sensor using RS485 comms.
@@ -127,27 +129,8 @@ class D6FW10A1Airflow(RS485Device):
                     raise SynseException('No response received for D6F-W10A airflow reading.')
                 elif isinstance(result, ExceptionResponse):
                     raise SynseException('RS485 Exception: {}'.format(result))
-                airflow = (result.registers[0] * 0.01)  # FIXME: temporarily scale values from 0..399 to V (0-based)
 
-                # FIXME: ***these will need to be tweaked based on the actual hardware register values***
-                if 0.00 <= airflow <= 0.93:
-                    #     VOLTS        FLOW     STEP RATE
-                    # 1.00 .. 1.93 :  0 .. 2    200/93
-                    airflow *= (200.0 / 93.0)
-                elif 0.94 <= airflow <= 2.23:
-                    # 1.94 .. 3.23 :  2 .. 4    200/129
-                    airflow = ((airflow - 0.95) * (200.0 / 129.0)) + 2.0
-                elif 2.24 <= airflow <= 3.25:
-                    # 3.24 .. 4.25 :  4 .. 6    200/101
-                    airflow = ((airflow - 2.24) * (200.0 / 101.0)) + 4.0
-                elif 3.26 <= airflow <= 3.73:
-                    # 4.26 .. 4.73 :  6 .. 8    200/47
-                    airflow = ((airflow - 3.26) * (200.0 / 47.0)) + 6.0
-                elif 3.74 <= airflow < 4.00:
-                    # 4.74 .. 5.00 :  8 .. 10   26.0/200
-                    airflow = ((airflow - 3.74) * (200.0 / 26.0)) + 8.0
-                else:
-                    raise SynseException('Invalid raw reading for airflow sensor: {}'.format(airflow))
+                airflow = result.registers[0]  # pymodbus gives ints not bytes, no conversion needed.
 
-                # create client and read registers, composing a reading to return
+                # Return the reading.
                 return {const.UOM_AIRFLOW: airflow}

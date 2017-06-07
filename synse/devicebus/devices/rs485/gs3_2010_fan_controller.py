@@ -187,6 +187,8 @@ class GS32010Fan(RS485Device):
                     )
                 with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
                     # write speed
+                    # This code is not doing conversion from rpm to hz, but afraid to touch it.
+                    # We will do the conversion on production hardware and leave the emulator code alone.
                     result = client.write_registers(self._register_map['speed_rpm'], [speed_rpm], unit=self.unit)
                     if result is None:
                         raise SynseException('No response received for GS3-2010 fan control.')
