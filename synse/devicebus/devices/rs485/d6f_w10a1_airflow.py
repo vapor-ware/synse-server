@@ -46,7 +46,7 @@ class D6FW10A1Airflow(RS485Device):
     """ Device subclass for D6FW10A1 airflow sensor using RS485 comms.
 
     Reads a 10-bit ADC value from the CEC MCU that maps to 1.00-5.00V,
-    then converted to airflow_m_s.
+    then converted to airflow_mm_s. (millimeters per second)
     """
     _instance_name = 'd6f-w10a1'
 
@@ -107,9 +107,11 @@ class D6FW10A1Airflow(RS485Device):
             # if we get here, there was no sensor device found, so we must raise
             logger.error('No response for sensor reading for command: {}'.format(command.data))
             raise SynseException('No sensor reading returned from RS485.')
-        
+
         except Exception:
-            raise SynseException('Error reading D6F-W10A airflow sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException(
+                'Error reading D6F-W10A airflow sensor (device id: {})'.format(
+                    device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
         """ Internal method to get and convert the sensor reading.

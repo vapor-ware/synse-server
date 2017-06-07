@@ -127,7 +127,7 @@ DEVICE_NONE = intern('none')  # Same as unknown.
 # ---------------------------------------------------------
 # Device unit of measure constants
 # ---------------------------------------------------------
-UOM_AIRFLOW = intern('airflow_m_s')
+UOM_AIRFLOW = intern('airflow_mm_s')
 UOM_FAN_SPEED = intern('speed_rpm')
 UOM_HUMIDITY = intern('humidity')
 UOM_PRESSURE = intern('pressure_kpa')
