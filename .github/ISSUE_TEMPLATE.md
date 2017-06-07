@@ -1,5 +1,3 @@
-**Type**:  BUG | FEATURE | WORK ITEM | DOCUMENTATION | OTHER
-
 ## Description
 
 ## Related Issues
