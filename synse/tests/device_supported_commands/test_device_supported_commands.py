@@ -90,7 +90,9 @@ class SupportedDeviceCommandsTestCase(unittest.TestCase):
             'board_offset': 0,
             'board_id_range': (0, 0),
             'device_id': 'test_device',
-            'base_address': '0'
+            'base_address': '0',
+            'device_model': 'test_device',
+            'hardware_type': 'production'
         }
         cls.sht31humidity = SHT31Humidity(**rs485_kwargs)
         cls.d6fw10a1airflow = D6FW10A1Airflow(**rs485_kwargs)

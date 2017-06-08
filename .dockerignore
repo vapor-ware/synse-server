@@ -1,6 +1,7 @@
 # Synse specific components
 dockerfile
-tools
+tools/generate_rack_config.py
+tools/ipmi_diag.py
 docs
 
 # JetBrains (PyCharm, WebStorm, etc.)
