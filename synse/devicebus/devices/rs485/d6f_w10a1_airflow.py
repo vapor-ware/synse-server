@@ -142,12 +142,16 @@ class D6FW10A1Airflow(RS485Device):
 
                     airflow = result.registers[0]  # pymodbus gives ints not bytes, no conversion needed.
 
-            else:
+            elif self.hardware_type == 'production':
                 # Production
                 client = self._create_modbus_client()
 
                 result = client.read_input_registers(self.slave_address, self.register_base,  1)
                 airflow = conversions.airflow_d6f_w10a1(result)
+
+            else:
+                raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
+                    self.hardware_type))
 
             # Return the reading.
             return {const.UOM_AIRFLOW: airflow}

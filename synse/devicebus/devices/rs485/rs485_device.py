@@ -35,6 +35,7 @@ from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.version import __api_version__, __version__
+from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +43,12 @@ logger = logging.getLogger(__name__)
 class RS485Device(SerialDevice):
     """ Base class for all RS485 device implementations.
     """
+    HARDWARE_TYPE_UNKNOWN = 'Unknown hardware type {}.'
+
     def __init__(self, **kwargs):
         super(RS485Device, self).__init__(lock_path=kwargs['lockfile'])
 
-        self.hardware_type = kwargs.get('hardware_type', 'unknown')
+        self._set_hardware_type(kwargs.get('hardware_type', 'unknown'))
 
         self.device_name = kwargs['device_name']
         self.rack_id = kwargs['rack_id']
@@ -202,3 +205,14 @@ class RS485Device(SerialDevice):
         ser = serial.Serial(self.device_name,  # Serial device name.
                             baudrate=19200, parity='E', timeout=self.timeout)
         return dkmodbus.dkmodbus(ser)
+
+    def _set_hardware_type(self, hardware_type):
+        """Known hardware types are emulator and production. Check that the
+        parameter is known and set self.hardware_type.
+        :param hardware_type: The hardware_type the caller would like to set.
+        :raises SynseException: The given hardware_type is not known."""
+        known = ['emulator', 'production']
+        if hardware_type not in known:
+            raise SynseException(
+                RS485Device.HARDWARE_TYPE_UNKNOWN.format(hardware_type))
+        self.hardware_type = hardware_type

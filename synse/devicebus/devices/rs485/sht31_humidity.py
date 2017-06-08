@@ -119,7 +119,8 @@ class SHT31Humidity(RS485Device):
             raise SynseException('No sensor reading returned from RS485.')
 
         except Exception:
-            raise SynseException('Error reading SHT31 humidity sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error reading SHT31 humidity sensor (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
         """ Internal method for reading data off of the SHT31 Humidity device.
@@ -140,7 +141,8 @@ class SHT31Humidity(RS485Device):
                     temperature = conversions.temperature_sht31_int(result.registers[0])
 
                     # read humidity
-                    result = client.read_holding_registers(self._register_map['humidity_register'], count=1, unit=self.unit)
+                    result = client.read_holding_registers(
+                        self._register_map['humidity_register'], count=1, unit=self.unit)
                     if result is None:
                         raise SynseException('No response received for SHT31 humidity reading.')
                     elif isinstance(result, ExceptionResponse):
@@ -150,7 +152,7 @@ class SHT31Humidity(RS485Device):
                     # Return the reading.
                     return {const.UOM_HUMIDITY: humidity, const.UOM_TEMPERATURE: temperature}
 
-            else:
+            elif self.hardware_type == 'production':
                 # Production
                 client = self._create_modbus_client()
                 result = client.read_input_registers(self.slave_address, self.register_base, 2)
@@ -158,3 +160,7 @@ class SHT31Humidity(RS485Device):
                 humidity = conversions.humidity_sht31(result)
 
                 return {const.UOM_HUMIDITY: humidity, const.UOM_TEMPERATURE: temperature}
+
+            else:
+                raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
+                    self.hardware_type))

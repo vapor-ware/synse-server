@@ -36,8 +36,21 @@ def fan_gs3_2010_rpm_to_packed_hz(rpm):
     Does no input range validation.
     :param rpm: User provided rpm setting.
     :returns: Hz packed into two bytes."""
+    # User manual for the gs3 fan controller is here:
+    # https://cdn.automationdirect.com/static/manuals/gs3m/gs3m.pdf
+
+    # We use the result of this function to set register
+    # P9.26 / Serial Comm Speed Reference.
+
+    # This conversion is not in the manual, but can be derived from the
+    # register range of 0.0 to 400.0 Hz and the rpm range of 0 to 1755.
     hz = float(rpm) / 29.22
     logger.debug('Set rpm to {}, Hz to {}'.format(rpm, hz))
+
+    # We shift the hz value here since the register is set by BCD (binary coded
+    # decimal) except in tenths of Hz. Typically floats are not used on control
+    # systems, so this is a 16 bit int (word). In order to get tenths of Hz,
+    # we multiply by 10 which is a BCD shift.
     shifted_hz = int(hz * 10)
     logger.debug('shifted_hz: {}'.format(shifted_hz))
     packed_hz = struct.pack('>H', shifted_hz)

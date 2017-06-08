@@ -39,8 +39,6 @@ from synse.errors import SynseException
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
 
-import struct
-from binascii import hexlify
 import conversions.conversions as conversions
 
 logger = logging.getLogger(__name__)
@@ -222,7 +220,7 @@ class GS32010Fan(RS485Device):
                     # create client and read registers, composing a reading to return
                     return {const.UOM_VAPOR_FAN: result.registers[0]}
 
-            else:
+            elif self.hardware_type == 'production':
                 # Production
                 if action == 'set_speed' and speed_rpm is not None:
                     GS32010Fan._check_fan_speed_setting(speed_rpm)
@@ -232,6 +230,10 @@ class GS32010Fan(RS485Device):
                     return {const.UOM_VAPOR_FAN: speed_rpm}
                 else:
                     return {const.UOM_VAPOR_FAN: self._get_rpm()}
+
+            else:
+                raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
+                    self.hardware_type))
 
     @staticmethod
     def _check_fan_speed_setting(speed_rpm):
@@ -265,12 +267,7 @@ class GS32010Fan(RS485Device):
                 '\x00\x00')  # Data to write.
 
         else:  # Turn the fan on at the desired RPM.
-            hz = float(rpm) / 29.22
-            logger.debug('Set rpm to {}, Hz to {}'.format(rpm, hz))
-            shifted_hz = int(hz * 10)
-            logger.debug('shifted_hz: {}'.format(shifted_hz))
-            packed_hz = struct.pack('>H', shifted_hz)
-            logger.debug('packed_hz {}'.format(hexlify(packed_hz)))
+            packed_hz = conversions.fan_gs3_2010_rpm_to_packed_hz(rpm)
 
             result = client.write_multiple_registers(
                 1,  # Slave address.
