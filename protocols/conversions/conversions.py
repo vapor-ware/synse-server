@@ -22,10 +22,10 @@ from binascii import hexlify
 logger = logging.getLogger(__name__)
 
 
-def airflow_d6f_w10a1(reading):
+def airflow_f660(reading):
     """Return the airflow velocity in millimeters per second given the raw two
-    byte reading from the d6f w10a1 airflow sensor.
-    :param reading: The raw two byte reading from the d6f w10a1 airflow sensor.
+    byte reading from the F660 airflow sensor.
+    :param reading: The raw two byte reading from the F660 airflow sensor.
     :returns: The airflow velocity in millimeters per second."""
     return unpack_word(reading)
 
