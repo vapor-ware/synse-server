@@ -34,7 +34,7 @@
           "device_type": "airflow",
           "device_id": "0001",
           "base_address": "4000",
-          "device_model": "d6f-w10a1",
+          "device_model": "f660",
           "device_unit": 1,
           "device_info": "cec airflow 1 - step ranges"
         },
@@ -42,7 +42,7 @@
           "device_type": "airflow",
           "device_id": "0001",
           "base_address": "4001",
-          "device_model": "d6f-w10a1",
+          "device_model": "f660",
           "device_unit": 1,
           "device_info": "cec airflow 2 - min max"
         },
@@ -50,7 +50,7 @@
           "device_type": "airflow",
           "device_id": "0001",
           "base_address": "4002",
-          "device_model": "d6f-w10a1",
+          "device_model": "f660",
           "device_unit": 1,
           "device_info": "cec airflow 3 - all bad"
         },
@@ -58,7 +58,7 @@
           "device_type": "airflow",
           "device_id": "0001",
           "base_address": "7ac0",
-          "device_model": "d6f-w10a1",
+          "device_model": "f660",
           "device_unit": 1,
           "device_info": "BAD AIRFLOW DEVICE - NO REGISTERS IN EMULATOR"
         },

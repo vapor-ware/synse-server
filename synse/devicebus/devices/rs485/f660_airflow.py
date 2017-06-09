@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse D6F-W10A1 Airflow RS485 Device.
+""" Synse F660 Airflow RS485 Device.
 
     Author: Andrew Cencini
     Date:   10/12/2016
@@ -41,21 +41,19 @@ import conversions.conversions as conversions
 
 logger = logging.getLogger(__name__)
 
-# TODO: Sensor has changed. This is a F660.
 
-
-class D6FW10A1Airflow(RS485Device):
-    """ Device subclass for D6FW10A1 airflow sensor using RS485 comms.
+class F660Airflow(RS485Device):
+    """ Device subclass for F660 airflow sensor using RS485 comms.
 
     Reads a 10-bit ADC value from the CEC MCU that maps to 1.00-5.00V,
     then converted to airflow_mm_s. (millimeters per second)
     """
-    _instance_name = 'd6f-w10a1'
+    _instance_name = 'f660'
 
     def __init__(self, **kwargs):
-        super(D6FW10A1Airflow, self).__init__(**kwargs)
+        super(F660Airflow, self).__init__(**kwargs)
 
-        logger.debug('D6FW10A1Airflow kwargs: {}'.format(kwargs))
+        logger.debug('F660Airflow kwargs: {}'.format(kwargs))
 
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
@@ -85,7 +83,7 @@ class D6FW10A1Airflow(RS485Device):
         self.slave_address = kwargs['device_unit']  # device_unit is the modbus slave address.
         self.device_model = kwargs['device_model']
 
-        logger.debug('D6FW10A1Airflow self: {}'.format(dir(self)))
+        logger.debug('F660Airflow self: {}'.format(dir(self)))
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -120,7 +118,7 @@ class D6FW10A1Airflow(RS485Device):
 
         except Exception:
             raise SynseException(
-                'Error reading D6F-W10A airflow sensor (device id: {})'.format(
+                'Error reading F660 airflow sensor (device id: {})'.format(
                     device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
@@ -136,7 +134,7 @@ class D6FW10A1Airflow(RS485Device):
                     result = client.read_holding_registers(
                         self._register_map['airflow_reading'], count=1, unit=self.unit)
                     if result is None:
-                        raise SynseException('No response received for D6F-W10A airflow reading.')
+                        raise SynseException('No response received for F660 airflow reading.')
                     elif isinstance(result, ExceptionResponse):
                         raise SynseException('RS485 Exception: {}'.format(result))
 
@@ -147,7 +145,7 @@ class D6FW10A1Airflow(RS485Device):
                 client = self._create_modbus_client()
 
                 result = client.read_input_registers(self.slave_address, self.register_base,  1)
-                airflow = conversions.airflow_d6f_w10a1(result)
+                airflow = conversions.airflow_f660(result)
 
             else:
                 raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(

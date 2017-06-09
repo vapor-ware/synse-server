@@ -25,7 +25,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from d6f_w10a1_airflow import D6FW10A1Airflow
+from f660_airflow import F660Airflow
 from gs3_2010_fan_controller import GS32010Fan
 from sht31_humidity import SHT31Humidity
 

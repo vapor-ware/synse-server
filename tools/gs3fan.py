@@ -285,7 +285,7 @@ def _read_airflow(ser):
     client = dkmodbus.dkmodbus(ser)
     result = client.read_input_registers(2, 8, 1)
     logger.debug('result {}'.format(hexlify(result)))
-    velocity = conversions.airflow_d6f_w10a1(result)
+    velocity = conversions.airflow_f660(result)
     print 'Airflow velocity = {} mm/s.'.format(velocity)
     velocity_cfm = conversions.flow_mm_s_to_cfm(velocity)
     print 'Airflow velocity = {} CFM'.format(velocity_cfm)
