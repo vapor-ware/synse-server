@@ -28,7 +28,7 @@ def read_differential_pressures(count):
     :param count: The number of differential pressure sensors to read.
     :returns: An array of differential pressure sensor readings in Pascals.
     The array index will be the same as the channel in the synse i2c sdp-610
-    differential pressure sensor configuration."""
+    differential pressure sensor configuration. None is returned on failure."""
 
     # Port A I2C for PCA9546A
     vec = MPSSE()
@@ -55,7 +55,7 @@ def read_differential_pressures(count):
         vec.Stop()
         vec.SendAcks()
 
-        # Cycle through the count number od sensors connected to each channel
+        # Cycle through the count number of sensors connected to each channel
         # on the PCA9546A.
         channel = 1
         for x in range(count):
@@ -96,9 +96,7 @@ def read_differential_pressures(count):
 
             else:
                 logger.error('CRC Failed')
-                # TODO: This is elsewhere as a non-result as code that has not
-                # been checked in yet. We need to unify this.
-                result.append(-9999)
+                result.append(None)
 
             # set the next channel
             channel = channel << 1
@@ -147,7 +145,6 @@ def read_thermistors(count):
         vec.SendNacks()
         vec.Read(1)
 
-        # vec.Read(1)
         vec.SendAcks()
         vec.Stop()
 
@@ -215,7 +212,4 @@ def _crc8(data):
             else:
                 crc = (crc << 1)
 
-    if crc == ord(data[2]):
-        return True
-    else:
-        return False
+    return crc == ord(data[2])

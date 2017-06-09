@@ -120,13 +120,12 @@ def thermistor_max11608_adc(reading):
     """Convert the raw two byte reading from the max11608-adc thermistor to
     degrees Celsius.
     :param reading: The two byte reading from the max11608-adc thermistor.
-    :returns: The temperature reading in degrees Celsius or -1 if no thermistor
+    :returns: The temperature reading in degrees Celsius or None if no thermistor
     is present."""
     raw = unpack_word(reading)
     if raw == 0xFFFF:
-        # TODO: THIS BROKE EVERYTHING: temperature = None
         # All f means no thermistor plugged in.
-        return -1
+        return None
 
     # These are used for converting raw thermistor readings to Celsius.
     # Values used for slope intercept equation for temperature linear fit
