@@ -12,6 +12,7 @@ import struct
 from modbus import dkmodbus
 import time
 import conversions.conversions as conversions
+import i2c_common.i2c_common as i2c_common
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -279,6 +280,8 @@ def _print_usage():
     print '\t\t <integer> set speed in RPM (0 < 1755)'
     print '\t\t register: set fan register in the form of 0x91c {data}'
     print '\ttemp: gets temperature and humidity'
+    print '\ttherm: gets all thermistors'
+    print '\tpressure: gets all differential pressures'
 
 
 def _read_airflow(ser):
@@ -305,6 +308,15 @@ def _read_all_fan(ser):
             conversions.unpack_word(register_data),     # Register data as unsigned short.
             FAN_CONTROLLER_REGISTERS[register])         # Description.
         time.sleep(.1)
+
+
+def _read_differential_pressures():
+    readings = i2c_common.read_differential_pressures(3)
+    # TODO: Should try to read 4 sensors when only 3 ports exist on current hardware.
+    counter = 0
+    for reading in readings:
+        print 'Differential Pressure [{}]: {} Pa'.format(counter, reading)
+        counter += 1
 
 
 def _read_fan_register(ser, register):
@@ -336,6 +348,17 @@ def _read_temperature_and_humidity(ser):
     humidity = conversions.humidity_sht31(result)
     print "Temperature = %0.2f C" % temperature
     print "Relative Humidity = %0.2f %%" % humidity
+
+
+def _read_thermistors():
+    """Read all thermistors from the CEC board. A reading of -1 indicates that
+    no thermistor is present."""
+    # TODO: Should try to read 12 thermistors when only 8 ports exist on current hardware.
+    readings = i2c_common.read_thermistors(8)
+    counter = 0
+    for reading in readings:
+        print 'Thermistor [{}]: {} C'.format(counter, reading)
+        counter += 1
 
 
 def _reset_usb():
@@ -427,6 +450,14 @@ def _write_fan_register(ser, register, data):
 def main():
     if sys.argv[1] == 'reset' and sys.argv[2] == 'usb':
         return _reset_usb()  # Do this without trying to open the serial port. We may not be able to open it.
+
+    # i2c stuff is first to avoid the serial (don't need it).
+    if sys.argv[1] == 'therm':
+        _read_thermistors()
+        return 0
+    elif sys.argv[1] == 'pressure':
+        _read_differential_pressures()
+        return 0
 
     ser = serial.Serial("/dev/ttyUSB3", baudrate=19200, parity='E', timeout=0.15)
     if sys.argv[1] == 'get':
