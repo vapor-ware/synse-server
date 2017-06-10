@@ -71,6 +71,7 @@ class _S(object):
     OVER_CURRENT = 'over_current'
     POWER_OK = 'power_ok'
     POWER_STATUS = 'power_status'
+    PRESSURE_PA = 'pressure_pa'
     RACK_ID = 'rack_id'
     RACKS = 'racks'
     SNMP_EMULATOR_DOWN = 'Bad IPv4/UDP transport address snmp-emulator-synse-testdevice1-board1@11012: ' \

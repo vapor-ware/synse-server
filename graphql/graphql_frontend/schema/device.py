@@ -284,7 +284,7 @@ class VoltageDevice(DeviceBase):
 @resolve_fields
 class PressureDevice(DeviceBase):
     _resolve_fields = [
-        'pressure_kpa'
+        'pressure_pa'
     ]
 
     class Meta:

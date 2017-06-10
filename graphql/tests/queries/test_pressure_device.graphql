@@ -3,7 +3,7 @@
     boards {
       devices(device_type:"pressure") {
         ... on PressureDevice {
-          pressure_kpa
+          pressure_pa
           timestamp
           request_received
         }

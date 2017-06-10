@@ -32,6 +32,7 @@ from synse.tests.test_config import PREFIX
 
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
+from vapor_common.tests.utils.strings import _S
 
 
 class I2CEndpointsTestCase(unittest.TestCase):
@@ -307,7 +308,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertEqual(response['temperature_c'], -7.816)
+        self.assertEqual(response['temperature_c'], -7.80377)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010000/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -338,7 +339,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 18.1)
+        self.assertGreaterEqual(response['temperature_c'], 18.0)
         self.assertLessEqual(response['temperature_c'], 18.6)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
@@ -348,8 +349,8 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 18.5)
-        self.assertLessEqual(response['temperature_c'], 18.8)
+        self.assertGreaterEqual(response['temperature_c'], 17.9)
+        self.assertLessEqual(response['temperature_c'], 18.0)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -378,8 +379,8 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 37.9)
-        self.assertLessEqual(response['temperature_c'], 38.1)
+        self.assertGreaterEqual(response['temperature_c'], 38.4)
+        self.assertLessEqual(response['temperature_c'], 38.5)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -398,8 +399,8 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 66.5)
-        self.assertLessEqual(response['temperature_c'], 66.9)
+        self.assertGreaterEqual(response['temperature_c'], 66.9)
+        self.assertLessEqual(response['temperature_c'], 67.1)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -408,8 +409,8 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 66.5)
-        self.assertLessEqual(response['temperature_c'], 67.0)
+        self.assertGreaterEqual(response['temperature_c'], 67.5)
+        self.assertLessEqual(response['temperature_c'], 67.6)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -428,8 +429,18 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 79.9)
-        self.assertLessEqual(response['temperature_c'], 80.4)
+        self.assertGreaterEqual(response['temperature_c'], 80.5)
+        self.assertLessEqual(response['temperature_c'], 80.7)
+
+        r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
+        self.assertTrue(http.request_ok(r.status_code))
+
+        response = r.json()
+        self.assertIsInstance(response, dict)
+        self.assertIn('temperature_c', response)
+        self.assertIsInstance(response['temperature_c'], float)
+        self.assertGreaterEqual(response['temperature_c'], 93.9)
+        self.assertLessEqual(response['temperature_c'], 94.2)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -439,7 +450,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
         self.assertGreaterEqual(response['temperature_c'], 94.9)
-        self.assertLessEqual(response['temperature_c'], 95.2)
+        self.assertLessEqual(response['temperature_c'], 95.1)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -448,18 +459,8 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 95.2)
-        self.assertLessEqual(response['temperature_c'], 95.7)
-
-        r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('temperature_c', response)
-        self.assertIsInstance(response['temperature_c'], float)
-        self.assertGreaterEqual(response['temperature_c'], 104.3)
-        self.assertLessEqual(response['temperature_c'], 104.8)
+        self.assertGreaterEqual(response['temperature_c'], 104.9)
+        self.assertLessEqual(response['temperature_c'], 105.1)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010001/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -501,7 +502,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertEqual(response['temperature_c'], 18.585)
+        self.assertEqual(response['temperature_c'], 18.0)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010003/0001')
         self.assertTrue(http.request_ok(r.status_code))
@@ -510,7 +511,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertEqual(response['temperature_c'], 18.585)
+        self.assertEqual(response['temperature_c'], 18.0)
 
     def test_011_read_bad_device(self):
         """ Test reading an I2C device.  This device has no emulator behind it, so should raise 500.
@@ -541,7 +542,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertEqual(response['temperature_c'], -7.816)
+        self.assertEqual(response['temperature_c'], -7.80377)
 
         r = http.get(PREFIX + '/read/temperature/rack_1/50010000/CEC Temperature 1 - min-max')
         self.assertTrue(http.request_ok(r.status_code))
@@ -559,7 +560,7 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertIsInstance(response, dict)
         self.assertIn('temperature_c', response)
         self.assertIsInstance(response['temperature_c'], float)
-        self.assertEqual(response['temperature_c'], -7.816)
+        self.assertEqual(response['temperature_c'], -7.80377)
 
     def test_013_read_invalid_device_type_or_command(self):
         """ Test reading an I2C device.  Read wrong type of device, or use wrong command.
@@ -597,27 +598,27 @@ class I2CEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], 0.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], 0.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010005/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], -1.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], -1.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010005/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], 0.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], 0.0)
 
     def test_015_read_steps_second_device(self):
         """ Test reading an I2C device.  Read from a second device and ensure values come back properly.
@@ -627,100 +628,100 @@ class I2CEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 0.9)
-        self.assertLessEqual(response['pressure_kpa'], 1.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 0.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 1.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 254.9)
-        self.assertLessEqual(response['pressure_kpa'], 255.1)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 254.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 255.1)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 16383.9)
-        self.assertLessEqual(response['pressure_kpa'], 16384.1)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 16383.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 16384.1)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 32766.9)
-        self.assertLessEqual(response['pressure_kpa'], 32767.1)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 32766.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 32767.1)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], -32700.1)
-        self.assertLessEqual(response['pressure_kpa'], -32699.9)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], -32700.1)
+        self.assertLessEqual(response[_S.PRESSURE_PA], -32699.9)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 2558.9)
-        self.assertLessEqual(response['pressure_kpa'], 2559.1)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 2558.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 2559.1)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], -86.1)
-        self.assertLessEqual(response['pressure_kpa'], -85.9)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], -86.1)
+        self.assertLessEqual(response[_S.PRESSURE_PA], -85.9)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], -256.1)
-        self.assertLessEqual(response['pressure_kpa'], -255.9)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], -256.1)
+        self.assertLessEqual(response[_S.PRESSURE_PA], -255.9)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 0.9)
-        self.assertLessEqual(response['pressure_kpa'], 1.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 0.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 1.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010006/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertGreaterEqual(response['pressure_kpa'], 254.9)
-        self.assertLessEqual(response['pressure_kpa'], 255.1)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertGreaterEqual(response[_S.PRESSURE_PA], 254.9)
+        self.assertLessEqual(response[_S.PRESSURE_PA], 255.1)
 
     def test_016_read_single_value(self):
         """ Test reading an I2C device.  Read single value repeatedly out from the fourth temperature sensor.
@@ -730,18 +731,18 @@ class I2CEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], 0.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], 0.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010007/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], 0.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], 0.0)
 
     def test_017_read_bad_device(self):
         """ Test reading an I2C device.  This device has no emulator behind it, so should raise 500.
@@ -770,27 +771,27 @@ class I2CEndpointsTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], -1.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], -1.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010005/CEC Pressure 1 - min-max')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], 0.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], 0.0)
 
         r = http.get(PREFIX + '/read/pressure/rack_1/50010005/CEC Pressure 1 - min-max')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('pressure_kpa', response)
-        self.assertIsInstance(response['pressure_kpa'], float)
-        self.assertEqual(response['pressure_kpa'], -1.0)
+        self.assertIn(_S.PRESSURE_PA, response)
+        self.assertIsInstance(response[_S.PRESSURE_PA], float)
+        self.assertEqual(response[_S.PRESSURE_PA], -1.0)
 
     def test_019_read_invalid_device_type_or_command(self):
         """ Test reading an I2C device.  Read wrong type of device, or use wrong command.

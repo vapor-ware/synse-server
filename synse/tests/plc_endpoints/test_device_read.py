@@ -31,6 +31,7 @@ from synse.tests.test_config import PREFIX
 
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
+from vapor_common.tests.utils.strings import _S
 
 
 class DeviceReadTestCase(unittest.TestCase):
@@ -354,7 +355,7 @@ class DeviceReadTestCase(unittest.TestCase):
         r = http.get(PREFIX + "/read/pressure/rack_1/00000016/0001")
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pressure_kpa"], 0.00)
+        self.assertEqual(response[_S.PRESSURE_PA], 0.00)
 
     def test_017_read_pressure_invalid(self):
         """ Read invalid pressure value (invalid)
@@ -370,7 +371,7 @@ class DeviceReadTestCase(unittest.TestCase):
         r = http.get(PREFIX + "/read/pressure/rack_1/00000016/0003")
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pressure_kpa"], -0.12)
+        self.assertEqual(response[_S.PRESSURE_PA], -0.12)
 
     def test_019_read_pressure_int_string_valid(self):
         """ Read a valid pressure value (1)
@@ -378,7 +379,7 @@ class DeviceReadTestCase(unittest.TestCase):
         r = http.get(PREFIX + "/read/pressure/rack_1/00000016/0004")
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pressure_kpa"], 1)
+        self.assertEqual(response[_S.PRESSURE_PA], 1)
 
     def test_020_read_pressure_int_valid(self):
         """ Read a valid pressure value (-1)
@@ -386,4 +387,4 @@ class DeviceReadTestCase(unittest.TestCase):
         r = http.get(PREFIX + "/read/pressure/rack_1/00000016/0005")
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pressure_kpa"], -1)
+        self.assertEqual(response[_S.PRESSURE_PA], -1)

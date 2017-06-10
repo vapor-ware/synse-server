@@ -52,7 +52,7 @@ class TestDevice(BaseSchemaTest):
                     {
                       "devices": [
                         {
-                          "pressure_kpa": -6.0,
+                          "pressure_pa": -6.0,
                           "timestamp": 1495036581,
                           "request_received": 1495036581
                         }
@@ -190,7 +190,7 @@ class TestDevice(BaseSchemaTest):
 
     def test_pressure(self):
         keys = [
-            'pressure_kpa',
+            'pressure_pa',
             'timestamp',
             'request_received'
         ]

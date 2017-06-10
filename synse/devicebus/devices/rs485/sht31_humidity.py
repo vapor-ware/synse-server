@@ -39,7 +39,6 @@ from synse.errors import SynseException
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
 import conversions.conversions as conversions
-from binascii import hexlify
 
 logger = logging.getLogger(__name__)
 
