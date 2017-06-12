@@ -343,6 +343,7 @@ def read_device(rack_id, device_type, board_id, device_id):
     board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
     cmd = current_app.config['CMD_FACTORY'].get_read_command({
+        _s_.RACK_ID: rack_id,
         _s_.BOARD_ID: board_id,
         _s_.DEVICE_ID: device_id,
         _s_.DEVICE_TYPE: get_device_type_code(device_type.lower()),

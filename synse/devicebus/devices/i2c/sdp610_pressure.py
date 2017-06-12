@@ -27,7 +27,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
 from binascii import hexlify
-import time
 import lockfile
 import sys
 
@@ -39,7 +38,8 @@ from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 
-from mpsse import *
+import i2c_common.i2c_common as i2c_common
+
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +56,8 @@ class SDP610Pressure(I2CDevice):
 
     def __init__(self, **kwargs):
         super(SDP610Pressure, self).__init__(**kwargs)
+
+        logger.debug('SDP610Pressure kwargs: {}'.format(kwargs))
 
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
@@ -77,6 +79,8 @@ class SDP610Pressure(I2CDevice):
                 'device_info': kwargs.get('device_info', 'CEC pressure')
             }
         ]
+
+        logger.debug('SDP610Pressure self: {}'.format(dir(self)))
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -110,7 +114,8 @@ class SDP610Pressure(I2CDevice):
             raise SynseException('No sensor reading returned from I2C.')
 
         except Exception:
-            raise SynseException('Error reading pressure sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error reading pressure sensor (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
         """ Internal method for reading data off of the device.
@@ -131,155 +136,12 @@ class SDP610Pressure(I2CDevice):
 
                 return {const.UOM_PRESSURE: sensor_int * 1.0}
             else:
-                # -- REAL HARDWARE --
-                # Port A I2C for MAX11608
-                vec = MPSSE()
-                vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
+                logger.debug('SDP610Pressure production _read_sensor start: {}')
 
-                # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
-                gpio = MPSSE()
-                gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
+                reading = i2c_common.read_differential_pressure(self.channel)
+                if reading is None:
+                    raise SynseException(
+                        'Unable to read i2c channel {} on board id {:x}.'.format(
+                            self.channel, self.board_id))
 
-                try:
-                    # Set RESET line on PCA9546A to high to activate switch
-                    vec.PinHigh(GPIOL0)
-
-                    # Read channel
-                    vec.Start()
-                    vec.Write('\xE3')
-                    if vec.GetAck() == ACK:
-                        # if we got an ack then slave is there
-                        vec.Read(1)
-                        vec.SendNacks()
-                        vec.Read(1)
-                        vec.SendAcks()
-
-                        # Set channel: Convert channel number to string and add to address
-                        channel_str = '\xE2' + chr(self.channel)
-                        vec.Start()
-                        vec.Write(channel_str)
-                        vec.Stop()
-
-                        # verify channel was set
-                        vec.Start()
-                        vec.Write('\xE3')
-                        vec.SendNacks()
-                        reg = vec.Read(1)
-                        vec.Stop()
-                        if ord(reg) != self.channel:
-                            raise SynseException(
-                                'Failed to set I2C switch channel for pressure read. ({})'.format(ord(reg))
-                            )
-
-                        # Read DPS sensor connected to the set channel
-                        vec.SendAcks()
-                        vec.Start()
-                        vec.Write('\x80\xF1')
-                        vec.Start()
-                        vec.Write('\x81')
-
-                        # Give SDP610 time for the conversion since clock stretching is not implemented
-                        time.sleep(0.005)
-
-                        # Read the three bytes out of the DPS sensor (two data bytes and crc)
-                        sense_data = vec.Read(2)
-                        vec.SendNacks()
-                        sense_data += vec.Read(1)
-                        vec.Stop()
-                        vec.SendAcks()
-
-                        # Debug print data
-                        logger.debug('Sensor Data: 0x%0.2X%0.2X%0.2X' % (ord(sense_data[0]), ord(sense_data[1]),
-                                                                         ord(sense_data[2])))
-                        if not self._crc8_check(sense_data):
-                            raise SynseException('Sensor CRC check failed.')
-
-                        return {const.UOM_PRESSURE: self._convert_reading(sense_data[0] + sense_data[1], self.altitude)}
-                    else:
-                        vec.Stop()
-                        raise SynseException('I2C Bus Error: No ACK received on device initialization.')
-                finally:
-                    vec.Close()
-                    gpio.Close()
-
-    @staticmethod
-    def _altitude_correction(altitude):
-        """ Get the altitude correction factor, given an altitude in meters.
-
-        http://www.mouser.com/ds/2/682/Sensirion_Differential_Pressure_SDP6x0series_Datas-767275.pdf
-
-        Args:
-            altitude (int | float): the altitude in meters above sea level.
-
-        Returns:
-            float: the altitude correction factor.
-        """
-        # FIXME - handling for values below 0m -- nothing specified in the datasheet,
-        #   should assume anything below 0 is invalid?
-        if altitude < 0:
-            raise ValueError(
-                'Unable to get correction factor for altitude ({}); must be >= 0'.format(altitude)
-            )
-        elif altitude < 250:
-            corr = 0.95
-        elif altitude < 425:
-            corr = 0.98
-        elif altitude < 500:
-            corr = 1.00
-        elif altitude < 750:
-            corr = 1.01
-        elif altitude < 1500:
-            corr = 1.04
-        elif altitude < 2250:
-            corr = 1.15
-        elif altitude < 3000:
-            corr = 1.26
-        else:
-            corr = 1.38
-
-        return corr
-
-    @staticmethod
-    def _convert_reading(sensor_str, altitude):
-        """ Convert the pressure reading from a hex number string to an
-        integer, accounting for the altitude.
-
-        Args:
-            sensor_str (str): hex number string for pressure reading.
-            altitude (int | float): the altitude at which the sensor
-                exists - set via configuration.
-
-        Returns:
-            float: the converted pressure reading.
-        """
-        # convert to an int from hex number string
-        sensor_int = int(hexlify(sensor_str), 16)
-
-        # value is in 16 bit 2's complement
-        if sensor_int & 0x8000:
-            sensor_int = (~sensor_int + 1) & 0xFFFF
-            sensor_int = -sensor_int
-
-        # pressure = sensor_int / scale_factor
-        return (sensor_int / SCALE_FACTOR) * SDP610Pressure._altitude_correction(altitude)
-
-    @staticmethod
-    def _crc8_check(data):
-        """ CRC checker, data must be in string form which is the output of
-        the sensor.
-
-        Args:
-            data: data to check CRC of.
-
-        Returns:
-            bool: True if CRC check passes, False otherwise.
-        """
-        crc = 0
-        for x in range(len(data) - 1):
-            crc ^= ord(data[x])
-            for y in range(8):
-                if crc & 0x80:
-                    crc = (crc << 1) ^ POLYNOMIAL
-                else:
-                    crc = (crc << 1)
-        return crc == ord(data[2])
+                return {const.UOM_PRESSURE: reading}

@@ -22,14 +22,8 @@ PCA9546_WRITE_ADDRESS = '\xE2'
 PCA9546_READ_ADDRESS = '\xE3'
 
 
-def read_differential_pressures(count):
-    """This will read count number of differential pressure sensors from the
-    CEC board.
-    :param count: The number of differential pressure sensors to read.
-    :returns: An array of differential pressure sensor readings in Pascals.
-    The array index will be the same as the channel in the synse i2c sdp-610
-    differential pressure sensor configuration. None is returned on failure."""
-
+def _start_i2c():
+    """Common code for starting i2c reads."""
     # Port A I2C for PCA9546A
     vec = MPSSE()
     vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
@@ -46,6 +40,100 @@ def read_differential_pressures(count):
     vec.Start()
     vec.Write(PCA9546_READ_ADDRESS)
 
+    return vec, gpio
+
+
+def _stop_i2c(vec, gpio):
+    """Common code for stopping i2c reads."""
+    vec.Stop()
+    vec.Close()
+    gpio.Close()
+
+
+def _read_differential_pressure_channel(vec, channel):
+    """Internal common code for dp reads.
+    :param vec: Handle for reading.
+    :param channel: The i2c channel to read.
+    :returns: The differntial pressure in Pascals on success, None on
+    failure."""
+    # Set channel
+    # Convert channel number to string and add to address.
+    channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
+
+    vec.Start()
+    vec.Write(channel_str)
+    vec.Stop()
+
+    # verify channel was set
+    vec.Start()
+    vec.Write(PCA9546_READ_ADDRESS)
+    vec.SendNacks()
+    vec.Read(1)
+    vec.Stop()
+
+    # Read DPS sensor connected to the set channel
+    vec.SendAcks()
+    vec.Start()
+    vec.Write('\x80\xF1')
+    vec.Start()
+    vec.Write('\x81')
+
+    # Give DPS610 time for the conversion since clock stretching is not implemented
+    # 5ms seems to work fine, if wonkyness happens may have to increase.
+    # So far this seems fine.
+    time.sleep(0.005)
+
+    # Read the three bytes out of the DPS sensor (two data bytes and crc)
+    sensor_data = vec.Read(3)
+    vec.Stop()
+
+    if _crc8(sensor_data):
+        return conversions.differential_pressure_sdp610(sensor_data, 0)
+
+    else:
+        logger.error('CRC Failed')
+        return None
+
+
+def read_differential_pressure(channel):
+    """This will a single differential pressure sensor from the
+    CEC board.
+    :param channel: The channel to read.
+    :returns: The differential pressure in Pascals, or None on failure."""
+    vec, gpio = _start_i2c()
+
+    result = None
+    if vec.GetAck() == ACK:
+        # If we got an ack then switch is there.
+        vec.SendNacks()
+        vec.Read(1)
+        vec.Stop()
+        vec.SendAcks()
+
+        result = _read_differential_pressure_channel(vec, channel)
+
+        channel_str = PCA9546_WRITE_ADDRESS + '\x00'
+        vec.Start()
+        vec.Write(channel_str)
+        vec.Stop()
+
+    else:
+        # If we can't get an ack, result will be an empty list.
+        logger.error("No ACK from PCA9546A")
+
+    _stop_i2c(vec, gpio)
+    return result
+
+
+def read_differential_pressures(count):
+    """This will read count number of differential pressure sensors from the
+    CEC board.
+    :param count: The number of differential pressure sensors to read.
+    :returns: An array of differential pressure sensor readings in Pascals.
+    The array index will be the same as the channel in the synse i2c sdp-610
+    differential pressure sensor configuration. None is returned on failure."""
+
+    vec, gpio = _start_i2c()
     result = []
 
     if vec.GetAck() == ACK:
@@ -60,46 +148,10 @@ def read_differential_pressures(count):
         channel = 1
         for x in range(count):
 
-            # Set channel
-            # Convert channel number to string and add to address.
-            channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
-
-            vec.Start()
-            vec.Write(channel_str)
-            vec.Stop()
-
-            # verify channel was set
-            vec.Start()
-            vec.Write(PCA9546_READ_ADDRESS)
-            vec.SendNacks()
-            vec.Read(1)
-            vec.Stop()
-
-            # Read DPS sensor connected to the set channel
-            vec.SendAcks()
-            vec.Start()
-            vec.Write("\x80\xF1")
-            vec.Start()
-            vec.Write("\x81")
-
-            # Give DPS610 time for the conversion since clock stretching is not implemented
-            # 5ms seems to work fine, if wonkyness happens may have to increase.
-            # So far this seems fine.
-            time.sleep(0.005)
-
-            # Read the three bytes out of the DPS sensor (two data bytes and crc)
-            sensor_data = vec.Read(count)
-            vec.Stop()
-
-            if _crc8(sensor_data):
-                result.append(conversions.differential_pressure_sdp610(sensor_data))
-
-            else:
-                logger.error('CRC Failed')
-                result.append(None)
-
+            result.append(_read_differential_pressure_channel(vec, channel))
             # set the next channel
             channel = channel << 1
+
         channel_str = PCA9546_WRITE_ADDRESS + '\x00'
         vec.Start()
         vec.Write(channel_str)
@@ -107,9 +159,8 @@ def read_differential_pressures(count):
     else:
         # If we can't get an ack, result will be an empty list.
         logger.error("No ACK from PCA9546A")
-        vec.Stop()
-    vec.Close()
-    gpio.Close()
+
+    _stop_i2c(vec, gpio)
     return result
 
 
@@ -120,27 +171,16 @@ def read_thermistors(count):
     index will be the same as the channel in the synse i2c max-11608 thermistor
     configuration."""
 
+    logger.debug('read_thermistors 1')
+
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
 
-    # Read
-    # Port A I2C for PCA9546A
-    vec = MPSSE()
-    vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
-
-    # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
-    gpio = MPSSE()
-    gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
-
-    # Set RESET line on PCA9546A to high to activate switch
-    vec.PinHigh(GPIOL0)
-
-    # Read channel
-    vec.Start()
-    vec.Write(PCA9546_READ_ADDRESS)
+    vec, gpio = _start_i2c()
 
     ad_reading = None
     if vec.GetAck() == ACK:
+
         # if we got an ack then slave is there
         vec.SendNacks()
         vec.Read(1)
@@ -182,11 +222,10 @@ def read_thermistors(count):
         ad_reading = vec.Read(count * 2)
 
     else:
-        logger.error('No ACK from thermistors.')  # TODO: Better error handling.
+        # If we can't get an ack, result will be an empty list. (see below)
+        logger.error('No ACK from thermistors.')
 
-    vec.Stop()
-    vec.Close()
-    gpio.Close()
+    _stop_i2c(vec, gpio)
 
     # Convert the raw reading for each thermistor.
     result = []
@@ -196,6 +235,7 @@ def read_thermistors(count):
             temperature = conversions.thermistor_max11608_adc(
                 ad_reading[index:index + 2])
             result.append(temperature)
+
     return result
 
 

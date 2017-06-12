@@ -30,11 +30,12 @@ def airflow_f660(reading):
     return unpack_word(reading)
 
 
-def differential_pressure_sdp610(reading):
+def differential_pressure_sdp610(reading, altitude):
     """Return the differential pressure reading in Pascals given the raw three
     byte reading from the sdp610 differential pressure sensor.
     :param reading: The raw three byte reading from the sdp610 differential
     pressure sensor.
+    :param altitude: (int | float): the altitude in meters above sea level.
     :returns: The differential pressure reading in Pascals."""
     # Third byte off the raw reading is the crc. Ignore that.
     data = unpack_word(reading[:2])
@@ -42,7 +43,41 @@ def differential_pressure_sdp610(reading):
     if data & 0x8000:
         data = (~data + 1) & 0xFFFF
         data = -data
-    return data
+    correction = differential_pressure_sdp610_altitude(altitude)
+    return data * correction
+
+
+def differential_pressure_sdp610_altitude(altitude):
+    """This needs to be separated from differential_pressure_sdp610 for now
+    since some tests directly call it.
+    Get the altitude correction factor, given an altitude in meters.
+
+    http://www.mouser.com/ds/2/682/Sensirion_Differential_Pressure_SDP6x0series_Datas-767275.pdf
+
+    Args:
+        altitude (int | float): the altitude in meters above sea level.
+
+    Returns:
+        float: The conversion factor."""
+    # Altitude below zero is not specified in the datasheet. Use the lowest specified.
+    if altitude < 250:
+        corr = 0.95
+    elif altitude < 425:
+        corr = 0.98
+    elif altitude < 500:
+        corr = 1.00
+    elif altitude < 750:
+        corr = 1.01
+    elif altitude < 1500:
+        corr = 1.04
+    elif altitude < 2250:
+        corr = 1.15
+    elif altitude < 3000:
+        corr = 1.26
+    else:
+        corr = 1.38
+
+    return corr
 
 
 def fan_gs3_2010_rpm_to_packed_hz(rpm):
