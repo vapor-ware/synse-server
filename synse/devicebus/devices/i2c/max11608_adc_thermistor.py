@@ -72,7 +72,7 @@ class Max11608Thermistor(I2CDevice):
             }
         ]
 
-        logger.debug('Max11608Thermistor self: {}'.format(dir(self)))
+        logger.debug('Max11608Thermistor self: {}'.format(self))
 
     def _read(self, command):
         """ Read the data off of a given board's device.
