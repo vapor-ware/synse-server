@@ -54,10 +54,8 @@ class RS485Device(SerialDevice):
 
         # The emulators are defaulting to 19200, None.
         # For real hardware it's a good idea to configure this.
-        if 'baud_rate' in kwargs:
-            self.baud_rate = kwargs['baud_rate']
-        if 'parity' in kwargs:
-            self.parity = kwargs['parity']
+        self.baud_rate = kwargs.get('baud_rate', 19200)
+        self.parity = kwargs.get('parity', 'N')
         self.rack_id = kwargs['rack_id']
         self.unit = kwargs['device_unit']
 

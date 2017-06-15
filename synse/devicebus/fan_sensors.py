@@ -189,14 +189,14 @@ class FanSensors(object):
         logger.debug('_find_devices_by_instance_name')
         result = []
         devices = self.app_config['DEVICES']
-        for _, d in devices.iteritems():
-            if d.get_instance_name() == instance_name:
+        for d in devices.values():
+            if d.__class__.get_instance_name() == instance_name:
                 result.append(d)
         return result
 
     @staticmethod
     def _get_channel_ordinal(channel):
-        """The airflow sensor has a channel setting that uses a bit shit.
+        """The airflow sensor has a channel setting that uses a bit shift.
         :raises: ValueError on invalid channel."""
         channels = [1, 2, 4, 8, 16, 32, 64, 128]
         return channels.index(channel)
@@ -226,7 +226,6 @@ class FanSensors(object):
             self.current_modbus_client = fan_sensor.create_modbus_client()
         # We are good to go with the current modbus client.
 
-    # @staticmethod
     def _read_temperature_and_humidity(self):
         self._get_modbus_client(self.temperature.device)
         # We know these are consecutive registers, therefore we are not looking
@@ -241,7 +240,6 @@ class FanSensors(object):
 
         return temperature, humidity
 
-    # @staticmethod
     def _read_airflow(self):
         self._get_modbus_client(self.airflow.device)
         result = self.current_modbus_client.read_input_registers(
@@ -262,18 +260,13 @@ class FanSensors(object):
 
     def _read_thermistors(self):
         readings = i2c_common.read_thermistors(self.thermistor_read_count)
-        counter = 0
-        for _ in readings:
-            self.thermistors[counter].reading = readings[counter]
-            counter += 1
+        for i, reading in enumerate(readings):
+            self.thermistors[i].reading = reading
 
     def _read_differential_pressures(self):
         readings = i2c_common.read_differential_pressures(self.differential_pressure_read_count)
-        counter = 0
-        for _ in readings:
-            # Store
-            self.differentialPressures[counter].reading = readings[counter]
-            counter += 1
+        for i, reading in enumerate(readings):
+            self.differentialPressures[i].reading = reading
 
     def _thermistor_read_count(self):
         """Determine the number of thermistors to read on each

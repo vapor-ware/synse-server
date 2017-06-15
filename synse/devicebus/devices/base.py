@@ -195,6 +195,7 @@ class DevicebusInterface(object):
                 'App cache does not contain 2 collections: {}'.format(app_cache)
             )
 
-    def get_instance_name(self):
+    @classmethod
+    def get_instance_name(cls):
         """Get the instance name of the device."""
-        return self._instance_name
+        return cls._instance_name
