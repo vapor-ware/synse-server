@@ -53,6 +53,7 @@ from synse.devicebus.devices.rs485 import *
 from synse.devicebus.devices.i2c import *
 from synse.devicebus.devices.snmp.snmp_device import *
 from synse.devicebus.devices.redfish.redfish_device import *
+from synse.devicebus.fan_sensors import *
 
 from synse.blueprints import core
 from synse.devicebus.command_factory import CommandFactory
@@ -161,6 +162,46 @@ def plc_config():
     raise SynseException('Unsupported hardware type in use. Unable to retrieve modem configuration.')
 
 
+# Global FanSensors object because we do not want to hunt for the sensors on
+# each fan_sensors call and we shouldn't have to.
+SENSORS = FanSensors()
+
+
+@app.route(PREFIX + '/fan_sensors', methods=['GET'])
+def fan_sensors():
+    """Get all sensor data we need for fan control from the VEC."""
+
+    global SENSORS
+    sensors = SENSORS
+    sensors.initialize(app.config)
+    if not sensors.initialized:
+        raise SynseException('Unable to read fan_sensors. All devices are not yet registered.')
+
+    sensors.read_sensors()
+
+    result = {}
+
+    # Reading info.
+    result['start_time'] = str(sensors.start_time)
+    result['end_time'] = str(sensors.end_time)
+    result['read_time'] = sensors.read_time
+
+    # Sensor data.
+    result[sensors.temperature.name] = sensors.temperature.reading
+    result[sensors.humidity.name] = sensors.humidity.reading
+    result[sensors.airflow.name] = sensors.airflow.reading
+
+    for thermistor in sensors.thermistors:
+        if thermistor is not None:
+            result[thermistor.name] = thermistor.reading
+
+    for dpressure in sensors.differentialPressures:
+        if dpressure is not None:
+            result[dpressure.name] = dpressure.reading
+
+    return jsonify(result)
+
+
 def register_app_devices(app):
     """ Register all devicebus interfaces specified in the Synse config
     file with the Flask application.
@@ -266,6 +307,7 @@ def main(serial_port=None, hardware=None):
         for v in app.config['DEVICES'].values():
             logger.info('... {}'.format(v))
 
+        logger.info('app.config: {}'.format(app.config))
         logger.info('Endpoint Setup and Registration Complete')
         logger.info('----------------------------------------')
 

@@ -153,7 +153,7 @@ class SHT31Humidity(RS485Device):
 
             elif self.hardware_type == 'production':
                 # Production
-                client = self._create_modbus_client()
+                client = self.create_modbus_client()
                 result = client.read_input_registers(self.slave_address, self.register_base, 2)
                 temperature = conversions.temperature_sht31(result)
                 humidity = conversions.humidity_sht31(result)

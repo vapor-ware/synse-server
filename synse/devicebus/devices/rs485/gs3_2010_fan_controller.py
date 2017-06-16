@@ -249,14 +249,14 @@ class GS32010Fan(RS485Device):
     def _get_rpm(self):
         """Production only rpm reads from gs3_2010_fan (vapor_fan).
         :returns: Integer rpm."""
-        client = self._create_modbus_client()
+        client = self.create_modbus_client()
         result = client.read_holding_registers(self.slave_address, 0x2107, 1)
         return conversions.unpack_word(result)
 
     def _set_rpm(self, rpm):
         """Set fan speed to the given RPM."""
 
-        client = self._create_modbus_client()
+        client = self.create_modbus_client()
 
         if rpm == 0:  # Turn the fan off.
             result = client.write_multiple_registers(

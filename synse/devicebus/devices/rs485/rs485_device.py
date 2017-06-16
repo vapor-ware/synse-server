@@ -51,6 +51,11 @@ class RS485Device(SerialDevice):
         self._set_hardware_type(kwargs.get('hardware_type', 'unknown'))
 
         self.device_name = kwargs['device_name']
+
+        # The emulators are defaulting to 19200, None.
+        # For real hardware it's a good idea to configure this.
+        self.baud_rate = kwargs.get('baud_rate', 19200)
+        self.parity = kwargs.get('parity', 'N')
         self.rack_id = kwargs['rack_id']
         self.unit = kwargs['device_unit']
 
@@ -198,12 +203,12 @@ class RS485Device(SerialDevice):
             }
         )
 
-    def _create_modbus_client(self):
+    def create_modbus_client(self):
         """Production hardware only wrapper for creating the serial device that
          we use to speak modbus to the CEC (Central Exhaust Chamber) board.
          This will not work for the emulator."""
         ser = serial.Serial(self.device_name,  # Serial device name.
-                            baudrate=19200, parity='E', timeout=self.timeout)
+                            baudrate=self.baud_rate, parity=self.parity, timeout=self.timeout)
         return dkmodbus.dkmodbus(ser)
 
     def _set_hardware_type(self, hardware_type):
