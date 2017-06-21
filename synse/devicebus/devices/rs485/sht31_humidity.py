@@ -38,7 +38,7 @@ from synse.errors import SynseException
 
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
-
+import conversions.conversions as conversions
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +50,8 @@ class SHT31Humidity(RS485Device):
 
     def __init__(self, **kwargs):
         super(SHT31Humidity, self).__init__(**kwargs)
+
+        logger.debug('SHT31Humidity kwargs: {}'.format(kwargs))
 
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
@@ -72,11 +74,17 @@ class SHT31Humidity(RS485Device):
         self.board_record['board_id'] = format(self.board_id, '08x')
         self.board_record['devices'] = [
             {
-                'device_id': kwargs['device_id'], 
+                'device_id': kwargs['device_id'],
                 'device_type': 'humidity',
                 'device_info': kwargs.get('device_info', 'cec humidity')
             }
         ]
+
+        # Get remainder from kwargs that is not accounted for.
+        self.slave_address = kwargs['device_unit']  # device_unit is the modbus slave address.
+        self.device_model = kwargs['device_model']
+
+        logger.debug('SHT31Humidity self: {}'.format(dir(self)))
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -108,34 +116,50 @@ class SHT31Humidity(RS485Device):
             # if we get here, there was no sensor device found, so we must raise
             logger.error('No response for sensor reading for command: {}'.format(command.data))
             raise SynseException('No sensor reading returned from RS485.')
-        
+
         except Exception:
-            raise SynseException('Error reading SHT31 humidity sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error reading SHT31 humidity sensor (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
         """ Internal method for reading data off of the SHT31 Humidity device.
-        
+
         Returns:
             dict: the temperature and humidity reading values.
         """
         with self._lock:
-            with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
-                # read temperature
-                result = client.read_holding_registers(self._register_map['temperature_register'], count=1,
-                                                       unit=self.unit)
-                if result is None:
-                    raise SynseException('No response received for SHT31 temperature reading.')
-                elif isinstance(result, ExceptionResponse):
-                    raise SynseException('RS485 Exception: {}'.format(result))
-                temperature = -45 + (175 * ((result.registers[0] * 1.0) / (pow(2, 16) - 1)))
+            if self.hardware_type == 'emulator':
+                with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
+                    # read temperature
+                    result = client.read_holding_registers(self._register_map['temperature_register'], count=1,
+                                                           unit=self.unit)
+                    if result is None:
+                        raise SynseException('No response received for SHT31 temperature reading.')
+                    elif isinstance(result, ExceptionResponse):
+                        raise SynseException('RS485 Exception: {}'.format(result))
+                    temperature = conversions.temperature_sht31_int(result.registers[0])
 
-                # read humidity
-                result = client.read_holding_registers(self._register_map['humidity_register'], count=1, unit=self.unit)
-                if result is None:
-                    raise SynseException('No response received for SHT31 humidity reading.')
-                elif isinstance(result, ExceptionResponse):
-                    raise SynseException('RS485 Exception: {}'.format(result))
-                humidity = 100 * ((result.registers[0] * 1.0) / (pow(2, 16) - 1))
+                    # read humidity
+                    result = client.read_holding_registers(
+                        self._register_map['humidity_register'], count=1, unit=self.unit)
+                    if result is None:
+                        raise SynseException('No response received for SHT31 humidity reading.')
+                    elif isinstance(result, ExceptionResponse):
+                        raise SynseException('RS485 Exception: {}'.format(result))
+                    humidity = conversions.humidity_sht31_int(result.registers[0])
 
-                # create client and read registers, composing a reading to return
+                    # Return the reading.
+                    return {const.UOM_HUMIDITY: humidity, const.UOM_TEMPERATURE: temperature}
+
+            elif self.hardware_type == 'production':
+                # Production
+                client = self.create_modbus_client()
+                result = client.read_input_registers(self.slave_address, self.register_base, 2)
+                temperature = conversions.temperature_sht31(result)
+                humidity = conversions.humidity_sht31(result)
+
                 return {const.UOM_HUMIDITY: humidity, const.UOM_TEMPERATURE: temperature}
+
+            else:
+                raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
+                    self.hardware_type))

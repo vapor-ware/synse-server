@@ -35,7 +35,7 @@ from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
 
 from synse.devicebus.devices.rs485.sht31_humidity import SHT31Humidity
-from synse.devicebus.devices.rs485.d6f_w10a1_airflow import D6FW10A1Airflow
+from synse.devicebus.devices.rs485.f660_airflow import F660Airflow
 from synse.devicebus.devices.rs485.gs3_2010_fan_controller import GS32010Fan
 
 from synse.devicebus.command_factory import CommandFactory
@@ -90,10 +90,12 @@ class SupportedDeviceCommandsTestCase(unittest.TestCase):
             'board_offset': 0,
             'board_id_range': (0, 0),
             'device_id': 'test_device',
-            'base_address': '0'
+            'base_address': '0',
+            'device_model': 'test_device',
+            'hardware_type': 'production'
         }
         cls.sht31humidity = SHT31Humidity(**rs485_kwargs)
-        cls.d6fw10a1airflow = D6FW10A1Airflow(**rs485_kwargs)
+        cls.f660airflow = F660Airflow(**rs485_kwargs)
         cls.gs32010fan = GS32010Fan(**rs485_kwargs)
 
         command_fac = CommandFactory(counter)
@@ -517,86 +519,86 @@ class SupportedDeviceCommandsTestCase(unittest.TestCase):
         with self.assertRaises(CommandNotSupported):
             self.sht31humidity.handle(self._retry)
 
-    def test_070_d6fw10a1airflow(self):
+    def test_070_f660airflow(self):
         """ Test the RS485 device for VERSION command support.
         """
-        self.d6fw10a1airflow.handle(self._version)
+        self.f660airflow.handle(self._version)
 
-    def test_071_d6fw10a1airflow(self):
+    def test_071_f660airflow(self):
         """ Test the RS485 device for SCAN command support.
         """
-        self.d6fw10a1airflow.handle(self._scan)
+        self.f660airflow.handle(self._scan)
 
-    def test_072_d6fw10a1airflow(self):
+    def test_072_f660airflow(self):
         """ Test the RS485 device for SCAN_ALL command support.
         """
-        self.d6fw10a1airflow.handle(self._scan_all)
+        self.f660airflow.handle(self._scan_all)
 
-    def test_073_d6fw10a1airflow(self):
+    def test_073_f660airflow(self):
         """ Test the RS485 device for READ command support.
         """
         with self.assertRaises(KeyError):
-            self.d6fw10a1airflow.handle(self._read)
+            self.f660airflow.handle(self._read)
 
-    def test_074_d6fw10a1airflow(self):
+    def test_074_f660airflow(self):
         """ Test the RS485 device for WRITE command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._write)
+            self.f660airflow.handle(self._write)
 
-    def test_075_d6fw10a1airflow(self):
+    def test_075_f660airflow(self):
         """ Test the RS485 device for POWER command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._power)
+            self.f660airflow.handle(self._power)
 
-    def test_076_d6fw10a1airflow(self):
+    def test_076_f660airflow(self):
         """ Test the RS485 device for ASSET command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._asset)
+            self.f660airflow.handle(self._asset)
 
-    def test_077_d6fw10a1airflow(self):
+    def test_077_f660airflow(self):
         """ Test the RS485 device for BOOT_TARGET command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._boot_tgt)
+            self.f660airflow.handle(self._boot_tgt)
 
-    def test_078_d6fw10a1airflow(self):
+    def test_078_f660airflow(self):
         """ Test the RS485 device for LOCATION command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._location)
+            self.f660airflow.handle(self._location)
 
-    def test_079_d6fw10a1airflow(self):
+    def test_079_f660airflow(self):
         """ Test the RS485 device for CHAMBER_LED command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._chamber_led)
+            self.f660airflow.handle(self._chamber_led)
 
-    def test_080_d6fw10a1airflow(self):
+    def test_080_f660airflow(self):
         """ Test the RS485 device for LED command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._led)
+            self.f660airflow.handle(self._led)
 
-    def test_081_d6fw10a1airflow(self):
+    def test_081_f660airflow(self):
         """ Test the RS485 device for FAN command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._fan)
+            self.f660airflow.handle(self._fan)
 
-    def test_082_d6fw10a1airflow(self):
+    def test_082_f660airflow(self):
         """ Test the RS485 device for HOST_INFO command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._host_info)
+            self.f660airflow.handle(self._host_info)
 
-    def test_083_d6fw10a1airflow(self):
+    def test_083_f660airflow(self):
         """ Test the RS485 device for RETRY command support.
         """
         with self.assertRaises(CommandNotSupported):
-            self.d6fw10a1airflow.handle(self._retry)
+            self.f660airflow.handle(self._retry)
 
     def test_084_gs32010fan(self):
         """ Test the RS485 device for VERSION command support.

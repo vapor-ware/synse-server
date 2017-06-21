@@ -129,7 +129,7 @@ Schema
             "states": {
               "type": "array"
             },
-            "pressure_kpa": {
+            "pressure_pa": {
               "type": "number"
             }
           }

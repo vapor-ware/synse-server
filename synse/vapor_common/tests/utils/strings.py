@@ -10,6 +10,7 @@ class _S(object):
     """String class to avoid hardcoded strings in tests.
     We will need a similar file for dev code."""
 
+    AIRFLOW_MILLIMETERS_PER_SECOND = 'airflow_mm_s'
     BLINK_OFF = 'steady'
     BLINK_ON = 'blink'
     BLINK_STATE = 'blink_state'
@@ -70,6 +71,7 @@ class _S(object):
     OVER_CURRENT = 'over_current'
     POWER_OK = 'power_ok'
     POWER_STATUS = 'power_status'
+    PRESSURE_PA = 'pressure_pa'
     RACK_ID = 'rack_id'
     RACKS = 'racks'
     SNMP_EMULATOR_DOWN = 'Bad IPv4/UDP transport address snmp-emulator-synse-testdevice1-board1@11012: ' \

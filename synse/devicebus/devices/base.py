@@ -166,7 +166,8 @@ class DevicebusInterface(object):
                 )
 
         except (OSError, IOError) as e:
-            logger.error('Error opening / reading specified configuration file: {}'.format(devicebus_config['from_config']))
+            logger.error('Error opening / reading specified configuration file: {}'.format(
+                devicebus_config['from_config']))
             logger.exception(e)
         except Exception as e:
             logger.error('Unexpected failure when attempting to get devicebus configuration.')
@@ -193,3 +194,8 @@ class DevicebusInterface(object):
             raise ValueError(
                 'App cache does not contain 2 collections: {}'.format(app_cache)
             )
+
+    @classmethod
+    def get_instance_name(cls):
+        """Get the instance name of the device."""
+        return cls._instance_name
