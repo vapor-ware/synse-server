@@ -187,10 +187,6 @@ def fan_sensors():
     result['read_time'] = sensors.read_time
 
     # Sensor data.
-    result[sensors.temperature.name] = sensors.temperature.reading
-    result[sensors.humidity.name] = sensors.humidity.reading
-    result[sensors.airflow.name] = sensors.airflow.reading
-
     for thermistor in sensors.thermistors:
         if thermistor is not None:
             result[thermistor.name] = thermistor.reading
