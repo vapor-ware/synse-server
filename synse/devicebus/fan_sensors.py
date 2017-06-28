@@ -57,14 +57,10 @@ class FanSensors(object):
         self.start_time = None
         self.end_time = None
         self.read_time = None
-        self.temperature = None
-        self.humidity = None
-        self.airflow = None
         self.thermistors = None
         self.differentialPressures = None
         self.thermistor_read_count = None
         self.differential_pressure_read_count = None
-        self.current_modbus_client = None  # Cache the modbus client to try to avoid opening and closing it.
 
     def initialize(self, app_config):
         """Initialize the FanSensors object which is used for the fan_sensors
@@ -84,14 +80,6 @@ class FanSensors(object):
         self.start_time = None
         self.end_time = None
         self.read_time = None
-
-        # From modbus.
-        humidity_device = self._find_devices_by_instance_name(SHT31Humidity.get_instance_name())[0]
-        airflow_device = self._find_devices_by_instance_name(F660Airflow.get_instance_name())[0]
-
-        self.temperature = FanSensor('temperature', 'C', humidity_device)
-        self.humidity = FanSensor('humidity', '%', humidity_device)
-        self.airflow = FanSensor('airflow', 'mm/s', airflow_device)
 
         # From i2c.
 
@@ -138,9 +126,6 @@ class FanSensors(object):
 
     def _clear_old_readings(self):
         """Clears out previous readings for a new pass."""
-        self.temperature.reading = None
-        self.humidity.reading = None
-        self.airflow.reading = None
         for t in self.thermistors:
             if t is not None:
                 t.reading = None
@@ -164,7 +149,7 @@ class FanSensors(object):
         result = FanSensors._get_channel_ordinal(max_channel)
         result += 1
         if result > FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT:
-            raise ValueError('Unsupported differntial pressure sensor count {}. Maximum {}'.format(
+            raise ValueError('Unsupported differential pressure sensor count {}. Maximum {}'.format(
                 result, FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT))
         return result
 
@@ -172,9 +157,6 @@ class FanSensors(object):
         """Dump all fan sensors to the log so that we can see what we are
         doing."""
         logger.debug('Dumping FanSensors:')
-        logger.debug('temperature: {}'.format(self.temperature))
-        logger.debug('humidity:    {}'.format(self.humidity))
-        logger.debug('airflow:     {}'.format(self.airflow))
         for t in self.thermistors:
             logger.debug('thermistor:  {}'.format(t))
         for dp in self.differentialPressures:
@@ -200,63 +182,6 @@ class FanSensors(object):
         :raises: ValueError on invalid channel."""
         channels = [1, 2, 4, 8, 16, 32, 64, 128]
         return channels.index(channel)
-
-    def _get_modbus_client(self, fan_sensor):
-        """Get the modbus client we need to read the fan_sensor.
-        :param fan_sensor: The serial fan related sensor we are trying to read.
-        """
-        if fan_sensor is None:
-            raise ValueError('fan_sensor is None.')
-        if not isinstance(fan_sensor, RS485Device):
-            raise ValueError('fan_sensor is not an RS485Device.')
-
-        if self.current_modbus_client is None:
-            # We need to create a new modbus client.
-            self.current_modbus_client = fan_sensor.create_modbus_client()
-            return
-
-        # Compare the serial parameters of the current modbus client with
-        # those that the device requires. Create a new one if needed.
-        our_serial = self.current_modbus_client.serial_device
-        if not (our_serial.port == fan_sensor.device_name and
-                our_serial.baudrate == fan_sensor.baud_rate and
-                our_serial.parity == fan_sensor.parity and
-                our_serial.timeout == fan_sensor.timeout):
-            # Something is different. Create a new client.
-            self.current_modbus_client = fan_sensor.create_modbus_client()
-        # We are good to go with the current modbus client.
-
-    def _read_temperature_and_humidity(self):
-        self._get_modbus_client(self.temperature.device)
-        # We know these are consecutive registers, therefore we are not looking
-        # at the second register (humidity) in the synse config.
-        result = self.current_modbus_client.read_input_registers(
-            self.temperature.device.slave_address,  # slave address
-            self.temperature.device.register_base,   # first register to read
-            2)  # number of registers to read
-
-        temperature = conversions.temperature_sht31(result)
-        humidity = conversions.humidity_sht31(result)
-
-        return temperature, humidity
-
-    def _read_airflow(self):
-        self._get_modbus_client(self.airflow.device)
-        result = self.current_modbus_client.read_input_registers(
-            self.airflow.device.slave_address,  # slave address
-            self.airflow.device.register_base,  # first register to read
-            1)  # number of registers to read
-        logger.debug('result {}'.format(hexlify(result)))
-        velocity = conversions.airflow_f660(result)
-        return velocity
-
-    def _read_serial_sensors(self):
-        temperature, humidity = self._read_temperature_and_humidity()
-        airflow = self._read_airflow()
-        # Store
-        self.temperature.reading = temperature
-        self.humidity.reading = humidity
-        self.airflow.reading = airflow
 
     def _read_thermistors(self):
         readings = i2c_common.read_thermistors(self.thermistor_read_count)
@@ -288,7 +213,6 @@ class FanSensors(object):
         """Read all sensors on the local VEC. Store the readings."""
         self._clear_old_readings()
         self.start_time = datetime.datetime.now()
-        self._read_serial_sensors()
         self._read_thermistors()
         self._read_differential_pressures()
         self.end_time = datetime.datetime.now()
