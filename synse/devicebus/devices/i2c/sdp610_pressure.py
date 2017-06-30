@@ -80,6 +80,13 @@ class SDP610Pressure(I2CDevice):
             }
         ]
 
+        if self.hardware_type == 'production':
+            # Configure for 9 bit resolution.
+            if i2c_common.configure_differential_pressure(self.channel) != 0:
+                raise SynseException(
+                    'Failed to configure 9 bit resolution on board id {}. channel {}'.format(
+                        self.board_id, self.channel))
+
         logger.debug('SDP610Pressure self: {}'.format(dir(self)))
 
     def _read(self, command):

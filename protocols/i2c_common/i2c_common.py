@@ -12,6 +12,7 @@
 
 from mpsse import *
 import conversions.conversions as conversions
+import datetime
 import logging
 import time
 
@@ -72,31 +73,120 @@ def _read_differential_pressure_channel(vec, channel):
     vec.Stop()
 
     # Read DPS sensor connected to the set channel
-    vec.SendAcks()
+    raw_results = []
+    read_count = 5  # We read multiple times due to turbulence.
+    for i in range(read_count):
+
+        # Read DPS sensor connected to the set channel
+        vec.SendAcks()
+        vec.Start()
+        vec.Write('\x80\xF1')
+        vec.Start()
+        vec.Write('\x81')
+
+        # Give DPS610 time for the conversion since clock stretching is not implemented
+        # 5ms seems to work fine, if wonkyness happens may have to increase.
+        # So far this seems fine for 9 bit resolution.
+        time.sleep(0.001)
+
+        # Read the three bytes out of the DPS sensor (two data bytes and crc)
+        sensor_data = vec.Read(3)
+        vec.Stop()
+
+        if _crc8(sensor_data):
+            # Faster is to average, then convert, but this way is saner for debugging.
+            raw_results.append(conversions.differential_pressure_sdp610(sensor_data, 0))
+        else:
+            logger.error('CRC failure reading Differential Pressure')
+
+    for raw in raw_results:
+        logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
+
+    if len(raw_results) == 0:
+        logger.error('No differential pressure readings for channel {}'.format(channel))
+        return None
+    result = sum(raw_results) / len(raw_results)
+    logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
+    return result
+
+
+def configure_differential_pressure(channel):
+    """Configure the differential pressure sensor for 9 bit resolution. Default
+    is 12. This needs to be done once per power up. For our case we call this
+    on synse container startup.
+    :param channel: The channel to configure."""
+    logger.debug('Configuring Differential Pressure sensor on channel {}'.format(channel))
+
+    # Port A I2C for PCA9546A
+    vec = MPSSE()
+    vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
+
+    # Set RESET line on PCA9546A to high to activate switch
+    vec.PinHigh(GPIOL0)
+    time.sleep(0.001)
+
+    channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
+
     vec.Start()
-    vec.Write('\x80\xF1')
+    vec.Write(channel_str)
+    vec.Stop()
+
+    # verify channel was set
+    vec.Start()
+    vec.Write(PCA9546_READ_ADDRESS)
+    vec.SendNacks()
+    vec.Read(1)
+    vec.Stop()
+    vec.SendAcks()
+
+    # Configure Sensor
+    # In the application note for changing measurement resolution three things must be met.
+    # 1. Read the advanced user register.
+    # 2. Define the new register entry according to the desired resolution.
+    # 3. Write the new value to the advanced register.
+    vec.Start()
+    vec.Write('\x80\xE5')
     vec.Start()
     vec.Write('\x81')
 
-    # Give DPS610 time for the conversion since clock stretching is not implemented
-    # 5ms seems to work fine, if wonkyness happens may have to increase.
-    # So far this seems fine.
-    time.sleep(0.005)
+    # At this point the sensor needs to hold the master but the FT4232 doesn't do clock stretching.
+    time.sleep(0.001)
 
     # Read the three bytes out of the DPS sensor (two data bytes and crc)
     sensor_data = vec.Read(3)
     vec.Stop()
 
+    # write new value for 9 bit resolution (0b000 for bits 9 - 11)
     if _crc8(sensor_data):
-        return conversions.differential_pressure_sdp610(sensor_data, 0)
 
+        # Create single string from characters
+        sensor_str = sensor_data[0] + sensor_data[1]
+
+        # convert to an integer number
+        sensor_int = conversions.unpack_word(sensor_str)
+
+        # clear bits 9 - 11
+        sensor_int = sensor_int & 0xF1FF
+        msb = sensor_int >> 8
+        lsb = sensor_int & 0xFF
+        register_str = '\x80\xE4' + chr(msb) + chr(lsb)
+
+        vec.Start()
+        vec.Write(register_str)
+        vec.Stop()
+        logger.debug('Configured DP Sensor on channel {} for 9 bit resolution.'.format(channel))
+        rc = 0
     else:
-        logger.error('CRC Failed')
-        return None
+        logger.error('CRC failed configuring DP Sensor.')
+        rc = 1
+
+    vec.Stop()
+    vec.Close()
+    return rc
 
 
 def read_differential_pressure(channel):
-    """This will a single differential pressure sensor from the
+    """This will read a single differential pressure sensor from the
     CEC board.
     :param channel: The channel to read.
     :returns: The differential pressure in Pascals, or None on failure."""
@@ -110,12 +200,23 @@ def read_differential_pressure(channel):
         vec.Stop()
         vec.SendAcks()
 
-        result = _read_differential_pressure_channel(vec, channel)
+        raw_results = []
+        read_count = 5  # We read multiple times due to turbulence.
+        for i in range(read_count):
+            raw_results.append(_read_differential_pressure_channel(vec, channel))
 
         channel_str = PCA9546_WRITE_ADDRESS + '\x00'
         vec.Start()
         vec.Write(channel_str)
         vec.Stop()
+
+        for raw in raw_results:
+            logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
+        if len(raw_results) == 0:
+            logger.error('Failed to get Differential Pressure Reading on channel {}'.format(channel))
+            return None
+        result = sum(raw_results) / len(raw_results)
+        logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
 
     else:
         # If we can't get an ack, result will be an empty list.
@@ -133,6 +234,7 @@ def read_differential_pressures(count):
     The array index will be the same as the channel in the synse i2c sdp-610
     differential pressure sensor configuration. None is returned on failure."""
 
+    start_time = datetime.datetime.now()
     vec, gpio = _start_i2c()
     result = []
 
@@ -161,6 +263,10 @@ def read_differential_pressures(count):
         logger.error("No ACK from PCA9546A")
 
     _stop_i2c(vec, gpio)
+    end_time = datetime.datetime.now()
+    logger.debug('Differential Pressure Read time: {} ms'.format((end_time - start_time).total_seconds() * 1000))
+    for reading in result:
+        logger.debug('Differential Pressure Reading:   {} Pa'.format(reading))
     return result
 
 
