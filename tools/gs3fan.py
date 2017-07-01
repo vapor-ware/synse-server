@@ -311,6 +311,16 @@ def _read_all_fan(ser):
 
 
 def _read_differential_pressures():
+    # Configure for 9 bit resolution.
+    if i2c_common.configure_differential_pressure(1) != 0:
+        print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 1.'
+        return 1
+    if i2c_common.configure_differential_pressure(2) != 0:
+        print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 2.'
+        return 1
+    if i2c_common.configure_differential_pressure(4) != 0:
+        print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 4.'
+        return 1
     readings = i2c_common.read_differential_pressures(3)
     # TODO: Should try to read 4 sensors when only 3 ports exist on current hardware.
     counter = 0

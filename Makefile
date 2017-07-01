@@ -58,6 +58,19 @@ build:
 		-t vaporio/synse-server:$(PKG_VER) \
 		-t vaporio/synse-server:$(GIT_VER) .
 
+# Build and push an image for testing in Phoenix.
+phoenix:
+	docker rmi vaporio/synse-server:phoenix-2.11 || true
+	docker build -f Dockerfile.x64 \
+		-t vaporio/synse-server:latest \
+		-t vaporio/synse-server:$(PKG_VER) \
+		-t vaporio/synse-server:$(GIT_VER) \
+		-t vaporio/synse-server:phoenix-2.11 .
+	docker push vaporio/synse-server:phoenix-2.11
+
+# Shortcut for phoenix.
+px: phoenix
+
 # -----------------------------------------------
 # Packages
 # -----------------------------------------------
