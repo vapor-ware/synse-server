@@ -25,23 +25,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
+
 import json
-import threading
-import sys
-from pyghmi.exceptions import *
+import logging
 import os
+import sys
+import threading
+
+from pyghmi.exceptions import *
 
 import synse.strings as _s_
+from synse import constants as const
+from synse.definitions import BMC_PORT
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.ipmi import vapor_ipmi
-from synse import constants as const
+from synse.devicebus.devices.lan_device import LANDevice
 from synse.devicebus.response import Response
 from synse.errors import SynseException
-from synse.definitions import BMC_PORT
 from synse.utils import ThreadPool, get_measure_for_device_type
 from synse.version import __api_version__, __version__
-from synse.devicebus.devices.lan_device import LANDevice
 
 logger = logging.getLogger(__name__)
 

@@ -27,7 +27,7 @@ import time
 import unittest
 
 from snmp_device_kills.test_snmp_device_kills import SnmpDeviceKillsTestCase
-from vapor_common.test_utils import run_suite, exit_suite
+from vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

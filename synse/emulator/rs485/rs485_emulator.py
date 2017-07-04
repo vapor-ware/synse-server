@@ -28,19 +28,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from pymodbus.server.sync import ModbusSerialServer
-
-from pymodbus.device import ModbusDeviceIdentification
-from pymodbus.datastore.store import BaseModbusDataBlock
-from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
-
-from pymodbus.transaction import ModbusRtuFramer
 
 import json
 import logging
 import sys
 
 import vapor_common.vapor_logging as vapor_logging
+from pymodbus.datastore import ModbusServerContext, ModbusSlaveContext
+from pymodbus.datastore.store import BaseModbusDataBlock
+from pymodbus.device import ModbusDeviceIdentification
+from pymodbus.server.sync import ModbusSerialServer
+from pymodbus.transaction import ModbusRtuFramer
 
 logger = logging.getLogger(__name__)
 

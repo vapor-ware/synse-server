@@ -36,35 +36,31 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
-import arrow
+
 import datetime
-from flask import Flask, jsonify, g
+import logging
 from itertools import count
 
-import constants as const
-from errors import SynseException
-
-from utils import ThreadPool, cache_registration_dependencies, make_json_response
-
-from synse.devicebus.devices.plc import *
-from synse.devicebus.devices.ipmi import *
-from synse.devicebus.devices.rs485 import *
-from synse.devicebus.devices.i2c import *
-from synse.devicebus.devices.snmp.snmp_device import *
-from synse.devicebus.devices.redfish.redfish_device import *
-from synse.devicebus.fan_sensors import *
-
-from synse.blueprints import core
-from synse.devicebus.command_factory import CommandFactory
-
+import arrow
+from flask import Flask, g, jsonify
 from vapor_common.util import setup_json_errors
 from vapor_common.vapor_config import ConfigManager
-from vapor_common.vapor_logging import setup_logging, get_startup_logger
+from vapor_common.vapor_logging import get_startup_logger, setup_logging
 
-from version import __api_version__  # major.minor API version
-from version import __version__      # full Synse version
-
+import synse.constants as const
+from synse.blueprints import core
+from synse.devicebus.command_factory import CommandFactory
+from synse.devicebus.devices.i2c import *
+from synse.devicebus.devices.ipmi import *
+from synse.devicebus.devices.plc import *
+from synse.devicebus.devices.redfish.redfish_device import *
+from synse.devicebus.devices.rs485 import *
+from synse.devicebus.devices.snmp.snmp_device import *
+from synse.devicebus.fan_sensors import *
+from synse.errors import SynseException
+from synse.utils import (ThreadPool, cache_registration_dependencies,
+                         make_json_response)
+from synse.version import __api_version__, __version__
 
 cfg = ConfigManager(
     default='/synse/default/default.json',

@@ -27,47 +27,33 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
-import lockfile
-import time
 import sys
+import time
 from uuid import getnode as get_mac_addr
 
+import lockfile
 from vapor_common.constants import PLC_RACK_ID
 
-from synse.version import __version__, __api_version__
 import synse.strings as _s_
 from synse import constants as const
+from synse.definitions import (SAVE_BOARD_ID, SCAN_ALL_BIT, SCAN_ALL_BOARD_ID,
+                               SHUFFLE_BOARD_ID)
 from synse.devicebus.command import Command
-from synse.devicebus.response import Response
-from synse.devicebus.devices.serial_device import SerialDevice
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.plc import plc_bus
-from synse.utils import (
-    board_id_to_hex_string,
-    device_id_to_hex_string,
-    get_device_type_code,
-    get_device_type_name
-)
-from synse.definitions import (
-    SCAN_ALL_BOARD_ID,
-    SCAN_ALL_BIT,
-    SHUFFLE_BOARD_ID,
-    SAVE_BOARD_ID
-)
-from synse.errors import (
-    ChecksumException,
-    SynseException,
-    BusDataException,
-    BusTimeoutException,
-    BusCommunicationError
-)
-from synse.devicebus.devices.plc.conversions import (
-    convert_direct_pmbus,
-    convert_humidity,
-    convert_thermistor
-)
-
+from synse.devicebus.devices.plc.conversions import (convert_direct_pmbus,
+                                                     convert_humidity,
+                                                     convert_thermistor)
+from synse.devicebus.devices.serial_device import SerialDevice
+from synse.devicebus.response import Response
+from synse.errors import (BusCommunicationError, BusDataException,
+                          BusTimeoutException, ChecksumException,
+                          SynseException)
+from synse.utils import (board_id_to_hex_string, device_id_to_hex_string,
+                         get_device_type_code, get_device_type_name)
+from synse.version import __api_version__, __version__
 
 logger = logging.getLogger(__name__)
 

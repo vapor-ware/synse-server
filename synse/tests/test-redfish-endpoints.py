@@ -25,21 +25,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
 import logging
-from vapor_common.test_utils import run_suite, exit_suite
+import unittest
 
-from redfish_endpoints.test_endpoint import EndpointRunningTestCase
 from redfish_endpoints.test_asset import RedfishAssetTestCase
 from redfish_endpoints.test_boot_target import RedfishBootTargetTestCase
+from redfish_endpoints.test_endpoint import EndpointRunningTestCase
 from redfish_endpoints.test_fan import RedfishFanTestCase
 from redfish_endpoints.test_host_info import RedfishHostInfoTestCase
 from redfish_endpoints.test_led import RedfishLEDTestCase
 from redfish_endpoints.test_power import RedfishPowerTestCase
 from redfish_endpoints.test_read import RedfishReadTestCase
-from redfish_endpoints.test_scan_all import RedfishScanAllTestCase
 from redfish_endpoints.test_scan import RedfishScanTestCase
+from redfish_endpoints.test_scan_all import RedfishScanAllTestCase
 from redfish_endpoints.test_version import RedfishVersionTestCase
+from vapor_common.test_utils import exit_suite, run_suite
+
 
 def get_suite():
     """ Create an instance of the test suite for Redfish endpoint tests
@@ -61,4 +62,3 @@ def get_suite():
 if __name__ == '__main__':
     result = run_suite('test-redfish-endpoints', get_suite(), loglevel=logging.INFO)
     exit_suite(result)
-

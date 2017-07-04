@@ -25,12 +25,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
 import logging
-from vapor_common.test_utils import run_suite, exit_suite
+import unittest
 
-from ipmi_emulator_throughput.test_ipmi_emulator_throughput import IPMIEmulatorThroughputTestCase
-from ipmi_emulator_throughput.test_ipmi_emulator_throughput_failures import IPMIEmulatorFailureThroughputTestCase
+from ipmi_emulator_throughput.test_ipmi_emulator_throughput import \
+    IPMIEmulatorThroughputTestCase
+from ipmi_emulator_throughput.test_ipmi_emulator_throughput_failures import \
+    IPMIEmulatorFailureThroughputTestCase
+from vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():
@@ -45,4 +47,3 @@ def get_suite():
 if __name__ == '__main__':
     result = run_suite('test-ipmi-emulator-throughput', get_suite(), loglevel=logging.INFO)
     exit_suite(result)
-

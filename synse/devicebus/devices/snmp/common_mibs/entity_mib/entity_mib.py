@@ -26,16 +26,14 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
 from ...snmp_mib import SnmpMib
-
-from .entity_physical_table import EntityPhysicalTable
+from .entity_alias_mapping_table import EntityAliasMappingTable
+from .entity_compliances_table import EntityCompliancesTable
+from .entity_general_table import EntityGeneralTable
+from .entity_groups_table import EntityGroupsTable
 from .entity_logical_table import EntityLogicalTable
 from .entity_lp_mapping_table import EntityLPMappingTable
-from .entity_alias_mapping_table import EntityAliasMappingTable
 from .entity_physical_contains_table import EntityPhysicalContainsTable
-from .entity_general_table import EntityGeneralTable
-from .entity_compliances_table import EntityCompliancesTable
-from .entity_groups_table import EntityGroupsTable
-
+from .entity_physical_table import EntityPhysicalTable
 
 logger = logging.getLogger(__name__)
 

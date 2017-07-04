@@ -27,12 +27,12 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from synse.version import __api_version__
-from synse.tests.test_config import PREFIX
-
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
 from vapor_common.tests.utils.strings import _S
+
+from synse.tests.test_config import PREFIX
+from synse.version import __api_version__
 
 
 class I2CEndpointsTestCase(unittest.TestCase):

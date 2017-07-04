@@ -24,8 +24,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
-from synse.devicebus.devices.snmp.snmp_table import SnmpTable
 
+from synse.devicebus.devices.snmp.snmp_table import SnmpTable
 
 logger = logging.getLogger(__name__)
 

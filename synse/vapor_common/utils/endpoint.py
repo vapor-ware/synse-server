@@ -28,7 +28,6 @@ along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 from functools import partial
 
-
 logger = logging.getLogger(__name__)
 
 

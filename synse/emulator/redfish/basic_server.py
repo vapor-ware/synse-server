@@ -47,13 +47,15 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 """
 
-from flask import Flask, jsonify, request
-from redfish_auth import RfAuthentication
-import os
 import json
-from redfish_resources import database, users
-from templates.chassis_template import CHASSIS_TEMPLATE
-from templates.power_template import POWER_TEMPLATE
+import os
+
+from flask import Flask, jsonify, request
+
+from .redfish_auth import RfAuthentication
+from .redfish_resources import database, users
+from .templates.chassis_template import CHASSIS_TEMPLATE
+from .templates.power_template import POWER_TEMPLATE
 
 
 def basic_server(mockup_path, root_path, host_name, port_number, tokens):

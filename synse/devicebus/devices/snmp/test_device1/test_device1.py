@@ -30,21 +30,17 @@ import json
 import logging
 import time
 
-from ..snmp_server_base import SnmpServerBase
-from .....devicebus.constants import CommandId as cid
-from .....devicebus.response import Response
-
-from .tables.fan_table import FanTable
-from .tables.led_table import LedTable
-from .tables.power_table import PowerTable
-
-from .....errors import CommandNotSupported
+from pysnmp.proto.rfc1902 import Integer, Integer32, ObjectName
 
 from synse import constants
 
-from pysnmp.proto.rfc1902 import Integer
-from pysnmp.proto.rfc1902 import Integer32
-from pysnmp.proto.rfc1902 import ObjectName
+from .....devicebus.constants import CommandId as cid
+from .....devicebus.response import Response
+from .....errors import CommandNotSupported
+from ..snmp_server_base import SnmpServerBase
+from .tables.fan_table import FanTable
+from .tables.led_table import LedTable
+from .tables.power_table import PowerTable
 
 logger = logging.getLogger(__name__)
 

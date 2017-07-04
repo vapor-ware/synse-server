@@ -25,13 +25,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from threading import Thread
+import Queue
+import sys
 from functools import wraps
-from .test_config import PREFIX
+from threading import Thread
+
 from vapor_common.tests.utils.strings import _S
 
-import sys
-import Queue
+from .test_config import PREFIX
 
 
 class TestThread(Thread):

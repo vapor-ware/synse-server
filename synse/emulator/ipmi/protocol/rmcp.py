@@ -25,9 +25,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from protocol_base import ProtocolBase
-from ipmi import IPMI
+
 from asf import ASF
+from ipmi import IPMI
+from protocol_base import ProtocolBase
 
 
 class RMCP(ProtocolBase):

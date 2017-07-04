@@ -27,11 +27,11 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from synse.tests.test_config import PREFIX
-from synse.tests.test_utils import TestThreadExecutor
-
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
+
+from synse.tests.test_config import PREFIX
+from synse.tests.test_utils import TestThreadExecutor
 
 # number of threads for each test
 THREAD_COUNT = 25

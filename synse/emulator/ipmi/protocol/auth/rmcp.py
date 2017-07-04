@@ -25,14 +25,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import auth_base
-import auth_types
-import random
+
 import hashlib
 import hmac
-from Crypto.Cipher import AES
+import random
 
+import auth_base
+import auth_types
 from auth_context import SessionContext
+from Crypto.Cipher import AES
 
 
 class AuthRMCP(auth_base.IPMIAuthType):

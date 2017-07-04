@@ -27,10 +27,10 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from synse.tests.test_config import PREFIX
-
 from vapor_common import http
 from vapor_common.errors import VaporHTTPError
+
+from synse.tests.test_config import PREFIX
 
 
 class LocationTestCase(unittest.TestCase):

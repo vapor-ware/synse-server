@@ -26,8 +26,9 @@ import logging
 import time
 import unittest
 
-from snmp_device_kills_force_scan.test_snmp_device_kills_force_scan import SnmpDeviceKillsForceScanTestCase
-from vapor_common.test_utils import run_suite, exit_suite
+from snmp_device_kills_force_scan.test_snmp_device_kills_force_scan import \
+    SnmpDeviceKillsForceScanTestCase
+from vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

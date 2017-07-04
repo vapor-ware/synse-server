@@ -24,26 +24,25 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from ...snmp_mib import SnmpMib
-
-from .ups_identity_table import UpsIdentityTable
+from .ups_alarms_headers_table import UpsAlarmsHeadersTable
+from .ups_alarms_table import UpsAlarmsTable
+from .ups_basic_groups_table import UpsBasicGroupsTable
 from .ups_battery_table import UpsBatteryTable
+from .ups_bypass_headers_table import UpsBypassHeadersTable
+from .ups_bypass_table import UpsBypassTable
+from .ups_compliances_table import UpsCompliancesTable
+from .ups_config_table import UpsConfigTable
+from .ups_control_table import UpsControlTable
+from .ups_full_groups_table import UpsFullGroupsTable
+from .ups_identity_table import UpsIdentityTable
 from .ups_input_line_headers_table import UpsInputHeadersTable
 from .ups_input_table import UpsInputTable
 from .ups_output_headers_table import UpsOutputHeadersTable
 from .ups_output_table import UpsOutputTable
-from .ups_bypass_headers_table import UpsBypassHeadersTable
-from .ups_bypass_table import UpsBypassTable
-from .ups_alarms_headers_table import UpsAlarmsHeadersTable
-from .ups_alarms_table import UpsAlarmsTable
-from .ups_well_known_alarms_table import UpsWellKnownAlarmsTable
-from .ups_test_headers_table import UpsTestHeadersTable
-from .ups_well_known_tests_table import UpsWellKnownTestsTable
-from .ups_control_table import UpsControlTable
-from .ups_config_table import UpsConfigTable
-from .ups_compliances_table import UpsCompliancesTable
 from .ups_subset_groups_table import UpsSubsetGroupsTable
-from .ups_basic_groups_table import UpsBasicGroupsTable
-from .ups_full_groups_table import UpsFullGroupsTable
+from .ups_test_headers_table import UpsTestHeadersTable
+from .ups_well_known_alarms_table import UpsWellKnownAlarmsTable
+from .ups_well_known_tests_table import UpsWellKnownTestsTable
 
 
 class UpsMib(SnmpMib):

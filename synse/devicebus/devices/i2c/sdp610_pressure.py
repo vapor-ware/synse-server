@@ -25,21 +25,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
-from binascii import hexlify
-import lockfile
-import sys
 
-from i2c_device import I2CDevice
-from sdp610_emulator import read_emulator
+import logging
+import sys
+from binascii import hexlify
+
+import i2c_common.i2c_common as i2c_common
+import lockfile
+
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 
-import i2c_common.i2c_common as i2c_common
-
+from .i2c_device import I2CDevice
+from .sdp610_emulator import read_emulator
 
 logger = logging.getLogger(__name__)
 

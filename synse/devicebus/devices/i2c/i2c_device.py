@@ -25,15 +25,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import lockfile
+
 import logging
+
+import lockfile
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
-from synse.devicebus.response import Response
 from synse.devicebus.devices.serial_device import SerialDevice
+from synse.devicebus.response import Response
 from synse.version import __api_version__, __version__
-
 
 logger = logging.getLogger(__name__)
 

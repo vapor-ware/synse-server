@@ -25,10 +25,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import unittest
 
-import synse.utils as utils
 import synse.constants as const
+import synse.utils as utils
 
 
 class DeviceIdUtilsTestCase(unittest.TestCase):

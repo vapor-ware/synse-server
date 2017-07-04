@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 POWER_TEMPLATE = {
     "@odata.context": "/redfish/v1/$metadata#Power.Power",
     "@odata.id": "/redfish/v1/Chassis/{ob_id}/Power",
@@ -59,8 +56,8 @@ POWER_TEMPLATE = {
             "MaxReadingRange": 20,
             "PhysicalContext": "VoltageRegulator",
             "RelatedItem": [
-                {"@odata.id": "/redfish/v1/Systems/{ob_id}" },
-                {"@odata.id": "/redfish/v1/Chassis/{ob_ic}" }
+                {"@odata.id": "/redfish/v1/Systems/{ob_id}"},
+                {"@odata.id": "/redfish/v1/Chassis/{ob_ic}"}
             ]
         },
         {
@@ -81,8 +78,8 @@ POWER_TEMPLATE = {
             "MaxReadingRange": 20,
             "PhysicalContext": "VoltageRegulator",
             "RelatedItem": [
-                {"@odata.id": "/redfish/v1/Systems/{ob_id}" },
-                {"@odata.id": "/redfish/v1/Chassis/{ob_id}" }
+                {"@odata.id": "/redfish/v1/Systems/{ob_id}"},
+                {"@odata.id": "/redfish/v1/Chassis/{ob_id}"}
             ]
         }
     ],
@@ -93,8 +90,8 @@ POWER_TEMPLATE = {
             "MemberId": "0",
             "Name": "Power Supply Bay 1",
             "Status": {
-                    "State": "Enabled",
-                    "Health": "Warning"
+                "State": "Enabled",
+                "Health": "Warning"
             },
             "PowerSupplyType": "DC",
             "LineInputVoltageType": "DCNeg48V",
@@ -107,7 +104,7 @@ POWER_TEMPLATE = {
             "PartNumber": "1z0000001A3a",
             "SparePartNumber": "0000001A3a",
             "RelatedItem": [
-                { "@odata.id": "/redfish/v1/Chassis/{ob_id}" }
+                {"@odata.id": "/redfish/v1/Chassis/{ob_id}"}
             ],
         },
         {
@@ -129,7 +126,7 @@ POWER_TEMPLATE = {
             "PartNumber": "1z0000001A3a",
             "SparePartNumber": "0000001A3a",
             "RelatedItem": [
-                { "@odata.id": "/redfish/v1/Chassis/{ob_id}" }
+                {"@odata.id": "/redfish/v1/Chassis/{ob_id}"}
             ],
         },
         {

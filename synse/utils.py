@@ -25,6 +25,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import errno
 import json
 import logging
@@ -34,8 +35,8 @@ from Queue import Queue
 
 from flask import current_app, g, jsonify
 
-import constants as const
-from errors import SynseException
+import synse.constants as const
+from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 

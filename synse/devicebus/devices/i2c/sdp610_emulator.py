@@ -25,11 +25,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
-from synse.errors import SynseException
+import sys
 
 import serial
-import sys
+
+from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 
