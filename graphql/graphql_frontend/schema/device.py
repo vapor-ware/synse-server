@@ -290,7 +290,7 @@ class PressureDevice(DeviceBase):
     class Meta:
         interfaces = (DeviceInterface, )
 
-    pressure_kpa = graphene.Float(required=True)
+    pressure_pa = graphene.Float(required=True)
 
 
 class SystemDevice(DeviceBase):
