@@ -29,7 +29,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import sys
 
-import conversions.conversions as conversions
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
 from rs485_device import RS485Device
@@ -39,6 +38,7 @@ from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.errors import SynseException
+from synse.protocols.conversions import conversions
 
 logger = logging.getLogger(__name__)
 
