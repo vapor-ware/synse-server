@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 
 """ Run this off the command line by:
-sudo -HE env PATH=$PATH PYTHONPATH="../protocols:${PYTHONPATH}" ./gs3fan.py get
+sudo -HE env PATH=$PATH ./gs3fan.py get
 """
 
 import sys
+import os
 import serial
 import logging
 from binascii import hexlify
 import struct
 import time
+
+# before we import the synse protocol packages, we want to make sure it
+# is reachable on the pythonpath
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from synse.protocols.modbus import dkmodbus
 from synse.protocols.conversions import conversions
