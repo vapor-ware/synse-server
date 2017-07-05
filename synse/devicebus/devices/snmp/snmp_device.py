@@ -22,15 +22,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 
 from synse import constants as const
 
-from .snmp_client import SnmpClient
-from .snmp_server_factory import SnmpServerFactory
-from ..lan_device import LANDevice
 from ....devicebus.constants import CommandId as cid
 from ....devicebus.response import Response
+from ..lan_device import LANDevice
+from .snmp_client import SnmpClient
+from .snmp_server_factory import SnmpServerFactory
 
 logger = logging.getLogger(__name__)
 

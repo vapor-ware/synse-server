@@ -27,13 +27,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 
-from redfish_connection import get_data
-from redfish_connection import post_action
-from redfish_connection import patch_data
-from synse.errors import SynseException
+from redfish_connection import get_data, patch_data, post_action
 
+from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 

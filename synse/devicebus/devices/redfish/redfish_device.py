@@ -29,21 +29,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import vapor_redfish
+
+import json
 import logging
 import threading
-import json
 
+import vapor_redfish
 from redfish_connection import find_links
 
 import synse.strings as _s_
-from synse.devicebus.constants import CommandId as cid
 from synse import constants as const
+from synse.devicebus.constants import CommandId as cid
+from synse.devicebus.devices.lan_device import LANDevice
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.utils import ThreadPool
 from synse.version import __api_version__, __version__
-from synse.devicebus.devices.lan_device import LANDevice
 
 logger = logging.getLogger(__name__)
 

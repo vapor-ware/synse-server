@@ -26,18 +26,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
+
 import serial
 
-from synse.errors import *
 from synse.constants import *
-from synse.utils import (
-    board_id_to_bytes,
-    device_id_to_bytes,
-    board_id_join_bytes,
-    device_id_join_bytes,
-    get_device_type_code
-)
+from synse.errors import *
+from synse.utils import (board_id_join_bytes, board_id_to_bytes,
+                         device_id_join_bytes, device_id_to_bytes,
+                         get_device_type_code)
 
 logger = logging.getLogger(__name__)
 

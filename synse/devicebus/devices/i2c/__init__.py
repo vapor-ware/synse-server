@@ -25,8 +25,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+from i2c_device import I2CDevice
 from max11608_adc_thermistor import Max11608Thermistor
 from pca9632_led import PCA9632Led
 from sdp610_pressure import SDP610Pressure
-
-from i2c_device import I2CDevice

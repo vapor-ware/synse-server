@@ -28,7 +28,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import unittest
 
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
-from synse.tests.test_config import RS485_TEST_CLIENT_DEVICE, RS485_TEST_TIMEOUT_SEC
+
+from synse.tests.test_config import (RS485_TEST_CLIENT_DEVICE,
+                                     RS485_TEST_TIMEOUT_SEC)
 
 
 class Rs485EmulatorTestCase(unittest.TestCase):

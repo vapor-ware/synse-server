@@ -27,9 +27,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from synse.errors import SynseException
-from synse.definitions import BMC_PORT
+
 from vapor_ipmi_common import IpmiCommand
+
+from synse.definitions import BMC_PORT
+from synse.errors import SynseException
 
 
 def get_flex_victoria_power_reading(username=None, password=None, ip_address=None, port=BMC_PORT):

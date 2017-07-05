@@ -26,7 +26,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
 from ...snmp_mib import SnmpMib
-
 from .entity_physical_sensor_table import EntityPhysicalSensorTable
 from .entity_sensor_compliances_table import EntitySensorCompliancesTable
 from .entity_sensor_groups import EntitySensorGroupsTable

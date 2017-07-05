@@ -26,36 +26,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
+
 import copy
 import json
+import logging
 
-from flask import current_app, Blueprint
-
+from flask import Blueprint, current_app
 from vapor_common.utils.endpoint import make_url_builder
+
 import synse.constants as const
 import synse.strings as _s_
 from synse import definitions
+from synse.devicebus.devices import (I2CDevice, IPMIDevice, PLCDevice,
+                                     RedfishDevice, RS485Device, SnmpDevice)
 from synse.errors import SynseException
 from synse.location import get_chassis_location
+from synse.utils import (check_valid_board, check_valid_board_and_device,
+                         get_device_instance, get_device_type_code,
+                         get_scan_cache, make_json_response, write_scan_cache)
 from synse.version import __api_version__
-from synse.devicebus.devices import (
-    PLCDevice,
-    IPMIDevice,
-    RS485Device,
-    I2CDevice,
-    SnmpDevice,
-    RedfishDevice
-)
-from synse.utils import (
-    check_valid_board,
-    check_valid_board_and_device,
-    get_device_type_code,
-    get_scan_cache,
-    write_scan_cache,
-    get_device_instance,
-    make_json_response
-)
 
 # add the api_version to the prefix
 PREFIX = const.endpoint_prefix + __api_version__

@@ -25,20 +25,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from itertools import count
 import unittest
-
-from synse.devicebus.devices.ipmi.ipmi_device import IPMIDevice
-
-from synse.devicebus.devices.i2c.max11608_adc_thermistor import Max11608Thermistor
-from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
-from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
-
-from synse.devicebus.devices.rs485.sht31_humidity import SHT31Humidity
-from synse.devicebus.devices.rs485.f660_airflow import F660Airflow
-from synse.devicebus.devices.rs485.gs3_2010_fan_controller import GS32010Fan
+from itertools import count
 
 from synse.devicebus.command_factory import CommandFactory
+from synse.devicebus.devices.i2c.max11608_adc_thermistor import \
+    Max11608Thermistor
+from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
+from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
+from synse.devicebus.devices.ipmi.ipmi_device import IPMIDevice
+from synse.devicebus.devices.rs485.f660_airflow import F660Airflow
+from synse.devicebus.devices.rs485.gs3_2010_fan_controller import GS32010Fan
+from synse.devicebus.devices.rs485.sht31_humidity import SHT31Humidity
 from synse.errors import CommandNotSupported
 
 

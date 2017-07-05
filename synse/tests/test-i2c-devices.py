@@ -28,9 +28,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import unittest
 
-from vapor_common.test_utils import run_suite, exit_suite
-
 from i2c_devices.test_i2c_sdp610_pressure import SDP610TestCase
+from vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

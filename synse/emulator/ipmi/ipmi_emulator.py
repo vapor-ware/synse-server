@@ -28,13 +28,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import SocketServer
-import argparse
 
-from protocol.rmcp import RMCP
-from protocol.asf import ASF
+import argparse
+import SocketServer
 
 from bmc import MockBMC
+from protocol.asf import ASF
+from protocol.rmcp import RMCP
 
 
 class BMCRequestHandler(SocketServer.BaseRequestHandler):
@@ -130,4 +130,3 @@ if __name__ == '__main__':
     print '----------------------------------------------------------------------'
     print 'BMC Emulator Terminated.'
     print '----------------------------------------------------------------------'
-

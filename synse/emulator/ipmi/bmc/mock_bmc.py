@@ -26,15 +26,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import os
+
 import json
+import os
 import random
 import time
 
-from sdr import SDR
 from fru import FRU
+from protocol.auth import AuthRMCP, SessionContext, auth_types
 from protocol.ipmi import IPMI
-from protocol.auth import auth_types, AuthRMCP, SessionContext
+from sdr import SDR
 
 
 # netfn constants

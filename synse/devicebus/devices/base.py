@@ -25,13 +25,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
-import json
-from uuid import uuid4 as uuid
-from synse.errors import CommandNotSupported
-from synse.devicebus.constants import CommandId
-from synse.errors import SynseException
 
+import json
+import logging
+from uuid import uuid4 as uuid
+
+from synse.devicebus.constants import CommandId
+from synse.errors import CommandNotSupported, SynseException
 
 logger = logging.getLogger(__name__)
 

@@ -25,10 +25,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
+import json
 import logging
 import logging.config
 import os
-import json
 
 _startup_logger = None
 

@@ -19,15 +19,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
 import logging
-from vapor_common.test_utils import run_suite, exit_suite
+import unittest
 
 from utils.test_board_id_utils import BoardIdUtilsTestCase
 from utils.test_cache_utils import CacheUtilsTestCase
 from utils.test_device_id_utils import DeviceIdUtilsTestCase
 from utils.test_device_interface_utils import DeviceInterfaceUtilsTestCase
 from utils.test_validation_utils import ValidationUtilsTestCase
+from vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

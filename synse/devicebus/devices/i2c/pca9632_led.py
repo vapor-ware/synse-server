@@ -25,19 +25,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
-import lockfile
 import sys
 
+import lockfile
 from i2c_device import I2CDevice
+from mpsse import *
 from pca9632_emulator import read_emulator, write_emulator
+
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.errors import SynseException
-
-from mpsse import *
 
 logger = logging.getLogger(__name__)
 

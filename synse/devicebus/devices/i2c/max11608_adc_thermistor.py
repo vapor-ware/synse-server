@@ -26,20 +26,20 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
+import struct
 import sys
-import lockfile
 
+import conversions.conversions as conversions
+import i2c_common.i2c_common as i2c_common
+import lockfile
 from i2c_device import I2CDevice
 from max11608_adc_emulator import read_emulator
+
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.errors import SynseException
-
-import i2c_common.i2c_common as i2c_common
-import conversions.conversions as conversions
-import struct
 
 logger = logging.getLogger(__name__)
 

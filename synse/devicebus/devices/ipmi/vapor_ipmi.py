@@ -28,13 +28,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
-from pyghmi import constants
 
-from synse.errors import SynseException
-from synse.definitions import BMC_PORT
-from vapor_ipmi_oem_flex import get_flex_victoria_power_reading
+import logging
+
+from pyghmi import constants
 from vapor_ipmi_common import IpmiCommand
+from vapor_ipmi_oem_flex import get_flex_victoria_power_reading
+
+from synse.definitions import BMC_PORT
+from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 

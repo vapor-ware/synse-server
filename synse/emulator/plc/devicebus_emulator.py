@@ -27,14 +27,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import json
 import logging
 import sys
 
 import vapor_common.vapor_logging as vapor_logging
-from synse.definitions import SCAN_ALL_BIT, SAVE_BIT, SHUFFLE_BIT
-from synse.utils import *
+
+from synse.definitions import SAVE_BIT, SCAN_ALL_BIT, SHUFFLE_BIT
 from synse.devicebus.devices.plc.plc_bus import *
+from synse.utils import *
 
 logger = logging.getLogger(__name__)
 

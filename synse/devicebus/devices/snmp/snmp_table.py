@@ -25,11 +25,12 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import string
-
 from binascii import hexlify
+
+from vapor_common.utils.argument_checker import ArgumentChecker
+
 from .snmp_row import SnmpRow
 from .snmp_server_base import SnmpServerBase
-from vapor_common.utils.argument_checker import ArgumentChecker
 
 logger = logging.getLogger(__name__)
 
