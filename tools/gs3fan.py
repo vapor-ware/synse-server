@@ -9,10 +9,11 @@ import serial
 import logging
 from binascii import hexlify
 import struct
-from modbus import dkmodbus
 import time
-import conversions.conversions as conversions
-import i2c_common.i2c_common as i2c_common
+
+from synse.protocols.modbus import dkmodbus
+from synse.protocols.conversions import conversions
+from synse.protocols.i2c_common import i2c_common
 
 logging.basicConfig()
 logger = logging.getLogger()

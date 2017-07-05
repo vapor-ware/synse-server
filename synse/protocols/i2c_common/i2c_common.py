@@ -5,13 +5,12 @@
 
 
         Common file for i2c operations to avoid cut and paste.
-        gs3 command line tool needs to avoid synse-server/synse/__init__.py
-        as it brings in a lot of dependencies. This code will also be used
+        gs3 command line tool uses this code. This code will also be used
         under the devicebus.
 """
 
 from mpsse import *
-import conversions.conversions as conversions
+from ..conversions import conversions
 import datetime
 import logging
 import time

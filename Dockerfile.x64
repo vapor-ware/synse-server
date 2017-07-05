@@ -71,7 +71,7 @@ WORKDIR /synse
 
 # update the python path to include the synse module so that it
 # can be successfully be imported
-ENV PYTHONPATH="/synse/synse:/synse/protocols:${PYTHONPATH}"
+ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 
 # Expose our API endpoint port.
 EXPOSE 5000

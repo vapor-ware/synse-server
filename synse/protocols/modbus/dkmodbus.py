@@ -35,7 +35,6 @@ class dkmodbus(object):
     _WRITE_MULTIPLE_COILS = '\x0F'
     _GET_COM_EVENT_COUNTER = '\x0B'
     _GET_COM_EVENT_LOG = '\x0C'
-    _WRITE_MULTIPLE_REGISTERS = '\x10'
     _REPORT_SLAVE_ID = '\x11'
     _READ_FILE_RECORD = '\x14'
     _WRITE_FILE_RECORD = '\x15'

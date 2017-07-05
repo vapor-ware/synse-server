@@ -2,16 +2,11 @@
 
 import datetime
 import logging
-from binascii import hexlify
-
-import conversions.conversions as conversions
-import i2c_common.i2c_common as i2c_common
 
 from synse.devicebus.devices.i2c.max11608_adc_thermistor import \
     Max11608Thermistor
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
-from synse.devicebus.devices.rs485 import (F660Airflow, RS485Device,
-                                           SHT31Humidity)
+from synse.protocols.i2c_common import i2c_common
 
 logger = logging.getLogger(__name__)
 

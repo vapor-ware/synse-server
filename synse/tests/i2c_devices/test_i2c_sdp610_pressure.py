@@ -27,7 +27,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-import conversions.conversions as conversions
+from synse.protocols.conversions import conversions
 
 
 class SDP610TestCase(unittest.TestCase):

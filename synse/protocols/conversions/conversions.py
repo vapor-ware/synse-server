@@ -11,8 +11,6 @@
         3. Synse command line tools.
 
         This file is a common place for them.
-        In order to share the code, this should not be under synse-server/synse
-        because the __init__.py brings in many dependencies.
 """
 
 import logging

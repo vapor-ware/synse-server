@@ -30,13 +30,13 @@ import logging
 
 import lockfile
 import serial
-from modbus import dkmodbus
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.serial_device import SerialDevice
 from synse.devicebus.response import Response
 from synse.errors import SynseException
+from synse.protocols.modbus import dkmodbus
 from synse.version import __api_version__, __version__
 
 logger = logging.getLogger(__name__)

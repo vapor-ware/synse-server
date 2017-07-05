@@ -29,8 +29,6 @@ import logging
 import struct
 import sys
 
-import conversions.conversions as conversions
-import i2c_common.i2c_common as i2c_common
 import lockfile
 from i2c_device import I2CDevice
 from max11608_adc_emulator import read_emulator
@@ -40,6 +38,8 @@ from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.response import Response
 from synse.errors import SynseException
+from synse.protocols.conversions import conversions
+from synse.protocols.i2c_common import i2c_common
 
 logger = logging.getLogger(__name__)
 
