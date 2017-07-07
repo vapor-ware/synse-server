@@ -9,6 +9,7 @@
         under the devicebus.
 """
 
+from binascii import hexlify
 from mpsse import *
 from ..conversions import conversions
 import datetime
@@ -68,8 +69,18 @@ def _read_differential_pressure_channel(vec, channel):
     vec.Start()
     vec.Write(PCA9546_READ_ADDRESS)
     vec.SendNacks()
-    vec.Read(1)
+
+    channel_reading = vec.Read(1)
+    channel_read = conversions.unpack_byte(channel_reading)
+    if channel_read == channel:
+        logger.debug('OK: Set differential pressure channel to {}'.format(channel_read))
+    else:
+        logger.error(
+            'FAILED Setting differential pressure channel to {}, channel is {}'.format(
+                channel, channel_read))
+
     vec.Stop()
+    vec.SendAcks()
 
     # Read DPS sensor connected to the set channel
     raw_results = []
@@ -91,6 +102,9 @@ def _read_differential_pressure_channel(vec, channel):
         # Read the three bytes out of the DPS sensor (two data bytes and crc)
         sensor_data = vec.Read(3)
         vec.Stop()
+
+        logger.debug('Raw differential pressure bytes (hexlified) channel {}: {}'.format(
+            channel, hexlify(sensor_data)))
 
         if _crc8(sensor_data):
             # Faster is to average, then convert, but this way is saner for debugging.
@@ -125,18 +139,24 @@ def configure_differential_pressure(channel):
     time.sleep(0.001)
 
     channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
+    logger.debug('PCA9546_WRITE_ADDRESS is: {}'.format(hexlify(PCA9546_WRITE_ADDRESS)))
+    logger.debug('channel_str is: {}'.format(hexlify(channel_str)))
 
     vec.Start()
     vec.Write(channel_str)
     vec.Stop()
 
+    logger.debug('PCA9546_READ_ADDRESS is: {}'.format(hexlify(PCA9546_READ_ADDRESS)))
+
     # verify channel was set
     vec.Start()
     vec.Write(PCA9546_READ_ADDRESS)
     vec.SendNacks()
-    vec.Read(1)
+    reg = vec.Read(1)
     vec.Stop()
     vec.SendAcks()
+
+    logger.debug('PCA9546A Control Register: 0x{:02x}'.format(ord(reg)))
 
     # Configure Sensor
     # In the application note for changing measurement resolution three things must be met.
@@ -149,23 +169,19 @@ def configure_differential_pressure(channel):
     vec.Write('\x81')
 
     # At this point the sensor needs to hold the master but the FT4232 doesn't do clock stretching.
-    time.sleep(0.001)
+    time.sleep(0.001)  # This stays at 1 ms regardless of sensor resolution.
 
     # Read the three bytes out of the DPS sensor (two data bytes and crc)
     sensor_data = vec.Read(3)
+    logger.debug('Raw sensor_data: {}'.format(hexlify(sensor_data)))
     vec.Stop()
 
     # write new value for 9 bit resolution (0b000 for bits 9 - 11)
     if _crc8(sensor_data):
 
-        # Create single string from characters
-        sensor_str = sensor_data[0] + sensor_data[1]
+        # Hardcoded 9 bit sensor resolution.
+        sensor_int = 0x7182
 
-        # convert to an integer number
-        sensor_int = conversions.unpack_word(sensor_str)
-
-        # clear bits 9 - 11
-        sensor_int = sensor_int & 0xF1FF
         msb = sensor_int >> 8
         lsb = sensor_int & 0xFF
         register_str = '\x80\xE4' + chr(msb) + chr(lsb)
