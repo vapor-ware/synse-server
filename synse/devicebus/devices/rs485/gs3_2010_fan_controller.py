@@ -189,6 +189,7 @@ class GS32010Fan(RS485Device):
                 'status', 'set_speed'
             speed_rpm (int): the fan speed (in RPM) to set. note that the speed will
                 only be set if the action is 'set_speed'.
+             fan_direction (string): forward or reverse.
 
         Returns:
             dict: the fan speed reading.
@@ -229,7 +230,12 @@ class GS32010Fan(RS485Device):
                     # is likely ramping up or coasting down to the set speed.
                     return {const.UOM_VAPOR_FAN: speed_rpm}
                 else:
-                    return {const.UOM_VAPOR_FAN: self._get_rpm()}
+                    rpm = self._get_rpm()
+                    direction = self._get_direction()
+                    return {
+                        const.UOM_VAPOR_FAN: rpm,
+                        const.UOM_DIRECTION: direction,
+                    }
 
             else:
                 raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
@@ -245,6 +251,19 @@ class GS32010Fan(RS485Device):
                 'Invalid speed setting {} for GS3-2010 fan control - must be between {} and {}'.format(
                     speed_rpm, MIN_FAN_SPEED_RPM, MAX_FAN_SPEED_RPM)
             )
+
+    def _get_direction(self):
+        """Production only direction reads from gs3_2010_fan (vapor_fan).
+        :returns: String forward or reverse."""
+        client = self.create_modbus_client()
+        result = client.read_holding_registers(self.slave_address, 0x91C, 1)
+        direction = conversions.unpack_word(result)
+        if direction == 0:
+            return 'forward'
+        elif direction == 1:
+            return 'reverse'
+        else:
+            raise ValueError('Unknown direction {}'.format(direction))
 
     def _get_rpm(self):
         """Production only rpm reads from gs3_2010_fan (vapor_fan).
