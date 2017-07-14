@@ -288,6 +288,7 @@ def _print_usage():
     print '\ttemp: gets temperature and humidity'
     print '\ttherm: gets all thermistors'
     print '\tpressure: gets all differential pressures'
+    print '\tambient: gets ambient temperature'
 
 
 def _read_airflow(ser):
@@ -347,6 +348,23 @@ def _read_rpm(ser):
     client = dkmodbus.dkmodbus(ser)
     result = client.read_holding_registers(1, 0x2107, 1)
     return conversions.unpack_word(result)
+
+
+def _read_temperature_ambient(ser):
+    # Slave address is 3. Register is 0 for temp, 1 for humidity.
+
+    client = dkmodbus.dkmodbus(ser)
+    result = client.read_input_registers(3, 0, 2)
+
+    logger.debug('result {}'.format(hexlify(result)))
+    temperature_raw = int(hexlify(result[0:2]), 16)
+    humidity_raw = int(hexlify(result[2:4]), 16)
+    logger.debug('temperature_raw {}'.format(temperature_raw))
+    logger.debug('humidity_raw {}'.format(humidity_raw))
+    temperature = conversions.temperature_sht31(result)
+    humidity = conversions.humidity_sht31(result)
+    print "Temperature = %0.2f C" % temperature
+    print "Relative Humidity = %0.2f %%" % humidity
 
 
 def _read_temperature_and_humidity(ser):
@@ -486,6 +504,8 @@ def main():
         _read_airflow(ser)
     elif sys.argv[1] == 'test1':
         _test1(ser)
+    elif sys.argv[1] == 'ambient':
+        _read_temperature_ambient(ser)
     else:
         _print_usage()
         return 1
