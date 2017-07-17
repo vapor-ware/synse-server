@@ -194,5 +194,4 @@ fi
 
 # start synse
 _setup_container_environment
-service nginx restart 2>&1
 uwsgi --emperor /etc/uwsgi/emperor.ini 2>&1

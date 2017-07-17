@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Synse Server Runner - Used to launch Synse from package
-via flask/nginx
+via flask
 
     Author:  andrew
     Date:    7/28/2015

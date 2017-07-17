@@ -52,10 +52,10 @@ import os
 
 from flask import Flask, jsonify, request
 
-from .redfish_auth import RfAuthentication
-from .redfish_resources import database, users
-from .templates.chassis_template import CHASSIS_TEMPLATE
-from .templates.power_template import POWER_TEMPLATE
+from redfish_auth import RfAuthentication
+from redfish_resources import database, users
+from templates.chassis_template import CHASSIS_TEMPLATE
+from templates.power_template import POWER_TEMPLATE
 
 
 def basic_server(mockup_path, root_path, host_name, port_number, tokens):

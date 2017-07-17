@@ -113,9 +113,8 @@ response should be all your configured servers.
 
 ## Building an Synse Server Image
 
-To build a custom distribution of Synse (for example, to include site-specific
-TLS certificates, or to configure Nginx to use site-specific authn/authz), the
-included Makefile can be used to package up the distribution.
+To build a custom distribution of Synse, the included Makefile can be used to 
+package up the distribution.
 
 In the simplest case, from the Synse directory:
 ```

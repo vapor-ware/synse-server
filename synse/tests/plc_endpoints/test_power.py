@@ -244,7 +244,7 @@ class PowerTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + "/power/bad_char%/0000001E/01FF")
 
-        self.assertEqual(ctx.exception.status, 400)
+        self.assertEqual(ctx.exception.status, 404)
 
     def test_013_power_board_id_invalid(self):
         """ Test power status while specifying different invalid representations for

@@ -30,7 +30,7 @@ import os
 import unittest
 from itertools import count
 
-import synse as sb
+import synse.app as sb
 from synse.devicebus.devices.ipmi import IPMIDevice
 
 

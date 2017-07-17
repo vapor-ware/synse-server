@@ -47,27 +47,20 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     UWSGI_PROFILE=nolang python setup.py install && \
     cd /tmp && rm -rf /tmp/uwsgi*
 
-ADD . /synse
-WORKDIR /synse
-
-# run command for custom configuration layer
-RUN /synse/bin/configure_nginx_config.sh
-
-# run command for nginx uwsgi configuration
-RUN ln -s /synse/configs/nginx/nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
-    ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/vassals/synse.ini && \
-    ln -s /synse/configs/uwsgi/graphql.ini /etc/uwsgi/vassals/graphql.ini && \
-    ln -s /synse/configs/uwsgi/emperor.ini /etc/uwsgi/emperor.ini && \
-    chown -R www-data:www-data /etc/uwsgi && \
-    rm -f /etc/logrotate.d/nginx && \
-    cp /synse/configs/nginx/nginx.logrotate /etc/logrotate.d/nginx && \
-    ln -sf /proc/1/fd/1 /logs/err
-
 # We need libmpsse for i2c to work in production.
 ADD ./libmpsse/src /build
 WORKDIR /build
 RUN ./configure && make && make install
+
+ADD . /synse
 WORKDIR /synse
+
+# run command for uwsgi configuration
+RUN ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/vassals/synse.ini && \
+    ln -s /synse/configs/uwsgi/graphql.ini /etc/uwsgi/vassals/graphql.ini && \
+    ln -s /synse/configs/uwsgi/emperor.ini /etc/uwsgi/emperor.ini && \
+    chown -R www-data:www-data /etc/uwsgi && \
+    ln -sf /proc/1/fd/1 /logs/err
 
 # update the python path to include the synse module so that it
 # can be successfully be imported
