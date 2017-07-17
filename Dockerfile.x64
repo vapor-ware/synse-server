@@ -1,4 +1,4 @@
-FROM vaporio/vapor-endpoint-base-x64:1.0
+FROM vaporio/vapor-endpoint-base-x64:3.0
 MAINTAINER Andrew Cencini <andrew@vapor.io>
 
 ENV VAPOR_SERVICE_NAME=synse
@@ -8,6 +8,7 @@ ADD ./graphql/requirements.txt graphql-requirements.txt
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential\
     socat \
     libftdi-dev \
     snmp \
@@ -18,17 +19,17 @@ RUN apt-get update && apt-get install -y \
     make \
     iputils-ping \
     --no-install-recommends && \
+    pip2 install --upgrade pip && \
+    pip2 install wheel setuptools && \
+    pip3 install --upgrade pip && \
+    pip3 install wheel setuptools && \
+    pip2 install -r requirements.txt && \
+    pip3 install -r graphql-requirements.txt && \
+    apt-get remove -y \
+    build-essential \
+    python3-pip && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -r -f /var/lib/apt/lists/* && apt-get clean
-
-# Wheel and setuptools need to be installed first in order to install the other python requirements.
-RUN pip2 install --upgrade pip
-RUN pip2 install wheel setuptools
-RUN pip3 install --upgrade pip
-RUN pip3 install wheel setuptools
-
-RUN pip2 install -r requirements.txt && \
-    pip3 install -r graphql-requirements.txt
+    apt-get clean
 
 RUN mkdir -p /etc/uwsgi/vassals && \
     mkdir -p /etc/uwsgi/plugins && \
