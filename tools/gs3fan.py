@@ -16,9 +16,9 @@ import time
 # is reachable on the pythonpath
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from synse.protocols.modbus import dkmodbus
-from synse.protocols.conversions import conversions
-from synse.protocols.i2c_common import i2c_common
+from synse.protocols.modbus import dkmodbus  # nopep8
+from synse.protocols.conversions import conversions  # nopep8
+from synse.protocols.i2c_common import i2c_common  # nopep8
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -277,18 +277,19 @@ def _get(ser):
 
 
 def _print_usage():
-    print 'sudo -HE env PATH=$PATH PYTHONPATH="../protocols:${PYTHONPATH}" ./gs3fan.py {get|set|temp} [options]'
+    print 'sudo -HE env PATH=$PATH ./gs3fan.py {get|set|temp|ambient|air|therm|pressure} [options]'
     print '\tget options:'
     print '\t\t <none>: speed in RPM.'
     print '\t\t all: registers.'
-    print '\t\t register: fan register in the form of 0x91c'
+    print '\t\t register: get fan register in the form of 0x91c'
     print '\tset options:'
-    print '\t\t <integer> set speed in RPM (0 < 1755)'
+    print '\t\t <integer> set speed in RPM (0 < 1755). settings from 1 to 174 are not recommended.'
     print '\t\t register: set fan register in the form of 0x91c {data}'
     print '\ttemp: gets temperature and humidity'
+    print '\tambient: gets ambient temperature'
+    print '\tair: gets CEC airflow'
     print '\ttherm: gets all thermistors'
     print '\tpressure: gets all differential pressures'
-    print '\tambient: gets ambient temperature'
 
 
 def _read_airflow(ser):

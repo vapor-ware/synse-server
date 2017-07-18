@@ -27,7 +27,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
+from collections import Counter
 from synse.protocols.conversions import conversions
+from synse.stats import stats
 
 
 class SDP610TestCase(unittest.TestCase):
@@ -176,3 +178,44 @@ class SDP610TestCase(unittest.TestCase):
         """
         corr = conversions.differential_pressure_sdp610_altitude(-5.99)
         self.assertEqual(corr, 0.95)
+
+    def test_007_stats(self):
+        """Test the stats corrections for the differential pressure reads."""
+        readings = [-668.8, -668.8, -479.75, -593.75, -398.04999999999995,
+                    -593.75, -720.1, -501.59999999999997, -694.4499999999999,
+                    -398.04999999999995, -694.4499999999999, -668.8, -288.8,
+                    -904.4, -116.85, -720.1, -525.35, -546.25, -619.4, -668.8,
+                    -720.1, -501.59999999999997, -668.8, -323.95,
+                    -872.0999999999999]
+        result = stats.remove_outliers_percent(readings, .3)
+
+        # Verify all fields.
+        self.assertIn('list', result)
+        self.assertIn('removed', result)
+        self.assertIn('stddev', result)
+        self.assertIn('outliers', result)
+        self.assertIn('mean', result)
+
+        # Verify data
+        expected = [-668.8, -668.8, -479.75, -593.75, -593.75, -720.1,
+                    -501.59999999999997, -694.4499999999999,
+                    -694.4499999999999, -668.8, -720.1, -525.35, -546.25,
+                    -619.4, -668.8, -720.1, -501.59999999999997, -668.8]
+        self.assertTrue(Counter(expected) == Counter(result['list']),
+                        msg='result[list]: {}'.format(
+                            result['list']))
+
+        self.assertEquals(7, result['removed'])
+        self.assertTrue(6446.5 < result['stddev'] < 6446.6,
+                        msg='result[stddev]: {}'.format(
+                            result['stddev']))
+
+        expected = [-116.85, -288.8, -323.95, -904.4, -872.0999999999999,
+                    -398.04999999999995, -398.04999999999995]
+        self.assertTrue(Counter(expected) == Counter(result['outliers']),
+                        msg='result[outliers]: {}'.format(
+                            result['outliers']))
+
+        self.assertTrue(-625.3 < result['mean'] < -625.2,
+                        msg='result[mean]: {}'.format(
+                            result['mean']))
