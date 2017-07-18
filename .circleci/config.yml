@@ -5,7 +5,7 @@ jobs:
       - image: python
     working_directory: /synse-server
     environment:
-      - DOCKER_VERSION=17.03.0-ce
+      - DOCKER_VERSION=17.05.0-ce
       - COMPOSE_VERSION=1.14.0
     steps:
       - checkout
@@ -20,10 +20,10 @@ jobs:
             tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
             mv /tmp/docker/* /usr/bin
       - run:
-          name: Setup Docker Images
-          command: |
-            docker pull timfallmk/endpoint-test:1
-            docker tag timfallmk/endpoint-test:1 vaporio/vapor-endpoint-base-x64:1.0
+           name: Docker Private Images (temporary) # This should be removed once images are public
+           command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PS
+            docker pull vaporio/vapor-endpoint-base-x64:3.0
       - run:
           name: Install Docker compose
           command: |

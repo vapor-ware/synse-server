@@ -268,7 +268,7 @@ class DeviceReadTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/read/thermistor/bad_char%/00000014/04FF')
 
-        self.assertEqual(ctx.exception.status, 400)
+        self.assertEqual(ctx.exception.status, 404)
 
     def test_010_read_board_id_invalid(self):
         """ Test read while specifying different invalid representations for

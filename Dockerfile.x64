@@ -1,4 +1,4 @@
-FROM vaporio/vapor-endpoint-base-x64:1.0
+FROM vaporio/vapor-endpoint-base-x64:3.0
 MAINTAINER Andrew Cencini <andrew@vapor.io>
 
 ENV VAPOR_SERVICE_NAME=synse
@@ -8,6 +8,7 @@ ADD ./graphql/requirements.txt graphql-requirements.txt
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential\
     socat \
     libftdi-dev \
     snmp \
@@ -18,17 +19,17 @@ RUN apt-get update && apt-get install -y \
     make \
     iputils-ping \
     --no-install-recommends && \
+    pip2 install --upgrade pip && \
+    pip2 install wheel setuptools && \
+    pip3 install --upgrade pip && \
+    pip3 install wheel setuptools && \
+    pip2 install -r requirements.txt && \
+    pip3 install -r graphql-requirements.txt && \
+    apt-get remove -y \
+    build-essential \
+    python3-pip && \
     rm -rf /var/lib/apt/lists/* && \
-    rm -r -f /var/lib/apt/lists/* && apt-get clean
-
-# Wheel and setuptools need to be installed first in order to install the other python requirements.
-RUN pip2 install --upgrade pip
-RUN pip2 install wheel setuptools
-RUN pip3 install --upgrade pip
-RUN pip3 install wheel setuptools
-
-RUN pip2 install -r requirements.txt && \
-    pip3 install -r graphql-requirements.txt
+    apt-get clean
 
 RUN mkdir -p /etc/uwsgi/vassals && \
     mkdir -p /etc/uwsgi/plugins && \
@@ -47,27 +48,20 @@ RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
     UWSGI_PROFILE=nolang python setup.py install && \
     cd /tmp && rm -rf /tmp/uwsgi*
 
-ADD . /synse
-WORKDIR /synse
-
-# run command for custom configuration layer
-RUN /synse/bin/configure_nginx_config.sh
-
-# run command for nginx uwsgi configuration
-RUN ln -s /synse/configs/nginx/nginx.conf /etc/nginx/sites-enabled/nginx.conf && \
-    ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/vassals/synse.ini && \
-    ln -s /synse/configs/uwsgi/graphql.ini /etc/uwsgi/vassals/graphql.ini && \
-    ln -s /synse/configs/uwsgi/emperor.ini /etc/uwsgi/emperor.ini && \
-    chown -R www-data:www-data /etc/uwsgi && \
-    rm -f /etc/logrotate.d/nginx && \
-    cp /synse/configs/nginx/nginx.logrotate /etc/logrotate.d/nginx && \
-    ln -sf /proc/1/fd/1 /logs/err
-
 # We need libmpsse for i2c to work in production.
 ADD ./libmpsse/src /build
 WORKDIR /build
 RUN ./configure && make && make install
+
+ADD . /synse
 WORKDIR /synse
+
+# run command for uwsgi configuration
+RUN ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/vassals/synse.ini && \
+    ln -s /synse/configs/uwsgi/graphql.ini /etc/uwsgi/vassals/graphql.ini && \
+    ln -s /synse/configs/uwsgi/emperor.ini /etc/uwsgi/emperor.ini && \
+    chown -R www-data:www-data /etc/uwsgi && \
+    ln -sf /proc/1/fd/1 /logs/err
 
 # update the python path to include the synse module so that it
 # can be successfully be imported

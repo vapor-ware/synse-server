@@ -234,4 +234,4 @@ class AssetInfoTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/asset/bad_char%/00000050/0001')
 
-        self.assertEqual(ctx.exception.status, 400)
+        self.assertEqual(ctx.exception.status, 404)

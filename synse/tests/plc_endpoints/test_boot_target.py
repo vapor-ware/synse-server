@@ -253,7 +253,7 @@ class BootTargetTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/boot_target/bad_char%/00000040/0002')
 
-        self.assertEqual(ctx.exception.status, 400)
+        self.assertEqual(ctx.exception.status, 404)
 
     def test_010_write_bad_device(self):
         """ Test write with bad device.

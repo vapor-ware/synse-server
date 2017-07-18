@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield&circle-token=8b259c633bf9886a9f4330a6b2d1835d12e11126)](https://circleci.com/gh/vapor-ware/synse-server)
 <img src="https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png" width=25% align=right>
 
 # Synse Server
@@ -113,9 +114,8 @@ response should be all your configured servers.
 
 ## Building an Synse Server Image
 
-To build a custom distribution of Synse (for example, to include site-specific
-TLS certificates, or to configure Nginx to use site-specific authn/authz), the
-included Makefile can be used to package up the distribution.
+To build a custom distribution of Synse, the included Makefile can be used to 
+package up the distribution.
 
 In the simplest case, from the Synse directory:
 ```

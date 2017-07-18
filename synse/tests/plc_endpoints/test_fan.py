@@ -217,7 +217,7 @@ class FanSpeedTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/fan/bad_char%/00000028/0001')
 
-        self.assertEqual(ctx.exception.status, 400)
+        self.assertEqual(ctx.exception.status, 404)
 
     def test_009_write_ok(self):
         """ Test write with an ok response.
