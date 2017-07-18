@@ -25,4 +25,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from mock_bmc import MockBMC
+# pylint: skip-file
+
+from .mock_bmc import MockBMC

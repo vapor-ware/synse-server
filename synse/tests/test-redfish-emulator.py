@@ -22,7 +22,7 @@ import logging
 import unittest
 
 from redfish_emulator.test_redfish_emulator import RedfishTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

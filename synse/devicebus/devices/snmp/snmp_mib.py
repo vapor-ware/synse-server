@@ -40,7 +40,7 @@ class SnmpMib(object):
         Calling the constructor loads the table data automatically.
         """
         self.name = None
-        self.tables = None
+        self.tables = set()
 
     def dump(self):
         """ Dump all tables to the log as CSV.

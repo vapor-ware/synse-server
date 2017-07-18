@@ -25,7 +25,7 @@ import unittest
 from plc_emulator.test_emulator import EmulatorCounterTestCase
 from plc_emulator.test_emulator_scan import ScanAllTestCase
 from plc_emulator.test_line_noise_retries import LineNoiseRetries
-from vapor_common.test_utils import exit_suite, run_suite
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

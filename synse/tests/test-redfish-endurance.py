@@ -29,7 +29,7 @@ import logging
 import unittest
 
 from redfish_endurance.test_redfish_endurance import RedfishEnduranceTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

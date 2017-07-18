@@ -34,7 +34,8 @@ import logging
 import sys
 
 import serial
-import vapor_common.vapor_logging as vapor_logging
+
+import synse.vapor_common.vapor_logging as vapor_logging
 
 logger = logging.getLogger(__name__)
 

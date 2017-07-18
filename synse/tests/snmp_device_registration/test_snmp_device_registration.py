@@ -25,9 +25,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import json
 import logging
 
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
-from vapor_common.tests.utils.strings import _S
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
+from synse.vapor_common.tests.utils.strings import _S
 
 from synse.tests.synse_test import SynseHttpTest
 from synse.tests.test_utils import Uri

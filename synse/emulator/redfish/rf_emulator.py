@@ -89,8 +89,8 @@ def main():
     print '----------------------------------------------------------------------'
 
     if mockup in mockup_list:
-        from .basic_server import basic_server
-        from . import redfish_resources
+        from basic_server import basic_server
+        import redfish_resources
 
         mockup_path = os.path.normpath('./Resources/{}'.format(mockup))
         root_path = os.path.normpath('redfish/v1')

@@ -32,7 +32,7 @@ import os
 import sys
 import threading
 
-from pyghmi.exceptions import *
+from pyghmi.exceptions import IpmiException
 
 import synse.strings as _s_
 from synse import constants as const
@@ -212,7 +212,9 @@ class IPMIDevice(LANDevice):
             # power management
             return vapor_ipmi.get_dcmi_capabilities(
                 parameter_selector=0x01, **self._ipmi_kwargs)['power_management']
-        except:
+        except Exception as e:
+            logger.warning(
+                'Failed to get DCMI capabilities - assuming not supported: {}'.format(e))
             return False
 
     def _get_fru_info(self):
@@ -586,16 +588,14 @@ class IPMIDevice(LANDevice):
             power_status = vapor_ipmi.power(cmd=power_action, reading_method=reading_method,
                                             **self._ipmi_kwargs)
 
-            """
-            NB(ABC): disabled this but it could be re-enabled - if the DCMI Power Reading
-                command is giving trouble elsewhere, we could re-enable this, but the checks
-                done at startup should obviate the need for this logic for now.
+            # NB(ABC): disabled this but it could be re-enabled - if the DCMI Power Reading
+            #    command is giving trouble elsewhere, we could re-enable this, but the checks
+            #    done at startup should obviate the need for this logic for now.
             # check reading method, and if 'dcmi' and input_power is 'unknown', set reading_method
             # to 'None' in the future; 'unknown' indicates an exception occurred, which we do not
             # wish to repeat
-            if reading_method == 'dcmi' and power_status['input_power'] == 'uknown':
+            if reading_method == 'dcmi' and power_status['input_power'] == 'unknown':
                 self.dcmi_supported = False
-            """
 
             if power_status is not None:
                 return Response(

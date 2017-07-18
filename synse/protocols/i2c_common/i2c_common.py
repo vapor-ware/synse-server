@@ -14,6 +14,7 @@ import logging
 import time
 from binascii import hexlify
 
+# pylint: disable=import-error
 from mpsse import (ACK, GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
                    ONE_HUNDRED_KHZ)
 

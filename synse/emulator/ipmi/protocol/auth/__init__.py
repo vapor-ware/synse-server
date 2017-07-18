@@ -25,6 +25,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: skip-file
 
 from .auth_context import SessionContext
 from .auth_types import MD2, MD5, NONE, OEM, PWD, RMCP

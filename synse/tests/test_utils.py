@@ -30,7 +30,7 @@ import sys
 from functools import wraps
 from threading import Thread
 
-from vapor_common.tests.utils.strings import _S
+from synse.vapor_common.tests.utils.strings import _S
 
 from .test_config import PREFIX
 

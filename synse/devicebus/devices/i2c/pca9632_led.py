@@ -30,6 +30,7 @@ import logging
 import sys
 
 import lockfile
+# pylint: disable=import-error
 from mpsse import GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB, ONE_HUNDRED_KHZ
 
 import synse.strings as _s_
@@ -257,7 +258,7 @@ class PCA9632Led(I2CDevice):
                     vec.SendNacks()
                     reg = vec.Read(1)
                     vec.Stop()
-                    logger.debug('PCA9546A Control Register: 0x%0.2X' % ord(reg))
+                    logger.debug('PCA9546A Control Register: 0x{:02X}'.format(ord(reg)))
 
                     vec.SendAcks()
                     vec.Start()

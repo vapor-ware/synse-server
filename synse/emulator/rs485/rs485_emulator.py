@@ -114,7 +114,7 @@ def main():
         # for each device (unit), create an EmulatorDataBlock that has the register
         # map defined in config
 
-        def _convert_register(v):
+        def _convert_register(v):  # pylint: disable=missing-docstring
             if isinstance(v, list):
                 # return a list of converted values
                 return [int(x, 16) for x in v]

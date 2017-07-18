@@ -29,7 +29,7 @@ import logging
 import unittest
 
 from ipmi_endpoints.test_ipmi_endpoints import IPMIEndpointsTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

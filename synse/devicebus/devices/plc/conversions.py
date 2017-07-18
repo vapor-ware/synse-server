@@ -3,7 +3,7 @@
 
     Author: Andrew Cencini
     Date:   09/21/2016
-    
+
     \\//
      \/apor IO
 
@@ -25,7 +25,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from errors import BusDataException
+
+from synse.errors import BusDataException
 
 
 def convert_thermistor(adc):
@@ -111,6 +112,8 @@ def convert_direct_pmbus(raw, reading_type, r_sense=1.0):
         b = 0.0
         r = -2.0
     else:
-        raise BusDataException('Invalid reading_type specified for PMBUS direct conversion: {}'.format(reading_type))
+        raise BusDataException(
+            'Invalid reading_type specified for PMBUS direct conversion: {}'.format(
+                reading_type))
 
     return (1.0 / m) * (raw * 10.0 ** (-r) - b)

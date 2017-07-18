@@ -34,7 +34,6 @@ import time
 from uuid import getnode as get_mac_addr
 
 import lockfile
-from vapor_common.constants import PLC_RACK_ID
 
 import synse.strings as _s_
 from synse import constants as const
@@ -53,6 +52,7 @@ from synse.errors import (BusCommunicationError, BusDataException,
                           SynseException)
 from synse.utils import (board_id_to_hex_string, device_id_to_hex_string,
                          get_device_type_code, get_device_type_name)
+from synse.vapor_common.constants import PLC_RACK_ID
 from synse.version import __api_version__, __version__
 
 logger = logging.getLogger(__name__)
@@ -200,9 +200,9 @@ class PLCDevice(SerialDevice):
                 # is specified for a device, the rack-level timeout is used, if exists,
                 # otherwise the default timeout is used.
                 rack_lockfile = rack['lockfile']
-                rack_id = rack['rack_id']
+                rack_id = rack['rack_id']  # pylint: disable=unused-variable
                 hardware_type = rack['hardware_type']
-                rack_timeout = rack.get('timeout', 0.25)
+                rack_timeout = rack.get('timeout', 0.25)  # pylint: disable=unused-variable
                 counter = app_config['COUNTER']
 
                 for plc_config in rack['devices']:
@@ -581,10 +581,10 @@ class PLCDevice(SerialDevice):
                     voltage_raw = int(pmbus_values[2])
                     current_raw = int(pmbus_values[3])
 
-                    def convert_power_status(raw):
+                    def convert_power_status(raw):  # pylint: disable=missing-docstring
                         return _s_.PWR_OFF if (raw >> 6 & 0x01) == 0x01 else _s_.PWR_ON
 
-                    def bit_to_bool(raw):
+                    def bit_to_bool(raw):  # pylint: disable=missing-docstring
                         return raw == 1
 
                     # now, convert raw reading into subfields
@@ -654,7 +654,7 @@ class PLCDevice(SerialDevice):
                 )
                 logger.debug('<<Asset Info: {}'.format([hex(x) for x in response.serialize()]))
 
-            except BusTimeoutException as e:
+            except BusTimeoutException:
                 raise SynseException('Asset info command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.AssetInfoResponse)
@@ -761,7 +761,7 @@ class PLCDevice(SerialDevice):
                     target_raw += chr(x)
                 # here, we should have a value in { B0, B1, B2}
 
-                def convert_boot_target(raw):
+                def convert_boot_target(raw):  # pylint: disable=missing-docstring
                     if raw == 'B0':
                         return _s_.BT_NO_OVERRIDE
                     elif raw == 'B1':
@@ -841,7 +841,8 @@ class PLCDevice(SerialDevice):
             # get raw value to ensure remote device took the write.
             try:
                 device_raw = str(''.join([chr(x) for x in response.data]))
-            except (ValueError, TypeError) as e:
+
+            except (ValueError, TypeError):
                 # abort if unable to convert to int (ValueError), unable to convert
                 # to chr (TypeError)
                 raise SynseException(

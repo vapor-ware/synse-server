@@ -79,7 +79,7 @@ class PowerTable(SnmpTable):
         return scan_device
 
     # TODO: This needs to be addressed in the interface cleanup.
-    def get_row_reading(self, row, device_type_string):
+    def get_row_reading(self, row, device_type_string):  # pylint: disable=unused-argument
         """ Given an SnmpRow row, translate it to a reading.
 
         Args:

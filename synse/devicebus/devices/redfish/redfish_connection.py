@@ -164,14 +164,14 @@ def _get_members(json_data, ip_address, port):
                     ip_address=ip_address,
                     port=port,
                     path=str(json_data['Members'][0]['@odata.id']))]
-            else:
-                for item in json_data['Members']:
-                    members_list.append(_build_link(
-                        ip_address=ip_address,
-                        port=port,
-                        path=str(item['@odata.id']))
-                    )
-                return members_list
+
+            for item in json_data['Members']:
+                members_list.append(_build_link(
+                    ip_address=ip_address,
+                    port=port,
+                    path=str(item['@odata.id'])))
+            return members_list
+
         except KeyError as e:
             logger.error('Collection defined without {}.'.format(e.message))
             raise SynseException(

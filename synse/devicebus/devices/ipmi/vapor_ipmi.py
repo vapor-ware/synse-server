@@ -32,10 +32,11 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
 from pyghmi import constants
-from vapor_ipmi_common import IpmiCommand
-from vapor_ipmi_oem_flex import get_flex_victoria_power_reading
 
 from synse.definitions import BMC_PORT
+from synse.devicebus.devices.ipmi.vapor_ipmi_common import IpmiCommand
+from synse.devicebus.devices.ipmi.vapor_ipmi_oem_flex import \
+    get_flex_victoria_power_reading
 from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
@@ -160,8 +161,8 @@ def _convert_health_to_string(health):
         return 'critical'
     elif health == constants.Health.Failed:
         return 'failed'
-    else:
-        return str(health)
+
+    return str(health)
 
 
 def read_sensor(sensor_name, username=None, password=None, ip_address=None, port=BMC_PORT):
@@ -354,7 +355,7 @@ def _get_temperature_readings(username=None, password=None, ip_address=None, por
         # until none remain.
 
         start_byte = 3  # start on first byte of reading
-        for x in range(0, result['data'][2]):
+        for _ in range(0, result['data'][2]):
             # get the reading from the lower 7 bits
             temperature = float(result['data'][start_byte] & 0b01111111)
             # if the upper bit is a 1, the sign is negative

@@ -29,7 +29,7 @@ import logging
 import unittest
 
 from i2c_endpoints.test_i2c_endpoints import I2CEndpointsTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

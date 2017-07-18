@@ -77,7 +77,7 @@ class FanTable(SnmpTable):
         }
         return scan_device
 
-    def get_row_reading(self, row, device_type_string):
+    def get_row_reading(self, row, device_type_string):  # pylint: disable=unused-argument
         """ Given an SnmpRow row, translate it to a reading.
 
         Args:

@@ -34,13 +34,12 @@ import json
 import logging
 import threading
 
-import vapor_redfish
-from redfish_connection import find_links
-
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.lan_device import LANDevice
+from synse.devicebus.devices.redfish import vapor_redfish
+from synse.devicebus.devices.redfish.redfish_connection import find_links
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.utils import ThreadPool
@@ -606,8 +605,13 @@ class RedfishDevice(LANDevice):
                 response = vapor_redfish.get_boot(links=links_list,
                                                   **self._redfish_request_kwargs)
             else:
-                boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] else boot_target
-                response = vapor_redfish.set_boot(target=boot_target, links=links_list, **self._redfish_request_kwargs)
+                boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] \
+                    else boot_target
+
+                response = vapor_redfish.set_boot(
+                    target=boot_target,
+                    links=links_list,
+                    **self._redfish_request_kwargs)
 
             if response:
                 return Response(
@@ -615,13 +619,17 @@ class RedfishDevice(LANDevice):
                     response_data=response
                 )
 
-            logger.error('No response for boot target operation: {}'.format(command.data))
-            raise SynseException('No response from Redfish server on boot target operation via Redfish.')
+            logger.error(
+                'No response for boot target operation: {}'.format(command.data))
+            raise SynseException(
+                'No response from Redfish server on boot target operation via Redfish.')
 
         except ValueError as e:
-            logger.error('Error getting or setting Redfish boot target: {}'.format(command.data))
+            logger.error(
+                'Error getting or setting Redfish boot target: {}'.format(command.data))
             raise SynseException(
-                'Error returned from Redfish server during boot target operation via Redfish ({}).'.format(e)
+                'Error returned from Redfish server during boot target operation via '
+                'Redfish ({}).'.format(e)
             )
 
     def _led(self, command):
@@ -652,12 +660,19 @@ class RedfishDevice(LANDevice):
             if led_state is not None and led_state.lower() != _s_.LED_NO_OVERRIDE:
                 if led_state.lower() in [_s_.LED_ON, _s_.LED_OFF]:
                     led_state = 'Off' if led_state.lower() == _s_.LED_OFF else 'Lit'
-                    response = vapor_redfish.set_led(led_state=led_state, links=links_list, **self._redfish_request_kwargs)
+                    response = vapor_redfish.set_led(
+                        led_state=led_state,
+                        links=links_list,
+                        **self._redfish_request_kwargs)
                 else:
-                    logger.error('LED state unsupported for LED control operation: {}'.format(led_state))
-                    raise SynseException('Unsupported state change to Redfish server on LED operation.')
+                    logger.error(
+                        'LED state unsupported for LED control operation: {}'.format(led_state))
+                    raise SynseException(
+                        'Unsupported state change to Redfish server on LED operation.')
             else:
-                response = vapor_redfish.get_led(links=links_list, **self._redfish_request_kwargs)
+                response = vapor_redfish.get_led(
+                    links=links_list,
+                    **self._redfish_request_kwargs)
 
             if response:
                 return Response(
@@ -665,13 +680,16 @@ class RedfishDevice(LANDevice):
                     response_data=response
                 )
 
-            logger.error('No response for LED control operation: {}'.format(command.data))
-            raise SynseException('No response from Redfish server on LED operation.')
+            logger.error(
+                'No response for LED control operation: {}'.format(command.data))
+            raise SynseException(
+                'No response from Redfish server on LED operation.')
 
         except ValueError as e:
             logger.error('Error with LED control: {}'.format(command.data))
             raise SynseException(
-                'Error returned from Redfish server during LED operation via Redfish ({}).'.format(e)
+                'Error returned from Redfish server during LED operation via '
+                'Redfish ({}).'.format(e)
             )
 
     def _fan(self, command):
@@ -695,7 +713,8 @@ class RedfishDevice(LANDevice):
 
         try:
             if fan_speed is not None:
-                raise SynseException('Setting of fan speed is not permitted for this device.')
+                raise SynseException(
+                    'Setting of fan speed is not permitted for this device.')
 
             else:
                 # check if the device raises an exception
@@ -718,13 +737,16 @@ class RedfishDevice(LANDevice):
                         response_data=response
                     )
 
-            logger.error('No response for fan control operation: {}'.format(command.data))
-            raise SynseException('No response from Redfish server on fan operation via Redfish.')
+            logger.error(
+                'No response for fan control operation: {}'.format(command.data))
+            raise SynseException(
+                'No response from Redfish server on fan operation via Redfish.')
 
         except ValueError as e:
             logger.error('Error with fan control: {}'.format(command.data))
             raise SynseException(
-                'Error returned from Redfish server during fan operation via Redfish ({}).'.format(e)
+                'Error returned from Redfish server during fan operation via '
+                'Redfish ({}).'.format(e)
             )
 
     def _host_info(self, command):

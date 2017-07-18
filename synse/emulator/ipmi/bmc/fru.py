@@ -62,7 +62,8 @@ class FRU(object):
             FRU: an instance of the FRU object
         """
         if not os.path.isfile(config_file):
-            raise ValueError('Specified config file for FRU record not found : {}'.format(config_file))
+            raise ValueError(
+                'Specified config file for FRU record not found : {}'.format(config_file))
 
         # let any exception propagate upwards so the user knows there was a misconfiguration
         with open(config_file, 'r') as f:
@@ -83,7 +84,7 @@ class FRU(object):
             list[int]: the bytes corresponding to the FRU Read response data.
         """
         data = packet.data
-        fru_id = data[0]
+        fru_id = data[0]  # pylint: disable=unused-variable
         offset = data[1:3]
         count = data[3]
 

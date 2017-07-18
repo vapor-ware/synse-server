@@ -47,7 +47,7 @@ class AuthRMCP(auth_base.IPMIAuthType):
         """
         # define a no-op method used as the default if no context update method
         # is specified for a given payload type
-        def _pass():  # pylint disable=missing-docstring
+        def _pass():  # pylint: disable=missing-docstring
             pass
 
         {
@@ -61,7 +61,7 @@ class AuthRMCP(auth_base.IPMIAuthType):
         # if we get an open session request, there will be no current context
         # because there is no session to associate the context with. as such,
         # we will want to create a session and add the context.
-        def get_session_id():  # pylint disable=missing-docstring
+        def get_session_id():  # pylint: disable=missing-docstring
             return [random.randint(1, 255) for _ in range(4)]
 
         new_session_id = get_session_id()
@@ -612,7 +612,8 @@ class AuthRMCP(auth_base.IPMIAuthType):
 
                 # set the completion code as success (0x00) if we did not specify an
                 # error completion code in the request packet from earlier processing.
-                self.completion_code = 0x00 if request.completion_code is None else request.completion_code
+                self.completion_code = 0x00 if request.completion_code is None else \
+                    request.completion_code
 
                 # get the data
                 self.data = response_data if response_data is not None else []
@@ -684,7 +685,11 @@ class AuthRMCP(auth_base.IPMIAuthType):
             self.payload_length = [(new_payload_size >> 0) & 0xff, (new_payload_size >> 8) & 0xff]
 
             self.iv = [random.randint(0, 255) for _ in range(16)]
-            cipher = AES.new(''.join(map(chr, session_ctx.k2[0:16])), AES.MODE_CBC, ''.join(map(chr, self.iv)))
+            cipher = AES.new(
+                ''.join(map(chr, session_ctx.k2[0:16])),
+                AES.MODE_CBC,
+                ''.join(map(chr, self.iv)))
+
             encrypted = cipher.encrypt(''.join(map(chr, _aespad(_data))))
             self._body = self.iv + map(ord, encrypted)
 

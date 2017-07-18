@@ -160,7 +160,8 @@ class SnmpClient(object):
             raise ValueError(msg)
         elif error_status:
             msg = 'Error Status: {} at {}'.format(
-                error_status.prettyPrint(), error_index and var_binds[int(error_index) - 1][0] or '?')
+                error_status.prettyPrint(),
+                error_index and var_binds[int(error_index) - 1][0] or '?')
             logger.error(msg)
             raise ValueError(msg)
 
@@ -178,7 +179,9 @@ class SnmpClient(object):
         Returns:
             list: filtered list of walk results.
         """
-        logger.debug('Filtering walk results. walk_oid {} count {}'.format(walk_oid, len(var_binds)))
+        logger.debug('Filtering walk results. walk_oid {} count {}'.format(
+            walk_oid, len(var_binds)))
+
         filtered_results = []
         excluded = []
         for row in var_binds:

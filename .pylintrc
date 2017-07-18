@@ -77,6 +77,12 @@ disable=invalid-name
   # https://github.com/PyCQA/pylint/issues/1405
   ,len-as-condition
   ,ungrouped-imports
+  # FIXME -- above, duplicate code checks are being ignored. we may want to re-enable
+  #   this in the future. doing so would mean a bit of refactoring to reduce duplicity,
+  #   which is a work item currently out of scope.
+  ,duplicate-code
+  ,too-many-nested-blocks
+  ,consider-iterating-dictionary
 
 [REPORTS]
 

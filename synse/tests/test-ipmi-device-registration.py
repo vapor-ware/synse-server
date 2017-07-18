@@ -30,7 +30,7 @@ import unittest
 
 from ipmi_device_registration.test_ipmi_device_registration import \
     IPMIDeviceRegistrationTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

@@ -79,7 +79,7 @@ class RfAuthentication(object):
         """ Decorator to denote that a resouce requires authentication.
         """
         @wraps(f)
-        def decorated(*args, **kwargs):  # pylint disable=missing-docstring
+        def decorated(*args, **kwargs):  # pylint: disable=missing-docstring
             auth = request.authorization
             if auth is None:
                 auth_token = request.headers.get('X-Auth-Token')

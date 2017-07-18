@@ -45,6 +45,6 @@ def make_url_builder(base):
     Returns:
         partial: a partial object that can be used to build urls.
     """
-    def _url_builder(uri, url_base):  # pycharm disable=missing-docstring
+    def _url_builder(uri, url_base):  # pylint: disable=missing-docstring
         return url_base + uri
     return partial(_url_builder, url_base=base)

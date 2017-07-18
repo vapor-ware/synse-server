@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   08/29/2016
-    
+
     \\//
      \/apor IO
 
@@ -25,7 +25,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import auth
+
+from . import auth
 
 
 class IPMI(object):
@@ -77,7 +78,7 @@ class IPMI(object):
     def __getattr__(self, item):
         try:
             return getattr(self.packet_data, item)
-        except:
+        except:  # pylint: disable=bare-except
             return None
 
     def __setattr__(self, key, value):
@@ -88,18 +89,32 @@ class IPMI(object):
 
     @property
     def header(self):
+        """ Get the packet header data.
+        """
         return self.packet_data.header
 
     @header.setter
     def header(self, data):
+        """ Set the packet header data.
+
+        Args:
+            data: the data to set as the packet header.
+        """
         self.packet_data.header = data
 
     @property
     def body(self):
+        """ Get the packet body data.
+        """
         return self.packet_data.body
 
     @body.setter
     def body(self, data):
+        """ Set the packet body data.
+
+        Args:
+            data: the data to set as the packet body.
+        """
         self.packet_data.body = data
 
     def _generate_data_wrapper(self):
@@ -163,6 +178,10 @@ class IPMI(object):
         Returns:
             IPMI: an IPMI packet representing the response to this request packet.
         """
-        response_pkt = IPMI(wrapper=self.rmcp_wrapper, raw_data=None, auth_type=self.authentication_type)
+        response_pkt = IPMI(
+            wrapper=self.rmcp_wrapper,
+            raw_data=None,
+            auth_type=self.authentication_type)
+
         response_pkt.packet_data.build_response(self, response_data, raw_data)
         return response_pkt

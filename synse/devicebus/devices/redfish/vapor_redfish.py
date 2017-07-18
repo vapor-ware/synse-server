@@ -30,8 +30,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 
-from redfish_connection import get_data, patch_data, post_action
-
+from synse.devicebus.devices.redfish import redfish_connection as conn
 from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
@@ -55,13 +54,13 @@ def find_sensors(links, timeout, username, password):
     sensors = dict()
 
     try:
-        sensors['thermal'] = get_data(
+        sensors['thermal'] = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
             password=password
         )
-        sensors['power'] = get_data(
+        sensors['power'] = conn.get_data(
             link=links[1],
             timeout=timeout,
             username=username,
@@ -130,13 +129,13 @@ def get_power(links, timeout, username, password):
     power_data = dict()
 
     try:
-        power_data['power'] = get_data(
+        power_data['power'] = conn.get_data(
             link=links[1],
             timeout=timeout,
             username=username,
             password=password
         )
-        power_data['systems'] = get_data(
+        power_data['systems'] = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -158,10 +157,7 @@ def get_power(links, timeout, username, password):
         consumed_watts = power_data['power']['PowerConsumedWatts']
         power_limit = power_data['power']['PowerLimit']['LimitInWatts']
 
-        if float(consumed_watts) > float(power_limit):
-            response['over_current'] = True
-        else:
-            response['over_current'] = False
+        response['over_current'] = bool(float(consumed_watts) > float(power_limit))
 
         health = power_data['power']['Status']['Health']
         response['power_ok'] = True if health.lower() == 'ok' else False
@@ -169,9 +165,9 @@ def get_power(links, timeout, username, password):
         return response
     except KeyError as e:
         logger.error(
-            'Incomplete or no data from GET on systems and power schemas'.format(e.message)
+            'Incomplete or no data from GET on systems and power schemas: {}'.format(e.message)
         )
-        raise SynseException('Cannot retrieve power data.'.format(e.message))
+        raise SynseException('Cannot retrieve power data. {}'.format(e.message))
 
 
 def set_power(power_action, links, timeout, username, password):
@@ -202,7 +198,7 @@ def set_power(power_action, links, timeout, username, password):
     if _payload:
         _payload = {'ResetType': _payload}
         try:
-            post_action(
+            conn.post_action(
                 link=action_link,
                 payload=_payload,
                 timeout=timeout,
@@ -245,19 +241,19 @@ def get_asset(links, timeout, username, password):
     asset_data = dict()
 
     try:
-        asset_data['chassis'] = get_data(
+        asset_data['chassis'] = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
             password=password
         )
-        asset_data['systems'] = get_data(
+        asset_data['systems'] = conn.get_data(
             link=links[1],
             timeout=timeout,
             username=username,
             password=password
         )
-        asset_data['bmc'] = get_data(
+        asset_data['bmc'] = conn.get_data(
             link=links[2],
             timeout=timeout,
             username=username,
@@ -313,7 +309,7 @@ def get_led(links, timeout, username, password):
     response = dict()
 
     try:
-        led_status = get_data(
+        led_status = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -354,7 +350,7 @@ def set_led(led_state, links, timeout, username, password):
     _payload = {'IndicatorLED': led_state}
 
     try:
-        patch_data(
+        conn.patch_data(
             link=links[0],
             payload=_payload,
             timeout=timeout,
@@ -392,7 +388,7 @@ def get_thermal_sensor(device_type, device_name, links, timeout, username, passw
     response = dict()
 
     try:
-        thermal_sensors = get_data(
+        thermal_sensors = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -450,7 +446,7 @@ def get_power_sensor(device_type, device_name, links, timeout, username, passwor
     response = dict()
 
     try:
-        power_sensors = get_data(
+        power_sensors = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -507,7 +503,7 @@ def get_boot(links, timeout, username, password):
     response = dict()
 
     try:
-        boot_data = get_data(
+        boot_data = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -549,7 +545,7 @@ def set_boot(target, links, timeout, username, password):
 
     try:
         # connects to find out if BootSourceOverideEnabled is Disabled:
-        current_boot = get_data(
+        current_boot = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -575,7 +571,7 @@ def set_boot(target, links, timeout, username, password):
                 _payload = {'Boot': {'BootSourceOverrideTarget': boot_target}}
 
                 try:
-                    patch_data(
+                    conn.patch_data(
                         link=links[0],
                         payload=_payload,
                         timeout=timeout,

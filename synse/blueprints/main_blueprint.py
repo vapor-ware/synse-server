@@ -26,6 +26,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: disable=line-too-long
 
 import copy
 import json
@@ -287,19 +288,17 @@ def get_board_devices(rack_id, board_id=None):
 
     # FIXME (etd) - unclear why this was temporarily disabled, we probably want
     # to re-enable.
-    """
-    FIXME: temporarily disabled scan cache
-    _cache = get_scan_cache()
-    if _cache:
-        _cache = filter_cache_meta(_cache)
-        for rack in _cache['racks']:
-            if rack['rack_id'] == rack_id:
-                for board in rack['boards']:
-                    if int(board['board_id'], 16) == board_id:
-                        return make_json_response({'boards': [board]})
-                    else:
-                        break
-    """
+    # FIXME: temporarily disabled scan cache
+    # _cache = get_scan_cache()
+    # if _cache:
+    #    _cache = filter_cache_meta(_cache)
+    #    for rack in _cache['racks']:
+    #        if rack['rack_id'] == rack_id:
+    #            for board in rack['boards']:
+    #                if int(board['board_id'], 16) == board_id:
+    #                    return make_json_response({'boards': [board]})
+    #                else:
+    #                    break
 
     cmd = current_app.config['CMD_FACTORY'].get_scan_command({
         _s_.RACK_ID: rack_id,
@@ -416,6 +415,7 @@ def asset_info(rack_id, board_id, device_id):
         _s_.BOARD_ID: board_id,
         _s_.DEVICE_ID: device_id,
         _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_SYSTEM),
+        _s_.RACK_ID: rack_id
     })
 
     device = get_device_instance(board_id)
@@ -455,7 +455,8 @@ def boot_target(rack_id, board_id, device_id, target=None):
         _s_.BOARD_ID: board_id,
         _s_.DEVICE_ID: device_id,
         _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_SYSTEM),
-        _s_.BOOT_TARGET: target if target is not None else 'status'
+        _s_.BOOT_TARGET: target if target is not None else 'status',
+        _s_.RACK_ID: rack_id
     })
 
     device = get_device_instance(board_id)
@@ -466,7 +467,7 @@ def boot_target(rack_id, board_id, device_id, target=None):
 
 @core.route(url('/location/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
 @core.route(url('/location/<rack_id>/<board_id>'), methods=['GET'])
-def device_location(rack_id, board_id=None, device_id=None):
+def device_location(rack_id, board_id=None, device_id=None):  # pylint: disable=unused-argument
     """ Get the location of a device.
 
     This command is supported for PLC. Other devicebus types (IPMI, Redfish,
@@ -692,7 +693,8 @@ def host_info(rack_id, board_id, device_id):
         _s_.BOARD_ID: board_id,
         _s_.DEVICE_ID: device_id,
         _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_SYSTEM),
-        _s_.DEVICE_NAME: const.DEVICE_SYSTEM
+        _s_.DEVICE_NAME: const.DEVICE_SYSTEM,
+        _s_.RACK_ID: rack_id
     })
 
     device = get_device_instance(board_id)
