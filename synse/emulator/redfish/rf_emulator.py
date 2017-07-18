@@ -35,7 +35,7 @@ conditions are met:
  permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
 COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
@@ -55,6 +55,8 @@ import sys
 
 
 def main():
+    """ Main entry point for the redfish emulator.
+    """
     with open('emulator_config.json') as f:
         config = json.load(f)
 
@@ -62,10 +64,10 @@ def main():
     port = config['PORT']
     mockup = config['SOURCE']
     tokens = config['TOKEN']
-    mockup_list = os.listdir("./Resources")
+    mockup_list = os.listdir('./Resources')
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'h:p:m:', ['host=', 'port=', 'mockup='])
+        opts, _ = getopt.getopt(sys.argv[1:], 'h:p:m:', ['host=', 'port=', 'mockup='])
     except getopt.GetoptError:
         print 'Unrecognized input, failed to pass in arguments,'
         sys.exit(2)
@@ -87,8 +89,8 @@ def main():
     print '----------------------------------------------------------------------'
 
     if mockup in mockup_list:
-        from basic_server import basic_server
-        import redfish_resources
+        from .basic_server import basic_server
+        from . import redfish_resources
 
         mockup_path = os.path.normpath('./Resources/{}'.format(mockup))
         root_path = os.path.normpath('redfish/v1')

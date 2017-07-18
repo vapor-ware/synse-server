@@ -30,13 +30,14 @@ import logging
 import sys
 
 import lockfile
-from i2c_device import I2CDevice
-from mpsse import *
-from pca9632_emulator import read_emulator, write_emulator
+from mpsse import GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB, ONE_HUNDRED_KHZ
 
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
+from synse.devicebus.devices.i2c.i2c_device import I2CDevice
+from synse.devicebus.devices.i2c.pca9632_emulator import (read_emulator,
+                                                          write_emulator)
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 
@@ -111,15 +112,23 @@ class PCA9632Led(I2CDevice):
         color = command.data.get(_s_.LED_COLOR)
         blink = command.data.get(_s_.LED_BLINK)
 
-        # normalize the device_type_string - if it's of 'led-type', make it vapor_led for board/device matching later
-        # otherwise, leave it alone, which will reject erroneous reads
-        device_type_string = command.data.get(_s_.DEVICE_TYPE_STRING, const.DEVICE_VAPOR_LED)
+        # normalize the device_type_string - if it's of 'led-type', make it
+        # vapor_led for board/device matching later otherwise, leave it
+        # alone, which will reject erroneous reads
+        device_type_string = command.data.get(
+            _s_.DEVICE_TYPE_STRING, const.DEVICE_VAPOR_LED
+        )
+
         if device_type_string in [const.DEVICE_LED, const.DEVICE_VAPOR_LED]:
             device_type_string = const.DEVICE_VAPOR_LED
 
-        # if there is an on/off here, the color and blink must have been passed in - otherwise, just return LED status
+        # if there is an on/off here, the color and blink must have been passed
+        # in - otherwise, just return LED status
         if led_state is not None and (color is None or blink is None):
-            raise SynseException('Color and blink must be specified on Vapor LED {} commands.'.format(led_state))
+            raise SynseException(
+                'Color and blink must be specified on Vapor LED '
+                '{} commands.'.format(led_state)
+            )
 
         try:
             # validate device to ensure device id and type are ok
@@ -133,12 +142,16 @@ class PCA9632Led(I2CDevice):
                     response_data=reading
                 )
 
-            # if we get here, there was no sensor device found, so we must raise
-            logger.error('No response for LED status for command: {}'.format(command.data))
+            # if we get here, there was no sensor device found, so we
+            # must raise
+            logger.error('No response for LED status for command: {}'.format(
+                command.data))
             raise SynseException('No LED status returned from I2C.')
 
         except Exception:
-            raise SynseException('Error reading LED status (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException(
+                'Error reading LED status (device id: {})'.format(
+                    device_id)), None, sys.exc_info()[2]
 
     def _chamber_led(self, command):
         """ Chamber LED control command.
@@ -175,14 +188,19 @@ class PCA9632Led(I2CDevice):
                     response_data=reading
                 )
 
-            # if we get here, there was no sensor device found, so we must raise
-            logger.error('No response for LED control for command: {}'.format(command.data))
+            # if we get here, there was no sensor device found, so
+            # we must raise
+            logger.error('No response for LED control for command: {}'.format(
+                command.data))
             raise SynseException('No LED control response from I2C.')
 
         except Exception:
-            raise SynseException('Error setting LED status (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException(
+                'Error setting LED status (device id: {})'.format(
+                    device_id)), None, sys.exc_info()[2]
 
-    def _control_led(self, state=None, blink=None, red=None, green=None, blue=None):
+    def _control_led(self, state=None, blink=None, red=None, green=None,
+                     blue=None):
         """ Internal method for LED control.
 
         Args:
@@ -200,7 +218,9 @@ class PCA9632Led(I2CDevice):
             if self.hardware_type == 'emulator':
                 # -- EMULATOR --> test-only code path
                 if state is not None:
-                    write_emulator(self.device_name, self.channel, (red << 16) | (green << 8) | blue, state, blink)
+                    write_emulator(self.device_name, self.channel,
+                                   (red << 16) | (green << 8) | blue, state, blink)
+
                 reading = read_emulator(self.device_name, self.channel)
                 return {
                     _s_.LED_COLOR: format(reading['color'], '06x'),
@@ -242,13 +262,17 @@ class PCA9632Led(I2CDevice):
                     vec.SendAcks()
                     vec.Start()
 
-                    # Configure PCA9632 for our setup (IE totem pole with inverted driver output, etc)
+                    # Configure PCA9632 for our setup (IE totem pole with inverted
+                    # driver output, etc)
+                    #
                     # Writes to Mode 1 and Mode 2 Registers
                     # 0x80 = 0b1000 0000 -> auto increment starting at 0
                     # write 0x00 to mode reg 1 => pca9632 does not respond to all-call
-                    # write 0x35 to mode reg 2 => grp blink ctrl, external driver, change on stop, totem pole
+                    # write 0x35 to mode reg 2 => grp blink ctrl, external driver,
+                    # change on stop, totem pole
                     vec.Start()
-                    vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_MODE1)) + '\x00\x35')
+                    vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_MODE1)) +
+                              '\x00\x35')
                     vec.Stop()
 
                     if state == _s_.LED_OFF:
@@ -259,8 +283,8 @@ class PCA9632Led(I2CDevice):
                     elif blink == _s_.LED_STEADY and state == _s_.LED_ON:
                         # set the LED colors via PWM
                         vec.Start()
-                        vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)) + chr(red) +
-                                  chr(green) + chr(blue))
+                        vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)) +
+                                  chr(red) + chr(green) + chr(blue))
                         vec.Stop()
                         vec.Start()
                         # then set the LEDOUT to steady and on
@@ -269,21 +293,23 @@ class PCA9632Led(I2CDevice):
                     elif blink == _s_.LED_BLINK and state == _s_.LED_ON:
                         # set the color of the LEDs to blink
                         vec.Start()
-                        vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)) + chr(red) +
-                                  chr(green) + chr(blue))
+                        vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)) +
+                                  chr(red) + chr(green) + chr(blue))
                         vec.Stop()
-                        # now, set the group PWM to full power and a 1 second blink frequency - NB: this could be
-                        # combined with the stuff below
+                        # now, set the group PWM to full power and a 1 second blink frequency -
+                        # NB: this could be combined with the stuff below
                         vec.Start()
-                        vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_GRPPWM)) + '\x80' +
-                                  PCA9632_GRPFREQ_1S_BLINK)
+                        vec.Write(
+                            PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_GRPPWM)) +
+                            '\x80' + PCA9632_GRPFREQ_1S_BLINK)
                         vec.Stop()
                         # finally, toggle the LEDOUT to use the blink settings set previously
                         vec.Start()
                         vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_BLINK)
                         vec.Stop()
 
-                    # finally, read out the color settings and whether the leds are on / off or blinking
+                    # finally, read out the color settings and whether the leds are on / off
+                    # or blinking
                     vec.Start()
                     vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)))
                     vec.Stop()
@@ -320,7 +346,10 @@ class PCA9632Led(I2CDevice):
                     led_response['led_state'] = _s_.LED_ON
                     led_response['blink_state'] = _s_.LED_BLINK
                 else:
-                    raise SynseException('Invalid LED State returned from LED controller: {}'.format(ord(led_state)))
+                    raise SynseException(
+                        'Invalid LED State returned from LED controller: {}'.format(
+                            ord(led_state)))
 
-                led_response['led_color'] = format(ord(color[2]) | (ord(color[1]) << 8) | (ord(color[0]) << 16), '06x')
+                led_response['led_color'] = format(
+                    ord(color[2]) | (ord(color[1]) << 8) | (ord(color[0]) << 16), '06x')
                 return led_response

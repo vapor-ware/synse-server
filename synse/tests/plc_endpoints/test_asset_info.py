@@ -40,18 +40,18 @@ class AssetInfoTestCase(unittest.TestCase):
     def test_001_read_ok(self):
         """ Read valid asset info back.
         """
-        r = http.get(PREFIX + "/asset/rack_1/00000050/0001")
+        r = http.get(PREFIX + '/asset/rack_1/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
     def test_002_read_empty(self):
         """ Read an empty data value back.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/0002")
+            http.get(PREFIX + '/asset/rack_1/00000050/0002')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -60,25 +60,25 @@ class AssetInfoTestCase(unittest.TestCase):
         """
         # 'just a string'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/0003")
+            http.get(PREFIX + '/asset/rack_1/00000050/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # '1234'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/0003")
+            http.get(PREFIX + '/asset/rack_1/00000050/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # '3'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/0003")
+            http.get(PREFIX + '/asset/rack_1/00000050/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # 'B?'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/0003")
+            http.get(PREFIX + '/asset/rack_1/00000050/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -86,19 +86,19 @@ class AssetInfoTestCase(unittest.TestCase):
         """ Test reading while specifying different representations (same value) for
         the device id
         """
-        r = http.get(PREFIX + "/asset/rack_1/00000050/000000001")
+        r = http.get(PREFIX + '/asset/rack_1/00000050/000000001')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/rack_1/00000050/1")
+        r = http.get(PREFIX + '/asset/rack_1/00000050/1')
         self.assertTrue(http.request_ok(r.status_code))
 
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
     def test_005_read_board_id_invalid(self):
         """ Test read while specifying different invalid representations for
@@ -106,42 +106,42 @@ class AssetInfoTestCase(unittest.TestCase):
         bits on packet that should not be set)
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/asset/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/asset/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/asset/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/asset/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/asset/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/asset/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/asset/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/asset/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -149,12 +149,12 @@ class AssetInfoTestCase(unittest.TestCase):
         """ Test with bad board.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000059/0001")
+            http.get(PREFIX + '/asset/rack_1/00000059/0001')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/-00000059/0001")
+            http.get(PREFIX + '/asset/rack_1/-00000059/0001')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -162,76 +162,76 @@ class AssetInfoTestCase(unittest.TestCase):
         """ Test with bad device.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/00FF")
+            http.get(PREFIX + '/asset/rack_1/00000050/00FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/rack_1/00000050/-00FF")
+            http.get(PREFIX + '/asset/rack_1/00000050/-00FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
     def test_008_rack_id_representation(self):
         """ Test while specifying different values for the rack_id
         """
-        r = http.get(PREFIX + "/asset/rack_1/00000050/0001")
+        r = http.get(PREFIX + '/asset/rack_1/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/STRING_NOT_RELATED_TO_RACK_AT_ALL/00000050/0001")
+        r = http.get(PREFIX + '/asset/STRING_NOT_RELATED_TO_RACK_AT_ALL/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/STRING WITH SPACES/00000050/0001")
+        r = http.get(PREFIX + '/asset/STRING WITH SPACES/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/123456789/00000050/0001")
+        r = http.get(PREFIX + '/asset/123456789/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/123.456/00000050/0001")
+        r = http.get(PREFIX + '/asset/123.456/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/-987654321/00000050/0001")
+        r = http.get(PREFIX + '/asset/-987654321/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
-        r = http.get(PREFIX + "/asset/acceptable_chars_\@$-_.+!*'(),^&~:;|}{}][]>=<>/00000050/0001")
+        r = http.get(PREFIX + '/asset/acceptable_chars_\@$-_.+!*\'(),^&~:;|}{}][]>=<>/00000050/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["board_info"]["manufacturer"], "Vapor IO")
-        self.assertEqual(response["product_info"]["version"], "v1.2.0")
+        self.assertEqual(response['board_info']['manufacturer'], 'Vapor IO')
+        self.assertEqual(response['product_info']['version'], 'v1.2.0')
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset//00000050/0001")
+            http.get(PREFIX + '/asset//00000050/0001')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/bad_char?/00000050/0001")
+            http.get(PREFIX + '/asset/bad_char?/00000050/0001')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/bad_char#/00000050/0001")
+            http.get(PREFIX + '/asset/bad_char#/00000050/0001')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/asset/bad_char%/00000050/0001")
+            http.get(PREFIX + '/asset/bad_char%/00000050/0001')
 
         self.assertEqual(ctx.exception.status, 400)

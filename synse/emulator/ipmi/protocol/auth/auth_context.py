@@ -4,7 +4,7 @@ for a given session.
 
     Author: Erick Daniszewski
     Date:   09/06/2016
-    
+
     \\//
      \/apor IO
 
@@ -26,7 +26,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from auth_base import IPMIAuthType
+
+from .auth_base import IPMIAuthType
 
 
 class SessionContext(IPMIAuthType):
@@ -40,8 +41,6 @@ class SessionContext(IPMIAuthType):
     This is ultimately just a thin wrapper around the base class to make its purpose
     better-known.
     """
-    def __init__(self, ipmi_packet):
-        super(SessionContext, self).__init__(ipmi_packet)
 
     def update_ctx(self):
         pass

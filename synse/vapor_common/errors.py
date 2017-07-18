@@ -58,6 +58,7 @@ class VaporHTTPError(VaporError):
     This error is raised when a request does not fail, but the response contains
     a non-OK status code.
     """
+
     def __init__(self, response):
         """ Constructor for the `VaporHTTPError` object.
 
@@ -68,6 +69,7 @@ class VaporHTTPError(VaporError):
             VaporHTTPError
         """
         self.response = response
+        super(VaporHTTPError, self).__init__(response)
 
     @property
     def status(self):

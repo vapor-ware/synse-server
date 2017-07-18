@@ -98,7 +98,8 @@ class RedfishDevice(LANDevice):
         }
 
         # stores links for use within the command functions
-        self._redfish_links = find_links(self.redfish_ip, self.redfish_port, **self._redfish_request_kwargs)
+        self._redfish_links = find_links(
+            self.redfish_ip, self.redfish_port, **self._redfish_request_kwargs)
 
         # assign board_id based on incoming data
         self.board_id = int(kwargs['board_offset']) + int(kwargs['board_id_range'][0])
@@ -142,9 +143,11 @@ class RedfishDevice(LANDevice):
         board_record['hostnames'] = self.hostnames
         board_record['ip_addresses'] = self.ip_addresses
 
-        board_record['devices'] = [{'device_id': '0100', 'device_type': 'power', 'device_info': 'power'},
-                                   {'device_id': '0200', 'device_type': 'system', 'device_info': 'system'},
-                                   {'device_id': '0300', 'device_type': 'led', 'device_info': 'led'}]
+        board_record['devices'] = [
+            {'device_id': '0100', 'device_type': 'power', 'device_info': 'power'},
+            {'device_id': '0200', 'device_type': 'system', 'device_info': 'system'},
+            {'device_id': '0300', 'device_type': 'led', 'device_info': 'led'}
+        ]
 
         links_list = [self._redfish_links['thermal'], self._redfish_links['power']]
 
@@ -229,20 +232,23 @@ class RedfishDevice(LANDevice):
                             RedfishDevice._process_server(
                                 server, app_config, rack_id,
                                 device_config.get('board_id_range', const.REDFISH_BOARD_RANGE),
-                                device_init_failure, mutate_lock, device_cache, single_board_devices
+                                device_init_failure, mutate_lock, device_cache,
+                                single_board_devices
                             )
 
                             # FIXME (etd)
-                            #   a GIL issue appears to be causing the threaded _process_server resolution to hang. this
-                            #   can likely be fixed by figuring out what the GIL is deadlocking on (probably an import
-                            #   dependency?) and updating Synse's caching component to import in the main thread.
-                            #   Until then, its easier and faster to just disable threading and do device registration
-                            #   serially.
+                            #  a GIL issue appears to be causing the threaded _process_server
+                            #  resolution to hang. this can likely be fixed by figuring out
+                            #  what the GIL is deadlocking on (probably an import dependency?)
+                            #  and updating Synse's caching component to import in the main
+                            #  thread. Until then, its easier and faster to just disable
+                            #  threading and do device registration serially.
 
                             # thread_pool.add_task(
                             #     RedfishDevice._process_server, server, app_config, rack_id,
                             #     device_config.get('board_id_range', const.REDFISH_BOARD_RANGE),
-                            #     device_init_failure, mutate_lock, device_cache, single_board_devices
+                            #     device_init_failure, mutate_lock, device_cache,
+                            #     single_board_devices
                             # )
 
                     else:
@@ -253,11 +259,12 @@ class RedfishDevice(LANDevice):
                         )
 
                         # FIXME (etd)
-                        #   a GIL issue appears to be causing the threaded _process_server resolution to hang. this
-                        #   can likely be fixed by figuring out what the GIL is deadlocking on (probably an import
-                        #   dependency?) and updating Synse's caching component to import in the main thread.
-                        #   Until then, its easier and faster to just disable threading and do device registration
-                        #   serially.
+                        #  a GIL issue appears to be causing the threaded _process_server
+                        #  resolution to hang. this can likely be fixed by figuring out what
+                        #  the GIL is deadlocking on (probably an import dependency?) and
+                        #  updating Synse's caching component to import in the main thread.
+                        #  Until then, its easier and faster to just disable threading and do
+                        #  device registration serially.
 
                         # thread_pool.add_task(
                         #     RedfishDevice._process_server, server, app_config, rack_id,
@@ -274,7 +281,8 @@ class RedfishDevice(LANDevice):
             raise SynseException('Failed to initialize Redfish devices.')
 
     @staticmethod
-    def _process_server(server, app_config, rack_id, board_range, device_init_failure, mutate_lock, devices, single_board_devices):
+    def _process_server(server, app_config, rack_id, board_range, device_init_failure, mutate_lock,
+                        devices, single_board_devices):
         """ A private method to handle the construction of the Redfish device from
         the Redfish server record.
 
@@ -315,7 +323,8 @@ class RedfishDevice(LANDevice):
         with mutate_lock:
             devices[redfish_device.device_uuid] = redfish_device
 
-            # this is a device that owns a single board_id so it gets tucked into _single_board_devices
+            # this is a device that owns a single board_id so it gets tucked into
+            # _single_board_devices
             single_board_devices[redfish_device.board_id] = redfish_device
 
             # next, add hostname and ip address keying for friendly (non-board-id lookup)
@@ -325,7 +334,8 @@ class RedfishDevice(LANDevice):
                         single_board_devices[hostname] = redfish_device
                     else:
                         logger.info(
-                            'Duplicate hostname ({}) found in Redfish configuration - skipping.'.format(hostname)
+                            'Duplicate hostname ({}) found in Redfish configuration - '
+                            'skipping.'.format(hostname)
                         )
 
             if redfish_device.ip_addresses is not None:
@@ -334,7 +344,8 @@ class RedfishDevice(LANDevice):
                         single_board_devices[ip_address] = redfish_device
                     else:
                         logger.info(
-                            'Duplicate IP address ({}) found in Redfish configuration - skipping.'.format(ip_address)
+                            'Duplicate IP address ({}) found in Redfish configuration - '
+                            'skipping.'.format(ip_address)
                         )
 
     def _version(self, command):
@@ -391,7 +402,8 @@ class RedfishDevice(LANDevice):
         force = command.data.get(_s_.FORCE, False)
 
         if force:
-            self._redfish_links = find_links(self.redfish_ip, self.redfish_port, **self._redfish_request_kwargs)
+            self._redfish_links = find_links(self.redfish_ip, self.redfish_port,
+                                             **self._redfish_request_kwargs)
             self.board_record = self._get_board_record()
 
         boards = [] if self.board_record is None else [self.board_record]
@@ -434,8 +446,10 @@ class RedfishDevice(LANDevice):
         elif _device_type_string == const.DEVICE_POWER_SUPPLY:
             device_type = 'PowerSupplies'
         else:
-            logger.error('Unsupported device type for Redfish device: {}'.format(device_type_string))
-            raise SynseException('{} not a supported device type for Redfish.'.format(device_type_string))
+            logger.error('Unsupported device type for Redfish device: {}'.format(
+                device_type_string))
+            raise SynseException('{} not a supported device type for Redfish.'.format(
+                device_type_string))
 
         try:
             # check if the device raises an exception
@@ -500,9 +514,11 @@ class RedfishDevice(LANDevice):
             else:
                 links_list = [self._redfish_links['system'], self._redfish_links['power']]
                 if power_action == 'status':
-                    response = vapor_redfish.get_power(links=links_list, **self._redfish_request_kwargs)
+                    response = vapor_redfish.get_power(links=links_list,
+                                                       **self._redfish_request_kwargs)
                 else:
-                    response = vapor_redfish.set_power(power_action, links=links_list, **self._redfish_request_kwargs)
+                    response = vapor_redfish.set_power(power_action, links=links_list,
+                                                       **self._redfish_request_kwargs)
 
             if response:
                 return Response(
@@ -517,7 +533,8 @@ class RedfishDevice(LANDevice):
         except ValueError as e:
             logger.error('Error controlling Redfish power: {}'.format(command.data))
             raise SynseException(
-                'Error returned from Redfish server in controlling power via Redfish ({}).'.format(e)
+                'Error returned from Redfish server in controlling power '
+                'via Redfish ({}).'.format(e)
             )
 
     def _asset(self, command):
@@ -538,9 +555,11 @@ class RedfishDevice(LANDevice):
             # validate that asset is supported for the device
             self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
 
-            links_list = [self._redfish_links['chassis'], self._redfish_links['system'], self._redfish_links['bmc']]
+            links_list = [self._redfish_links['chassis'], self._redfish_links['system'],
+                          self._redfish_links['bmc']]
 
-            response = vapor_redfish.get_asset(links=links_list, **self._redfish_request_kwargs)
+            response = vapor_redfish.get_asset(links=links_list,
+                                               **self._redfish_request_kwargs)
             response['redfish_ip'] = self.redfish_ip
 
             if 'chassis_info' in response:
@@ -550,11 +569,13 @@ class RedfishDevice(LANDevice):
                 )
 
             logger.error('No response getting asset info for {}'.format(command.data))
-            raise SynseException('No response from Redfish server when retrieving asset information via Redfish.')
+            raise SynseException('No response from Redfish server when retrieving asset '
+                                 'information via Redfish.')
         except ValueError as e:
             logger.error('Error getting Redfish asset info: {}'.format(command.data))
             raise SynseException(
-                'Error returned from Redfish server when retrieving asset info via Redfish ({}).'.format(e)
+                'Error returned from Redfish server when retrieving asset info '
+                'via Redfish ({}).'.format(e)
             )
 
     def _boot_target(self, command):
@@ -582,7 +603,8 @@ class RedfishDevice(LANDevice):
             links_list = [self._redfish_links['system']]
 
             if boot_target in [None, 'status']:
-                response = vapor_redfish.get_boot(links=links_list, **self._redfish_request_kwargs)
+                response = vapor_redfish.get_boot(links=links_list,
+                                                  **self._redfish_request_kwargs)
             else:
                 boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] else boot_target
                 response = vapor_redfish.set_boot(target=boot_target, links=links_list, **self._redfish_request_kwargs)

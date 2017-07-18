@@ -9,12 +9,15 @@
         under the devicebus.
 """
 
-from binascii import hexlify
-from mpsse import *
-from ..conversions import conversions
 import datetime
 import logging
 import time
+from binascii import hexlify
+
+from mpsse import (ACK, GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
+                   ONE_HUNDRED_KHZ)
+
+from ..conversions import conversions
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +88,7 @@ def _read_differential_pressure_channel(vec, channel):
     # Read DPS sensor connected to the set channel
     raw_results = []
     read_count = 5  # We read multiple times due to turbulence.
-    for i in range(read_count):
+    for _ in range(read_count):
 
         # Read DPS sensor connected to the set channel
         vec.SendAcks()
@@ -217,7 +220,7 @@ def read_differential_pressure(channel):
 
         raw_results = []
         read_count = 5  # We read multiple times due to turbulence.
-        for i in range(read_count):
+        for _ in range(read_count):
             raw_results.append(_read_differential_pressure_channel(vec, channel))
 
         channel_str = PCA9546_WRITE_ADDRESS + '\x00'
@@ -226,16 +229,19 @@ def read_differential_pressure(channel):
         vec.Stop()
 
         for raw in raw_results:
-            logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
+            logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(
+                channel, raw))
         if len(raw_results) == 0:
-            logger.error('Failed to get Differential Pressure Reading on channel {}'.format(channel))
+            logger.error('Failed to get Differential Pressure Reading on channel {}'.format(
+                channel))
             return None
         result = sum(raw_results) / len(raw_results)
-        logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
+        logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(
+            channel, result))
 
     else:
         # If we can't get an ack, result will be an empty list.
-        logger.error("No ACK from PCA9546A")
+        logger.error('No ACK from PCA9546A')
 
     _stop_i2c(vec, gpio)
     return result
@@ -263,11 +269,10 @@ def read_differential_pressures(count):
         # Cycle through the count number of sensors connected to each channel
         # on the PCA9546A.
         channel = 1
-        for x in range(count):
-
+        for _ in range(count):
             result.append(_read_differential_pressure_channel(vec, channel))
             # set the next channel
-            channel = channel << 1
+            channel <<= 1
 
         channel_str = PCA9546_WRITE_ADDRESS + '\x00'
         vec.Start()
@@ -275,11 +280,12 @@ def read_differential_pressures(count):
         vec.Stop()
     else:
         # If we can't get an ack, result will be an empty list.
-        logger.error("No ACK from PCA9546A")
+        logger.error('No ACK from PCA9546A')
 
     _stop_i2c(vec, gpio)
     end_time = datetime.datetime.now()
-    logger.debug('Differential Pressure Read time: {} ms'.format((end_time - start_time).total_seconds() * 1000))
+    logger.debug('Differential Pressure Read time: {} ms'.format(
+        (end_time - start_time).total_seconds() * 1000))
     for reading in result:
         logger.debug('Differential Pressure Reading:   {} Pa'.format(reading))
     return result
@@ -323,18 +329,19 @@ def read_thermistors(count):
 
         # Configure MAX11608
         # There are two registers to write to however there is no address.
-        # Bit 7 determines which register gets written; 0 = Configuration byte, 1 = Setup byte
+        # Bit 7 determines which register gets written; 0 = Configuration byte,
+        # 1 = Setup byte
         vec.SendAcks()
         vec.Start()
 
-        # Following the slave address write 0xD2 for setup byte and 0x0F for configuration byte
-        # See tables 1 and 2 in MAX11608 for byte definitions but basically sets up for an internal reference
-        # and do an a/d conversion all channels
-        vec.Write("\x66\xD2\x0F")
+        # Following the slave address write 0xD2 for setup byte and 0x0F for configuration
+        # byte. See tables 1 and 2 in MAX11608 for byte definitions but basically sets up
+        # for an internal reference and do an a/d conversion all channels
+        vec.Write('\x66\xD2\x0F')
 
         # Initiating a read starts the conversion
         vec.Start()
-        vec.Write("\x67")
+        vec.Write('\x67')
 
         # delay for conversion since the libmpsse can't do clock stretching
         time.sleep(0.010)
@@ -367,7 +374,7 @@ def _crc8(data):
     crc = 0
     for x in range(len(data) - 1):
         crc ^= ord(data[x])
-        for y in range(8):
+        for _ in range(8):
             if crc & 0x80:
                 crc = (crc << 1) ^ polynomial
             else:

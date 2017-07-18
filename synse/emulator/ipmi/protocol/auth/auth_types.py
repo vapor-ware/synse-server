@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   09/02/2016
-    
+
     \\//
      \/apor IO
 
@@ -37,8 +37,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 # 6h = RMCP+
 # ---------------------------
 NONE = 0x00
-MD2  = 0x01
-MD5  = 0x02
-PWD  = 0x04
-OEM  = 0x05
+MD2 = 0x01
+MD5 = 0x02
+PWD = 0x04
+OEM = 0x05
 RMCP = 0x06

@@ -40,16 +40,17 @@ logger = logging.getLogger(__name__)
 
 
 def _build_link(ip_address, port, path, timeout=None):
-    """ Builds a new link based upon the arguments passed in to query the Redfish server.
+    """ Builds a new link based upon the arguments passed in to query the
+    Redfish server.
 
     Args:
         ip_address (str): the ip_address of the Redfish server.
         port (str | int): the port of the Redfish server.
-        path (str): the location of the link within the Redfish server. if this is the
-            root link, the path specified should be 'root'.
-        timeout (int | float): the number of seconds a GET will wait for a connection
-            before timing out on the request. this parameter is not None only when
-            attempting to find the root path.
+        path (str): the location of the link within the Redfish server. if this
+            is the root link, the path specified should be 'root'.
+        timeout (int | float): the number of seconds a GET will wait for a
+            connection before timing out on the request. this parameter is not
+            None only when attempting to find the root path.
 
     Returns:
         str: the URI of the link specified by the args.
@@ -66,7 +67,8 @@ def _build_link(ip_address, port, path, timeout=None):
         return _link
     else:
         logger.error('Bad path to build a link: {}.'.format(path))
-        raise ValueError('Cannot build link for {} path. Bad link: {}.'.format(path, _link))
+        raise ValueError(
+            'Cannot build link for {} path. Bad link: {}.'.format(path, _link))
 
 
 def get_data(link, timeout, username=None, password=None):
@@ -74,8 +76,8 @@ def get_data(link, timeout, username=None, password=None):
 
     Args:
         link (str): the link to which information is requested.
-        timeout (int | float): the number of seconds a GET will wait for a connection
-            before timing out on the request.
+        timeout (int | float): the number of seconds a GET will wait for a
+            connection before timing out on the request.
         username (str): the username for basic authentication.
         password (str): the password for basic authentication.
 
@@ -88,7 +90,8 @@ def get_data(link, timeout, username=None, password=None):
         else:
             r = requests.get(link, timeout=timeout)
     except requests.exceptions.ConnectionError as e:
-        raise SynseException('Unable to GET link {} due to ConnectionError: {}'.format(link, e.message))
+        raise SynseException(
+            'Unable to GET link {} due to ConnectionError: {}'.format(link, e.message))
 
     if r.status_code != 200:
         logger.error('Unexpected status code for GET method: {}'.format(r.status_code))
@@ -108,10 +111,14 @@ def patch_data(link, payload, timeout, username, password):
         username (str): the username for basic authentication.
         password (str): the password for basic authentication.
     """
-    r = requests.patch(link, json=payload, timeout=timeout, auth=HTTPBasicAuth(username, password))
+    r = requests.patch(
+        link, json=payload, timeout=timeout, auth=HTTPBasicAuth(username, password)
+    )
     if r.status_code != 200:
-        logger.error('Unexpected status code for PATCH method: {}'.format(r.status_code))
-        raise ValueError('Unable to PATCH link {}. Status code: {}'.format(link, r.status_code))
+        logger.error(
+            'Unexpected status code for PATCH method: {}'.format(r.status_code))
+        raise ValueError(
+            'Unable to PATCH link {}. Status code: {}'.format(link, r.status_code))
 
 
 def post_action(link, payload, timeout, username, password):
@@ -125,10 +132,14 @@ def post_action(link, payload, timeout, username, password):
         username (str): the username for basic authentication.
         password (str): the password for basic authentication.
     """
-    r = requests.post(link, json=payload, timeout=timeout, auth=HTTPBasicAuth(username, password))
+    r = requests.post(
+        link, json=payload, timeout=timeout, auth=HTTPBasicAuth(username, password)
+    )
     if r.status_code != 200:
-        logger.error('Unexpected status code for POST method: {}'.format(r.status_code))
-        raise ValueError('Unable to POST link {}. Status code: {}'.format(link, r.status_code))
+        logger.error(
+            'Unexpected status code for POST method: {}'.format(r.status_code))
+        raise ValueError(
+            'Unable to POST link {}. Status code: {}'.format(link, r.status_code))
 
 
 # Traversing the tree:
@@ -149,17 +160,26 @@ def _get_members(json_data, ip_address, port):
     if 'Members' in json_data:
         try:
             if int(json_data['Members@odata.count']) == 1:
-                return [_build_link(ip_address=ip_address, port=port, path=str(json_data['Members'][0]['@odata.id']))]
+                return [_build_link(
+                    ip_address=ip_address,
+                    port=port,
+                    path=str(json_data['Members'][0]['@odata.id']))]
             else:
                 for item in json_data['Members']:
-                    members_list.append(_build_link(ip_address=ip_address, port=port, path=str(item['@odata.id'])))
+                    members_list.append(_build_link(
+                        ip_address=ip_address,
+                        port=port,
+                        path=str(item['@odata.id']))
+                    )
                 return members_list
         except KeyError as e:
             logger.error('Collection defined without {}.'.format(e.message))
-            raise SynseException('Unable to verify number of members. {} not present.'.format(e.message))
+            raise SynseException(
+                'Unable to verify number of members. {} not present.'.format(e.message))
     else:
         logger.error('No Members collection defined in {} schema.'.format(json_data['Name']))
-        raise ValueError('Cannot find Members collection in the data specified: {}'.format(json_data['Name']))
+        raise ValueError(
+            'Cannot find Members collection in the data specified: {}'.format(json_data['Name']))
 
 
 def _get_inner_link(col, search_word, ip_address, port):
@@ -181,16 +201,23 @@ def _get_inner_link(col, search_word, ip_address, port):
     if isinstance(col, dict):
         if search_word in col:
             if '@odata.id' in col[search_word]:
-                return _build_link(ip_address=ip_address, port=port, path=str(col[search_word]['@odata.id']))
+                return _build_link(
+                    ip_address=ip_address,
+                    port=port,
+                    path=str(col[search_word]['@odata.id']))
         if 'Members' in col:
-            return _get_inner_link(col=_get_members(json_data=col, ip_address=ip_address, port=port),
-                                   search_word=search_word,
-                                   ip_address=ip_address,
-                                   port=port)
+            return _get_inner_link(
+                col=_get_members(json_data=col, ip_address=ip_address, port=port),
+                search_word=search_word,
+                ip_address=ip_address,
+                port=port
+            )
+
     elif isinstance(col, list):
         for member in col:
             if search_word in member:
                 return member
+
     # if it hits this, it has not found the search word in the collection.
     logger.error('{} is not a term found in the collection.'.format(search_word))
     raise ValueError('Cannot find the {} in the data specified.'.format(search_word))
@@ -219,19 +246,28 @@ def find_links(ip_address, port, timeout, username, password):
         root_data = get_data(root, timeout=timeout)
 
         collections['managers'] = get_data(
-            link=_build_link(ip_address=ip_address, port=port, path=root_data['Managers']['@odata.id']),
+            link=_build_link(
+                ip_address=ip_address,
+                port=port,
+                path=root_data['Managers']['@odata.id']),
             timeout=timeout,
             username=username,
             password=password
         )
         collections['systems'] = get_data(
-            link=_build_link(ip_address=ip_address, port=port, path=root_data['Systems']['@odata.id']),
+            link=_build_link(
+                ip_address=ip_address,
+                port=port,
+                path=root_data['Systems']['@odata.id']),
             timeout=timeout,
             username=username,
             password=password
         )
         collections['chassis'] = get_data(
-            link=_build_link(ip_address=ip_address, port=port, path=root_data['Chassis']['@odata.id']),
+            link=_build_link(
+                ip_address=ip_address,
+                port=port,
+                path=root_data['Chassis']['@odata.id']),
             timeout=timeout,
             username=username,
             password=password
@@ -239,8 +275,12 @@ def find_links(ip_address, port, timeout, username, password):
     except ValueError as e:
         expected_keys = ['managers', 'chassis', 'systems']
         unfound = ', '.join(set(expected_keys).difference(collections.keys()))
-        logger.error('{} collection(s) unable to be retrieved with current information: {}'.format(unfound, e.message))
-        raise SynseException('Cannot retrieve {} collection links from root schema: {}.'.format(unfound, e.message))
+        logger.error(
+            '{} collection(s) unable to be retrieved with current information: '
+            '{}'.format(unfound, e.message))
+        raise SynseException(
+            'Cannot retrieve {} collection links from root schema: '
+            '{}.'.format(unfound, e.message))
 
     try:
         response['bmc'] = _get_members(
@@ -248,10 +288,12 @@ def find_links(ip_address, port, timeout, username, password):
             ip_address=ip_address,
             port=port
         )[0]
-        # TODO - for later development of remote devices with multiple systems running on the same ip, add a config
-        #   value with system names. If there are more than one system in the members list, the search_word
-        #   specified should be replaced with the name of the desired system. Otherwise, this function will
-        #   always return the first of the members.
+
+        # TODO - for later development of remote devices with multiple systems
+        #   running on the same ip, add a config value with system names. If
+        #   there are more than one system in the members list, the search_word
+        #   specified should be replaced with the name of the desired system.
+        #   Otherwise, this function will always return the first of the members.
         response['system'] = _get_inner_link(
             col=collections['systems'],
             search_word='Systems',
@@ -265,12 +307,28 @@ def find_links(ip_address, port, timeout, username, password):
             port=port
         )[0]
 
-        chassis_data = get_data(link=response['chassis'], timeout=timeout, username=username, password=password)
-        response['thermal'] = _get_inner_link(chassis_data, search_word='Thermal', ip_address=ip_address, port=port)
-        response['power'] = _get_inner_link(chassis_data, search_word='Power', ip_address=ip_address, port=port)
+        chassis_data = get_data(
+            link=response['chassis'],
+            timeout=timeout,
+            username=username,
+            password=password
+        )
+        response['thermal'] = _get_inner_link(
+            col=chassis_data,
+            search_word='Thermal',
+            ip_address=ip_address,
+            port=port)
+        response['power'] = _get_inner_link(
+            col=chassis_data,
+            search_word='Power',
+            ip_address=ip_address,
+            port=port)
         return response
     except KeyError as e:
         expected_keys = ['bmc', 'system', 'chassis', 'thermal', 'power']
         unfound = ', '.join(set(expected_keys).difference(response.keys()))
-        logger.error('Cannot retrieve {} links. Bad path to {}.'.format(unfound, e.message))
-        raise SynseException('Cannot retrieve links from collections: {}. Bad path to {}.'.format(unfound, e.message))
+        logger.error(
+            'Cannot retrieve {} links. Bad path to {}.'.format(unfound, e.message))
+        raise SynseException(
+            'Cannot retrieve links from collections: {}. Bad path to '
+            '{}.'.format(unfound, e.message))

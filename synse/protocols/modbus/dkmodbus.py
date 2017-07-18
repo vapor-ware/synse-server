@@ -11,16 +11,19 @@
 """
 
 import logging
-import serial
 import struct
 import time
-
 from binascii import hexlify
+
+import serial
 
 logger = logging.getLogger(__name__)
 
 
 class dkmodbus(object):
+    """Class that contains the logic and state for this simple modbus
+    serial implementation.
+    """
 
     # Modbus function codes.
     _READ_COILS = '\x01'
@@ -46,11 +49,11 @@ class dkmodbus(object):
     # region public
 
     def __init__(self, serial_device):
-        """"
+        """'
         Create the dkmodbus object for communication over the given serial
         device.
         :param serial_device: The serial device for Modbus communication.
-        example: ser = serial.Serial("/dev/ttyUSB3", baudrate=19200,
+        example: ser = serial.Serial('/dev/ttyUSB3', baudrate=19200,
         parity='E', timeout=0.1)"""
         self.serial_device = serial_device
 
@@ -132,14 +135,14 @@ class dkmodbus(object):
         crc = 0xFFFF
         polynomial = 0xA001  # CRC Calculation
 
-        for x in range(len(data)):
-            crc ^= ord(data[x])
-            for y in range(8):
+        for d in data:
+            crc ^= ord(d)
+            for _ in range(8):
                 if crc & 0x0001:
                     crc = (crc >> 1) ^ polynomial
                 else:
                     crc = (crc >> 1)
-        logger.debug("Calculated CRC = 0x%0.2X" % crc)
+        logger.debug('Calculated CRC = 0x{:02X}'.format(crc))
         return crc
 
     @staticmethod
@@ -149,12 +152,15 @@ class dkmodbus(object):
         # Do not include the 2 byte crc in crc calculation.
         crc = dkmodbus._calculate_crc(data[:-2])
 
-        # construct the received crc (last two bytes in packet), keep in mind the cec sends it backwards
+        # construct the received crc (last two bytes in packet), keep in mind
+        # the cec sends it backwards
         rx_crx = data[-1] + data[-2]
         rx_crc = int(hexlify(rx_crx), 16)
         return crc == rx_crc
 
     def _send_receive_packet(self, packet):
+        """Send a packet and then receive the response.
+        """
         # Construct the ADU packet containing PDU packet above
         # Calculate CRC and append at the end of the ADU packet
         crc = dkmodbus._calculate_crc(packet)
@@ -171,11 +177,14 @@ class dkmodbus(object):
         # concatenate to end of packet
         packet += char_crc
 
-        logger.debug("Sending Modbus Function code %d to Slave Address %d" % (ord(packet[1]), (ord(packet[0]))))
+        logger.debug(
+            'Sending Modbus Function code {} to Slave Address {}'.format(
+                ord(packet[1]), (ord(packet[0]))))
 
-        # Get the length of the packet sent out the serial port.  Use this to fix the issue of the
-        # issue of the FT4232H sending a null character between the packet echoed back from the VEC
-        # and the packet sent from the cec sensor hub.
+        # Get the length of the packet sent out the serial port. Use this to
+        # fix the issue of the issue of the FT4232H sending a null character
+        # between the packet echoed back from the VEC and the packet sent from
+        # the cec sensor hub.
         pdu_length = len(packet)
 
         # Send packet out serial port
@@ -191,23 +200,24 @@ class dkmodbus(object):
                 response = self.serial_device.read(1024)
                 logger.debug('Raw response: {}'.format(hexlify(response)))
 
-                # Separate received packet into the transmitted packet sent by VEC and received
-                # packet sent by the CEC
-                # The FT4232H Module keeps adding a NUL character at the end of the transmitted and received
-                # packet.  Remove it (can't seem to find out why it does this)
-                # parse out the VEC Tx packet
+                # Separate received packet into the transmitted packet sent
+                # by VEC and received packet sent by the CEC. The FT4232H
+                # Module keeps adding a NUL character at the end of the
+                # transmitted and received packet. Remove it (can't seem to
+                # find out why it does this) parse out the VEC Tx packet
                 vec_tx_packet = response[:pdu_length]
-                logger.debug("Rx VEC:   (echo back) {}".format(hexlify(vec_tx_packet)))
+                logger.debug('Rx VEC:   (echo back) {}'.format(hexlify(vec_tx_packet)))
 
                 # Did the CEC respond to packet request?
                 if len(response) - 1 > pdu_length:
 
                     # Parse out the CEC packet.
 
-                    # Check the byte following the vec echoed packet. It should contain the beginning
-                    # of the packet received from the cec sensor hub which is it's address. If it
-                    # contains a 0 then it's an extra null character which can not contain an address since
-                    # it's non zero.
+                    # Check the byte following the vec echoed packet. It should
+                    # contain the beginning of the packet received from the cec
+                    # sensor hub which is it's address. If it contains a 0 then
+                    # it's an extra null character which can not contain an address
+                    # since it's non zero.
                     if ord(response[pdu_length]) == 0:
                         # Null detected.
                         cec_rx_packet = response[pdu_length + 1:len(response)]
@@ -215,11 +225,11 @@ class dkmodbus(object):
                         # No null detected.
                         cec_rx_packet = response[pdu_length:len(response)]
 
-                    logger.debug("Rx CEC:   (received) {}".format(hexlify(cec_rx_packet)))
+                    logger.debug('Rx CEC:   (received) {}'.format(hexlify(cec_rx_packet)))
                     if not self._check_crc(cec_rx_packet):
-                        raise ValueError("Modbus CRC Failed.")
+                        raise ValueError('Modbus CRC Failed.')
                 else:
-                    raise ValueError("No response over modbus.")
+                    raise ValueError('No response over modbus.')
 
             except (serial.SerialException, ValueError) as e:
                 # This retry must re-send. Otherwise we wait for nothing.

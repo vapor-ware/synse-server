@@ -25,8 +25,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 from .auth_context import SessionContext
-from .auth_types import *
+from .auth_types import MD2, MD5, NONE, OEM, PWD, RMCP
 from .md5 import AuthMD5
 from .none import AuthNone
 from .rmcp import AuthRMCP

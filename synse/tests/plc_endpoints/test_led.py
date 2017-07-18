@@ -40,77 +40,77 @@ class ChassisLedTestCase(unittest.TestCase):
     def test_001_read_on(self):
         """ Read a valid on value back from led.
         """
-        r = http.get(PREFIX + "/read/led/rack_1/00000030/0001")
+        r = http.get(PREFIX + '/read/led/rack_1/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/rack_1/00000030/0001")
+        r = http.get(PREFIX + '/led/rack_1/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
     def test_002_read_off(self):
         """ Read a valid off value back from led.
         """
-        r = http.get(PREFIX + "/read/led/rack_1/00000030/0002")
+        r = http.get(PREFIX + '/read/led/rack_1/00000030/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'off')
+        self.assertEqual(response['led_state'], 'off')
 
-        r = http.get(PREFIX + "/led/rack_1/00000030/0002")
+        r = http.get(PREFIX + '/led/rack_1/00000030/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'off')
+        self.assertEqual(response['led_state'], 'off')
 
     def test_003_read_invalid(self):
         """ Read an empty data value, two integers and a string back from the led.
         """
         # empty
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # int 2
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # int 3
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
-        # string "A"
+        # string 'A'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # empty
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/read/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # int 2
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/read/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # int 3
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/read/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
-        # string "A"
+        # string 'A'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/00000030/0003")
+            http.get(PREFIX + '/read/led/rack_1/00000030/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -118,15 +118,15 @@ class ChassisLedTestCase(unittest.TestCase):
         """ Test reading while specifying different representations (same value) for
         the device id
         """
-        r = http.get(PREFIX + "/read/led/rack_1/00000030/000000001")
+        r = http.get(PREFIX + '/read/led/rack_1/00000030/000000001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/rack_1/00000030/000000001")
+        r = http.get(PREFIX + '/led/rack_1/00000030/000000001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
     def test_005_read_board_id_invalid(self):
         """ Test read while specifying different invalid representations for
@@ -134,127 +134,127 @@ class ChassisLedTestCase(unittest.TestCase):
         on packet that should not be set)
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/read/led/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/read/led/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/read/led/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/led/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/read/led/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/led/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/led/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/led/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/led/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/-10000000/00001FF")
+            http.get(PREFIX + '/led/rack_1/-10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
     def test_006_rack_id_representation(self):
         """ Test read while specifying different values for the rack_id
         """
-        r = http.get(PREFIX + "/led/rack_1/00000030/0001")
+        r = http.get(PREFIX + '/led/rack_1/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/STRING_NOT_RELATED_TO_RACK_AT_ALL/00000030/0001")
+        r = http.get(PREFIX + '/led/STRING_NOT_RELATED_TO_RACK_AT_ALL/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/STRING WITH SPACES/00000030/0001")
+        r = http.get(PREFIX + '/led/STRING WITH SPACES/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/123456789/00000030/0001")
+        r = http.get(PREFIX + '/led/123456789/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/123.456/00000030/0001")
+        r = http.get(PREFIX + '/led/123.456/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/-987654321/00000030/0001")
+        r = http.get(PREFIX + '/led/-987654321/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
-        r = http.get(PREFIX + "/led/acceptable_chars_\@$-_.+!*'(),^&~:;|}{}][]>=<>/00000030/0001")
+        r = http.get(PREFIX + '/led/acceptable_chars_\@$-_.+!*\'(),^&~:;|}{}][]>=<>/00000030/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["led_state"], 'on')
+        self.assertEqual(response['led_state'], 'on')
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led//00000030/0001")
+            http.get(PREFIX + '/led//00000030/0001')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/bad_char?/00000030/0001")
+            http.get(PREFIX + '/led/bad_char?/00000030/0001')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/bad_char#/00000030/0001")
+            http.get(PREFIX + '/led/bad_char#/00000030/0001')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/bad_char%/00000030/0001")
+            http.get(PREFIX + '/led/bad_char%/00000030/0001')
 
         self.assertEqual(ctx.exception.status, 400)
 
     def test_007_write_ok(self):
         """ Test write with an ok response.
         """
-        r = http.get(PREFIX + "/led/rack_1/00000030/0001/on")
+        r = http.get(PREFIX + '/led/rack_1/00000030/0001/on')
         self.assertTrue(http.request_ok(r.status_code))
 
-        r = http.get(PREFIX + "/led/rack_1/00000030/0001/off")
+        r = http.get(PREFIX + '/led/rack_1/00000030/0001/off')
         self.assertTrue(http.request_ok(r.status_code))
 
     def test_008_write_not_ok(self):
         """ Test write with a failed response.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0002/on")
+            http.get(PREFIX + '/led/rack_1/00000030/0002/on')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0002/off")
+            http.get(PREFIX + '/led/rack_1/00000030/0002/off')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -262,12 +262,12 @@ class ChassisLedTestCase(unittest.TestCase):
         """ Test write with invalid state values.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0001/blinky")
+            http.get(PREFIX + '/led/rack_1/00000030/0001/blinky')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0001/1")
+            http.get(PREFIX + '/led/rack_1/00000030/0001/1')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -276,30 +276,30 @@ class ChassisLedTestCase(unittest.TestCase):
         """
         # W2
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003/on")
+            http.get(PREFIX + '/led/rack_1/00000030/0003/on')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # W3
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003/on")
+            http.get(PREFIX + '/led/rack_1/00000030/0003/on')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # 1
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003/on")
+            http.get(PREFIX + '/led/rack_1/00000030/0003/on')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # 0
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003/on")
+            http.get(PREFIX + '/led/rack_1/00000030/0003/on')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # 2
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/led/rack_1/00000030/0003/on")
+            http.get(PREFIX + '/led/rack_1/00000030/0003/on')
 
         self.assertEqual(ctx.exception.status, 500)

@@ -4,7 +4,7 @@ as part of the IPMI emulator to store BMC and session state for emulated IPMI ac
 
     Author: Erick Daniszewski
     Date:   08/31/2016
-    
+
     \\//
      \/apor IO
 

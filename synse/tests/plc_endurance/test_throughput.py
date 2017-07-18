@@ -143,7 +143,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         @threaded(THREAD_COUNT)
         def test_power():
-            r = http.get(PREFIX + "/power/status/0000000A/02FF")
+            r = http.get(PREFIX + '/power/status/0000000A/02FF')
             self.assertTrue(http.request_ok(r.status_code))
 
         test_power()
@@ -155,7 +155,7 @@ class ThroughputTestCase(unittest.TestCase):
         @threaded(THREAD_COUNT)
         def test_power():
             with self.assertRaises(VaporHTTPError) as ctx:
-                http.get(PREFIX + "/power/status/0000000B/02FF")
+                http.get(PREFIX + '/power/status/0000000B/02FF')
 
             self.assertEqual(ctx.exception.status, 500)
 

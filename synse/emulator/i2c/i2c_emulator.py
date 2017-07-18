@@ -76,25 +76,30 @@ def main():
                 logger.error('<< cmd {} addr {} write_buf_len {}'.format(cmd, addr, write_buf_len))
 
                 if cmd == 'R':
-                    # look up addr in devices and counts and return its data (len is ignored on 'R')
+                    # look up addr in devices and counts and return its data
+                    # (len is ignored on 'R')
                     if addr in devices:
-                        if isinstance(devices[addr], list) and len(devices[addr]) > 0 and isinstance(devices[addr][0], list):
+                        if isinstance(devices[addr], list) and len(devices[addr]) > 0 and \
+                                isinstance(devices[addr][0], list):
                             counts[addr] = 0 if addr not in counts else counts[addr]
                             _count = counts[addr] if addr in counts else 0
 
                             serial_device.write([int(x, 16) for x in devices[addr][_count]])
-                            logger.error('>> bytes: {}'.format([int(x, 16) for x in devices[addr][_count]]))
+                            logger.error('>> bytes: {}'.format([int(x, 16) for x in
+                                                                devices[addr][_count]]))
 
                             _count += 1
                             counts[addr] = _count % len(devices[addr])
                         else:
                             serial_device.write([int(x, 16) for x in devices[addr]])
-                            logger.error('>> bytes: {}'.format([int(x, 16) for x in devices[addr]]))
+                            logger.error(
+                                '>> bytes: {}'.format([int(x, 16) for x in devices[addr]]))
                     else:
                         logger.error('! Not found: {}'.format(addr))
 
                 elif cmd == 'W':
-                    # look up addr in devices, and write len bytes (which are to be read here) to the device entry
+                    # look up addr in devices, and write len bytes (which are to be read here)
+                    # to the device entry
                     buf = serial_device.read(write_buf_len)
                     if addr in devices:
                         devices[addr] = [format(ord(x), 'x') for x in buf]

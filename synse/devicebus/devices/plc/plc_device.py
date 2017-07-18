@@ -83,7 +83,8 @@ class PLCDevice(SerialDevice):
 
         # these are required, so if they are missing from the config
         # dict passed in, we will want the exception to propagate up
-        self.hardware_type = self._device_hardware.get(kwargs['hardware_type'], const.DEVICEBUS_UNKNOWN_HARDWARE)
+        self.hardware_type = self._device_hardware.get(
+            kwargs['hardware_type'], const.DEVICEBUS_UNKNOWN_HARDWARE)
         self.device_name = kwargs['device_name']
 
         # these are optional values, so they may not exist in the config.
@@ -299,7 +300,8 @@ class PLCDevice(SerialDevice):
                 retry_count += 1
             except Exception:
                 # if the bus times out, we are out of luck and must bail out
-                raise SynseException('No response from command retry: {}'.format(kwargs)), None, sys.exc_info()[2]
+                raise SynseException(
+                    'No response from command retry: {}'.format(kwargs)), None, sys.exc_info()[2]
 
         if not valid_response:
             logger.error('Retry limit reached. ({})'.format(kwargs))
@@ -376,7 +378,9 @@ class PLCDevice(SerialDevice):
                 response_dict = self._vapor_scan(request, bus)
 
             except Exception:
-                raise SynseException('Scan: Error when scanning board {}'.format(board_id)), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Scan: Error when scanning board {}'.format(
+                        board_id)), None, sys.exc_info()[2]
 
             return Response(command=command, response_data=response_dict)
 
@@ -397,8 +401,11 @@ class PLCDevice(SerialDevice):
             bus = self._get_bus()
 
             mac_addr = str(get_mac_addr())
-            id_bytes = [int(mac_addr[i:i + 2], 16) for i in range(len(mac_addr) - 4, len(mac_addr), 2)]
-            board_id = SCAN_ALL_BOARD_ID + (id_bytes[0] << 16) + (id_bytes[1] << 8) + self.time_slice
+            id_bytes = [int(mac_addr[i:i + 2], 16) for i in
+                        range(len(mac_addr) - 4, len(mac_addr), 2)]
+
+            board_id = SCAN_ALL_BOARD_ID + (id_bytes[0] << 16) + \
+                       (id_bytes[1] << 8) + self.time_slice
 
             request = plc_bus.DumpCommand(
                 board_id=board_id,
@@ -411,7 +418,9 @@ class PLCDevice(SerialDevice):
                 response_dict['racks'].append(plc_rack)
 
             except Exception as e:
-                raise SynseException('Scan All: Error when scanning all boards ({})'.format(e)), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Scan All: Error when scanning all boards ({})'.format(
+                        e)), None, sys.exc_info()[2]
 
             return Response(command=command, response_data=response_dict)
 
@@ -455,14 +464,16 @@ class PLCDevice(SerialDevice):
                 logger.debug('<<Read: {}'.format([hex(x) for x in response.serialize()]))
 
             except BusTimeoutException:
-                raise SynseException('No response from bus on sensor read.'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'No response from bus on sensor read.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.DeviceReadResponse)
 
         try:
             device_type_string = device_type_string.lower()
 
-            # for now, temperature and pressure are just a string->float, all else require int conversion
+            # for now, temperature and pressure are just a string->float, all else
+            # require int conversion
             device_raw = float(''.join([chr(x) for x in response.data]))
 
             if device_type_string == const.DEVICE_TEMPERATURE:
@@ -480,7 +491,9 @@ class PLCDevice(SerialDevice):
                     response_data = {const.UOM_THERMISTOR: convert_thermistor(device_raw)}
 
                 elif device_type_string == const.DEVICE_HUMIDITY:
-                    response_data = dict(zip((const.UOM_HUMIDITY, const.UOM_TEMPERATURE), convert_humidity(device_raw)))
+                    response_data = dict(
+                        zip((const.UOM_HUMIDITY, const.UOM_TEMPERATURE),
+                            convert_humidity(device_raw)))
 
                 elif device_type_string == const.DEVICE_FAN_SPEED:
                     # TODO: retrieve fan mode from the auto_fan controller
@@ -505,10 +518,12 @@ class PLCDevice(SerialDevice):
 
         except (ValueError, TypeError):
             # abort if unable to convert to int (ValueError), unable to convert to chr (TypeError)
-            raise SynseException('Read: Error converting device reading.'), None, sys.exc_info()[2]
+            raise SynseException(
+                'Read: Error converting device reading.'), None, sys.exc_info()[2]
         except Exception:
             # if something bad happened - all we can do is abort
-            raise SynseException('Read: Error converting raw value.'), None, sys.exc_info()[2]
+            raise SynseException(
+                'Read: Error converting raw value.'), None, sys.exc_info()[2]
 
     def _power(self, command):
         """ Power control command for a given board and device.
@@ -598,9 +613,11 @@ class PLCDevice(SerialDevice):
             except (ValueError, TypeError, IndexError):
                 # abort if unable to convert to int (ValueError), unable to convert
                 # to chr (TypeError), or if expected pmbus_values don't exist (IndexError)
-                raise SynseException('Power: Error converting PMBUS data.'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Power: Error converting PMBUS data.'), None, sys.exc_info()[2]
             except Exception:
-                raise SynseException('Power: Unexpected error when converting PMBUS data.'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Power: Unexpected error when converting PMBUS data.'), None, sys.exc_info()[2]
 
     def _asset(self, command):
         """ Asset info command for a given board and device.
@@ -686,10 +703,14 @@ class PLCDevice(SerialDevice):
                 return Response(command=command, response_data=convert_asset_info(asset_data))
 
             except (ValueError, TypeError):
-                # abort if unable to convert to info string (ValueError), unable to convert to chr (TypeError)
-                raise SynseException('Asset Info: Error converting asset info data.'), None, sys.exc_info()[2]
+                # abort if unable to convert to info string (ValueError), unable to convert
+                # to chr (TypeError)
+                raise SynseException(
+                    'Asset Info: Error converting asset info data.'), None, sys.exc_info()[2]
             except Exception:
-                raise SynseException('Asset Info: Unexpected exception when converting asset info'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Asset Info: Unexpected exception when converting asset info'), \
+                    None, sys.exc_info()[2]
 
     def _boot_target(self, command):
         """ Boot target command for a given board and device.
@@ -757,10 +778,14 @@ class PLCDevice(SerialDevice):
                 return Response(command=command, response_data=target_response)
 
             except (ValueError, TypeError):
-                # abort if unable to convert to target string (ValueError), unable to convert to chr (TypeError)
-                raise SynseException('Boot Target: Error converting boot target data.'), None, sys.exc_info()[2]
+                # abort if unable to convert to target string (ValueError), unable to
+                # convert to chr (TypeError)
+                raise SynseException(
+                    'Boot Target: Error converting boot target data.'), None, sys.exc_info()[2]
             except Exception:
-                raise SynseException('Boot Target: Unexpected exception when converting boot target data'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Boot Target: Unexpected exception when converting boot target'
+                    ' data'), None, sys.exc_info()[2]
 
     def _chamber_led(self, command):
         """ Chamber LED control command.
@@ -808,7 +833,8 @@ class PLCDevice(SerialDevice):
                 logger.debug('<<Vapor_LED: {}'.format([hex(x) for x in request.serialize()]))
 
             except BusTimeoutException:
-                raise SynseException('Chamber LED command bus timeout.'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Chamber LED command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.ChamberLedControlResponse)
 
@@ -816,8 +842,10 @@ class PLCDevice(SerialDevice):
             try:
                 device_raw = str(''.join([chr(x) for x in response.data]))
             except (ValueError, TypeError) as e:
-                # abort if unable to convert to int (ValueError), unable to convert to chr (TypeError)
-                raise SynseException('Chamber LED: Error converting device response.'), None, sys.exc_info()[2]
+                # abort if unable to convert to int (ValueError), unable to convert
+                # to chr (TypeError)
+                raise SynseException(
+                    'Chamber LED: Error converting device response.'), None, sys.exc_info()[2]
 
             # TODO: temporary response format until PLC comms finalized
             if len(device_raw.split(',')) == 3:
@@ -825,7 +853,8 @@ class PLCDevice(SerialDevice):
                 led_response = dict()
                 led_response['led_state'] = _s_.LED_ON if control_data[0] == '1' else _s_.LED_OFF
                 led_response['led_color'] = control_data[1]
-                led_response['blink_state'] = _s_.LED_BLINK if control_data[2] == '1' else _s_.LED_STEADY
+                led_response['blink_state'] = _s_.LED_BLINK if control_data[2] == '1' \
+                    else _s_.LED_STEADY
                 return Response(command=command, response_data=led_response)
             else:
                 raise SynseException('Invalid Chamber LED response data.')
@@ -888,7 +917,8 @@ class PLCDevice(SerialDevice):
                 logger.debug('<<LED: {}'.format([hex(x) for x in response.serialize()]))
 
             except BusTimeoutException:
-                raise SynseException('LED write command bus timeout.'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'LED write command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.DeviceWriteResponse)
 
@@ -896,8 +926,10 @@ class PLCDevice(SerialDevice):
         try:
             device_raw = str(''.join([chr(x) for x in response.data]))
         except (ValueError, TypeError):
-            # abort if unable to convert to int (ValueError), unable to convert to chr (TypeError)
-            raise SynseException('LED: Error converting device response.'), None, sys.exc_info()[2]
+            # abort if unable to convert to int (ValueError), unable
+            # to convert to chr (TypeError)
+            raise SynseException(
+                'LED: Error converting device response.'), None, sys.exc_info()[2]
         if device_raw == 'W1':
             c = Command(
                 cmd_id=cid.READ,
@@ -911,7 +943,9 @@ class PLCDevice(SerialDevice):
             )
             return self._read(c)
         else:
-            raise SynseException('Error writing to device {} on board {}'.format(hex(device_id), hex(board_id)))
+            raise SynseException(
+                'Error writing to device {} on board {}'.format(
+                    hex(device_id), hex(board_id)))
 
     def _fan(self, command):
         """ Fan speed control command for a given board and device.
@@ -962,8 +996,10 @@ class PLCDevice(SerialDevice):
         try:
             device_raw = str(''.join([chr(x) for x in response.data]))
         except (ValueError, TypeError):
-            # abort if unable to convert to int (ValueError), unable to convert to chr (TypeError)
-            raise SynseException('Fan control: Error converting device response.'), None, sys.exc_info()[2]
+            # abort if unable to convert to int (ValueError), unable to convert
+            # to chr (TypeError)
+            raise SynseException(
+                'Fan control: Error converting device response.'), None, sys.exc_info()[2]
         if device_raw == 'W1':
             c = Command(
                 cmd_id=cid.READ,
@@ -977,7 +1013,8 @@ class PLCDevice(SerialDevice):
             )
             return self._read(c)
         else:
-            raise SynseException('Error writing to device {} on board {}'.format(hex(device_id), hex(board_id)))
+            raise SynseException(
+                'Error writing to device {} on board {}'.format(hex(device_id), hex(board_id)))
 
     def _host_info(self, command):
         """ Get the host information for a given board and device.
@@ -1018,7 +1055,8 @@ class PLCDevice(SerialDevice):
                 logger.debug('<<Host_Info: {}'.format([hex(x) for x in response.serialize()]))
 
             except BusTimeoutException:
-                raise SynseException('Host Info command bus timeout.'), None, sys.exc_info()[2]
+                raise SynseException(
+                    'Host Info command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.HostInfoResponse)
 
@@ -1026,8 +1064,10 @@ class PLCDevice(SerialDevice):
         try:
             device_raw = str(''.join([chr(x) for x in response.data]))
         except (ValueError, TypeError):
-            # abort if unable to convert to int (ValueError), unable to convert to chr (TypeError)
-            raise SynseException('Host Info: Error converting device response.'), None, sys.exc_info()[2]
+            # abort if unable to convert to int (ValueError), unable to
+            # convert to chr (TypeError)
+            raise SynseException(
+                'Host Info: Error converting device response.'), None, sys.exc_info()[2]
         # convert to json dictionary
         try:
             host_information = dict()
@@ -1040,13 +1080,15 @@ class PLCDevice(SerialDevice):
                 elif field[0] == 'h':
                     host_information['hostnames'].append(field[1:])
                 else:
-                    raise ValueError('Invalid field in host information: {}.'.format(field))
+                    raise ValueError(
+                        'Invalid field in host information: {}.'.format(field))
             return Response(command=command, response_data=host_information)
 
         except ValueError as e:
             raise SynseException(e.message)
         except Exception:
-            raise SynseException('Invalid host information returned'), None, sys.exc_info()[2]
+            raise SynseException(
+                'Invalid host information returned'), None, sys.exc_info()[2]
 
     def _vapor_scan(self, packet, bus=None, retry_count=0):
         """ Query all boards and provide the active devices on each board.
@@ -1090,8 +1132,8 @@ class PLCDevice(SerialDevice):
             retry_count += 1
 
             # flush the bus of any corrupt data
-            # TODO: determine if it is necessary to wait for the timeslice to complete to flush everything out since
-            # boards may still be writing
+            # TODO: determine if it is necessary to wait for the timeslice to complete to
+            # flush everything out since boards may still be writing
             time.sleep(0.150)
             bus.flush_all()
 
@@ -1100,8 +1142,8 @@ class PLCDevice(SerialDevice):
                 logger.debug('Sending retry packet from initial.')
                 return self._vapor_scan(packet, bus, retry_count=retry_count)
             else:
-                # FIXME - this exception message seems out of place.. should it only be alerting of the
-                # retry limit having been reached?
+                # FIXME - this exception message seems out of place.. should it only be
+                # alerting of the retry limit having been reached?
                 raise BusCommunicationError(
                     'Corrupt packets received (failed checksum validation) - Retry limit reached.'
                 )
@@ -1133,8 +1175,8 @@ class PLCDevice(SerialDevice):
                 retry_count += 1
 
                 # flush the bus of any corrupt data
-                # TODO: determine if it is necessary to wait for the timeslice to complete to flush everything out since
-                # boards may still be writing
+                # TODO: determine if it is necessary to wait for the timeslice to complete to
+                # flush everything out since boards may still be writing
                 time.sleep(0.150)
                 bus.flush_all()
 
@@ -1144,7 +1186,8 @@ class PLCDevice(SerialDevice):
                     return self._vapor_scan(packet, bus, retry_count=retry_count)
                 else:
                     raise BusCommunicationError(
-                        'Corrupt packets received (failed checksum validation) - Retry limit reached.'
+                        'Corrupt packets received (failed checksum validation) - '
+                        'Retry limit reached.'
                     )
 
             else:

@@ -32,7 +32,6 @@ import json
 import logging
 
 from flask import Blueprint, current_app
-from vapor_common.utils.endpoint import make_url_builder
 
 import synse.constants as const
 import synse.strings as _s_
@@ -44,6 +43,7 @@ from synse.location import get_chassis_location
 from synse.utils import (check_valid_board, check_valid_board_and_device,
                          get_device_instance, get_device_type_code,
                          get_scan_cache, make_json_response, write_scan_cache)
+from synse.vapor_common.utils.endpoint import make_url_builder
 from synse.version import __api_version__
 
 # add the api_version to the prefix
@@ -67,7 +67,8 @@ def _lookup_device_uuid(board_id):
     device = get_device_instance(board_id)
 
     # unsupported device returns None
-    if not isinstance(device, (PLCDevice, IPMIDevice, RS485Device, I2CDevice, SnmpDevice, RedfishDevice)):
+    if not isinstance(device, (PLCDevice, IPMIDevice, RS485Device, I2CDevice,
+                               SnmpDevice, RedfishDevice)):
         return None
 
     uuid = None
@@ -218,7 +219,7 @@ def scan_all():
     if _cache:
         return make_json_response(_filter_cache_meta(_cache))
 
-    for _id, device in current_app.config['DEVICES'].iteritems():
+    for _, device in current_app.config['DEVICES'].iteritems():
         cmd = current_app.config['CMD_FACTORY'].get_scan_all_command({
             _s_.FORCE: False
         })
@@ -243,7 +244,7 @@ def force_scan():
     """
     scan_response = {'racks': []}
 
-    for _id, device in current_app.config['DEVICES'].iteritems():
+    for _, device in current_app.config['DEVICES'].iteritems():
         cmd = current_app.config['CMD_FACTORY'].get_scan_all_command({
             _s_.FORCE: True,
         })
@@ -511,10 +512,10 @@ def device_location(rack_id, board_id=None, device_id=None):
             _s_.PHYSICAL_LOC: physical_location,
             _s_.CHASSIS_LOC: get_chassis_location(device_id)
         })
-    else:
-        return make_json_response({
-            _s_.PHYSICAL_LOC: physical_location
-        })
+
+    return make_json_response({
+        _s_.PHYSICAL_LOC: physical_location
+    })
 
 
 def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, blink_state):

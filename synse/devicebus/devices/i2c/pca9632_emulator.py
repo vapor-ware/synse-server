@@ -37,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 def read_emulator(device_name, channel):
+    """ Emulator read for PCA9632 LED.
+    """
     # -- EMULATOR --
     try:
         # use self.device_name for serial device, 115200, 0.25
@@ -66,7 +68,9 @@ def read_emulator(device_name, channel):
                 led_values['state'] = 'on'
                 led_values['blink'] = 'blink'
             else:
-                raise SynseException("Invalid LED State returned from emulator: {}".format(ord(reading[3])))
+                raise SynseException(
+                    'Invalid LED State returned from emulator: {}'.format(ord(reading[3]))
+                )
 
             return led_values
 
@@ -76,6 +80,8 @@ def read_emulator(device_name, channel):
 
 
 def write_emulator(device_name, channel, color, ledstate, blinkstate):
+    """ Emulator write for PCA9632 LED.
+    """
     try:
         # use self.device_name for serial device, 115200, 0.25
         with serial.Serial(device_name, baudrate=115200, timeout=0.25) as serial_device:
