@@ -29,6 +29,7 @@ import logging
 import unittest
 
 from rs485_emulator.test_rs485_emulator import Rs485EmulatorTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

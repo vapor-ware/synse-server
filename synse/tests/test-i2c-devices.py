@@ -29,6 +29,7 @@ import logging
 import unittest
 
 from i2c_devices.test_i2c_sdp610_pressure import SDP610TestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

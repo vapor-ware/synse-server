@@ -24,6 +24,7 @@ import unittest
 
 from plc_bad_scan.test_bad_scan import BadScanTestCase
 from plc_bad_scan.test_line_noise import LineNoiseTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

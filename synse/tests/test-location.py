@@ -23,6 +23,7 @@ import logging
 import unittest
 
 from location.test_chassis_location import ChassisLocationTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

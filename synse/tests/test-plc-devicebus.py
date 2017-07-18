@@ -23,6 +23,7 @@ import logging
 import unittest
 
 from plc_devicebus.test_devicebus import DevicebusTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

@@ -25,6 +25,7 @@ import unittest
 from plc_endurance.test_endurance import EnduranceTestCase
 from plc_endurance.test_threaded import ThreadedTestCase
 from plc_endurance.test_throughput import ThroughputTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

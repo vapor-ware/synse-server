@@ -29,6 +29,7 @@ import logging
 import unittest
 
 from rs485_endpoints.test_rs485_endpoints import Rs485EndpointsTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

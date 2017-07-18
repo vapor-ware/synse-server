@@ -30,6 +30,7 @@ import unittest
 
 from ipmi_scan_cache_registration.test_ipmi_scan_cache_registration import \
     IPMIScanCacheRegistrationTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

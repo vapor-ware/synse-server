@@ -26,6 +26,7 @@ import logging
 import unittest
 
 from snmp_emulator.test_snmp_emulator import SnmpEmulatorTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

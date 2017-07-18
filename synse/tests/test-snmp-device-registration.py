@@ -27,6 +27,7 @@ import unittest
 
 from snmp_device_registration.test_snmp_device_registration import \
     SnmpDeviceRegistrationTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

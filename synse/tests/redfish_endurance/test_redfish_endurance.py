@@ -28,9 +28,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import random
 import unittest
 
-from synse.vapor_common import http
-
 from synse.tests.test_config import PREFIX
+from synse.vapor_common import http
 
 
 class RedfishEnduranceTestCase(unittest.TestCase):

@@ -27,11 +27,10 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from synse.vapor_common import http
-from synse.vapor_common.errors import VaporHTTPError
-
 from synse.tests.test_config import PREFIX
 from synse.tests.test_utils import threaded
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 # number of threads to spawn for each test. currently, it seems that >10 threads
 # causes a 502 error to be returned

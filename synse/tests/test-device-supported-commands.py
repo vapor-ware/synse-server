@@ -30,6 +30,7 @@ import unittest
 
 from device_supported_commands.test_device_supported_commands import \
     SupportedDeviceCommandsTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

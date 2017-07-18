@@ -28,6 +28,7 @@ import unittest
 
 from snmp_device_kills_force_scan.test_snmp_device_kills_force_scan import \
     SnmpDeviceKillsForceScanTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

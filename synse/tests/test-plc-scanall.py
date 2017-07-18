@@ -23,6 +23,7 @@ import logging
 import unittest
 
 from plc_scanall.test_scanall import ScanAllTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

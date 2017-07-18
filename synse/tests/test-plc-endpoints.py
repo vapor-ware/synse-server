@@ -38,6 +38,7 @@ from plc_endpoints.test_scan import ScanTestCase
 from plc_endpoints.test_vapor_battery import VaporBatteryTestCase
 from plc_endpoints.test_vapor_rectifier import VaporRectifierTestCase
 from plc_endpoints.test_version import VersionTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

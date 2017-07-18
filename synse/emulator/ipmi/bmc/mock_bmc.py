@@ -27,15 +27,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: disable=relative-import,import-error
 
 import json
 import os
 import random
 import time
 
+from protocol.auth import auth_types
+
 from .fru import FRU
 from .sdr import SDR
-from protocol.auth import auth_types
 
 
 class NETFN(object):

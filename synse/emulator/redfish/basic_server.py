@@ -55,7 +55,6 @@ import json
 import os
 
 from flask import Flask, jsonify, request
-
 from redfish_auth import RfAuthentication
 from redfish_resources import database, users
 from templates.chassis_template import CHASSIS_TEMPLATE

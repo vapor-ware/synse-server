@@ -39,6 +39,7 @@ from redfish_endpoints.test_read import RedfishReadTestCase
 from redfish_endpoints.test_scan import RedfishScanTestCase
 from redfish_endpoints.test_scan_all import RedfishScanAllTestCase
 from redfish_endpoints.test_version import RedfishVersionTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 

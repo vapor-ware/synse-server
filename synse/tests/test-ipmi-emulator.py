@@ -29,6 +29,7 @@ import logging
 import unittest
 
 from ipmi_emulator.test_ipmi_emulator import IPMIEmulatorTestCase
+
 from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
