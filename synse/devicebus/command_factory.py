@@ -6,7 +6,7 @@ objects built for Synse should be built through this factory.
 
     Author: Erick Daniszewski
     Date:   09/15/2016
-    
+
     \\//
      \/apor IO
 
@@ -28,10 +28,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 from threading import Lock
 
-from command import Command
-from constants import CommandId
+from synse.devicebus.command import Command
+from synse.devicebus.constants import CommandId
 
 
 class CommandFactory(object):

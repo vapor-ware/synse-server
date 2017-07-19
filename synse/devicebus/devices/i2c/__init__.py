@@ -25,8 +25,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: skip-file
 
-from i2c_device import I2CDevice
-from max11608_adc_thermistor import Max11608Thermistor
-from pca9632_led import PCA9632Led
-from sdp610_pressure import SDP610Pressure
+from synse.devicebus.devices.i2c.i2c_device import I2CDevice
+from synse.devicebus.devices.i2c.max11608_adc_thermistor import \
+    Max11608Thermistor
+from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
+from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure

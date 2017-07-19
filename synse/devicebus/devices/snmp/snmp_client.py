@@ -21,6 +21,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
@@ -65,9 +66,9 @@ class SnmpClient(object):
         cmd_generator = cmdgen.CommandGenerator()
 
         error_indication, error_status, error_index, var_binds = cmd_generator.getCmd(
-                    cmdgen.CommunityData(self.community_string_read),
-                    cmdgen.UdpTransportTarget((self.snmp_server, self.snmp_port)),
-                    oid)
+            cmdgen.CommunityData(self.community_string_read),
+            cmdgen.UdpTransportTarget((self.snmp_server, self.snmp_port)),
+            oid)
 
         self._check_for_errors(error_indication, error_status, error_index, var_binds)
         if len(var_binds) != 1:
@@ -132,9 +133,9 @@ class SnmpClient(object):
         cmd_generator = cmdgen.CommandGenerator()
 
         error_indication, error_status, error_index, var_binds = cmd_generator.nextCmd(
-                    cmdgen.CommunityData(self.community_string_read),
-                    cmdgen.UdpTransportTarget((self.snmp_server, self.snmp_port)),
-                    oid)
+            cmdgen.CommunityData(self.community_string_read),
+            cmdgen.UdpTransportTarget((self.snmp_server, self.snmp_port)),
+            oid)
 
         self._check_for_errors(error_indication, error_status, error_index, var_binds)
         return SnmpClient._filter_walk_results(var_binds, oid)
@@ -159,7 +160,8 @@ class SnmpClient(object):
             raise ValueError(msg)
         elif error_status:
             msg = 'Error Status: {} at {}'.format(
-                error_status.prettyPrint(), error_index and var_binds[int(error_index) - 1][0] or '?')
+                error_status.prettyPrint(),
+                error_index and var_binds[int(error_index) - 1][0] or '?')
             logger.error(msg)
             raise ValueError(msg)
 
@@ -177,7 +179,9 @@ class SnmpClient(object):
         Returns:
             list: filtered list of walk results.
         """
-        logger.debug('Filtering walk results. walk_oid {} count {}'.format(walk_oid, len(var_binds)))
+        logger.debug('Filtering walk results. walk_oid {} count {}'.format(
+            walk_oid, len(var_binds)))
+
         filtered_results = []
         excluded = []
         for row in var_binds:

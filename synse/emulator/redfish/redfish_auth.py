@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 """ Redfish Authentication class
 
-RfAuthentication class, supports basic HTTP authentication with hardcoded username=root
-and password=redfish. Also supports authentication via session token. To request session
-token from emulator, send a POST request to /redfish/v1/SessionService/Sessions. Response
-will include X-Auth-Token.
+RfAuthentication class, supports basic HTTP authentication with
+hardcoded username=root and password=redfish. Also supports
+authentication via session token. To request session token from
+emulator, send a POST request to /redfish/v1/SessionService/Sessions.
+Response will include X-Auth-Token.
 
-This was based off of DMTF's Redfish-Profile-Simulator (see LICENSE.txt in the redfish emulator
-directory, and attribution, below) - https://github.com/DMTF/Redfish-Profile-Simulator
+This was based off of DMTF's Redfish-Profile-Simulator (see LICENSE.txt
+in the redfish emulator directory, and attribution, below) -
+https://github.com/DMTF/Redfish-Profile-Simulator
 
     Author:  Linh Hoang
     Date:    02/09/17
@@ -54,22 +56,30 @@ from flask import request
 
 
 class RfAuthentication(object):
+    """Redfish emulator authentication.
+    """
 
     def __init__(self):
         self.verify_password(None)
         self.verify_token(None)
 
     def verify_password(self, f):
+        """ Verify a password
+        """
         self.password_callback = f
         return f
 
     def verify_token(self, f):
+        """ Verify a token
+        """
         self.token_callback = f
         return f
 
     def auth_required(self, f):
+        """ Decorator to denote that a resouce requires authentication.
+        """
         @wraps(f)
-        def decorated(*args, **kwargs):
+        def decorated(*args, **kwargs):  # pylint: disable=missing-docstring
             auth = request.authorization
             if auth is None:
                 auth_token = request.headers.get('X-Auth-Token')

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
-""" The stateful object which emulates a BMC and its configurations. This is used
-as part of the IPMI emulator to store BMC and session state for emulated IPMI actions.
+""" The stateful object which emulates a BMC and its configurations.
+This is used as part of the IPMI emulator to store BMC and session
+state for emulated IPMI actions.
 
     Author: Erick Daniszewski
     Date:   08/31/2016
-    
+
     \\//
      \/apor IO
 
@@ -26,20 +27,22 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: disable=relative-import,import-error
 
 import json
 import os
 import random
 import time
 
-from fru import FRU
-from protocol.auth import AuthRMCP, SessionContext, auth_types
-from protocol.ipmi import IPMI
-from sdr import SDR
+from protocol.auth import auth_types
+
+from .fru import FRU
+from .sdr import SDR
 
 
-# netfn constants
 class NETFN(object):
+    """ netfn constants
+    """
     chassis = 0x00
     sensor = 0x04
     application = 0x06
@@ -47,10 +50,12 @@ class NETFN(object):
     picmg = 0x2c
 
 
-# command constants
-# note that some constants have the same value - this is fine
-# because they are used under different netfns
 class CMD(object):
+    """ Command constants
+
+    Note that some constants have the same value - this is okay because
+    they are used under different netfns.
+    """
     get_channel_auth = 0x38
     get_session_challenge = 0x39
     activate_session = 0x3a
@@ -78,6 +83,8 @@ class CMD(object):
 
 # signature constants
 class SIGNATURE(object):
+    """ Signature constants
+    """
     picmg = 0x00
     vita = 0x03
     dcmi = 0xdc
@@ -138,6 +145,11 @@ class MockBMC(object):
         self._active_sessions = {}
 
     def debug(self, message):
+        """ Emit a debug message.
+
+        Args:
+            message (str): the message to emit.
+        """
         if self.debug_mode:
             print message
 
@@ -161,11 +173,13 @@ class MockBMC(object):
         return _cfg
 
     def handle(self, packet):
-        """ The workhorse of the BMC - this takes in an IPMI packet passed to it from the
-        UDP Server handler and determines which command it is, and what the response should be.
+        """ The workhorse of the BMC - this takes in an IPMI packet passed to
+        it from the UDP Server handler and determines which command it is, and
+        what the response should be.
 
-        It surfaces the response data back to the UDP Server Handler which should then wrap the
-        response packet in the appropriate headers and send it back to the requester.
+        It surfaces the response data back to the UDP Server Handler which should
+        then wrap the response packet in the appropriate headers and send it back
+        to the requester.
 
         Args:
             packet (IPMI): the IPMI object which represents the incoming request.
@@ -179,7 +193,9 @@ class MockBMC(object):
             netfn = packet.target_lun >> 2
             cmd = packet.command
             sig = packet.signature
-            raise ValueError('Failed to generate response for request - netfn: {}, cmd: {}, sig: {}'.format(netfn, cmd, sig))
+            raise ValueError(
+                'Failed to generate response for request - netfn: {}, cmd: {}, '
+                'sig: {}'.format(netfn, cmd, sig))
         response_data, raw_data = _r
 
         # generate frame the data in the response
@@ -187,7 +203,8 @@ class MockBMC(object):
         return response_packet.to_bytes()
 
     def _get_response_data(self, packet):
-        """ Private method to get the data for a response based on the incoming request packet.
+        """ Private method to get the data for a response based on the incoming
+        request packet.
 
         Args:
             packet (IPMI): the IPMI object which represents the incoming request.
@@ -210,8 +227,9 @@ class MockBMC(object):
             if payload_type == 0x10 or payload_type == 0x12 or payload_type == 0x14:
                 return packet, RAW_DATA
 
-        # we determine what action to take looking at two (but sometimes three) bits of data
-        # off of the ipmi packet - the netfn, command, and signature (if it exists)
+        # we determine what action to take looking at two (but sometimes three) bits
+        # of data off of the ipmi packet - the netfn, command, and signature (if it
+        # exists)
         netfn = packet.target_lun >> 2
         command = packet.command
         signature = packet.signature
@@ -266,7 +284,8 @@ class MockBMC(object):
             # Unknown or unsupported command
             # ..............................
             else:
-                print 'Command {} is unknown or unsupported for Application Request (netfn:{})'.format(hex(command), hex(NETFN.application))
+                print 'Command {} is unknown or unsupported for Application Request ' \
+                      '(netfn:{})'.format(hex(command), hex(NETFN.application))
 
         # -------------------------------------------------
         # NETFN: Chassis Request
@@ -306,7 +325,8 @@ class MockBMC(object):
             # Unknown or unsupported command
             # ..............................
             else:
-                print 'Command {} is unknown or unsupported for Chassis Request (netfn:{})'.format(hex(command), hex(NETFN.chassis))
+                print 'Command {} is unknown or unsupported for Chassis Request ' \
+                      '(netfn:{})'.format(hex(command), hex(NETFN.chassis))
 
         # -------------------------------------------------
         # NETFN: PICMG Request
@@ -350,7 +370,8 @@ class MockBMC(object):
             # Unknown or unsupported command
             # ..............................
             else:
-                print 'Command {} is unknown or unsupported for PICMG Request (netfn:{})'.format(hex(command), hex(NETFN.picmg))
+                print 'Command {} is unknown or unsupported for PICMG Request ' \
+                      '(netfn:{})'.format(hex(command), hex(NETFN.picmg))
 
         # -------------------------------------------------
         # NETFN: Storage Request
@@ -390,7 +411,8 @@ class MockBMC(object):
             # Unknown or unsupported command
             # ..............................
             else:
-                print 'Command {} is unknown or unsupported for Storage Request (netfn:{})'.format(hex(command), hex(NETFN.storage))
+                print 'Command {} is unknown or unsupported for Storage Request ' \
+                      '(netfn:{})'.format(hex(command), hex(NETFN.storage))
 
         # -------------------------------------------------
         # NETFN: Sensor/Event Request
@@ -401,7 +423,9 @@ class MockBMC(object):
             # ..................
             if command == CMD.get_sensor_reading:
                 self.debug('>>> Get Sensor Reading')
-                reading_data = self.sdr.get_sensor_reading(packet, bool(self.chassis['current_power_state']))
+                reading_data = self.sdr.get_sensor_reading(
+                    packet, bool(self.chassis['current_power_state']))
+
                 if reading_data is None:
                     # 0xcb - requested sensor, data, or record not present
                     packet.completion_code = 0xcb
@@ -417,7 +441,8 @@ class MockBMC(object):
             # Unknown or unsupported command
             # ..............................
             else:
-                print 'Command {} is unknown or unsupported for Sensor/Event Request (netfn:{})'.format(hex(command), hex(NETFN.sensor))
+                print 'Command {} is unknown or unsupported for Sensor/Event Request ' \
+                      '(netfn:{})'.format(hex(command), hex(NETFN.sensor))
 
         # -------------------------------------------------
         # NETFN: Unknown / Unsupported
@@ -451,8 +476,8 @@ class MockBMC(object):
             list[int]: the bytes which make up the Get Power Reading response.
         """
         data = packet.data
-        mode = data[0]
-        mode_attrs = data[1]
+        mode = data[0]  # pylint: disable=unused-variable
+        mode_attrs = data[1]  # pylint: disable=unused-variable
 
         t = int(time.time())
         ts = [
@@ -517,8 +542,8 @@ class MockBMC(object):
         """
         # the packet data off the request should contain an auth type and username
         # TODO - for now, leaving these unused, but can use them in the future if desired/needed
-        auth = packet.data[0]
-        username = packet.data[1:]
+        auth = packet.data[0]  # pylint: disable=unused-variable
+        username = packet.data[1:]  # pylint: disable=unused-variable
 
         # the response for a session challenge is to provide a temporary session id
         # as well as a challenge string. these are generated below.
@@ -551,11 +576,13 @@ class MockBMC(object):
         _tmp_session_id = ''.join(map(chr, tmp_session_id))
 
         if _tmp_session_id not in self._tmp_session:
-            raise ValueError('Error - temp session id {} not known to BMC'.format(tmp_session_id))
+            raise ValueError(
+                'Error - temp session id {} not known to BMC'.format(tmp_session_id))
 
         known_challenge = self._tmp_session[_tmp_session_id]
         if known_challenge != challenge:
-            raise ValueError('Error - challenges do not match! {} != {}'.format(known_challenge, challenge))
+            raise ValueError(
+                'Error - challenges do not match! {} != {}'.format(known_challenge, challenge))
 
         # now that its validated, can remove the temp session
         del self._tmp_session[_tmp_session_id]
@@ -654,7 +681,7 @@ class MockBMC(object):
             list[int]: a list of bytes which make up the Get Channel Authentication
                 Capabilities response.
         """
-        _channel, _auth = packet.data
+        _channel, _ = packet.data
         ac = self.channel_auth_capabilities
 
         # check the lower 4 bits for channel number. if the channel number is 0x0e,
@@ -699,7 +726,7 @@ class MockBMC(object):
             list[int]: a list of bytes which make up the Get System Boot
                 Options response.
         """
-        boot_opt_selector, set_selector, block_selector  = packet.data
+        boot_opt_selector, _, _ = packet.data
 
         # per IPMI spec, parameter version should always be 0x01
         parameter_version = 0x01
@@ -849,11 +876,13 @@ class MockBMC(object):
                 BMC device info.
         """
         if not isinstance(self._bmc_cfg, dict) or 'device' not in self._bmc_cfg:
-            raise ValueError('Invalid BMC configuration - must be a dictionary with a "device" field.')
+            raise ValueError(
+                'Invalid BMC configuration - must be a dictionary with a "device" field.')
 
         device_cfg = self._bmc_cfg['device']
 
-        # here, we will not handle key errors so they propagate upward to let the user know of a misconfiguration
+        # here, we will not handle key errors so they propagate upward to let the user
+        # know of a misconfiguration
         _mfcr_id = device_cfg['manufacturer_id']
         _prod_id = device_cfg['product_id']
 
@@ -887,11 +916,13 @@ class MockBMC(object):
                 BMC capabilities.
         """
         if not isinstance(self._bmc_cfg, dict) or 'capabilities' not in self._bmc_cfg:
-            raise ValueError('Invalid BMC configuration - must be a dictionary with a "capabilities" field.')
+            raise ValueError(
+                'Invalid BMC configuration - must be a dictionary with a "capabilities" field.')
 
         capabilities_cfg = self._bmc_cfg['capabilities']
 
-        # here, we will not handle key errors so they propagate upward to let the user know of a misconfiguration
+        # here, we will not handle key errors so they propagate upward to let the user
+        # know of a misconfiguration
         capabilities = dict()
         for capability, byte_list in capabilities_cfg.iteritems():
             capabilities[capability] = [int(i, 16) for i in byte_list]
@@ -908,16 +939,19 @@ class MockBMC(object):
                 BMC chassis.
         """
         if not isinstance(self._bmc_cfg, dict) or 'chassis' not in self._bmc_cfg:
-            raise ValueError('Invalid BMC configuration - must be a dictionary with a "chassis" field.')
+            raise ValueError(
+                'Invalid BMC configuration - must be a dictionary with a "chassis" field.')
 
         chassis_cfg = self._bmc_cfg['chassis']
 
-        # here, we will not handle key errors so they propagate upward to let the user know of a misconfiguration
+        # here, we will not handle key errors so they propagate upward to let the user
+        # know of a misconfiguration
         chassis = {
             'current_power_state': int(chassis_cfg['current_power_state'], 16),
             'last_power_event': int(chassis_cfg['last_power_event'], 16),
             'misc_state': int(chassis_cfg['misc_state'], 16),
-            'bootdev': _boot_dev_lookup.get(chassis_cfg['bootdev'], 0b0000)  # defaults to no_override
+            # defaults to no_override
+            'bootdev': _boot_dev_lookup.get(chassis_cfg['bootdev'], 0b0000)
         }
         return chassis
 
@@ -932,11 +966,14 @@ class MockBMC(object):
                 BMC channel auth capabilities.
         """
         if not isinstance(self._bmc_cfg, dict) or 'channel_auth_capabilities' not in self._bmc_cfg:
-            raise ValueError('Invalid BMC configuration - must be a dictionary with a "channel_auth_capabilities" field.')
+            raise ValueError(
+                'Invalid BMC configuration - must be a dictionary with a '
+                '"channel_auth_capabilities" field.')
 
         auth_capabilities = self._bmc_cfg['channel_auth_capabilities']
 
-        # here, we will not handle key errors so they propagate upward to let the user know of a misconfiguration
+        # here, we will not handle key errors so they propagate upward to let the user
+        # know of a misconfiguration
         _oem_id = auth_capabilities['oem_id']
 
         capabilities = {
@@ -964,11 +1001,12 @@ class MockBMC(object):
                 actions.
         """
         if not isinstance(self._bmc_cfg, dict) or 'dcmi' not in self._bmc_cfg:
-            raise ValueError('Invalid DCMI configuration - must be a dictionary with a "dcmi" field.')
+            raise ValueError(
+                'Invalid DCMI configuration - must be a dictionary with a "dcmi" field.')
 
         dcmi_info = self._bmc_cfg['dcmi']
 
-        def watts_to_tuple(current_watts):
+        def watts_to_tuple(current_watts):  # pylint: disable=missing-docstring
             if isinstance(current_watts, list):
                 ret = []
                 for val in current_watts:
@@ -977,14 +1015,12 @@ class MockBMC(object):
                         (val >> 8) & 0xff
                     ])
                 return ret
-
-            else:
-                return [
-                    [
-                        (current_watts >> 0) & 0xff,
-                        (current_watts >> 8) & 0xff
-                    ]
+            return [
+                [
+                    (current_watts >> 0) & 0xff,
+                    (current_watts >> 8) & 0xff
                 ]
+            ]
 
         dcmi = {
             'power': {

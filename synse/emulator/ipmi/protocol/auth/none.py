@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   09/02/2016
-    
+
     \\//
      \/apor IO
 
@@ -25,17 +25,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import auth_base
-import auth_types
+
+from . import auth_base, auth_types
 
 
 class AuthNone(auth_base.IPMIAuthType):
     """ Packet data wrapper for messages with No Authentication.
     """
     auth_type = auth_types.NONE
-
-    def __init__(self, ipmi_packet):
-        super(AuthNone, self).__init__(ipmi_packet)
 
     def update_ctx(self):
         # no context needs to be updated here, so consider this a no-op
@@ -153,7 +150,8 @@ class AuthNone(auth_base.IPMIAuthType):
 
             # set the completion code as success (0x00) if we did not specify an
             # error completion code in the request packet from earlier processing.
-            self.completion_code = 0x00 if request.completion_code is None else request.completion_code
+            self.completion_code = 0x00 if request.completion_code is None else \
+                request.completion_code
 
             # get the data
             self.data = response_data if response_data is not None else []

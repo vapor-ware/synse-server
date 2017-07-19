@@ -43,24 +43,23 @@ from itertools import count
 
 import arrow
 from flask import Flask, g, jsonify
-from vapor_common.util import setup_json_errors
-from vapor_common.vapor_config import ConfigManager
-from vapor_common.vapor_logging import get_startup_logger, setup_logging
 
 import synse.constants as const
 from synse.blueprints import core
 from synse.devicebus.command_factory import CommandFactory
-from synse.devicebus.devices.i2c import *
-from synse.devicebus.devices.ipmi import *
-from synse.devicebus.devices.plc import *
-from synse.devicebus.devices.redfish.redfish_device import *
-from synse.devicebus.devices.rs485 import *
-from synse.devicebus.devices.snmp.snmp_device import *
-from synse.devicebus.fan_sensors import *
+from synse.devicebus.devices.i2c import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from synse.devicebus.devices.ipmi import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from synse.devicebus.devices.plc import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from synse.devicebus.devices.redfish import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from synse.devicebus.devices.rs485 import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from synse.devicebus.devices.snmp import *  # pylint: disable=wildcard-import,unused-wildcard-import
+from synse.devicebus.fan_sensors import FanSensors
 from synse.errors import SynseException
-from synse.utils import (ThreadPool, cache_registration_dependencies,
-                         make_json_response)
-from synse.version import __api_version__, __version__
+from synse.utils import cache_registration_dependencies, make_json_response
+from synse.vapor_common.util import setup_json_errors
+from synse.vapor_common.vapor_config import ConfigManager
+from synse.vapor_common.vapor_logging import get_startup_logger, setup_logging
+from synse.version import __api_version__
 
 cfg = ConfigManager(
     default='/synse/default/default.json',
@@ -97,12 +96,12 @@ device_registrars = {
     'redfish': RedfishDevice
 }
 
-################################################################################
+###############################################################################
 
 
 def _count(start=0x00, step=0x01):
-    """ Generator whose next() method returns consecutive values until it reaches
-    0xff, then wraps back to 0x00.
+    """ Generator whose next() method returns consecutive values until it
+    reaches 0xff, then wraps back to 0x00.
 
     Args:
         start (int): the value at which to start the count
@@ -155,7 +154,10 @@ def plc_config():
     """ Test routine to return the PLC modem configuration parameters
     on the endpoint.
     """
-    raise SynseException('Unsupported hardware type in use. Unable to retrieve modem configuration.')
+    raise SynseException(
+        'Unsupported hardware type in use. '
+        'Unable to retrieve modem configuration.'
+    )
 
 
 # Global FanSensors object because we do not want to hunt for the sensors on
@@ -171,16 +173,18 @@ def fan_sensors():
     sensors = SENSORS
     sensors.initialize(app.config)
     if not sensors.initialized:
-        raise SynseException('Unable to read fan_sensors. All devices are not yet registered.')
+        raise SynseException(
+            'Unable to read fan_sensors. All devices are not yet registered.'
+        )
 
     sensors.read_sensors()
 
-    result = {}
-
     # Reading info.
-    result['start_time'] = str(sensors.start_time)
-    result['end_time'] = str(sensors.end_time)
-    result['read_time'] = sensors.read_time
+    result = {
+        'start_time': str(sensors.start_time),
+        'end_time': str(sensors.end_time),
+        'read_time': sensors.read_time
+    }
 
     # Sensor data.
     for thermistor in sensors.thermistors:
@@ -194,12 +198,12 @@ def fan_sensors():
     return jsonify(result)
 
 
-def register_app_devices(app):
+def register_app_devices(application):
     """ Register all devicebus interfaces specified in the Synse config
     file with the Flask application.
 
     Args:
-        app (Flask): the Flask application to register the devices to.
+        application (Flask): the Flask application to register the devices to.
     """
     # before registering any devices, make sure all dependencies are cached
     # globally -- this is needed for any threaded registration.
@@ -219,23 +223,26 @@ def register_app_devices(app):
 
         if not _registrar:
             raise ValueError(
-                'Unsupported device interface "{}" found during registration.'.format(device_interface)
+                'Unsupported device interface "{}" found during registration.'.format(
+                    device_interface)
             )
 
         try:
-            _registrar.register(device_config, app.config, app_cache)
+            _registrar.register(device_config, application.config, app_cache)
         except Exception as e:
-            logger.error('Failed to register {} device: {}'.format(device_interface, device_config))
+            logger.error('Failed to register {} device: {}'.format(
+                device_interface, device_config))
             logger.exception(e)
             _failed_registration = True
 
     if _failed_registration:
         raise ValueError(
-            'Failed to register all configured devices -- check that the device configuration files are correct.'
+            'Failed to register all configured devices -- check that the device configuration '
+            'files are correct.'
         )
 
-    app.config['DEVICES'] = _devices
-    app.config['SINGLE_BOARD_DEVICES'] = _single_board_devices
+    application.config['DEVICES'] = _devices
+    application.config['SINGLE_BOARD_DEVICES'] = _single_board_devices
 
 
 def main(serial_port=None, hardware=None):

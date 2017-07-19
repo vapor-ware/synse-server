@@ -27,10 +27,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
-
 from synse.tests.test_config import PREFIX
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 
 class ChamberFanSpeedTestCase(unittest.TestCase):
@@ -39,26 +38,26 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
     def test_001_read_ok(self):
         """ Read a valid value back from fan.
         """
-        r = http.get(PREFIX + "/read/fan_speed/rack_1/00000080/0001")
+        r = http.get(PREFIX + '/read/fan_speed/rack_1/00000080/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], 4100)
+        self.assertEqual(response['speed_rpm'], 4100)
 
-        r = http.get(PREFIX + "/fan/rack_1/00000080/0001")
+        r = http.get(PREFIX + '/fan/rack_1/00000080/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], 4100)
+        self.assertEqual(response['speed_rpm'], 4100)
 
     def test_002_read_string(self):
         """ Read a string value back from fan (negative).
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/fan_speed/rack_1/00000080/0002")
+            http.get(PREFIX + '/read/fan_speed/rack_1/00000080/0002')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/0002")
+            http.get(PREFIX + '/fan/rack_1/00000080/0002')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -66,54 +65,54 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         """ Read an empty data value back from the fan.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/fan_speed/rack_1/00000080/0003")
+            http.get(PREFIX + '/read/fan_speed/rack_1/00000080/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/0003")
+            http.get(PREFIX + '/fan/rack_1/00000080/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
     def test_004_long_value(self):
         """ What happens when a large integer is returned? (positive)
         """
-        r = http.get(PREFIX + "/read/fan_speed/rack_1/00000080/0004")
+        r = http.get(PREFIX + '/read/fan_speed/rack_1/00000080/0004')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], 12345678901234567890)
+        self.assertEqual(response['speed_rpm'], 12345678901234567890)
 
-        r = http.get(PREFIX + "/fan/rack_1/00000080/0004")
+        r = http.get(PREFIX + '/fan/rack_1/00000080/0004')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], 12345678901234567890)
+        self.assertEqual(response['speed_rpm'], 12345678901234567890)
 
     def test_005_negative_number(self):
         """ What happens when a negative number is returned? (positive)
         """
-        r = http.get(PREFIX + "/read/fan_speed/rack_1/00000080/0005")
+        r = http.get(PREFIX + '/read/fan_speed/rack_1/00000080/0005')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], -12345)
+        self.assertEqual(response['speed_rpm'], -12345)
 
-        r = http.get(PREFIX + "/fan/rack_1/00000080/0005")
+        r = http.get(PREFIX + '/fan/rack_1/00000080/0005')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], -12345)
+        self.assertEqual(response['speed_rpm'], -12345)
 
     def test_006_device_id_representation(self):
         """ Test reading while specifying different representations (same value) for
         the device id
         """
-        r = http.get(PREFIX + "/read/fan_speed/rack_1/00000080/000000001")
+        r = http.get(PREFIX + '/read/fan_speed/rack_1/00000080/000000001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], 4100)
+        self.assertEqual(response['speed_rpm'], 4100)
 
-        r = http.get(PREFIX + "/fan/rack_1/00000080/000000001")
+        r = http.get(PREFIX + '/fan/rack_1/00000080/000000001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["speed_rpm"], 4100)
+        self.assertEqual(response['speed_rpm'], 4100)
 
     def test_007_read_board_id_invalid(self):
         """ Test read while specifying different invalid representations for the board id
@@ -121,59 +120,59 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         not be set)
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/fan_speed/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/read/fan_speed/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/fan_speed/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/read/fan_speed/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/fan_speed/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/read/fan_speed/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/read/fan_speed/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/read/fan_speed/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/fan/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/fan/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/fan/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/fan/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
     def test_008_write_ok(self):
         """ Test write with an ok response.
         """
-        r = http.get(PREFIX + "/fan/rack_1/00000080/0001/4100")
+        r = http.get(PREFIX + '/fan/rack_1/00000080/0001/4100')
         self.assertTrue(http.request_ok(r.status_code))
 
     def test_009_write_long(self):
         """ Test write with long numbers.
         """
-        r = http.get(PREFIX + "/fan/rack_1/00000080/0001/00000000004100")
+        r = http.get(PREFIX + '/fan/rack_1/00000080/0001/00000000004100')
         self.assertTrue(http.request_ok(r.status_code))
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/0001/12345678901234567890")
+            http.get(PREFIX + '/fan/rack_1/00000080/0001/12345678901234567890')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -181,7 +180,7 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         """ Test write with negative numbers.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/0001/-4100")
+            http.get(PREFIX + '/fan/rack_1/00000080/0001/-4100')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -189,7 +188,7 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         """ Test write with string.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/0001/faster")
+            http.get(PREFIX + '/fan/rack_1/00000080/0001/faster')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -197,12 +196,12 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         """ Test write with bad board.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000081/0001/4100")
+            http.get(PREFIX + '/fan/rack_1/00000081/0001/4100')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/-00000081/0001/4100")
+            http.get(PREFIX + '/fan/rack_1/-00000081/0001/4100')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -210,12 +209,12 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         """ Test write with bad device.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/00FF/4100")
+            http.get(PREFIX + '/fan/rack_1/00000080/00FF/4100')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/-00FF/4100")
+            http.get(PREFIX + '/fan/rack_1/00000080/-00FF/4100')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -223,6 +222,6 @@ class ChamberFanSpeedTestCase(unittest.TestCase):
         """ Test write with bad response.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/fan/rack_1/00000080/0002/4100")
+            http.get(PREFIX + '/fan/rack_1/00000080/0002/4100')
 
         self.assertEqual(ctx.exception.status, 500)

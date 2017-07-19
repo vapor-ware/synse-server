@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   09/15/2016
-    
+
     \\//
      \/apor IO
 
@@ -25,7 +25,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from base import DevicebusInterface
+
+from synse.devicebus.devices.base import DevicebusInterface
 
 
 class SerialDevice(DevicebusInterface):

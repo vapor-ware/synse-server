@@ -166,7 +166,7 @@ class SnmpServerBase(object):
             # the board id does not exist, the Synse server is not serving
             # anything at the URL specified by the client.
             # Therefore 404 Not Found.
-            raise SynseException("No rack with id {}.".format(client_rack_id))
+            raise SynseException('No rack with id {}.'.format(client_rack_id))
 
         public_scan_results = self.get_public_scan_results()
 
@@ -235,7 +235,7 @@ class SnmpServerBase(object):
             # the board id does not exist, the Synse server is not serving
             # anything at the URL specified by the client.
             # Therefore 404 Not Found.
-            raise SynseException("No board on rack {} with id {}.".format(
+            raise SynseException('No board on rack {} with id {}.'.format(
                 command.data['rack_id'], board_id))
 
         return Response(
@@ -255,8 +255,14 @@ class SnmpServerBase(object):
         """ Raw walk results and aggregated get results from SNMP client are
         heavily typed, for example some rows:
 
-        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.8.19')), OctetString('Portez ce'))]
-        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.9.15')), Integer(25))]
+        [
+            ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.8.19')),
+            OctetString('Portez ce'))
+        ]
+        [
+            ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.9.15')),
+            Integer(25))
+        ]
 
         It's easier to work with a dictionary of string OIDs and data values, for example:
         '1.3.6.1.4.1.61439.6.4.2.2.1.6.23': 17
@@ -271,8 +277,8 @@ class SnmpServerBase(object):
         converted = {}
         for row in results:
             oid = str(row[0][0].getOid())
-            if isinstance(row[0][1],
-                          (Counter32, Counter64, Gauge32, TimeTicks, Integer32, Integer, Unsigned32)):
+            if isinstance(row[0][1], (Counter32, Counter64, Gauge32, TimeTicks,
+                                      Integer32, Integer, Unsigned32)):
                 converted_data = int(row[0][1])
             else:
                 converted_data = str(row[0][1])

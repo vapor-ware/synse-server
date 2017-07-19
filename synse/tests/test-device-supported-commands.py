@@ -30,7 +30,8 @@ import unittest
 
 from device_supported_commands.test_device_supported_commands import \
     SupportedDeviceCommandsTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

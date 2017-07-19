@@ -26,12 +26,12 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
-import sys
 import unittest
 
 from ipmi_scan_cache_registration.test_ipmi_scan_cache_registration import \
     IPMIScanCacheRegistrationTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

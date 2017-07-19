@@ -270,7 +270,8 @@ class EntityPhysicalSensorTable(SnmpTable):
             power_state = 'on'
 
         response_data = {
-            'input_power': reading,    # TODO: This is where input_power is a bug. It should just be power.
+            # TODO: This is where input_power is a bug. It should just be power.
+            'input_power': reading,
             'over_current': False,
             'power_ok': True,
             'power_status': power_state,

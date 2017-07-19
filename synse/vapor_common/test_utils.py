@@ -49,11 +49,11 @@ class VaporBaseTestCase(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         if cls.view_test_times:
-            print "{:<8} {:<25}".format('-' * 7, '-' * 25)
-            print "{:<8} {:<25}".format('Time', 'Test')
-            print "{:<8} {:<25}".format('-' * 7, '-' * 25)
+            print '{:<8} {:<25}'.format('-' * 7, '-' * 25)
+            print '{:<8} {:<25}'.format('Time', 'Test')
+            print '{:<8} {:<25}'.format('-' * 7, '-' * 25)
             for _test, _time in cls.test_times:
-                print "{:<8.3f} {:<25}".format(_time, _test)
+                print '{:<8.3f} {:<25}'.format(_time, _test)
 
     def setUp(self):
         self.start_time = time.time()
@@ -81,10 +81,17 @@ class Tee(object):
         self.file.close()
 
     def write(self, data):
+        """ Write the data out to file and stderr.
+
+        Args:
+            data: the data to write out.
+        """
         self.file.write(data)
         self.stderr.write(data)
 
     def flush(self):
+        """ Flush the file and stderr.
+        """
         self.file.flush()
         self.stderr.flush()
 
