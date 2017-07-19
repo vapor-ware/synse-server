@@ -55,7 +55,7 @@ def _read_differential_pressure_channel(vec, channel):
     """Internal common code for dp reads.
     :param vec: Handle for reading.
     :param channel: The i2c channel to read.
-    :returns: The differntial pressure in Pascals on success, None on
+    :returns: The differential pressure in Pascals on success, None on
     failure."""
     # Set channel
     # Convert channel number to string and add to address.
@@ -84,7 +84,8 @@ def _read_differential_pressure_channel(vec, channel):
 
     # Read DPS sensor connected to the set channel
     raw_results = []
-    read_count = 5  # We read multiple times due to turbulence.
+    # read_count = 5  # We read multiple times due to turbulence.
+    read_count = 10  # We read multiple times due to turbulence.
     for i in range(read_count):
 
         # Read DPS sensor connected to the set channel
@@ -103,23 +104,34 @@ def _read_differential_pressure_channel(vec, channel):
         sensor_data = vec.Read(3)
         vec.Stop()
 
-        logger.debug('Raw differential pressure bytes (hexlified) channel {}: {}'.format(
-            channel, hexlify(sensor_data)))
+        # logger.debug('Raw differential pressure bytes (hexlified) channel {}: {}'.format(
+        #     channel, hexlify(sensor_data)))
 
-        if _crc8(sensor_data):
+        if  _crc8(sensor_data):
             # Faster is to average, then convert, but this way is saner for debugging.
             raw_results.append(conversions.differential_pressure_sdp610(sensor_data, 0))
         else:
             logger.error('CRC failure reading Differential Pressure')
 
-    for raw in raw_results:
-        logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
+    # for raw in raw_results:
+    #     logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
 
     if len(raw_results) == 0:
-        logger.error('No differential pressure readings for channel {}'.format(channel))
+        logger.error('No differential pressure readings for channel {}'.format(channel))031
         return None
     result = sum(raw_results) / len(raw_results)
-    logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
+    # logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
+
+    # Standard deviation.
+    x = 0
+    for raw in raw_results:
+        x += (raw - result) ** 2
+    std_dev = x / len(raw_results) - 1  # -1 for Bessel's correction.
+    # logger.debug('Stddev Differential Pressure Reading on channel {}: {}'.format(channel, std_dev))
+
+    logger.debug('Differential Pressure Reading channel {}: mean {}, std_dev {}, raw {}'.format(
+        channel, result, std_dev, raw_results))
+
     return result
 
 
@@ -215,23 +227,27 @@ def read_differential_pressure(channel):
         vec.Stop()
         vec.SendAcks()
 
-        raw_results = []
-        read_count = 5  # We read multiple times due to turbulence.
-        for i in range(read_count):
-            raw_results.append(_read_differential_pressure_channel(vec, channel))
+        # raw_results = []
+        # read_count = 5  # We read multiple times due to turbulence.
+        # read_count = 10  # We read multiple times due to turbulence.
+        # for i in range(read_count):
+        # raw_results.append(_read_differential_pressure_channel(vec, channel))
+
+        result = _read_differential_pressure_channel(vec, channel)
 
         channel_str = PCA9546_WRITE_ADDRESS + '\x00'
         vec.Start()
         vec.Write(channel_str)
         vec.Stop()
 
-        for raw in raw_results:
-            logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
-        if len(raw_results) == 0:
-            logger.error('Failed to get Differential Pressure Reading on channel {}'.format(channel))
-            return None
-        result = sum(raw_results) / len(raw_results)
-        logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
+        # for raw in raw_results:
+        #     logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
+        # if len(raw_results) == 0:
+        #     logger.error('Failed to get Differential Pressure Reading on channel {}'.format(channel))
+        #     return None
+        # result = sum(raw_results) / len(raw_results)
+        # logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
+        logger.debug('Differential Pressure Reading on channel {}: {}'.format(channel, result))
 
     else:
         # If we can't get an ack, result will be an empty list.
