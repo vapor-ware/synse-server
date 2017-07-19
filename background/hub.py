@@ -277,6 +277,7 @@ class Hub(object):
         vec.Write('\x66\xD2\x0F')
         vec.Stop()
 
+    @utils.timestamped
     def read_differential_pressure(self):
         """ Read the differential pressure sensors.
         """
@@ -354,6 +355,7 @@ class Hub(object):
 
         return pressure
 
+    @utils.timestamped
     def read_thermistors(self):
         """ Read the thermistor sensors.
         """
@@ -448,6 +450,7 @@ class Hub(object):
 
         return temperature
 
+    @utils.timestamped
     def read_temp_humidity(self):
         """ Read the temperature/humidity sensor.
         """
@@ -474,6 +477,7 @@ class Hub(object):
 
         return data_list
 
+    @utils.timestamped
     def read_air_speed_temp(self):
         """ Read the air speed/temperature sensor.
         """

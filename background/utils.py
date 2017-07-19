@@ -8,7 +8,9 @@ Date:   19 July 2017
  \/apor IO
 """
 
+import datetime
 from binascii import hexlify
+from functools import wraps
 
 import constants
 
@@ -82,3 +84,16 @@ def crc_calc(data):
                 crc >>= 1
 
     return crc
+
+
+def timestamped(f):
+    """ Decorator to add a timestamp to the return of the decorated method.
+
+    Args:
+        f: function to be decorated.
+    """
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        ts = datetime.datetime.utcnow()
+        return ts, f(*args, **kwargs)
+    return wrapper
