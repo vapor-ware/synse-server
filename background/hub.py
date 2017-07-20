@@ -43,6 +43,7 @@ class Hub(object):
         """
         self._open_vec()
         self._open_ser()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """ Close the MPSSE and Serial connections when leaving the Hub

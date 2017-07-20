@@ -12,7 +12,7 @@ import datetime
 
 import constants
 import hub
-import io
+import file_io
 
 
 def main():
@@ -31,21 +31,13 @@ def main():
             print '---- differential pressure ----'
             print ts
             print data
-            io.write_all_from_dict(
-                constants.SDP_610,
-                ts,
-                data
-            )
+            file_io.write_sdp610(ts, data)
 
             ts, data = sensor_hub.read_thermistors()
             print '---- thermistors ----'
             print ts
             print data
-            io.write_all_from_dict(
-                constants.MAX_11608,
-                ts,
-                data
-            )
+            file_io.write_max11608(ts, data)
 
             # since the CEC sensor hub only updates the humidity, airflow and
             # temperature every second, there is no need to keep reading it out
