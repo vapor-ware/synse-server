@@ -28,7 +28,7 @@ def crc8(data):
         bool: True if CRC check passed; False otherwise.
     """
     crc = 0
-    for char in data:
+    for char in data[:-1]:
         crc ^= ord(char)
         for _ in range(8):
             if crc & 0x80:
