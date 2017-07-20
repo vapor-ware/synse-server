@@ -14,6 +14,7 @@
 """
 
 import logging
+import math
 import struct
 from binascii import hexlify
 
@@ -210,3 +211,90 @@ def unpack_word(reading):
     """Unpack a two byte word sensor reading given the bytes.
     :param reading: The raw two byte word sensor reading."""
     return struct.unpack('>H', reading)[0]
+
+
+# TODO: This stuff belongs elsewhere, but in the field right now and need something to work.
+def std_dev(numbers):
+    average = sum(numbers)/len(numbers)
+
+    x = 0
+    for raw in numbers:
+        x += (raw - average) ** 2
+    std_dev = x / len(numbers)
+    return average, std_dev
+
+
+def grubbs(l):
+    """Find an outlier in list l if any.
+    :param l: The list to find an outlier in."""
+    # print 'list: {}'.format(l)
+
+    # Find the mean and standard deviation.
+    mean, stddev = std_dev(l)
+    # print 'mean:   {}'.format(mean)
+    # print 'stddev: {}'.format(stddev)
+
+    if stddev == 0:
+        return None, None  # Avoid div 0.
+
+    # Find the largest stddev deviation in the list.
+    max_deviation = 0
+    max_deviation_number = None
+    min_deviation = 0
+    min_deviation_number = None
+    for x in l:
+        deviation = math.fabs(x - mean) / stddev
+        if deviation > max_deviation:
+            max_deviation = deviation
+            max_deviation_number = x
+        if deviation < min_deviation:
+            min_deviation = deviation
+            min_deviation_number = x
+
+    # print 'max_deviation:        {}'.format(max_deviation)
+    # print 'max_deviation_number: {}'.format(max_deviation_number)
+    # print 'min_deviation:        {}'.format(min_deviation)
+    # print 'min_deviation_number: {}'.format(min_deviation_number)
+
+    # Test for max or min as outliers while we're here.
+    # gmax = (max_deviation - mean) / stddev
+    # gmin = (mean - min_deviation) / stddev
+
+    # print 'gmax: {}'.format(gmax)
+    # print 'gmin: {}'.format(gmin)
+
+    return max_deviation_number, min_deviation_number
+
+
+def remove_outliers(l, count):
+    """Remove the biggest outlier from a list count number of times.
+    :param l: list of numbers.
+    :param count: How many times to remove the biggest outlier.
+    :returns: A dict with stats."""
+    # TODO: DOC
+    logger.debug('remove_outliers(l, count): {}, {}'.format(l, count))
+    outliers = []
+    result = {}
+
+    for x in range(count):
+        _max, _min = grubbs(l)
+
+        if _max is None:
+            break  # for. Note that this will remove less than count. That's okay.
+
+        outliers.append(_max)
+        l.remove(_max)
+
+    mean, stddev = std_dev(l)
+
+    result['removed'] = count
+    result['outliers'] = outliers
+    result['list'] = l
+    result['mean'] = mean
+    result['stddev'] = stddev
+    return result
+
+
+def remove_outliers_percent(l, percent):
+    count = int(len(l) * percent)
+    return remove_outliers(l, count)

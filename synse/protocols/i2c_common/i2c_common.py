@@ -12,6 +12,7 @@
 from binascii import hexlify
 from mpsse import *
 from ..conversions import conversions
+import copy
 import datetime
 import logging
 import time
@@ -57,6 +58,10 @@ def _read_differential_pressure_channel(vec, channel):
     :param channel: The i2c channel to read.
     :returns: The differential pressure in Pascals on success, None on
     failure."""
+    # TODO: Returning more fields. Update comments and make sure gs3fan still works.
+    # TODO: This is going to mess up synse reads too.
+    new_result = {}
+
     # Set channel
     # Convert channel number to string and add to address.
     channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
@@ -85,7 +90,11 @@ def _read_differential_pressure_channel(vec, channel):
     # Read DPS sensor connected to the set channel
     raw_results = []
     # read_count = 5  # We read multiple times due to turbulence.
-    read_count = 10  # We read multiple times due to turbulence.
+    # read_count = 10  # We read multiple times due to turbulence.
+    read_count = 25  # We read multiple times due to turbulence.
+
+    new_result['sample_count'] = read_count
+
     for i in range(read_count):
 
         # Read DPS sensor connected to the set channel
@@ -117,9 +126,15 @@ def _read_differential_pressure_channel(vec, channel):
     #     logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
 
     if len(raw_results) == 0:
-        logger.error('No differential pressure readings for channel {}'.format(channel))031
+        logger.error('No differential pressure readings for channel {}'.format(channel))
         return None
+
+    new_result['raw_results'] = raw_results
+
     result = sum(raw_results) / len(raw_results)
+
+    new_result['raw_mean'] = result
+
     # logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
 
     # Standard deviation.
@@ -129,10 +144,27 @@ def _read_differential_pressure_channel(vec, channel):
     std_dev = x / len(raw_results) - 1  # -1 for Bessel's correction.
     # logger.debug('Stddev Differential Pressure Reading on channel {}: {}'.format(channel, std_dev))
 
-    logger.debug('Differential Pressure Reading channel {}: mean {}, std_dev {}, raw {}'.format(
-        channel, result, std_dev, raw_results))
+    new_result['raw_stddev'] = std_dev
 
-    return result
+    # Remove outliers:
+    raw_results_copy = copy.deepcopy(raw_results)
+    outlier_results = conversions.remove_outliers_percent(raw_results_copy, .3)
+
+    new_result['remove_count'] = outlier_results['removed']
+    new_result['outliers'] = outlier_results['outliers']
+    new_result['list'] = outlier_results['list']
+    new_result['mean'] = outlier_results['mean']
+    new_result['stddev'] = outlier_results['stddev']
+
+    # logger.debug('Differential Pressure Reading channel {}: mean {}, std_dev {}, raw {}'.format(
+    #     channel, result, std_dev, raw_results))
+    logger.debug('Differential Pressure Reading channel {}: new_result{}'.format(
+        channel, new_result))
+
+    # return result
+
+    # TODO: All of this stats crap should _not_ be happening under an i2c bus read!!!
+    return new_result
 
 
 def configure_differential_pressure(channel):
@@ -264,6 +296,7 @@ def read_differential_pressures(count):
     :returns: An array of differential pressure sensor readings in Pascals.
     The array index will be the same as the channel in the synse i2c sdp-610
     differential pressure sensor configuration. None is returned on failure."""
+    # TODO: Returning more fields. Update comments and make sure gs3fan still works.
 
     start_time = datetime.datetime.now()
     vec, gpio = _start_i2c()

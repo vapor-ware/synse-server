@@ -184,6 +184,7 @@ class FanSensors(object):
         for i, reading in enumerate(readings):
             self.thermistors[i].reading = reading
 
+    # TODO: We need to get more data out than just the reading here.
     def _read_differential_pressures(self):
         readings = i2c_common.read_differential_pressures(self.differential_pressure_read_count)
         for i, reading in enumerate(readings):
