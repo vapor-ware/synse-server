@@ -8,7 +8,9 @@ Date:   19 July 2017
  \/apor IO
 """
 
+import errno
 import datetime
+import os
 from binascii import hexlify
 from functools import wraps
 
@@ -97,3 +99,19 @@ def timestamped(f):
         ts = datetime.datetime.utcnow()
         return ts, f(*args, **kwargs)
     return wrapper
+
+
+def mkdir_p(path):
+    """ mkdir -p like functionality. this will create the specified
+    directory if it doesn't exist.
+
+    Args:
+        path (str): the path to create, if it does not already exist.
+    """
+    try:
+        os.makedirs(path)
+    except OSError as exc:
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise

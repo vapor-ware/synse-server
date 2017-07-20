@@ -289,7 +289,7 @@ class Hub(object):
         channel = 1
 
         # create list to store the pressure readings
-        pressure = [0x00, 0x00, 0x00]
+        pressure = {}
 
         for x in range(3):
 
@@ -344,7 +344,7 @@ class Hub(object):
                 if self.debug:
                     print 'Pressure = {} Pa'.format(sensor_int)
 
-                pressure[x] = sensor_int
+                pressure[channel] = sensor_int
 
             else:
                 if self.debug:
@@ -353,6 +353,7 @@ class Hub(object):
             # set the next channel
             channel <<= 1
 
+        # return a dict where the key is the channel and the value is the reading
         return pressure
 
     @utils.timestamped
@@ -448,7 +449,8 @@ class Hub(object):
             if self.debug:
                 print 'Thermistor Channel {} Temperature: {} C'.format(x, temperature[x])
 
-        return temperature
+        # return a dictionary where the key is the channel and the value is the reading
+        return dict(enumerate(temperature))
 
     @utils.timestamped
     def read_temp_humidity(self):
@@ -492,6 +494,7 @@ class Hub(object):
             velocity_raw = int(hexlify(self._cec_rx_packet[3:5]), 16)
             temperature_raw = int(hexlify(self._cec_rx_packet[7:9]), 16)
 
+            # no conversion
             data_list[0] = velocity_raw
 
             # C = temperature_raw/100
