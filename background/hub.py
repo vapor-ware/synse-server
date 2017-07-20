@@ -124,7 +124,7 @@ class Hub(object):
         vec_tx_packet = response[:pdu_length]
 
         if self.debug:
-            print 'Rx VEC:\t {}'.format(hexlify(vec_tx_packet))
+            print 'Rx VEC:\t\t{}'.format(hexlify(vec_tx_packet))
 
         # did the CEC respond to packet request
         if len(response) - 1 > pdu_length:
@@ -145,7 +145,7 @@ class Hub(object):
                 self.cec_rx_packet = response[pdu_length:len(response)]
 
             if self.debug:
-                print 'Rx CEC:\t{}'.format(hexlify(self.cec_rx_packet))
+                print 'Rx CEC:\t\t{}'.format(hexlify(self.cec_rx_packet))
 
             return utils.crc_check(self.cec_rx_packet)
         return False

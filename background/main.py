@@ -10,7 +10,6 @@
 
 import datetime
 
-import constants
 import hub
 import file_io
 
@@ -29,14 +28,14 @@ def main():
 
             ts, data = sensor_hub.read_differential_pressure()
             print '---- differential pressure ----'
-            print ts
-            print data
+            print 'ts:  \t{}'.format(ts)
+            print 'data:\t{}'.format(data)
             file_io.write_sdp610(ts, data)
 
             ts, data = sensor_hub.read_thermistors()
             print '---- thermistors ----'
-            print ts
-            print data
+            print 'ts:  \t{}'.format(ts)
+            print 'data:\t{}'.format(data)
             file_io.write_max11608(ts, data)
 
             # since the CEC sensor hub only updates the humidity, airflow and
@@ -49,13 +48,13 @@ def main():
 
                 ts, data = sensor_hub.read_temp_humidity()
                 print '---- humidity / temperature ----'
-                print ts
-                print data
+                print 'ts:  \t{}'.format(ts)
+                print 'data:\t{}'.format(data)
 
                 ts, data = sensor_hub.read_air_speed_temp()
                 print '---- air speed / temperature ----'
-                print ts
-                print data
+                print 'ts:  \t{}'.format(ts)
+                print 'data:\t{}'.format(data)
 
             # fixme -- for now, just break out after the first iteration.
             _done = True
