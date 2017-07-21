@@ -13,7 +13,9 @@ import serial
 from mpsse import MPSSE, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A, GPIOL0
 from binascii import hexlify
 
+import dkmodbus
 import constants
+import conversions
 import utils
 
 
@@ -27,11 +29,11 @@ class Hub(object):
     """
 
     def __init__(self, debug=False):
-        # the mpsse connection for I2C
+        # the mpsse client for I2C
         self.vec = None
 
-        # the serial connection for RS485
-        self.ser = None
+        # the modbus client for RS485
+        self.mod = None
 
         # store the cec_rx_packet as a class member
         self._cec_rx_packet = '\x00\x00'
@@ -41,8 +43,8 @@ class Hub(object):
     def __enter__(self):
         """ In the Hub context, open MPSSE and Serial connections to use.
         """
-        self._open_vec()
-        self._open_ser()
+        self._make_vec()
+        self._make_modbus()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -50,11 +52,11 @@ class Hub(object):
         context.
         """
         self._close_vec()
-        self._close_ser()
+        self._close_modbus()
 
     # -- private methods --
 
-    def _open_vec(self):
+    def _make_vec(self):
         """ Open a new mpsse I2C connection.
         """
         self.vec = MPSSE()
@@ -66,11 +68,12 @@ class Hub(object):
         self.vec.PinHigh(GPIOL0)
         time.sleep(0.001)
 
-    def _open_ser(self):
-        """ Open a new serial RS485 connection.
+    def _make_modbus(self):
+        """ Open a new serial modbus RS485 connection.
         """
         # open serial port on port C for RS485 Comms
         self.ser = serial.Serial('/dev/ttyUSB3', baudrate=19200, parity='E', timeout=0.040)
+        self.mod = dkmodbus.dkmodbus(self.ser)
 
     def _close_vec(self):
         """ Close the open mpsse I2C connection.
@@ -78,11 +81,16 @@ class Hub(object):
         if self.vec is not None:
             self.vec.Close()
 
-    def _close_ser(self):
-        """ Close the open serial RS485 connection.
+        self.vec = None
+
+    def _close_modbus(self):
+        """ Close the open serial modbus RS485 connection.
         """
         if self.ser is not None:
             self.ser.close()
+
+        self.mod = None
+        self.ser = None
 
     def _adu_packet(self, pdu_packet):
         """
@@ -460,23 +468,35 @@ class Hub(object):
         data_list = [0.0, 0.0]
 
         # read out input register 0 and 1
-        ok = self._adu_packet('\x04\x00\x00\x00\x02')
+        #ok = self._adu_packet('\x04\x00\x00\x00\x02')
 
-        if ok:
-            # CRC passed calculate temperature and humidity parse out the
-            # 2 byte string values into integers
-            temperature_raw = int(hexlify(self._cec_rx_packet[3:5]), 16)
-            humidity_raw = int(hexlify(self._cec_rx_packet[5:7]), 16)
+        # if ok:
+        #     # CRC passed calculate temperature and humidity parse out the
+        #     # 2 byte string values into integers
+        #     temperature_raw = int(hexlify(self._cec_rx_packet[3:5]), 16)
+        #     humidity_raw = int(hexlify(self._cec_rx_packet[5:7]), 16)
+        #
+        #     # C = -45 + 175 * (raw_temperature_value/65535)
+        #     data_list[0] = ((temperature_raw / 65535.0) * 175) - 45
+        #
+        #     # RH = 100 * (raw_humidity_value/65535)
+        #     data_list[1] = (humidity_raw / 65535.0) * 100
+        #
+        #     if self.debug:
+        #         print '\r\nTemperature = {} C'.format(data_list[0])
+        #         print '\r\nRelative Humidity = {} %'.format(data_list[1])
 
-            # C = -45 + 175 * (raw_temperature_value/65535)
-            data_list[0] = ((temperature_raw / 65535.0) * 175) - 45
+        res = self.mod.read_input_registers(2, 0, 2)
 
-            # RH = 100 * (raw_humidity_value/65535)
-            data_list[1] = (humidity_raw / 65535.0) * 100
+        #temperature_raw = int(hexlify(res[0:2]), 16)
+        #humidity_raw = int(hexlify(res[2:4]), 16)
 
-            if self.debug:
-                print '\r\nTemperature = {} C'.format(data_list[0])
-                print '\r\nRelative Humidity = {} %'.format(data_list[1])
+        data_list[0] = conversions.temperature_sht31(res)
+        data_list[1] = conversions.humidity_sht31(res)
+
+        if self.debug:
+            print '\r\nTemperature = {} C'.format(data_list[0])
+            print '\r\nRelative Humidity = {} %'.format(data_list[1])
 
         return data_list
 
