@@ -1,4 +1,4 @@
-""" Schema for GraphQL
+""" Board schema
 
     Author: Thomas Rampelberg
     Date:   2/27/2017
@@ -25,43 +25,38 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from pylru import lrudecorator
-
 import graphene
+import inflection
 
 from . import device, util
-from .rack import Rack
 
 
-def get_device_types():
-    return [getattr(device, x) for x in dir(device) if x.endswith('Device')]
+class Board(graphene.ObjectType):
+    _data = None
+    _parent = None
 
-
-def create():
-    return graphene.Schema(
-        query=Cluster,
-        auto_camelcase=False,
-        types=get_device_types()
-    )
-
-
-class Cluster(graphene.ObjectType):
-
-    # Schema
-    racks = graphene.List(
-        lambda: Rack,
+    id = graphene.String(required=True)
+    devices = graphene.List(
+        device.DeviceInterface,
         required=True,
-        id=graphene.String()
+        device_type=graphene.String()
     )
 
-    @lrudecorator(1)
-    def _request_assets(self):
-        return dict([(k, '') for k in self._assets])
+    @staticmethod
+    def build(parent, data):
+        return Board(id=data.get('board_id'), _data=data, _parent=parent)
+
+    @staticmethod
+    def device_class(device_type):
+        return getattr(
+            device,
+            '{0}Device'.format(inflection.camelize(device_type)),
+            device.SensorDevice)
 
     @graphene.resolve_only_args
-    def resolve_racks(self, id=None):
-        return [Rack.build(self, r)
-                for r in util.arg_filter(
-                    id,
-                    lambda x: x.get('rack_id') == id,
-                    util.make_request('scan').get('racks'))]
+    def resolve_devices(self, device_type=None):
+        return [self.device_class(d.get('device_type')).build(self, d)
+                for d in util.arg_filter(
+                    device_type,
+                    lambda x: x.get('device_type') == device_type,
+                    self._data.get('devices'))]

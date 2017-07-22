@@ -23,8 +23,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 from __future__ import print_function
 
 __title__ = 'synse'
-# FIXME: will need to re-work how versioning works in synse. currently, this
-#   is unused. see the VERSION file at the project root for the true version.
 __version__ = '1.4.0'
 
 __description__ = 'Synse Server'

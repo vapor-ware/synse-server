@@ -233,7 +233,7 @@ class ChassisLedTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/led/bad_char%/00000030/0001')
 
-        self.assertEqual(ctx.exception.status, 404)
+        self.assertEqual(ctx.exception.status, 400)
 
     def test_007_write_ok(self):
         """ Test write with an ok response.

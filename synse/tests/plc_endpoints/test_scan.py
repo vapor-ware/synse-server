@@ -267,7 +267,7 @@ class ScanTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/scan//00000000')
 
-        self.assertEqual(ctx.exception.status, 404)
+        self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/scan/bad_char?/00000000')
@@ -282,4 +282,4 @@ class ScanTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/scan/bad_char%/00000000')
 
-        self.assertEqual(ctx.exception.status, 500)
+        self.assertEqual(ctx.exception.status, 400)

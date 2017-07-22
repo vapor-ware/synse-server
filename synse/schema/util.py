@@ -31,7 +31,7 @@ import functools
 import requests
 import requests.compat
 
-from graphql_frontend import config, version
+from synse.version import __api_version__
 
 SESSION = requests.Session()
 
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 def make_request(url):
     base = 'http://{0}/synse/{1}/'.format(
-        config.options.get('backend'), version.__api_version__)
+        '0.0.0.0:5000', __api_version__)
     logger.debug('>> REQUEST URL: {}'.format(requests.compat.urljoin(base, url)))
     result = SESSION.get(requests.compat.urljoin(base, url))
     result.raise_for_status()

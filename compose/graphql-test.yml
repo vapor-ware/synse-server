@@ -19,7 +19,9 @@ services:
     # sensor data while testing.
     command: start-i2c-emulator i2c_emulator_config.json
     ports:
-      - 5000
+      - 5000:5000
+    environment:
+      - VAPOR_DEBUG=true
     volumes:
       - ../test/config/bmc.json:/synse/bmc_config.json
       - ../test/config/i2c.json:/synse/i2c_config.json

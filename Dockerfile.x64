@@ -1,67 +1,44 @@
-FROM vaporio/vapor-endpoint-base-x64:3.0
-MAINTAINER Andrew Cencini <andrew@vapor.io>
+FROM ubuntu:16.04
+MAINTAINER Vapor IO <eng@vapor.io>
 
-ENV VAPOR_SERVICE_NAME=synse
+COPY ./requirements.txt requirements.txt
 
-ADD ./requirements.txt requirements.txt
-ADD ./graphql/requirements.txt graphql-requirements.txt
-
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential\
-    socat \
-    libftdi-dev \
-    snmp \
-    curl \
-    python3-pip \
-    python3-dev \
-    swig \
-    make \
-    iputils-ping \
-    --no-install-recommends && \
-    pip2 install --upgrade pip && \
-    pip2 install wheel setuptools && \
-    pip3 install --upgrade pip && \
-    pip3 install wheel setuptools && \
-    pip2 install -r requirements.txt && \
-    pip3 install -r graphql-requirements.txt && \
-    apt-get remove -y \
-    build-essential \
-    python3-pip && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
-
-RUN mkdir -p /etc/uwsgi/vassals && \
-    mkdir -p /etc/uwsgi/plugins && \
-    touch /etc/uwsgi/reload && \
-    chown -R www-data:www-data /etc/uwsgi
-
-WORKDIR /tmp
-RUN curl -O https://projects.unbit.it/downloads/uwsgi-2.0.15.tar.gz && \
-    tar -xvzf uwsgi-2.0.15.tar.gz && \
-    cd uwsgi-2.0.15 && \
-    python uwsgiconfig.py --build nolang && \
-    PYTHON=python2.7 ./uwsgi --build-plugin "plugins/python python27" && \
-    PYTHON=python3.5 ./uwsgi --build-plugin "plugins/python python35" && \
-    cp python27_plugin.so /etc/uwsgi/plugins/ && \
-    cp python35_plugin.so /etc/uwsgi/plugins/ && \
-    UWSGI_PROFILE=nolang python setup.py install && \
-    cd /tmp && rm -rf /tmp/uwsgi*
-
-# We need libmpsse for i2c to work in production.
-ADD ./libmpsse/src /build
-WORKDIR /build
-RUN ./configure && make && make install
+RUN set -ex \
+    && buildDeps='python-dev python-pip unzip make swig build-essential' \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl libftdi-dev libpython2.7 python snmp socat $buildDeps \
+    && curl -O https://nginx.org/keys/nginx_signing.key && apt-key add ./nginx_signing.key \
+    && echo "deb http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list \
+    && echo "deb-src http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y nginx \
+    && pip install --upgrade pip setuptools \
+    && pip install -r requirements.txt \
+    && curl -LOk https://github.com/devttys0/libmpsse/archive/master.zip \
+    && unzip master.zip && rm master.zip \
+    && cd libmpsse-master/src \
+    && ./configure && make && make install \
+    && pip uninstall -y setuptools \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge -y --auto-remove $buildDeps \
+    && apt-get autoremove -y \
+    && apt-get clean
 
 ADD . /synse
 WORKDIR /synse
 
-# run command for uwsgi configuration
-RUN ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/vassals/synse.ini && \
-    ln -s /synse/configs/uwsgi/graphql.ini /etc/uwsgi/vassals/graphql.ini && \
-    ln -s /synse/configs/uwsgi/emperor.ini /etc/uwsgi/emperor.ini && \
-    chown -R www-data:www-data /etc/uwsgi && \
-    ln -sf /proc/1/fd/1 /logs/err
+RUN mkdir -p /etc/uwsgi \
+    && touch /etc/uwsgi/reload \
+    && ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/synse.ini \
+    && chown -R www-data:www-data /etc/uwsgi \
+    && ln -s /synse/configs/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf \
+    && rm -f /etc/logrotate.d/nginx \
+    && cp /synse/configs/nginx/nginx.logrotate /etc/logrotate.d/nginx \
+    && mkdir /logs \
+    && chown :www-data /logs \
+    && chmod 775 /logs \
+    && ln -sf /proc/1/fd/1 /logs/err
 
 # update the python path to include the synse module so that it
 # can be successfully be imported

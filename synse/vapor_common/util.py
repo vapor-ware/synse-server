@@ -36,7 +36,7 @@ def setup_json_errors(app):
         app (Flask): A Flask application instance.
     """
     for code in default_exceptions.iterkeys():
-        app.error_handler_spec[None][code] = _make_json_error
+        app.register_error_handler(code, _make_json_error)
 
 
 def _make_json_error(ex):

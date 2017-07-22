@@ -1,4 +1,4 @@
-""" Schema for GraphQL
+""" Rack schema
 
     Author: Thomas Rampelberg
     Date:   2/27/2017
@@ -25,43 +25,37 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from pylru import lrudecorator
-
 import graphene
 
-from . import device, util
-from .rack import Rack
+from . import util
+from .board import Board
 
 
-def get_device_types():
-    return [getattr(device, x) for x in dir(device) if x.endswith('Device')]
+class Rack(graphene.ObjectType):
+    _info = None
+    _parent = None
 
+    id = graphene.String(required=True)
+    rack_id = graphene.String(required=True)
 
-def create():
-    return graphene.Schema(
-        query=Cluster,
-        auto_camelcase=False,
-        types=get_device_types()
-    )
-
-
-class Cluster(graphene.ObjectType):
-
-    # Schema
-    racks = graphene.List(
-        lambda: Rack,
+    boards = graphene.List(
+        lambda: Board,
         required=True,
-        id=graphene.String()
-    )
+        id=graphene.String())
 
-    @lrudecorator(1)
-    def _request_assets(self):
-        return dict([(k, '') for k in self._assets])
+    def get_boards(self):
+        return self._info.get('boards')
+
+    @staticmethod
+    def build(parent, info):
+        _id = info['rack_id']
+
+        return Rack(id=_id, _parent=parent, _info=info, **info)
 
     @graphene.resolve_only_args
-    def resolve_racks(self, id=None):
-        return [Rack.build(self, r)
-                for r in util.arg_filter(
+    def resolve_boards(self, id=None):
+        return [Board.build(self, b)
+                for b in util.arg_filter(
                     id,
-                    lambda x: x.get('rack_id') == id,
-                    util.make_request('scan').get('racks'))]
+                    lambda x: x.get('board_id') == id,
+                    self.get_boards())]

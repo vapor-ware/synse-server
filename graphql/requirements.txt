@@ -1,3 +1,4 @@
+pylru==1.0.9
 flask==0.12
 flask-graphql==1.4.1
 requests==2.13.0

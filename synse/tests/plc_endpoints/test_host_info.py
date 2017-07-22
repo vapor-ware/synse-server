@@ -103,7 +103,7 @@ class HostInfoTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/host_info/rack_1//FFFFFFFFFFFFFFFF/1FF')
 
-        self.assertEqual(ctx.exception.status, 404)
+        self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/host_info/rack_1/20000000/00001FF')
@@ -203,4 +203,4 @@ class HostInfoTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/host_info/bad_char%/00000090/0001')
 
-        self.assertEqual(ctx.exception.status, 404)
+        self.assertEqual(ctx.exception.status, 400)

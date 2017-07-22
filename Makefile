@@ -8,7 +8,7 @@
 #  Date:   01 Sept 2016
 # ------------------------------------------------------------------------
 
-PKG_VER := $(shell python synse/version.py)
+PKG_VER := $(shell python synse/__init__.py)
 GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 FPM_OPTS := -s dir -n synse-server -v $(PKG_VER) \
