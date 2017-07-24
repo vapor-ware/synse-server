@@ -54,7 +54,7 @@ def make_request(uri):
     return result.json()
 
 
-def get_asset(self, asset, *args, **kwargs):
+def get_asset(self, asset, *args, **kwargs):  # pylint: disable=unused-argument
     """Fetch the value for a specific asset.
 
     Gets converted into resolve_asset_name(). See _assets for the list that
