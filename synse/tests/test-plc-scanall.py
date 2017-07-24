@@ -23,7 +23,8 @@ import logging
 import unittest
 
 from plc_scanall.test_scanall import ScanAllTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

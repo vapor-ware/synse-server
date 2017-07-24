@@ -37,6 +37,8 @@ logger = logging.getLogger(__name__)
 
 
 def read_emulator(device_name, channel):
+    """ Emulator read for SDP610 pressure.
+    """
     # -- EMULATOR --
     try:
         # use self.device_name for serial device, 115200, 0.25

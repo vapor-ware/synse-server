@@ -56,7 +56,8 @@ def _init_startup_logger():
         # container isn't configured internally for the setup logger.
         return logging.getLogger(__name__)
 
-    formatter = logging.Formatter('[CONTAINER STARTUP ERROR] (%(asctime)s - %(module)s:%(lineno)s): %(message)s')
+    formatter = logging.Formatter(
+        '[CONTAINER STARTUP ERROR] (%(asctime)s - %(module)s:%(lineno)s): %(message)s')
     handler = logging.FileHandler('/logs/err')
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)

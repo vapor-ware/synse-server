@@ -25,7 +25,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 
-from vapor_common.utils.argument_checker import ArgumentChecker
+from synse.vapor_common.utils.argument_checker import ArgumentChecker
 
 logger = logging.getLogger(__name__)
 
@@ -61,13 +61,13 @@ class SnmpRow(object):
         # SNMP data for the walked row. This is a list of data for each column
         # sorted by column ordinal. It's up the caller to pre-sort.
         # First check that it is a list.
-        self.row_data = ArgumentChecker.check_type('list', kwargs['row_data'])
+        self.row_data = ArgumentChecker.check_type(list, kwargs['row_data'])
         column_list_len = len(column_list)
         row_data_len = len(self.row_data)
         if column_list_len != row_data_len:
-            raise ValueError('Given {} column names and {} data columns. '
-                             'Unable to map unless equal.'.format(
-                              column_list_len, row_data_len))
+            raise ValueError(
+                'Given {} column names and {} data columns. Unable to map '
+                'unless equal.'.format(column_list_len, row_data_len))
 
     def __getitem__(self, item):
         """ Accesses row data as if it's a dictionary by self['column_name'].
@@ -84,6 +84,8 @@ class SnmpRow(object):
         return {'table_name': self.table.table_name, 'base_oid': self.base_oid}
 
     def dump(self):
+        """ Dump out the contents of the SNMP row to the logger.
+        """
         logger.debug('Dumping row for SNMP table {}'.format(self.table.table_name))
         logger.debug('base_oid: {}'.format(self.base_oid))
         index = 0

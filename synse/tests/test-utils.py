@@ -27,7 +27,8 @@ from utils.test_cache_utils import CacheUtilsTestCase
 from utils.test_device_id_utils import DeviceIdUtilsTestCase
 from utils.test_device_interface_utils import DeviceInterfaceUtilsTestCase
 from utils.test_validation_utils import ValidationUtilsTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

@@ -31,11 +31,11 @@ import sys
 
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
-from rs485_device import RS485Device
 
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
+from synse.devicebus.devices.rs485.rs485_device import RS485Device
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.conversions import conversions
@@ -59,8 +59,9 @@ class F660Airflow(RS485Device):
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
 
-        # the register base is used to map multiple device instances to a device-specific base address
-        # such that each device has its own map of registers
+        # the register base is used to map multiple device instances to a
+        # device-specific base address such that each device has its own
+        # map of registers
         self.register_base = int(kwargs['base_address'], 16)
 
         # map of registers needed to read for airflow
@@ -114,7 +115,8 @@ class F660Airflow(RS485Device):
                 )
 
             # if we get here, there was no sensor device found, so we must raise
-            logger.error('No response for sensor reading for command: {}'.format(command.data))
+            logger.error(
+                'No response for sensor reading for command: {}'.format(command.data))
             raise SynseException('No sensor reading returned from RS485.')
 
         except Exception:
@@ -130,22 +132,25 @@ class F660Airflow(RS485Device):
         """
         with self._lock:
             if self.hardware_type == 'emulator':
-                with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
+                with ModbusClient(method=self.method, port=self.device_name,
+                                  timeout=self.timeout) as client:
                     # read airflow
                     result = client.read_holding_registers(
                         self._register_map['airflow_reading'], count=1, unit=self.unit)
                     if result is None:
-                        raise SynseException('No response received for F660 airflow reading.')
+                        raise SynseException(
+                            'No response received for F660 airflow reading.')
                     elif isinstance(result, ExceptionResponse):
                         raise SynseException('RS485 Exception: {}'.format(result))
 
-                    airflow = result.registers[0]  # pymodbus gives ints not bytes, no conversion needed.
+                    # pymodbus gives ints not bytes, no conversion needed.
+                    airflow = result.registers[0]
 
             elif self.hardware_type == 'production':
                 # Production
                 client = self.create_modbus_client()
 
-                result = client.read_input_registers(self.slave_address, self.register_base,  1)
+                result = client.read_input_registers(self.slave_address, self.register_base, 1)
                 airflow = conversions.airflow_f660(result)
 
             else:

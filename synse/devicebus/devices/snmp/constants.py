@@ -47,7 +47,8 @@ EMULATOR_UNIT_IMP = 19  # TODO: Find out what this is. Some Imperial Unit?
 EMULATOR_UNIT_HEAT_CAPACITY = 20
 EMULATOR_UNIT_CONSTANT = 21
 EMULATOR_UNIT_TEMPERATURE_DIFF = 22
-EMULATOR_UNIT_TIMESPAN = 23  # TODO: Will need formatting / examples here. This time span may not be a broad standard.
+# TODO: Will need formatting / examples here. This time span may not be a broad standard.
+EMULATOR_UNIT_TIMESPAN = 23
 EMULATOR_UNIT_CYCLES = 24
 
 EMULATOR_UNIT_PULSE_RATE = 34

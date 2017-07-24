@@ -25,4 +25,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from plc_device import PLCDevice
+# pylint: skip-file
+
+from synse.devicebus.devices.plc.plc_device import PLCDevice

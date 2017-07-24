@@ -32,16 +32,18 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
 from pyghmi import constants
-from vapor_ipmi_common import IpmiCommand
-from vapor_ipmi_oem_flex import get_flex_victoria_power_reading
 
 from synse.definitions import BMC_PORT
+from synse.devicebus.devices.ipmi.vapor_ipmi_common import IpmiCommand
+from synse.devicebus.devices.ipmi.vapor_ipmi_oem_flex import \
+    get_flex_victoria_power_reading
 from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 
 
-def power(username=None, password=None, ip_address=None, port=BMC_PORT, cmd=None, reading_method=None):
+def power(username=None, password=None, ip_address=None, port=BMC_PORT, cmd=None,
+          reading_method=None):
     """ Get/set power status for remote host.
 
     Args:
@@ -61,7 +63,8 @@ def power(username=None, password=None, ip_address=None, port=BMC_PORT, cmd=None
     """
     # power cycle is hard reset in ipmi/pyghmi
     response = dict()
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         if cmd == 'status':
             result = ipmicmd.get_power()
             response['power_status'] = result['powerstate']
@@ -76,31 +79,37 @@ def power(username=None, password=None, ip_address=None, port=BMC_PORT, cmd=None
             result = ipmicmd.set_power(cmd, wait=15)
             response['power_status'] = result['powerstate']
         if 'error' in result:
-            raise SynseException('Error executing IPMI power command on {} : {}'.format(ip_address, result['error']))
+            raise SynseException('Error executing IPMI power command on {} : {}'.format(
+                ip_address, result['error']))
         try:
             # first get additional information about the power health
             chassis_status = _get_chassis_status(username, password, ip_address)
             response['over_current'] = chassis_status.get('power_overload', 'unknown')
-            # FIXME (etd): for the below, if there is no 'power_fault', we are evaluating "not 'unknown'" which
-            # will be False -- is this expected/desired?
-            response['power_ok'] = not chassis_status.get('power_fault', 'unknown')  # invert 'fault' for 'ok'
+            # FIXME (etd): for the below, if there is no 'power_fault', we are evaluating
+            # "not 'unknown'" which will be False -- is this expected/desired?
+            # invert 'fault' for 'ok'
+            response['power_ok'] = not chassis_status.get('power_fault', 'unknown')
         except Exception as e:
             response['over_current'] = 'unknown'
             response['power_ok'] = 'unknown'
-            logger.error('Error getting chassis status on power command for {} : {}'.format(ip_address, e.message))
+            logger.error('Error getting chassis status on power command for {} : {}'.format(
+                ip_address, e.message))
 
         try:
-            # next, attempt to get input power reading, and if unavailable, set the response to 'unknown'
+            # next, attempt to get input power reading, and if unavailable, set the response
+            # to 'unknown'
             response['input_power'] = 'unknown'
             if reading_method is not None:
                 if reading_method == 'flex-victoria':
                     response['input_power'] = get_flex_victoria_power_reading(
                         username, password, ip_address)['input_power']
                 elif reading_method == 'dcmi':
-                    response['input_power'] = _get_power_reading(username, password, ip_address)['input_power']
+                    response['input_power'] = _get_power_reading(username, password,
+                                                                 ip_address)['input_power']
         except Exception as e:
             response['input_power'] = 'unknown'
-            logger.error('Error getting power reading on power command for {} : {}'.format(ip_address, e.message))
+            logger.error('Error getting power reading on power command for {} : {}'.format(
+                ip_address, e.message))
 
         return response
 
@@ -117,7 +126,8 @@ def sensors(username=None, password=None, ip_address=None, port=BMC_PORT):
     Returns:
         list[dict]: sensor number, id string, and type for each sensor available.
     """
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         sdr = ipmicmd.init_sdr()
         if sdr is None:
             raise SynseException('Error initializing SDR from IPMI BMC {}'.format(ip_address))
@@ -151,8 +161,8 @@ def _convert_health_to_string(health):
         return 'critical'
     elif health == constants.Health.Failed:
         return 'failed'
-    else:
-        return str(health)
+
+    return str(health)
 
 
 def read_sensor(sensor_name, username=None, password=None, ip_address=None, port=BMC_PORT):
@@ -178,7 +188,8 @@ def read_sensor(sensor_name, username=None, password=None, ip_address=None, port
     """
     if sensor_name is not None:
         result = dict()
-        with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+        with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                         port=port) as ipmicmd:
             reading = ipmicmd.get_sensor_reading(sensor_name)
             result['sensor_reading'] = reading.value
             result['health'] = _convert_health_to_string(reading.health)
@@ -201,11 +212,13 @@ def get_boot(username=None, password=None, ip_address=None, port=BMC_PORT):
         dict: boot target as observed, or IpmiException from pyghmi.
     """
     response = dict()
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         result = ipmicmd.get_bootdev()
         if 'error' in result:
             raise SynseException(
-                'Error retrieving boot device from IPMI BMC {} : {}'.format(ip_address, result['error'])
+                'Error retrieving boot device from IPMI BMC {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         # FIXME (etd) - here, if bootdev doesn't exist, we use 'unknown'. in the dict `get`
@@ -231,12 +244,14 @@ def set_boot(username=None, password=None, ip_address=None, port=BMC_PORT, targe
         dict: boot target as observed, or IpmiException from pyghmi.
     """
     response = dict()
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         target = dict(pxe='network', hdd='hd', no_override='default').get(target)
         result = ipmicmd.set_bootdev(bootdev=target)
         if 'error' in result:
             raise SynseException(
-                'Error setting boot device from IPMI BMC {} : {}'.format(ip_address, result['error'])
+                'Error setting boot device from IPMI BMC {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         # FIXME (etd) - here, if bootdev doesn't exist, we use 'unknown'. in the dict `get`
@@ -261,11 +276,13 @@ def get_inventory(username=None, password=None, ip_address=None, port=BMC_PORT):
         dict: inventory information from the remote system.
     """
     response = dict()
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         result = ipmicmd.get_inventory_of_component('System')
         if 'error' in result:
             raise SynseException(
-                'Error retrieving System inventory from IPMI BMC {} : {}'.format(ip_address, result['error'])
+                'Error retrieving System inventory from IPMI BMC {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         response['chassis_info'] = dict()
@@ -287,7 +304,8 @@ def get_inventory(username=None, password=None, ip_address=None, port=BMC_PORT):
         return response
 
 
-def _get_temperature_readings(username=None, password=None, ip_address=None, port=BMC_PORT, entity=None):
+def _get_temperature_readings(username=None, password=None, ip_address=None, port=BMC_PORT,
+                              entity=None):
     """ Internal wrapper for 'Get Temperature Reading' DCMI command.
 
     Args:
@@ -304,12 +322,13 @@ def _get_temperature_readings(username=None, password=None, ip_address=None, por
             entity and instance IDs for use elsewhere, in addition to a
             temperature_c reading.
     """
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         cmd_data = [0xdc, 0x01]
         if entity == 'inlet':
-            cmd_data.append(0x40)       # entity ID (air inlet)
-            cmd_data.append(0x00)       # instance ID (0x00 means return all instances)
-            cmd_data.append(0x01)       # starting instance ID (0x01 means start with the first)
+            cmd_data.append(0x40)  # entity ID (air inlet)
+            cmd_data.append(0x00)  # instance ID (0x00 means return all instances)
+            cmd_data.append(0x01)  # starting instance ID (0x01 means start with the first)
         elif entity == 'cpu':
             cmd_data.append(0x41)
             cmd_data.append(0x00)
@@ -324,17 +343,19 @@ def _get_temperature_readings(username=None, password=None, ip_address=None, por
         result = ipmicmd.raw_command(netfn=0x2c, command=0x10, data=tuple(cmd_data))
         if 'error' in result:
             raise SynseException(
-                'Error executing DCMI temperature readings command on {} : {}'.format(ip_address, result['error'])
+                'Error executing DCMI temperature readings command on {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         readings = {'readings': []}
 
-        """ TODO: read byte 1 instead which has the actual total number of responses, as opposed to
-         byte 2 which has the total in the response for a single command (no more than 8).  This means
-         we will iterate via the starting instance id through all of the possible instances until none remain.
-        """
+        # TODO: read byte 1 instead which has the actual total number of responses, as opposed to
+        # byte 2 which has the total in the response for a single command (no more than 8). This
+        # means we will iterate via the starting instance id through all of the possible instances
+        # until none remain.
+
         start_byte = 3  # start on first byte of reading
-        for x in range(0, result['data'][2]):
+        for _ in range(0, result['data'][2]):
             # get the reading from the lower 7 bits
             temperature = float(result['data'][start_byte] & 0b01111111)
             # if the upper bit is a 1, the sign is negative
@@ -342,7 +363,9 @@ def _get_temperature_readings(username=None, password=None, ip_address=None, por
                 temperature *= -1.0
             instance = result['data'][start_byte + 1]
             start_byte += 2
-            readings['readings'].append([{'temperature_c': temperature, 'entity': entity, 'instance': instance}])
+            readings['readings'].append([
+                {'temperature_c': temperature, 'entity': entity, 'instance': instance}
+            ])
         return readings
 
 
@@ -361,11 +384,13 @@ def _get_power_reading(username=None, password=None, ip_address=None, port=BMC_P
     Raises:
         SynseException: in cases where power reading is not active.
     """
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         result = ipmicmd.raw_command(netfn=0x2c, command=0x02, data=(0xdc, 0x01, 0x00, 0x00))
         if 'error' in result:
             raise SynseException(
-                'Error executing DCMI power reading command on {} : {}'.format(ip_address, result['error'])
+                'Error executing DCMI power reading command on {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         # if power measurement is inactive, we may be giving back back data.
@@ -388,16 +413,19 @@ def _get_chassis_status(username=None, password=None, ip_address=None, port=BMC_
         dict: chassis status information from the remote system.
     """
     response = dict()
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         result = ipmicmd.raw_command(netfn=0, command=1, data=[])
         if 'error' in result:
             raise SynseException(
-                'Error executing chassis status command on {} : {}'.format(ip_address, result['error'])
+                'Error executing chassis status command on {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         if result['command'] != 1 or result['netfn'] != 1 or result['code'] != 0:
             raise SynseException(
-                'Error receiving chassis status response on {} : rc {}'.format(ip_address, hex(result['code]']))
+                'Error receiving chassis status response on {} : rc {}'.format(
+                    ip_address, hex(result['code]']))
             )
 
         # process result and stick into fields of response
@@ -439,7 +467,8 @@ def _get_chassis_status(username=None, password=None, ip_address=None, port=BMC_
             response['last_power_event'] = 'ac_failed'
 
         # led command supported
-        response['chassis_identify_supported'] = True if (result['data'][2] >> 6 & 0b1) == 0b01 else 'unspecified'
+        response['chassis_identify_supported'] = True if (result['data'][2] >> 6 & 0b1) == 0b01 \
+            else 'unspecified'
 
         # led state
         if (result['data'][2] >> 5) & 0x01 or (result['data'][2] >> 4) & 0x01:
@@ -474,7 +503,8 @@ def get_identify(username=None, password=None, ip_address=None, port=BMC_PORT):
     Returns:
         dict: LED status as reported by remote system.
     """
-    return {'led_state': _get_chassis_status(username, password, ip_address, port=port).get('led_state', 'unknown')}
+    return {'led_state': _get_chassis_status(username, password, ip_address, port=port).get(
+        'led_state', 'unknown')}
 
 
 def set_identify(username=None, password=None, ip_address=None, port=BMC_PORT, led_state=None):
@@ -492,12 +522,14 @@ def set_identify(username=None, password=None, ip_address=None, port=BMC_PORT, l
     """
     # Force on if True, Force off if False (indefinite duration)
     state = led_state == 1
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         ipmicmd.set_identify(on=state)
         return {'led_state': led_state}
 
 
-def get_dcmi_capabilities(username=None, password=None, ip_address=None, port=BMC_PORT, parameter_selector=None):
+def get_dcmi_capabilities(username=None, password=None, ip_address=None, port=BMC_PORT,
+                          parameter_selector=None):
     """ Get DCMI capabilities from the remote BMC.
 
     Args:
@@ -516,17 +548,20 @@ def get_dcmi_capabilities(username=None, password=None, ip_address=None, port=BM
     if parameter_selector is None or (parameter_selector < 1 or parameter_selector > 5):
         raise ValueError('Invalid parameter selector provided to get_dcmi_capabilities.')
 
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         result = ipmicmd.raw_command(netfn=0x2c, command=0x01, data=(0xdc, parameter_selector))
         if 'error' in result:
             raise SynseException(
-                'Error executing get DCMI capabilities command on {} : {}'.format(ip_address, result['error'])
+                'Error executing get DCMI capabilities command on {} : {}'.format(
+                    ip_address, result['error'])
             )
 
         # byte 0 should always be 0xdc
         if result['data'][0] != 0xdc:
             raise SynseException(
-                'Error in response to get DCMI capabilities command on {}: Invalid first byte.'.format(ip_address)
+                'Error in response to get DCMI capabilities command on {}: Invalid '
+                'first byte.'.format(ip_address)
             )
 
         # to know power reading command is truly supported, we require DCMI 1.5
@@ -536,7 +571,8 @@ def get_dcmi_capabilities(username=None, password=None, ip_address=None, port=BM
         # byte 3 must be 0x02 in DCMI 1.5
         if result['data'][3] != 0x02:
             raise SynseException(
-                'Error in response to get DCMI capabilities command on {}: Parameter revision must be 0x02.'.format(ip_address)
+                'Error in response to get DCMI capabilities command on {}: Parameter '
+                'revision must be 0x02.'.format(ip_address)
             )
 
         response = dict()
@@ -587,7 +623,8 @@ def get_dcmi_capabilities(username=None, password=None, ip_address=None, port=BM
         return response
 
 
-def get_dcmi_management_controller_id(username=None, password=None, ip_address=None, port=BMC_PORT):
+def get_dcmi_management_controller_id(username=None, password=None, ip_address=None,
+                                      port=BMC_PORT):
     """ Get DCMI management controller ID from remote BMC.
 
     Args:
@@ -605,18 +642,21 @@ def get_dcmi_management_controller_id(username=None, password=None, ip_address=N
     id_string = ''
 
     # read the mgmt controller ID out in blocks of 16 bytes, up to the limit of 64 bytes
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         for x in range(0, 4):
             result = ipmicmd.raw_command(netfn=0x2c, command=0x01, data=(0xdc, x * 0x10))
             if 'error' in result:
                 raise SynseException(
-                    'Error executing get DCMI controller ID command on {} : {}'.format(ip_address, result['error'])
+                    'Error executing get DCMI controller ID command on {} : {}'.format(
+                        ip_address, result['error'])
                 )
 
             # byte 0 should always be 0xdc
             if result['data'][0] != 0xdc:
                 raise SynseException(
-                    'Error in response to get DCMI controller ID command on {}: Invalid first byte.'.format(ip_address)
+                    'Error in response to get DCMI controller ID command on {}: Invalid '
+                    'first byte.'.format(ip_address)
                 )
 
             # byte 1 should be the string length - ignore as remaining bytes are 0x00 (null)

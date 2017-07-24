@@ -32,11 +32,11 @@ import sys
 import lockfile
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
-from rs485_device import RS485Device
 
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
+from synse.devicebus.devices.rs485.rs485_device import RS485Device
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.conversions import conversions
@@ -59,8 +59,9 @@ class SHT31Humidity(RS485Device):
 
         self._lock = lockfile.LockFile(self.serial_lock)
 
-        # the register base is used to map multiple device instances to a device-specific base address
-        # such that each device has its own map of registers
+        # the register base is used to map multiple device instances to a
+        # device-specific base address such that each device has its own
+        # map of registers
         self.register_base = int(kwargs['base_address'], 16)
 
         # map of registers needed to read for temp/humidity
@@ -130,21 +131,31 @@ class SHT31Humidity(RS485Device):
         """
         with self._lock:
             if self.hardware_type == 'emulator':
-                with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
+                with ModbusClient(method=self.method, port=self.device_name,
+                                  timeout=self.timeout) as client:
+
                     # read temperature
-                    result = client.read_holding_registers(self._register_map['temperature_register'], count=1,
-                                                           unit=self.unit)
+                    result = client.read_holding_registers(
+                        self._register_map['temperature_register'],
+                        count=1,
+                        unit=self.unit)
+
                     if result is None:
-                        raise SynseException('No response received for SHT31 temperature reading.')
+                        raise SynseException(
+                            'No response received for SHT31 temperature reading.')
                     elif isinstance(result, ExceptionResponse):
                         raise SynseException('RS485 Exception: {}'.format(result))
                     temperature = conversions.temperature_sht31_int(result.registers[0])
 
                     # read humidity
                     result = client.read_holding_registers(
-                        self._register_map['humidity_register'], count=1, unit=self.unit)
+                        self._register_map['humidity_register'],
+                        count=1,
+                        unit=self.unit)
+
                     if result is None:
-                        raise SynseException('No response received for SHT31 humidity reading.')
+                        raise SynseException(
+                            'No response received for SHT31 humidity reading.')
                     elif isinstance(result, ExceptionResponse):
                         raise SynseException('RS485 Exception: {}'.format(result))
                     humidity = conversions.humidity_sht31_int(result.registers[0])

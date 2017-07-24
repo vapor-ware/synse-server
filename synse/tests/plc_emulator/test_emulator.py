@@ -27,10 +27,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
-
 from synse.tests.test_config import PREFIX
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 
 class EmulatorCounterTestCase(unittest.TestCase):
@@ -42,20 +41,20 @@ class EmulatorCounterTestCase(unittest.TestCase):
         """ Test reading a single thermistor device repeatedly to make sure it
         increments sequentially.
         """
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/01FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/01FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 100)
+        self.assertEqual(response['temperature_c'], 100)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/01FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/01FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 101)
+        self.assertEqual(response['temperature_c'], 101)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/01FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/01FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 102)
+        self.assertEqual(response['temperature_c'], 102)
 
     def test_002_read_same_board_diff_device(self):
         """ Test reading thermistor devices on the same board but different devices,
@@ -63,25 +62,25 @@ class EmulatorCounterTestCase(unittest.TestCase):
         One device being tested does not start at the first response since
         previous tests have incremented its counter.
         """
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/01FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/01FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 103)
+        self.assertEqual(response['temperature_c'], 103)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/03FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/03FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 200)
+        self.assertEqual(response['temperature_c'], 200)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/01FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/01FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 104)
+        self.assertEqual(response['temperature_c'], 104)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/03FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/03FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 201)
+        self.assertEqual(response['temperature_c'], 201)
 
     def test_003_read_diff_board_diff_device(self):
         """ Test reading thermistor devices on different boards, where both
@@ -89,138 +88,138 @@ class EmulatorCounterTestCase(unittest.TestCase):
         device being tested does not start at the first response since
         previous tests have incremented its counter.
         """
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/03FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/03FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 202)
+        self.assertEqual(response['temperature_c'], 202)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000003/02FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000003/02FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 800)
+        self.assertEqual(response['temperature_c'], 800)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/03FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/03FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 203)
+        self.assertEqual(response['temperature_c'], 203)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000003/02FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000003/02FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 801)
+        self.assertEqual(response['temperature_c'], 801)
 
     def test_004_read_until_wraparound(self):
         """ Test incrementing the counter on alternating devices (humidity
         and thermistor), both where repeatable=true, but where the length
         of the responses list differ.
         """
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0CFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0CFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 600)
+        self.assertEqual(response['temperature_c'], 600)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0AFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0AFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 500)
+        self.assertEqual(response['temperature_c'], 500)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0CFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0CFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 601)
+        self.assertEqual(response['temperature_c'], 601)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0AFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0AFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 501)
+        self.assertEqual(response['temperature_c'], 501)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0CFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0CFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 602)
+        self.assertEqual(response['temperature_c'], 602)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0AFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0AFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 502)
+        self.assertEqual(response['temperature_c'], 502)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0CFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0CFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 603)
+        self.assertEqual(response['temperature_c'], 603)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0AFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0AFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 503)
+        self.assertEqual(response['temperature_c'], 503)
 
         # counter should wrap back around here, since len(responses) has
         # been exceeded.
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0CFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0CFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 600)
+        self.assertEqual(response['temperature_c'], 600)
 
         # counter should not wrap around for this device, since len(responses)
         # has not been exceeded
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0AFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0AFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 504)
+        self.assertEqual(response['temperature_c'], 504)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0CFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0CFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 601)
+        self.assertEqual(response['temperature_c'], 601)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/0AFF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/0AFF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 505)
+        self.assertEqual(response['temperature_c'], 505)
 
     def test_005_power_same_board_diff_device(self):
         """ Test incrementing the counter on alternating power devices,
         one where repeatable=true, and one where repeatable=false
         """
-        r = http.get(PREFIX + "/power/status/00000001/06FF")
+        r = http.get(PREFIX + '/power/status/00000001/06FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '0,0,0,0')
 
-        r = http.get(PREFIX + "/power/status/00000001/07FF")
+        r = http.get(PREFIX + '/power/status/00000001/07FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '0,0,0,0')
 
-        r = http.get(PREFIX + "/power/status/00000001/06FF")
+        r = http.get(PREFIX + '/power/status/00000001/06FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "64,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '64,0,0,0')
 
-        r = http.get(PREFIX + "/power/status/00000001/07FF")
+        r = http.get(PREFIX + '/power/status/00000001/07FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "64,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '64,0,0,0')
 
-        r = http.get(PREFIX + "/power/status/00000001/06FF")
+        r = http.get(PREFIX + '/power/status/00000001/06FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '2048,0,0,0')
 
-        r = http.get(PREFIX + "/power/status/00000001/07FF")
+        r = http.get(PREFIX + '/power/status/00000001/07FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '2048,0,0,0')
 
         # repeatable=true, so the counter should cycle back around
-        r = http.get(PREFIX + "/power/status/00000001/06FF")
+        r = http.get(PREFIX + '/power/status/00000001/06FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '0,0,0,0')
 
         # repeatable=false, so should not the counter back around
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/power/status/00000001/07FF")
+            http.get(PREFIX + '/power/status/00000001/07FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -230,58 +229,58 @@ class EmulatorCounterTestCase(unittest.TestCase):
         """
         # perform three http on the thermistor to get the count different from
         # the start count of the power
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 300)
+        self.assertEqual(response['temperature_c'], 300)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 301)
+        self.assertEqual(response['temperature_c'], 301)
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 302)
+        self.assertEqual(response['temperature_c'], 302)
 
         # start alternating between power and thermistor
-        r = http.get(PREFIX + "/power/status/00000001/05FF")
+        r = http.get(PREFIX + '/power/status/00000001/05FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "0,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '0,0,0,0')
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 303)
+        self.assertEqual(response['temperature_c'], 303)
 
-        r = http.get(PREFIX + "/power/status/00000001/05FF")
+        r = http.get(PREFIX + '/power/status/00000001/05FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "64,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '64,0,0,0')
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 304)
+        self.assertEqual(response['temperature_c'], 304)
 
-        r = http.get(PREFIX + "/power/status/00000001/05FF")
+        r = http.get(PREFIX + '/power/status/00000001/05FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "2048,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '2048,0,0,0')
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 305)
+        self.assertEqual(response['temperature_c'], 305)
 
-        r = http.get(PREFIX + "/power/status/00000001/05FF")
+        r = http.get(PREFIX + '/power/status/00000001/05FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["pmbus_raw"], "2056,0,0,0")
+        self.assertEqual(response['pmbus_raw'], '2056,0,0,0')
 
-        r = http.get(PREFIX + "/read/temperature/rack_1/00000001/08FF")
+        r = http.get(PREFIX + '/read/temperature/rack_1/00000001/08FF')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["temperature_c"], 306)
+        self.assertEqual(response['temperature_c'], 306)

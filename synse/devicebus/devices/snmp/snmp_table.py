@@ -27,7 +27,7 @@ import logging
 import string
 from binascii import hexlify
 
-from vapor_common.utils.argument_checker import ArgumentChecker
+from synse.vapor_common.utils.argument_checker import ArgumentChecker
 
 from .snmp_row import SnmpRow
 from .snmp_server_base import SnmpServerBase
@@ -61,7 +61,7 @@ class SnmpTable(object):
         # not be readable however, in which case None is fine.
         if 'index_column' in kwargs:
             self.index_column = ArgumentChecker.check_type(
-                'int', kwargs['index_column'])
+                basestring, kwargs['index_column'])
         else:
             self.index_column = None
 
@@ -69,7 +69,7 @@ class SnmpTable(object):
         # Provides a way to tell how many rows are in the table.
         if 'readable_column' in kwargs:
             self.readable_column = ArgumentChecker.check_type(
-                'int', kwargs['readable_column'])
+                int, kwargs['readable_column'])
         else:
             self.readable_column = None
 
@@ -78,13 +78,13 @@ class SnmpTable(object):
         # single row table.
         if 'flattened_table' in kwargs:
             self.flattened_table = ArgumentChecker.check_type(
-                'bool', kwargs['flattened_table'])
+                bool, kwargs['flattened_table'])
         else:
             self.flattened_table = False
 
         # Friendly names for each column in the table.
         # Example: ['id', 'index', 'name']
-        self.column_list = ArgumentChecker.check_type('list', kwargs['column_list'])
+        self.column_list = ArgumentChecker.check_type(list, kwargs['column_list'])
 
         # The SNMP Server (board) that this table is on. Needed for generating device ids.
         self.snmp_server = kwargs['snmp_server']
@@ -94,6 +94,8 @@ class SnmpTable(object):
         self.load()
 
     def _get_row_indexes(self, table_data):
+        """ Get a list of the indices for the rows in the table.
+        """
 
         prefix = self.walk_oid + '.'
         if self.row_base is not None:

@@ -74,7 +74,8 @@ class RS485Device(SerialDevice):
         }
 
     def __str__(self):
-        return '<{} (rack: {}, board: {:08x})>'.format(self.__class__.__name__, self.rack_id, self.board_id)
+        return '<{} (rack: {}, board: {:08x})>'.format(
+            self.__class__.__name__, self.rack_id, self.board_id)
 
     def __repr__(self):
         return self.__str__()
@@ -109,7 +110,8 @@ class RS485Device(SerialDevice):
                 for rs485_device in rack['devices']:
                     rs485_device['rack_id'] = rack['rack_id']
                     rs485_device['board_offset'] = app_config['RS485_BOARD_OFFSET'].next()
-                    rs485_device['board_id_range'] = device_config.get('board_id_range', const.RS485_BOARD_RANGE)
+                    rs485_device['board_id_range'] = device_config.get('board_id_range',
+                                                                       const.RS485_BOARD_RANGE)
                     rs485_device['hardware_type'] = rack.get('hardware_type', 'unknown')
                     rs485_device['device_name'] = rack['device_name']
                     rs485_device['lockfile'] = rack['lockfile']

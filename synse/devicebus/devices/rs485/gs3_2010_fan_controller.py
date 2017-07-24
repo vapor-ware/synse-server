@@ -32,11 +32,11 @@ import sys
 import lockfile
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
-from rs485_device import RS485Device
 
 import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
+from synse.devicebus.devices.rs485.rs485_device import RS485Device
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.conversions import conversions
@@ -116,7 +116,8 @@ class GS32010Fan(RS485Device):
         device_id = command.data[_s_.DEVICE_ID]
         fan_speed = int(command.data[_s_.FAN_SPEED])
 
-        # FIXME: override because main_blueprint doesn't distinguish between 'fan_speed' and 'vapor_fan'
+        # FIXME: override because main_blueprint doesn't distinguish between
+        # 'fan_speed' and 'vapor_fan'
         device_type_string = const.DEVICE_VAPOR_FAN
 
         try:
@@ -132,12 +133,14 @@ class GS32010Fan(RS485Device):
                 )
 
             # if we get here, there was no vapor_fan device found, so we must raise
-            logger.error('No response for fan control for command: {}'.format(command.data))
+            logger.error(
+                'No response for fan control for command: {}'.format(command.data))
             raise SynseException('No fan control response returned from RS485.')
 
         except Exception:
-            raise SynseException('Error controlling GS3-2010 fan controller (device id: {})'.format(
-                device_id)), None, sys.exc_info()[2]
+            raise SynseException(
+                'Error controlling GS3-2010 fan controller (device id: {})'.format(
+                    device_id)), None, sys.exc_info()[2]
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -156,9 +159,11 @@ class GS32010Fan(RS485Device):
 
         if device_type_string not in [const.DEVICE_VAPOR_FAN, const.DEVICE_FAN_SPEED]:
             # this command is not for us
-            raise SynseException('Incorrect device type "{}" for GS3-2010 fan.'.format(device_type_string))
+            raise SynseException(
+                'Incorrect device type "{}" for GS3-2010 fan.'.format(device_type_string))
 
-        # FIXME: override because main_blueprint doesn't distinguish between 'fan_speed' and 'vapor_fan'
+        # FIXME: override because main_blueprint doesn't distinguish between
+        # 'fan_speed' and 'vapor_fan'
         device_type_string = const.DEVICE_VAPOR_FAN
 
         try:
@@ -174,12 +179,14 @@ class GS32010Fan(RS485Device):
                 )
 
             # if we get here, there was no vapor_fan device found, so we must raise
-            logger.error('No response for fan control for command: {}'.format(command.data))
+            logger.error(
+                'No response for fan control for command: {}'.format(command.data))
             raise SynseException('No fan control response returned from RS485.')
 
         except Exception:
-            raise SynseException('Error controlling GS3-2010 fan controller (device id: {})'.format(
-                device_id)), None, sys.exc_info()[2]
+            raise SynseException(
+                'Error controlling GS3-2010 fan controller (device id: {})'.format(
+                    device_id)), None, sys.exc_info()[2]
 
     def _fan_control(self, action='status', speed_rpm=None):
         """ Internal method for fan control action.
@@ -199,22 +206,35 @@ class GS32010Fan(RS485Device):
                 if action == 'set_speed' and speed_rpm is not None:
                     GS32010Fan._check_fan_speed_setting(speed_rpm)
 
-                    with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
+                    with ModbusClient(method=self.method, port=self.device_name,
+                                      timeout=self.timeout) as client:
                         # write speed
-                        # This code is not doing conversion from rpm to hz, but afraid to touch it.
-                        # We will do the conversion on production hardware and leave the emulator code alone.
-                        result = client.write_registers(self._register_map['speed_rpm'], [speed_rpm], unit=self.unit)
+                        # This code is not doing conversion from rpm to hz, but afraid to
+                        # touch it. We will do the conversion on production hardware and
+                        # leave the emulator code alone.
+                        result = client.write_registers(
+                            self._register_map['speed_rpm'],
+                            [speed_rpm],
+                            unit=self.unit)
+
                         if result is None:
-                            raise SynseException('No response received for GS3-2010 fan control.')
+                            raise SynseException(
+                                'No response received for GS3-2010 fan control.')
                         elif isinstance(result, ExceptionResponse):
                             raise SynseException('RS485 Exception: {}'.format(result))
 
                 # in all cases, read out / compute the fan_speed from RS485
-                with ModbusClient(method=self.method, port=self.device_name, timeout=self.timeout) as client:
+                with ModbusClient(method=self.method, port=self.device_name,
+                                  timeout=self.timeout) as client:
                     # read speed
-                    result = client.read_holding_registers(self._register_map['speed_rpm'], count=1, unit=self.unit)
+                    result = client.read_holding_registers(
+                        self._register_map['speed_rpm'],
+                        count=1,
+                        unit=self.unit)
+
                     if result is None:
-                        raise SynseException('No response received for GS3-2010 fan control.')
+                        raise SynseException(
+                            'No response received for GS3-2010 fan control.')
                     elif isinstance(result, ExceptionResponse):
                         raise SynseException('RS485 Exception: {}'.format(result))
 
@@ -229,26 +249,26 @@ class GS32010Fan(RS485Device):
                     # Return the speed_rpm setting and not a read since the fan
                     # is likely ramping up or coasting down to the set speed.
                     return {const.UOM_VAPOR_FAN: speed_rpm}
-                else:
-                    rpm = self._get_rpm()
-                    direction = self._get_direction()
-                    return {
-                        const.UOM_VAPOR_FAN: rpm,
-                        const.UOM_DIRECTION: direction,
-                    }
 
-            else:
-                raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
-                    self.hardware_type))
+                rpm = self._get_rpm()
+                direction = self._get_direction()
+                return {
+                    const.UOM_VAPOR_FAN: rpm,
+                    const.UOM_DIRECTION: direction,
+                }
+
+            raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
+                self.hardware_type))
 
     @staticmethod
     def _check_fan_speed_setting(speed_rpm):
         """Ensure that the caller's speed_rpm setting is valid.
         :param speed_rpm: The speed_rpm setting from the caller.
         :raises: SynseException on failure."""
-        if not (MIN_FAN_SPEED_RPM <= speed_rpm <= MAX_FAN_SPEED_RPM):
+        if not MIN_FAN_SPEED_RPM <= speed_rpm <= MAX_FAN_SPEED_RPM:
             raise SynseException(
-                'Invalid speed setting {} for GS3-2010 fan control - must be between {} and {}'.format(
+                'Invalid speed setting {} for GS3-2010 fan control - '
+                'must be between {} and {}'.format(
                     speed_rpm, MIN_FAN_SPEED_RPM, MAX_FAN_SPEED_RPM)
             )
 

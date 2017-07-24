@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   08/29/2016
-    
+
     \\//
      \/apor IO
 
@@ -26,9 +26,9 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from asf import ASF
-from ipmi import IPMI
-from protocol_base import ProtocolBase
+from .asf import ASF
+from .ipmi import IPMI
+from .protocol_base import ProtocolBase
 
 
 class RMCP(ProtocolBase):
@@ -38,7 +38,7 @@ class RMCP(ProtocolBase):
     http://www.dmtf.org/sites/default/files/standards/documents/DSP0136.pdf
     and is also described in the IPMI 2.0 spec document
     """
-    asf_header  = [0x06, 0x00, 0xff, 0x06]
+    asf_header = [0x06, 0x00, 0xff, 0x06]
     ipmi_header = [0x06, 0x00, 0xff, 0x07]
 
     def __init__(self, raw_data, bmc):
@@ -108,20 +108,27 @@ class RMCP(ProtocolBase):
             raise ValueError('Currently only support ASF and IPMI message classes.')
 
     def validate(self):
-        # validate the RMCP header
-        _version, _reserved, _seq_num, _msg_class = self.header
+        """ Validate the RMCP header.
+        """
+        _version, _reserved, _, _ = self.header
 
         # check that the packet version matches with ASF RMCP v1.0
         if _version != chr(0x06):
-            raise ValueError('Expected ASF RMCP version 1.0 - unexpected version byte: {}'.format(hex(ord(_version))))
+            raise ValueError(
+                'Expected ASF RMCP version 1.0 - unexpected version byte: {}'.format(
+                    hex(ord(_version))))
 
         if _reserved != chr(0x00):
             raise ValueError('Malformed packet - reserved header byte not 0x00')
 
     def is_asf(self):
+        """ Check if the message is an ASF packet.
+        """
         return self.message and isinstance(self.message, ASF)
 
     def is_ipmi(self):
+        """ Check if the message is an IPMI packet.
+        """
         return self.message and isinstance(self.message, IPMI)
 
     @property

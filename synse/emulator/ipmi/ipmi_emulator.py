@@ -6,7 +6,7 @@ Docker container listening on port 623.
 
     Author: Erick Daniszewski
     Date:   08/29/2016
-    
+
     \\//
      \/apor IO
 
@@ -28,6 +28,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: disable=relative-import
 
 import argparse
 import SocketServer
@@ -43,7 +44,7 @@ class BMCRequestHandler(SocketServer.BaseRequestHandler):
     actual handling of the packet data to make a valid response.
     """
     def handle(self):
-        data, socket = self.request
+        data, _ = self.request
         bmc = self.server.bmc
 
         # model the incoming RMCP packet
@@ -57,7 +58,8 @@ class BMCRequestHandler(SocketServer.BaseRequestHandler):
                 _header = RMCP.asf_header
                 _body = ASF.make_pong(
                     # hardcoded here since the pong should always look the same
-                    [0x00, 0x00, 0x11, 0xbe, 0x00, 0x00, 0x00, 0x00, 0x81, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+                    [0x00, 0x00, 0x11, 0xbe, 0x00, 0x00, 0x00, 0x00, 0x81, 0x00,
+                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
                 )
 
                 resp = ''.join(map(chr, _header + _body))
@@ -101,6 +103,11 @@ class BMCServerEmulator(SocketServer.ThreadingUDPServer, object):
         )
 
     def debug(self, message):
+        """ Emit a debug message.
+
+        Args:
+            message (str): the message to emit.
+        """
         if self.debug_mode:
             print message
 
@@ -111,14 +118,14 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', type=int, default=623, help='BMC Port')
     parser.add_argument('-d', dest='debug', action='store_true', help='Run emulator in debug mode')
 
-    args = parser.parse_args()
+    _args = parser.parse_args()
 
-    server_address = ('0.0.0.0', args.port)
-    bmc_emulator = BMCServerEmulator(args.debug, server_address, BMCRequestHandler)
+    server_address = ('0.0.0.0', _args.port)
+    bmc_emulator = BMCServerEmulator(_args.debug, server_address, BMCRequestHandler)
 
     print '----------------------------------------------------------------------'
     print 'Configured BMC Emulator with server address: {}'.format(server_address)
-    print ' - Debug Mode: {}'.format(args.debug)
+    print ' - Debug Mode: {}'.format(_args.debug)
     print 'Serving...'
     print '----------------------------------------------------------------------'
 

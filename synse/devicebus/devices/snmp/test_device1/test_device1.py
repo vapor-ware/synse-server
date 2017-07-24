@@ -462,7 +462,7 @@ class TestDevice1(SnmpServerBase):
         """
         led_color_setting = int(command_led_color, 16)
         if led_color_setting > 0xFFFFFF:
-            raise ValueError("Maximum color is 0xffffff, got {:6x}.".format(
+            raise ValueError('Maximum color is 0xffffff, got {:6x}.'.format(
                 led_color_setting))
 
         # Convert to what pysnmp wants.
@@ -499,7 +499,7 @@ class TestDevice1(SnmpServerBase):
         elif command_led_state == 'on':
             data = Integer(2)
         else:
-            raise ValueError("LED state only be on or off, got {}.".format(
+            raise ValueError('LED state only be on or off, got {}.'.format(
                 command_led_state))  # TODO: Test
         write_oid, write_index = self.get_write_oid(
             self.led_table, base_oid, 'state')
@@ -540,6 +540,8 @@ class TestDevice1(SnmpServerBase):
         return power_state
 
     def _set_power_cycle(self, base_oid):
+        """ Cycle the power.
+        """
         self._set_power_off(base_oid)
         # In practice this may be different.
         # Depends on power on delay setting for PDUs.
@@ -548,9 +550,13 @@ class TestDevice1(SnmpServerBase):
         return self._set_power_on(base_oid)
 
     def _set_power_off(self, base_oid):
+        """ Set the power to 'off'.
+        """
         return self._set_power(base_oid, Integer(1))
 
     def _set_power_on(self, base_oid):
+        """ Set the power to 'on'.
+        """
         return self._set_power(base_oid, Integer(2))
 
     @staticmethod

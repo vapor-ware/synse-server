@@ -2,8 +2,7 @@
 """ A simple ping server used for debugging the IPMI emulator during development.
 
     Author: Erick Daniszewski
-    Date:   
-    
+
     \\//
      \/apor IO
 

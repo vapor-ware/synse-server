@@ -27,10 +27,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
-
 from synse.tests.test_config import PREFIX
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 
 class BootTargetTestCase(unittest.TestCase):
@@ -39,44 +38,44 @@ class BootTargetTestCase(unittest.TestCase):
     def test_001_read_ok(self):
         """ Read a valid boot target back.
         """
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0001")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "no_override")
+        self.assertEqual(response['target'], 'no_override')
 
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0001")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0001")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0001')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "pxe")
+        self.assertEqual(response['target'], 'pxe')
 
     def test_002_set_ok(self):
         """ Set boot target to valid value (will always return 'hdd' due to emulator config.
         """
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0002/hdd")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0002/hdd')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0002/pxe")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0002/pxe')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0002/no_override")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0002/no_override')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
     def test_003_read_empty(self):
         """ Read an empty data value back.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0003")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -85,25 +84,25 @@ class BootTargetTestCase(unittest.TestCase):
         """
         # 'B3'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0003")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # '2'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0003")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # '3'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0003")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
         # 'B?'
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0003")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0003')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -111,17 +110,17 @@ class BootTargetTestCase(unittest.TestCase):
         """ What happens when a bad value is set? (negative)
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0002/hard_disk")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0002/hard_disk')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0002/pixie")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0002/pixie')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0002/B0")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0002/B0')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -129,15 +128,15 @@ class BootTargetTestCase(unittest.TestCase):
         """ Test reading while specifying different representations (same value) for
         the device id
         """
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/000000002")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/000000002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], 'hdd')
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/000000002")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/000000002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], 'hdd')
+        self.assertEqual(response['target'], 'hdd')
 
     def test_007_read_board_id_invalid(self):
         """ Test read while specifying different invalid representations for the board id
@@ -145,42 +144,42 @@ class BootTargetTestCase(unittest.TestCase):
         not be set)
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/boot_target/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/boot_target/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/boot_target/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/boot_target/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/FFFFFFFF/1FF")
+            http.get(PREFIX + '/boot_target/rack_1/FFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/FFFFFFFFFFFFFFFF/1FF")
+            http.get(PREFIX + '/boot_target/rack_1/FFFFFFFFFFFFFFFF/1FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/20000000/00001FF")
+            http.get(PREFIX + '/boot_target/rack_1/20000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/10000000/00001FF")
+            http.get(PREFIX + '/boot_target/rack_1/10000000/00001FF')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -188,70 +187,70 @@ class BootTargetTestCase(unittest.TestCase):
         """ Test write with bad board.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000039/0001/hdd")
+            http.get(PREFIX + '/boot_target/rack_1/00000039/0001/hdd')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/-00000029/0001/hdd")
+            http.get(PREFIX + '/boot_target/rack_1/-00000029/0001/hdd')
 
         self.assertEqual(ctx.exception.status, 500)
 
     def test_009_rack_id_representation(self):
         """ Test read while specifying different values for the rack_id
         """
-        r = http.get(PREFIX + "/boot_target/rack_1/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/rack_1/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/STRING_NOT_RELATED_TO_RACK_AT_ALL/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/STRING_NOT_RELATED_TO_RACK_AT_ALL/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/STRING WITH SPACES/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/STRING WITH SPACES/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/123456789/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/123456789/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/123.456/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/123.456/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/-987654321/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/-987654321/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
-        r = http.get(PREFIX + "/boot_target/acceptable_chars_\@$-_.+!*'(),^&~:;|}{}][]>=<>/00000040/0002")
+        r = http.get(PREFIX + '/boot_target/acceptable_chars_\@$-_.+!*\'(),^&~:;|}{}][]>=<>/00000040/0002')
         self.assertTrue(http.request_ok(r.status_code))
         response = r.json()
-        self.assertEqual(response["target"], "hdd")
+        self.assertEqual(response['target'], 'hdd')
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target//00000040/0002")
+            http.get(PREFIX + '/boot_target//00000040/0002')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/bad_char?/00000040/0002")
+            http.get(PREFIX + '/boot_target/bad_char?/00000040/0002')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/bad_char#/00000040/0002")
+            http.get(PREFIX + '/boot_target/bad_char#/00000040/0002')
 
         self.assertEqual(ctx.exception.status, 404)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/bad_char%/00000040/0002")
+            http.get(PREFIX + '/boot_target/bad_char%/00000040/0002')
 
         self.assertEqual(ctx.exception.status, 404)
 
@@ -259,12 +258,12 @@ class BootTargetTestCase(unittest.TestCase):
         """ Test write with bad device.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/00FF/pxe")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/00FF/pxe')
 
         self.assertEqual(ctx.exception.status, 500)
 
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/-00FF/no_override")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/-00FF/no_override')
 
         self.assertEqual(ctx.exception.status, 500)
 
@@ -272,6 +271,6 @@ class BootTargetTestCase(unittest.TestCase):
         """ Test write with bad response.
         """
         with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + "/boot_target/rack_1/00000040/0003/hdd")
+            http.get(PREFIX + '/boot_target/rack_1/00000040/0003/hdd')
 
         self.assertEqual(ctx.exception.status, 500)

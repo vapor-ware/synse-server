@@ -32,7 +32,8 @@ from ipmi_emulator_throughput.test_ipmi_emulator_throughput import \
     IPMIEmulatorThroughputTestCase
 from ipmi_emulator_throughput.test_ipmi_emulator_throughput_failures import \
     IPMIEmulatorFailureThroughputTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

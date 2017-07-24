@@ -26,21 +26,29 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-# hard-code the bit within a 4-byte board id which corresponds to a given protocol
-# directive, for convenience and consistency
+# hard-code the bit within a 4-byte board id which corresponds to a given
+# protocol directive, for convenience and consistency
 
 SCAN_ALL_BIT = 31
 IPMI_BIT = 30
 SHUFFLE_BIT = 29
 SAVE_BIT = 28
 
-# define the 4-byte board ids which have the appropriate bits set in the upper byte
-# for internal protocol directives
 
-SCAN_ALL_BOARD_ID = 1 << SCAN_ALL_BIT  # set bit 7 of upper byte of board_id to 1=SCAN_ALL (0x80000000)
-IPMI_BOARD_ID = 1 << IPMI_BIT          # set bit 6 of upper byte of board_id to 1=IPMI (0x40000000)
-SHUFFLE_BOARD_ID = 1 << SHUFFLE_BIT    # set bit 5 of upper byte of board_id to 1=SHUFFLE (0x20000000)
-SAVE_BOARD_ID = 1 << SAVE_BIT          # set bit 4 of upper byte of board_id to 1=SAVE (0x10000000)
+# define the 4-byte board ids which have the appropriate bits set in the
+# upper byte for internal protocol directives
+
+# set bit 7 of upper byte of board_id to 1=SCAN_ALL (0x80000000)
+SCAN_ALL_BOARD_ID = 1 << SCAN_ALL_BIT
+
+# set bit 6 of upper byte of board_id to 1=IPMI (0x40000000)
+IPMI_BOARD_ID = 1 << IPMI_BIT
+
+# set bit 5 of upper byte of board_id to 1=SHUFFLE (0x20000000)
+SHUFFLE_BOARD_ID = 1 << SHUFFLE_BIT
+
+# set bit 4 of upper byte of board_id to 1=SAVE (0x10000000)
+SAVE_BOARD_ID = 1 << SAVE_BIT
 
 
 # fan speed constraints

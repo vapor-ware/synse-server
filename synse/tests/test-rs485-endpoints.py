@@ -29,7 +29,8 @@ import logging
 import unittest
 
 from rs485_endpoints.test_rs485_endpoints import Rs485EndpointsTestCase
-from vapor_common.test_utils import exit_suite, run_suite
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():
