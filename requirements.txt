@@ -14,4 +14,3 @@ pymodbus==1.2.0
 pyserial==2.7
 pysnmp==4.3.4
 requests==2.13.0
-uwsgi==2.0.15

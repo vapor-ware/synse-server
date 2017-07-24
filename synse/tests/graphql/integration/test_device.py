@@ -179,14 +179,14 @@ class TestDevice(BaseSchemaTest):
         self.assertItemsEqual(
             self.get_devices('test_fan_speed_device')[0].keys(), keys)
 
-    # def test_voltage(self):
-    #     keys = [
-    #         'voltage',
-    #         'timestamp',
-    #         'request_received'
-    #     ]
-    #     self.assertItemsEqual(
-    #         self.get_devices('test_voltage_device')[0].keys(), keys)
+    def test_voltage(self):
+        keys = [
+            'voltage',
+            'timestamp',
+            'request_received'
+        ]
+        self.assertItemsEqual(
+            self.get_devices('test_voltage_device')[0].keys(), keys)
 
     def test_pressure(self):
         keys = [
