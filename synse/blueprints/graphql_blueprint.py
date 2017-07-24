@@ -26,13 +26,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-# pylint: disable=line-too-long
 
 import logging
 
-from flask import Blueprint
-
-from flask import jsonify
+from flask import Blueprint, jsonify
 from flask_graphql import GraphQLView
 
 import synse.constants as const
@@ -65,5 +62,6 @@ graphql.add_url_rule(
     view_func=GraphQLView.as_view(
         'graphql',
         schema=local_schema,
-        graphiql=True)
+        graphiql=True
+    )
 )

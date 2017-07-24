@@ -26,7 +26,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import graphene
-
 from pylru import lrudecorator
 
 from . import util

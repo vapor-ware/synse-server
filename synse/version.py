@@ -30,7 +30,6 @@ from __future__ import print_function
 
 from synse import __version__
 
-
 _version = __version__.split('.')
 
 if len(_version) != 3:

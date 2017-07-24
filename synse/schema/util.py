@@ -25,8 +25,8 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging
 import functools
+import logging
 
 import requests
 import requests.compat
@@ -38,11 +38,18 @@ SESSION = requests.Session()
 logger = logging.getLogger(__name__)
 
 
-def make_request(url):
+def make_request(uri):
+    """Make a request to the provided URI.
+
+    Args:
+        uri (str): the uri to make the request for.
+
+    Returns:
+        the JSON loaded result from the request.
+    """
     base = 'http://{0}/synse/{1}/'.format(
         '0.0.0.0:5000', __api_version__)
-    logger.debug('>> REQUEST URL: {}'.format(requests.compat.urljoin(base, url)))
-    result = SESSION.get(requests.compat.urljoin(base, url))
+    result = SESSION.get(requests.compat.urljoin(base, uri))
     result.raise_for_status()
     return result.json()
 
@@ -71,14 +78,35 @@ def resolve_assets(cls):
 
 
 def arg_filter(val, fn, lst):
+    """
+
+    Args:
+        val ():
+        fn ():
+        lst ():
+
+    Returns:
+        list:
+    """
     if val is not None:
         return filter(fn, lst)
     return lst
 
 
 def partialmethod(f, *args, **kwargs):
+    """Implementation of the Python 3 functools.partialmethod
+    for Python 2.
+
+    Args:
+        f: the function being wrapped.
+        args: arguments to the function.
+        kwargs: keyword arguments to the function.
+
+    Returns:
+        the wrapped function partial
+    """
     @functools.wraps(f)
-    def partial(self, *pargs, **pkwargs):
+    def partial(self, *pargs, **pkwargs):  # pylint: disable=missing-docstring
         _kwargs = kwargs.copy()
         _kwargs.update(pkwargs)
         return f(self, *(args + pargs), **_kwargs)
