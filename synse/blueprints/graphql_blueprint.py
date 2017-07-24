@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-""" Main blueprint for Synse. This contains the core endpoints
-for Synse.
+""" Blueprint for the Synse graphql endpoints.
 
-    Author: Erick Daniszewski
-    Date:   09/24/2016
+    Author:  Thomas Rampelberg
+    Date:    2/24/2017
 
     \\//
      \/apor IO
