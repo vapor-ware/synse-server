@@ -29,9 +29,8 @@ import unittest
 import uuid
 from itertools import count
 
-import synse as sb
-
-from synse.devicebus.devices import PLCDevice, IPMIDevice, RedfishDevice
+import synse.app as sb
+from synse.devicebus.devices import IPMIDevice, PLCDevice, RedfishDevice
 from synse.errors import SynseException
 
 

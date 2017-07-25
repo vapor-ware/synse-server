@@ -25,6 +25,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import errno
 import json
 import logging
@@ -34,8 +35,8 @@ from Queue import Queue
 
 from flask import current_app, g, jsonify
 
-import constants as const
-from errors import SynseException
+import synse.constants as const
+from synse.errors import SynseException
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +90,7 @@ def normalize_board_id(board_id):
     """
     if isinstance(board_id, int):
         return board_id_to_hex_string(board_id)
-    else:
-        return board_id
+    return board_id
 
 
 def board_id_to_hex_string(hex_value):
@@ -185,8 +185,7 @@ def normalize_device_id(device_id):
     """
     if isinstance(device_id, int):
         return device_id_to_hex_string(device_id)
-    else:
-        return device_id
+    return device_id
 
 
 def device_id_to_hex_string(hex_value):
@@ -268,8 +267,7 @@ def get_device_type_code(device_type):
     """
     if device_type in const.device_name_codes:
         return const.device_name_codes[device_type]
-    else:
-        return const.device_name_codes[const.DEVICE_NONE]
+    return const.device_name_codes[const.DEVICE_NONE]
 
 
 def get_device_type_name(device_code):
@@ -324,7 +322,8 @@ def check_valid_board_and_device(board_id=None, device_id=None):
     try:
         device_id_int = int(device_id, 16)
     except (ValueError, TypeError):
-        # we still allow the process to proceed, as device_id may be the device_id string where applicable
+        # we still allow the process to proceed, as device_id may be the device_id
+        # string where applicable
         logger.debug('Error converting device_id to int: {}'.format(device_id))
         return board_id_int, device_id
     else:

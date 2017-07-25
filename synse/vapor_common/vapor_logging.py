@@ -25,10 +25,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
+import json
 import logging
 import logging.config
 import os
-import json
 
 _startup_logger = None
 
@@ -56,7 +56,8 @@ def _init_startup_logger():
         # container isn't configured internally for the setup logger.
         return logging.getLogger(__name__)
 
-    formatter = logging.Formatter('[CONTAINER STARTUP ERROR] (%(asctime)s - %(module)s:%(lineno)s): %(message)s')
+    formatter = logging.Formatter(
+        '[CONTAINER STARTUP ERROR] (%(asctime)s - %(module)s:%(lineno)s): %(message)s')
     handler = logging.FileHandler('/logs/err')
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)

@@ -26,18 +26,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+# pylint: skip-file
+# todo: this file will eventually need to have linting enabled. since
+# it is old and large, there is a lot in here that needs to be cleaned up.
+
+
 import logging
+
 import serial
 
-from synse.errors import *
 from synse.constants import *
-from synse.utils import (
-    board_id_to_bytes,
-    device_id_to_bytes,
-    board_id_join_bytes,
-    device_id_join_bytes,
-    get_device_type_code
-)
+from synse.errors import *
+from synse.utils import (board_id_join_bytes, board_id_to_bytes,
+                         device_id_join_bytes, device_id_to_bytes,
+                         get_device_type_code)
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +79,8 @@ class DeviceBus(object):
     """ DeviceBus is an abstraction layer on top of serial connection that
     mediates access to the device bus based on the hardware profile in use.
     """
-    def __init__(self, hardware_type=DEVICEBUS_UNKNOWN_HARDWARE, device_name=None, timeout=0.25, bps=115200):
+    def __init__(self, hardware_type=DEVICEBUS_UNKNOWN_HARDWARE, device_name=None,
+                 timeout=0.25, bps=115200):
         """ Constructor for the DeviceBus, which is used to communicate with
         devices on the configured bus.
 
@@ -113,16 +116,24 @@ class DeviceBus(object):
             pass
 
         else:
-            msg = 'Invalid hardware_type specified for reading device bus. {}'.format(self.hardware_type)
+            msg = ('Invalid hardware_type specified for reading device bus. '
+                   '{}'.format(self.hardware_type))
             logger.error(msg)
             raise ValueError(msg)
 
         # at this point, the serial connection is ready to go,
         # so set up the serial_device based on device_name
-        self.serial_device = serial.Serial(self.serial_device_name, self.speed_bps, timeout=self.timeout)
+        self.serial_device = serial.Serial(
+            self.serial_device_name,
+            self.speed_bps,
+            timeout=self.timeout
+        )
         self.flush_all()
-        logger.debug('Initialized DeviceBus with hardware: %d device_name: %s speed: %d timeout: %d',
-                     self.hardware_type, self.serial_device_name, self.speed_bps, self.timeout or 0)
+
+        logger.debug(
+            'Initialized DeviceBus with hardware: {} device_name: {} speed: {} '
+            'timeout: {}'.format(self.hardware_type, self.serial_device_name,
+                                 self.speed_bps, self.timeout or 0))
 
     def flush_all(self):
         """ Flush all input and output from the serial buffers.

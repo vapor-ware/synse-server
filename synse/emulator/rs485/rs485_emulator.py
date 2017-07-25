@@ -28,19 +28,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from pymodbus.server.sync import ModbusSerialServer
-
-from pymodbus.device import ModbusDeviceIdentification
-from pymodbus.datastore.store import BaseModbusDataBlock
-from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
-
-from pymodbus.transaction import ModbusRtuFramer
 
 import json
 import logging
 import sys
 
-import vapor_common.vapor_logging as vapor_logging
+from pymodbus.datastore import ModbusServerContext, ModbusSlaveContext
+from pymodbus.datastore.store import BaseModbusDataBlock
+from pymodbus.device import ModbusDeviceIdentification
+from pymodbus.server.sync import ModbusSerialServer
+from pymodbus.transaction import ModbusRtuFramer
+
+import synse.vapor_common.vapor_logging as vapor_logging
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +53,14 @@ class EmulatorDataBlock(BaseModbusDataBlock):
         self.values = values
         self.address = 0
         self.default_value = 0
-        self._state = dict()        # state tracking for cycling through responses
+        self._state = dict()  # state tracking for cycling through responses
 
     def _get_next_value(self, address):
+        """ Get the next value from the emulator values for the given address.
+        """
         if isinstance(self.values[address], list):
-            # if we have a list of values for a given register, add, retrieve and update the state counter
-            # for the given address, and return the next value from the list
+            # if we have a list of values for a given register, add, retrieve and update
+            # the state counter for the given address, and return the next value from the list
             self._state[address] = dict() if address not in self._state else self._state[address]
             _count = self._state[address]['_count'] if '_count' in self._state[address] else 0
             val = self.values[address][_count]
@@ -70,11 +71,15 @@ class EmulatorDataBlock(BaseModbusDataBlock):
         return self.values[address]
 
     def getValues(self, address, count=1):
+        """ Get the values for the given address.
+        """
         address -= 1    # 0-based addressing for Vapor applications
         logger.debug('GET: Address {} Count {} Values {}'.format(address, count, self.values))
         return [self._get_next_value(i) for i in range(address, address + count)]
 
     def setValues(self, address, values):
+        """ Set the values for the given address.
+        """
         address -= 1    # 0-based addressing for Vapor applications
         logger.debug('SET: Address {} Values {}'.format(address, values))
         if isinstance(values, dict):
@@ -87,6 +92,8 @@ class EmulatorDataBlock(BaseModbusDataBlock):
                 self.values[address + idx] = val
 
     def validate(self, address, count=1):
+        """ Validate the emulator data block.
+        """
         address -= 1    # 0-based addressing for Vapor applications
         logger.debug('VALIDATE: Address {} Count {}'.format(address, count))
         if count == 0:
@@ -104,17 +111,19 @@ def main():
     """
     slaves = dict()
     for device in emulator_config['devices']:
-        # for each device (unit), create an EmulatorDataBlock that has the register map defined in config
+        # for each device (unit), create an EmulatorDataBlock that has the register
+        # map defined in config
 
-        def _convert_register(v):
+        def _convert_register(v):  # pylint: disable=missing-docstring
             if isinstance(v, list):
                 # return a list of converted values
                 return [int(x, 16) for x in v]
-            else:
-                # convert single value to int
-                return int(v, 16)
+            # convert single value to int
+            return int(v, 16)
 
-        block = EmulatorDataBlock({int(k, 16): _convert_register(v) for k, v in device['holding_registers'].items()})
+        block = EmulatorDataBlock({int(k, 16): _convert_register(v) for k, v in
+                                   device['holding_registers'].items()})
+
         logger.error('Device: {} Block: {}'.format(device['device_address'], block.values))
         store = ModbusSlaveContext(di=block, co=block, hr=block, ir=block)
         slaves[device['device_address']] = store

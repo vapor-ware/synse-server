@@ -27,12 +27,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from synse.errors import SynseException
+
 from synse.definitions import BMC_PORT
-from vapor_ipmi_common import IpmiCommand
+from synse.devicebus.devices.ipmi.vapor_ipmi_common import IpmiCommand
+from synse.errors import SynseException
 
 
-def get_flex_victoria_power_reading(username=None, password=None, ip_address=None, port=BMC_PORT):
+def get_flex_victoria_power_reading(username=None, password=None, ip_address=None,
+                                    port=BMC_PORT):
     """ Flex Ciii Victoria 2508 power reading retrieval.
 
     Uses master r/w command to retrieve the power status from the two PSUs;
@@ -58,13 +60,17 @@ def get_flex_victoria_power_reading(username=None, password=None, ip_address=Non
     psu0_power = 0
     psu1_power = 0
 
-    with IpmiCommand(ip_address=ip_address, username=username, password=password, port=port) as ipmicmd:
+    with IpmiCommand(ip_address=ip_address, username=username, password=password,
+                     port=port) as ipmicmd:
         # get PSU0 consumption
         try:
-            result = ipmicmd.raw_command(netfn=0x06, command=0x52, data=(0xa0, 0xb0, 0x02, 0x96))
+            result = ipmicmd.raw_command(
+                netfn=0x06, command=0x52, data=(0xa0, 0xb0, 0x02, 0x96))
+
             if 'error' in result:
                 raise SynseException(
-                    'Error executing master r/w command on {} : {}'.format(ip_address, result['error'])
+                    'Error executing master r/w command on {} : {}'.format(
+                        ip_address, result['error'])
                 )
             psu0_power = _convert_linear_11((result['data'][1] << 8) | result['data'][0])
         except Exception:
@@ -73,10 +79,13 @@ def get_flex_victoria_power_reading(username=None, password=None, ip_address=Non
 
         # get PSU1 consumption
         try:
-            result = ipmicmd.raw_command(netfn=0x06, command=0x52, data=(0xa0, 0xb2, 0x02, 0x96))
+            result = ipmicmd.raw_command(
+                netfn=0x06, command=0x52, data=(0xa0, 0xb2, 0x02, 0x96))
+
             if 'error' in result:
                 raise SynseException(
-                    'Error executing master r/w command on {} : {}'.format(ip_address, result['error'])
+                    'Error executing master r/w command on {} : {}'.format(
+                        ip_address, result['error'])
                 )
             psu1_power = _convert_linear_11((result['data'][1] << 8) | result['data'][0])
         except Exception:
@@ -90,7 +99,8 @@ def _convert_linear_11(linear_value):
     """ Convert a 16-bit (2-byte) value to float using linear data
     format conversion.
 
-    (see http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf 7.1 (p21))
+    see http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf
+    section 7.1 (p21)
 
     X = Y * 2^N
     ___________________
@@ -107,7 +117,7 @@ def _convert_linear_11(linear_value):
     Returns:
         float: the converted value.
     """
-    def _twos_comp(val, bits):
+    def _twos_comp(val, bits):  # pylint: disable=missing-docstring
         if (val & (1 << (bits - 1))) != 0:
             val = (val - (1 << bits))
         return val

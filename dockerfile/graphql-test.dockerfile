@@ -1,12 +1,13 @@
-FROM python:3.6-alpine
+FROM python:2.7-alpine
 MAINTAINER Thomas Rampelberg <thomasr@vapor.io>
 
 RUN mkdir /logs
-COPY graphql/requirements.txt /graphql_frontend/requirements.txt
-COPY graphql/testing-requirements.txt /graphql_frontend/testing-requirements.txt
-RUN apk add --update alpine-sdk python3-dev && \
-  pip install -r /graphql_frontend/testing-requirements.txt && \
-  pip install -r /graphql_frontend/requirements.txt
 
-WORKDIR /graphql_frontend
+COPY requirements.txt /synse/requirements.txt
+COPY test-requirements.txt /synse/test-requirements.txt
+
+RUN apk add --update alpine-sdk python-dev \
+    && pip install -r /synse/test-requirements.txt
+
+WORKDIR /synse
 CMD /bin/sh -c "while true; do sleep 100; done"

@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   08/31/2016
-    
+
     \\//
      \/apor IO
 
@@ -25,8 +25,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import os
+
 import json
+import os
 
 
 class FRU(object):
@@ -61,7 +62,8 @@ class FRU(object):
             FRU: an instance of the FRU object
         """
         if not os.path.isfile(config_file):
-            raise ValueError('Specified config file for FRU record not found : {}'.format(config_file))
+            raise ValueError(
+                'Specified config file for FRU record not found : {}'.format(config_file))
 
         # let any exception propagate upwards so the user knows there was a misconfiguration
         with open(config_file, 'r') as f:
@@ -82,7 +84,7 @@ class FRU(object):
             list[int]: the bytes corresponding to the FRU Read response data.
         """
         data = packet.data
-        fru_id = data[0]
+        fru_id = data[0]  # pylint: disable=unused-variable
         offset = data[1:3]
         count = data[3]
 

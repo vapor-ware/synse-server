@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield&circle-token=8b259c633bf9886a9f4330a6b2d1835d12e11126)](https://circleci.com/gh/vapor-ware/synse-server)
 <img src="https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png" width=25% align=right>
 
 # Synse Server

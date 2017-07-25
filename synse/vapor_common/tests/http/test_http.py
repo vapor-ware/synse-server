@@ -25,11 +25,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
-import requests.exceptions as req
 
-from vapor_common.errors import VaporHTTPError, VaporRequestError, VaporError
+import unittest
+
+import requests.exceptions as req
 from vapor_common import http
+from vapor_common.errors import VaporError, VaporHTTPError, VaporRequestError
 from vapor_common.utils.cache import Cache
 
 

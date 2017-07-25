@@ -25,23 +25,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
+
 import json
-import threading
-import sys
-from pyghmi.exceptions import *
+import logging
 import os
+import sys
+import threading
+
+from pyghmi.exceptions import IpmiException
 
 import synse.strings as _s_
+from synse import constants as const
+from synse.definitions import BMC_PORT
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.ipmi import vapor_ipmi
-from synse import constants as const
+from synse.devicebus.devices.lan_device import LANDevice
 from synse.devicebus.response import Response
 from synse.errors import SynseException
-from synse.definitions import BMC_PORT
 from synse.utils import ThreadPool, get_measure_for_device_type
 from synse.version import __api_version__, __version__
-from synse.devicebus.devices.lan_device import LANDevice
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +68,10 @@ class IPMIDevice(LANDevice):
 
         # these are optional values, so they may not exist in the config.
         self.bmc_port = kwargs.get('bmc_port', BMC_PORT)  # 623 default port for ipmi
-        # FIXME (etd): should the bmc_ip go in the hostnames field? its not a hostname and is already exposed via 'ip_addresses'
-        self.hostnames = kwargs.get('hostnames', [self.bmc_ip])     # TODO: put dcmi hostname here if applicable
+        # FIXME (etd): should the bmc_ip go in the hostnames field? its not a hostname
+        #   and is already exposed via 'ip_addresses'
+        # TODO: put dcmi hostname here if applicable
+        self.hostnames = kwargs.get('hostnames', [self.bmc_ip])
         self.ip_addresses = kwargs.get('ip_addresses', [self.bmc_ip])
         self.scan_on_init = kwargs.get('scan_on_init', True)
 
@@ -106,9 +110,9 @@ class IPMIDevice(LANDevice):
             with open(self._app_cfg['SCAN_CACHE'], 'r') as f:
                 scan_cache = json.load(f)
 
-            # attempt to complete initialization using the cache. if this succeeds, the board id and the
-            # board record will be updated (will no longer be None). if neither were updated, we will
-            # initialize the board through 'normal' means next.
+            # attempt to complete initialization using the cache. if this succeeds, the board id
+            # and the board record will be updated (will no longer be None). if neither were
+            # updated, we will initialize the board through 'normal' means next.
             self._load_from_cache(scan_cache)
 
         # assign board_id based on incoming data
@@ -144,19 +148,20 @@ class IPMIDevice(LANDevice):
 
                 # the rack ids match -- this scan result belongs with this IPMI device instance
                 if self.bmc_rack == rack_id:
-                    # next, we get the associated board info for this IPMIDevice. the assumption here
-                    # is that because a previous scan would operate on a previous IPMIDevice, and since
-                    # IPMIDevice either uses its existing ip_addresses list (which should be a unique
-                    # identifier) or adds its bmc_ip to the ip_addresses list, we can determine which
-                    # board belongs to this device based on that information.
+                    # next, we get the associated board info for this IPMIDevice. the assumption
+                    # here is that because a previous scan would operate on a previous IPMIDevice,
+                    # and since IPMIDevice either uses its existing ip_addresses list (which should
+                    # be a unique identifier) or adds its bmc_ip to the ip_addresses list, we can
+                    # determine which board belongs to this device based on that information.
                     for board in rack.get('boards', []):
                         if self.ip_addresses == board['ip_addresses']:
                             # this is our board!
                             self.board_id = int(board['board_id'], 16)
 
-                            # if 'device_interface' is listed in the scan cache, we want to ignore that.
-                            # the device_interface is UUIDs mapped to the interface, which would not be
-                            # the same if reloading. a new UUID will be generated for this interface later.
+                            # if 'device_interface' is listed in the scan cache, we want to ignore
+                            # that. the device_interface is UUIDs mapped to the interface, which
+                            # would not be the same if reloading. a new UUID will be generated for
+                            # this interface later.
                             if 'device_interface' in board:
                                 del board['device_interface']
 
@@ -164,7 +169,8 @@ class IPMIDevice(LANDevice):
                             logger.debug('Successfully loaded device state from scan cache.')
                             return
 
-        logger.debug('Failed to load device from scan cache - will continue initializing normally.')
+        logger.debug(
+            'Failed to load device from scan cache - will continue initializing normally.')
 
         # if we get here, this IPMI device is not in the scan cache. this means we will
         # need to scan it "normally". for this, we need not do anything, as the logic in
@@ -202,9 +208,13 @@ class IPMIDevice(LANDevice):
                 otherwise. If an error is raised, this command returns False.
         """
         try:
-            # 0x01 is the parameter selector for the general capabilities, which includes power management
-            return vapor_ipmi.get_dcmi_capabilities(parameter_selector=0x01, **self._ipmi_kwargs)['power_management']
-        except:
+            # 0x01 is the parameter selector for the general capabilities, which includes
+            # power management
+            return vapor_ipmi.get_dcmi_capabilities(
+                parameter_selector=0x01, **self._ipmi_kwargs)['power_management']
+        except Exception as e:
+            logger.warning(
+                'Failed to get DCMI capabilities - assuming not supported: {}'.format(e))
             return False
 
     def _get_fru_info(self):
@@ -217,7 +227,9 @@ class IPMIDevice(LANDevice):
         try:
             return vapor_ipmi.get_inventory(**self._ipmi_kwargs)
         except Exception, e:
-            logger.warning('Error retrieving inventory at startup scan for BMC ({}) : {}'.format(self.bmc_ip, e))
+            logger.warning(
+                'Error retrieving inventory at startup scan for BMC '
+                '({}) : {}'.format(self.bmc_ip, e))
             return None
 
     def _get_board_record(self):
@@ -246,7 +258,8 @@ class IPMIDevice(LANDevice):
         try:
             sensors = vapor_ipmi.sensors(**self._ipmi_kwargs)
         except (SynseException, IpmiException, NotImplementedError) as e:
-            logger.error('Unable to retrieve sensors for BMC: {} ({})'.format(self.bmc_ip, e.message))
+            logger.error('Unable to retrieve sensors for BMC: {} ({})'.format(
+                self.bmc_ip, e.message))
             board_record = None
         except ValueError:
             logger.error('Invalid string in configuration for BMC: {}'.format(self.bmc_ip))
@@ -269,7 +282,8 @@ class IPMIDevice(LANDevice):
                     }
                 )
             else:
-                logger.warning('Sensor type "{}" is not supported.. skipping over.'.format(sensor_type))
+                logger.warning('Sensor type "{}" is not supported.. skipping over.'.format(
+                    sensor_type))
 
         return board_record
 
@@ -351,7 +365,8 @@ class IPMIDevice(LANDevice):
             raise SynseException('Failed to initialize IPMI devices.')
 
     @staticmethod
-    def _process_bmc(bmc, app_config, rack_id, board_range, device_init_failure, mutate_lock, devices, single_board_devices):
+    def _process_bmc(bmc, app_config, rack_id, board_range, device_init_failure, mutate_lock,
+                     devices, single_board_devices):
         """ A private method to handle the construction of the IPMI device from
         the bmc record.
 
@@ -392,7 +407,8 @@ class IPMIDevice(LANDevice):
         with mutate_lock:
             devices[ipmi_device.device_uuid] = ipmi_device
 
-            # this is a device that owns a single board_id so it gets tucked into _single_board_devices
+            # this is a device that owns a single board_id so it gets tucked into
+            # _single_board_devices
             single_board_devices[ipmi_device.board_id] = ipmi_device
 
             # next, add hostname and ip address keying for friendly (non-board-id lookup)
@@ -402,7 +418,8 @@ class IPMIDevice(LANDevice):
                         single_board_devices[hostname] = ipmi_device
                     else:
                         logger.info(
-                            'Duplicate hostname ({}) found in BMC configuration - skipping.'.format(hostname)
+                            'Duplicate hostname ({}) found in BMC configuration - '
+                            'skipping.'.format(hostname)
                         )
 
             if ipmi_device.ip_addresses is not None:
@@ -411,7 +428,8 @@ class IPMIDevice(LANDevice):
                         single_board_devices[ip_address] = ipmi_device
                     else:
                         logger.info(
-                            'Duplicate IP address ({}) found in BMC configuration - skipping.'.format(ip_address)
+                            'Duplicate IP address ({}) found in BMC configuration - '
+                            'skipping.'.format(ip_address)
                         )
 
     def _version(self, command):
@@ -506,7 +524,8 @@ class IPMIDevice(LANDevice):
         try:
             device = self._get_device_by_id(device_id, device_type_string)
 
-            reading = vapor_ipmi.read_sensor(sensor_name=device['device_info'], **self._ipmi_kwargs)
+            reading = vapor_ipmi.read_sensor(sensor_name=device['device_info'],
+                                             **self._ipmi_kwargs)
             response = dict()
 
             uom = get_measure_for_device_type(device['device_type'])
@@ -523,11 +542,13 @@ class IPMIDevice(LANDevice):
                 )
 
             # if we get here, there was no sensor device found, so we must raise
-            logger.error('No response for sensor reading for command: {}'.format(command.data))
+            logger.error('No response for sensor reading for command: {}'.format(
+                command.data))
             raise SynseException('No sensor reading returned from BMC.')
 
         except Exception:
-            raise SynseException('Error reading IPMI sensor (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error reading IPMI sensor (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _power(self, command):
         """ Power control command for a given board and device.
@@ -564,17 +585,17 @@ class IPMIDevice(LANDevice):
             # validate device supports power control
             self._get_device_by_id(device_id, const.DEVICE_POWER)
 
-            power_status = vapor_ipmi.power(cmd=power_action, reading_method=reading_method,**self._ipmi_kwargs)
+            power_status = vapor_ipmi.power(cmd=power_action, reading_method=reading_method,
+                                            **self._ipmi_kwargs)
 
-            """
-            NB(ABC): disabled this but it could be re-enabled - if the DCMI Power Reading command is giving
-                     trouble elsewhere, we could re-enable this, but the checks done at startup should
-                     obviate the need for this logic for now.
-            # check reading method, and if 'dcmi' and input_power is 'unknown', set reading_method to
-            # 'None' in the future; 'unknown' indicates an exception occurred, which we do not wish to repeat
-            if reading_method == 'dcmi' and power_status['input_power'] == 'uknown':
+            # NB(ABC): disabled this but it could be re-enabled - if the DCMI Power Reading
+            #    command is giving trouble elsewhere, we could re-enable this, but the checks
+            #    done at startup should obviate the need for this logic for now.
+            # check reading method, and if 'dcmi' and input_power is 'unknown', set reading_method
+            # to 'None' in the future; 'unknown' indicates an exception occurred, which we do not
+            # wish to repeat
+            if reading_method == 'dcmi' and power_status['input_power'] == 'unknown':
                 self.dcmi_supported = False
-            """
 
             if power_status is not None:
                 return Response(
@@ -587,7 +608,8 @@ class IPMIDevice(LANDevice):
             raise SynseException('No response from BMC for power control action.')
 
         except Exception:
-            raise SynseException('Error for power control via IPMI (device id: {}).'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error for power control via IPMI (device id: {}).'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _asset(self, command):
         """ Asset info command for a given board and device.
@@ -616,10 +638,12 @@ class IPMIDevice(LANDevice):
                 )
 
             logger.error('No response getting asset info for {}'.format(command.data))
-            raise SynseException('No response from BMC when retrieving asset information via IPMI.')
+            raise SynseException(
+                'No response from BMC when retrieving asset information via IPMI.')
 
         except Exception:
-            raise SynseException('Error getting IPMI asset info (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error getting IPMI asset info (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _boot_target(self, command):
         """ Boot target command for a given board and device.
@@ -644,7 +668,8 @@ class IPMIDevice(LANDevice):
                 self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
                 boot_info = vapor_ipmi.get_boot(**self._ipmi_kwargs)
             else:
-                boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] else boot_target
+                boot_target = _s_.BT_NO_OVERRIDE if boot_target not in [_s_.BT_PXE, _s_.BT_HDD] \
+                    else boot_target
                 self._get_device_by_id(device_id, const.DEVICE_SYSTEM)
                 boot_info = vapor_ipmi.set_boot(target=boot_target, **self._ipmi_kwargs)
 
@@ -658,7 +683,8 @@ class IPMIDevice(LANDevice):
             raise SynseException('No response from BMC on boot target operation via IPMI.')
 
         except Exception:
-            raise SynseException('Error getting or setting IPMI boot target (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error getting or setting IPMI boot target '
+                                 '(device id: {})'.format(device_id)), None, sys.exc_info()[2]
 
     def _led(self, command):
         """ LED command for a given board and device.
@@ -683,8 +709,10 @@ class IPMIDevice(LANDevice):
             if led_state is not None:
                 self._get_device_by_id(device_id, const.DEVICE_LED)
                 led_state = 0 if led_state.lower() == _s_.LED_OFF else 1
-                led_response = vapor_ipmi.set_identify(led_state=led_state, **self._ipmi_kwargs)
-                led_response['led_state'] = _s_.LED_OFF if led_response['led_state'] == 0 else _s_.LED_ON
+                led_response = vapor_ipmi.set_identify(led_state=led_state,
+                                                       **self._ipmi_kwargs)
+                led_response['led_state'] = _s_.LED_OFF if led_response['led_state'] == 0 \
+                    else _s_.LED_ON
             else:
                 self._get_device_by_id(device_id, const.DEVICE_LED)
                 led_response = vapor_ipmi.get_identify(**self._ipmi_kwargs)
@@ -699,7 +727,8 @@ class IPMIDevice(LANDevice):
             raise SynseException('No response from BMC on LED operation via IPMI.')
 
         except Exception:
-            raise SynseException('Error with LED control (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error with LED control (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _fan(self, command):
         """ Fan speed control command for a given board and device.
@@ -746,7 +775,8 @@ class IPMIDevice(LANDevice):
             raise SynseException('No response from BMC on fan operation via IPMI.')
 
         except Exception:
-            raise SynseException('Error with fan control (device id: {})'.format(device_id)), None, sys.exc_info()[2]
+            raise SynseException('Error with fan control (device id: {})'.format(
+                device_id)), None, sys.exc_info()[2]
 
     def _host_info(self, command):
         """ Get the host information for a given board.

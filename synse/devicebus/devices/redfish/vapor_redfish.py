@@ -27,13 +27,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 
-from redfish_connection import get_data
-from redfish_connection import post_action
-from redfish_connection import patch_data
+from synse.devicebus.devices.redfish import redfish_connection as conn
 from synse.errors import SynseException
-
 
 logger = logging.getLogger(__name__)
 
@@ -56,13 +54,13 @@ def find_sensors(links, timeout, username, password):
     sensors = dict()
 
     try:
-        sensors['thermal'] = get_data(
+        sensors['thermal'] = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
             password=password
         )
-        sensors['power'] = get_data(
+        sensors['power'] = conn.get_data(
             link=links[1],
             timeout=timeout,
             username=username,
@@ -70,8 +68,13 @@ def find_sensors(links, timeout, username, password):
         )
     except ValueError as e:
         unfound = ', '.join({'thermal', 'power'}.difference(sensors.keys()))
-        logger.error('Information about sensors on {} schema(s) not retrieved on GET: {}'.format(unfound, e.message))
-        raise SynseException('Cannot retrieve sensor data on {} schema(s): {}'.format(unfound, e.message))
+        logger.error(
+            'Information about sensors on {} schema(s) not retrieved '
+            'on GET: {}'.format(unfound, e.message)
+        )
+        raise SynseException(
+            'Cannot retrieve sensor data on {} schema(s): {}'.format(unfound, e.message)
+        )
 
     try:
         counter = 0
@@ -126,13 +129,13 @@ def get_power(links, timeout, username, password):
     power_data = dict()
 
     try:
-        power_data['power'] = get_data(
+        power_data['power'] = conn.get_data(
             link=links[1],
             timeout=timeout,
             username=username,
             password=password
         )
-        power_data['systems'] = get_data(
+        power_data['systems'] = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -140,22 +143,31 @@ def get_power(links, timeout, username, password):
         )
     except ValueError as e:
         unfound = ', '.join({'power', 'systems'}.difference(power_data.keys()))
-        logger.error('No data retrieved for {} schema(s) on GET: {}'.format(unfound, e.message))
-        raise SynseException('Cannot retrieve data from {} schema(s): {}'.format(unfound, e.message))
+        logger.error(
+            'No data retrieved for {} schema(s) on GET: {}'.format(unfound, e.message)
+        )
+        raise SynseException(
+            'Cannot retrieve data from {} schema(s): {}'.format(unfound, e.message)
+        )
 
     try:
         response['power_status'] = power_data['systems']['PowerState'].lower()
         power_data['power'] = power_data['power']['PowerControl'][0]
-        if float(power_data['power']['PowerConsumedWatts']) > float(power_data['power']['PowerLimit']['LimitInWatts']):
-            response['over_current'] = True
-        else:
-            response['over_current'] = False
-        response['power_ok'] = True if power_data['power']['Status']['Health'].lower() == 'ok' else False
-        response['input_power'] = float(power_data['power']['PowerConsumedWatts'])
+
+        consumed_watts = power_data['power']['PowerConsumedWatts']
+        power_limit = power_data['power']['PowerLimit']['LimitInWatts']
+
+        response['over_current'] = bool(float(consumed_watts) > float(power_limit))
+
+        health = power_data['power']['Status']['Health']
+        response['power_ok'] = True if health.lower() == 'ok' else False
+        response['input_power'] = float(consumed_watts)
         return response
     except KeyError as e:
-        logger.error('Incomplete or no data from GET on systems and power schemas'.format(e.message))
-        raise SynseException('Cannot retrieve power data.'.format(e.message))
+        logger.error(
+            'Incomplete or no data from GET on systems and power schemas: {}'.format(e.message)
+        )
+        raise SynseException('Cannot retrieve power data. {}'.format(e.message))
 
 
 def set_power(power_action, links, timeout, username, password):
@@ -186,7 +198,7 @@ def set_power(power_action, links, timeout, username, password):
     if _payload:
         _payload = {'ResetType': _payload}
         try:
-            post_action(
+            conn.post_action(
                 link=action_link,
                 payload=_payload,
                 timeout=timeout,
@@ -201,8 +213,12 @@ def set_power(power_action, links, timeout, username, password):
             )
             return response
         except ValueError as e:
-            logger.error('Power not set with POST or response not returned on GET: {}'.format(e.message))
-            raise SynseException('Power cannot be set. POST error or GET error: {}'.format(e.message))
+            logger.error(
+                'Power not set with POST or response not returned on GET: {}'.format(e.message)
+            )
+            raise SynseException(
+                'Power cannot be set. POST error or GET error: {}'.format(e.message)
+            )
     else:
         logger.error('No payload data for POST on systems schema. Power cannot be set.')
         raise ValueError('No payload data for POST action. Power cannot be set.')
@@ -225,19 +241,19 @@ def get_asset(links, timeout, username, password):
     asset_data = dict()
 
     try:
-        asset_data['chassis'] = get_data(
+        asset_data['chassis'] = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
             password=password
         )
-        asset_data['systems'] = get_data(
+        asset_data['systems'] = conn.get_data(
             link=links[1],
             timeout=timeout,
             username=username,
             password=password
         )
-        asset_data['bmc'] = get_data(
+        asset_data['bmc'] = conn.get_data(
             link=links[2],
             timeout=timeout,
             username=username,
@@ -246,8 +262,10 @@ def get_asset(links, timeout, username, password):
     except ValueError as e:
         expected_keys = ['chassis', 'systems', 'bmc']
         unfound = ', '.join(set(expected_keys).difference(asset_data.keys()))
-        logger.error('No data retrieved for {} schema(s) on GET: {}'.format(unfound, e.message))
-        raise SynseException('Cannot retrieve data from {} schema(s): {}'.format(unfound, e.message))
+        logger.error(
+            'No data retrieved for {} schema(s) on GET: {}'.format(unfound, e.message))
+        raise SynseException(
+            'Cannot retrieve data from {} schema(s): {}'.format(unfound, e.message))
 
     try:
         response['chassis_info'] = {}
@@ -268,7 +286,10 @@ def get_asset(links, timeout, username, password):
         response['product_info']['asset_tag'] = asset_data['chassis']['AssetTag']
         return response
     except KeyError as e:
-        logger.error('Incomplete asset data from GET on chassis, systems, and bmc schemas: {}'.format(e.message))
+        logger.error(
+            'Incomplete asset data from GET on chassis, systems, and bmc '
+            'schemas: {}'.format(e.message)
+        )
         raise SynseException('Asset data cannot be retrieved: {}'.format(e.message))
 
 
@@ -288,14 +309,15 @@ def get_led(links, timeout, username, password):
     response = dict()
 
     try:
-        led_status = get_data(
+        led_status = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
             password=password
         )
     except ValueError as e:
-        logger.error('No data retrieved for LED status on GET of chassis schema: {}'.format(e.message))
+        logger.error(
+            'No data retrieved for LED status on GET of chassis schema: {}'.format(e.message))
         raise SynseException('Cannot retrieve data from chassis schema: {}'.format(e.message))
 
     try:
@@ -303,8 +325,12 @@ def get_led(links, timeout, username, password):
         response['led_state'] = 'on' if led_status == 'lit' else led_status
         return response
     except KeyError as e:
-        logger.error('Incomplete or no data for LED from GET on chassis schema. {} not found.'.format(e.message))
-        raise SynseException('Incomplete or no data from chassis schema. {} not found.'.format(e.message))
+        logger.error(
+            'Incomplete or no data for LED from GET on chassis schema. '
+            '{} not found.'.format(e.message))
+        raise SynseException(
+            'Incomplete or no data from chassis schema. '
+            '{} not found.'.format(e.message))
 
 
 def set_led(led_state, links, timeout, username, password):
@@ -324,7 +350,7 @@ def set_led(led_state, links, timeout, username, password):
     _payload = {'IndicatorLED': led_state}
 
     try:
-        patch_data(
+        conn.patch_data(
             link=links[0],
             payload=_payload,
             timeout=timeout,
@@ -334,8 +360,12 @@ def set_led(led_state, links, timeout, username, password):
         response = get_led(links=links, timeout=timeout, username=username, password=password)
         return response
     except ValueError as e:
-        logger.error('LED state not set on PATCH or response not returned on GET: {}'.format(e.message))
-        raise SynseException('LED state cannot be set. POST error or GET error: {}'.format(e.message))
+        logger.error(
+            'LED state not set on PATCH or response not returned on GET: {}'.format(e.message)
+        )
+        raise SynseException(
+            'LED state cannot be set. POST error or GET error: {}'.format(e.message)
+        )
 
 
 def get_thermal_sensor(device_type, device_name, links, timeout, username, password):
@@ -358,7 +388,7 @@ def get_thermal_sensor(device_type, device_name, links, timeout, username, passw
     response = dict()
 
     try:
-        thermal_sensors = get_data(
+        thermal_sensors = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -373,8 +403,10 @@ def get_thermal_sensor(device_type, device_name, links, timeout, username, passw
         for device in thermal_sensors:
             if device['Name'] == device_name:
                 device_health = device['Status']['Health'].lower()
+                device_state = device['Status']['State'].lower()
+
                 response['health'] = 'ok' if device_health == 'ok' else device_health
-                response['states'] = [] if response['health'] == 'ok' else [device['Status']['State'].lower()]
+                response['states'] = [] if response['health'] == 'ok' else [device_state]
                 if device_type == 'Fans':
                     response['speed_rpm'] = float(device['Reading'])
                 elif device_type == 'Temperatures':
@@ -385,8 +417,14 @@ def get_thermal_sensor(device_type, device_name, links, timeout, username, passw
             logger.error('Device information not a match to devices from GET on thermal schema.')
             raise ValueError('No device matching information from GET on thermal schema.')
     except KeyError as e:
-        logger.error('Incomplete data for sensor reading from GET on thermal schema: {}'.format(e.message))
-        raise SynseException('Incomplete data from thermal schema. Sensor information not found: {}'.format(e.message))
+        logger.error(
+            'Incomplete data for sensor reading from GET on thermal schema: '
+            '{}'.format(e.message)
+        )
+        raise SynseException(
+            'Incomplete data from thermal schema. Sensor information not found: '
+            '{}'.format(e.message)
+        )
 
 
 def get_power_sensor(device_type, device_name, links, timeout, username, password):
@@ -408,7 +446,7 @@ def get_power_sensor(device_type, device_name, links, timeout, username, passwor
     response = dict()
 
     try:
-        power_sensors = get_data(
+        power_sensors = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -422,19 +460,31 @@ def get_power_sensor(device_type, device_name, links, timeout, username, passwor
         power_sensors = power_sensors[device_type]
         for device in power_sensors:
             if device['Name'] == device_name:
-                response['health'] = 'ok' if device['Status']['Health'].lower() == 'ok' \
-                    else device['Status']['Health'].lower()
-                response['states'] = [] if response['health'] == 'ok' else [device['Status']['State'].lower()]
+                device_health = device['Status']['Health'].lower()
+                device_status = device['Status']['State'].lower()
+
+                response['health'] = 'ok' if device_health == 'ok' else device_health
+                response['states'] = [] if response['health'] == 'ok' else [device_status]
                 if device_type == 'Voltages':
                     response['voltage'] = float(device['ReadingVolts'])
         if response:
             return response
         else:
-            logger.error('Device information not a match to devices from GET on power schema.')
-            raise ValueError('No device matching information from GET on power schema.')
+            logger.error(
+                'Device information not a match to devices from GET on power schema.'
+            )
+            raise ValueError(
+                'No device matching information from GET on power schema.'
+            )
     except KeyError as e:
-        logger.error('Incomplete data for sensor reading from GET on power schema: {}'.format(e.message))
-        raise SynseException('Incomplete data from power schema. Sensor information not found: {}'.format(e.message))
+        logger.error(
+            'Incomplete data for sensor reading from GET on power schema: '
+            '{}'.format(e.message)
+        )
+        raise SynseException(
+            'Incomplete data from power schema. Sensor information not found: '
+            '{}'.format(e.message)
+        )
 
 
 def get_boot(links, timeout, username, password):
@@ -453,7 +503,7 @@ def get_boot(links, timeout, username, password):
     response = dict()
 
     try:
-        boot_data = get_data(
+        boot_data = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
@@ -464,13 +514,17 @@ def get_boot(links, timeout, username, password):
         raise SynseException('Cannot retrieve data from systems schema: {}'.format(e.message))
 
     try:
-        boot_data = boot_data['Boot']
-        response['target'] = 'no_override' if boot_data['BootSourceOverrideTarget'].lower() == 'none' \
-            else boot_data['BootSourceOverrideTarget'].lower()
+        boot_target = boot_data['Boot']['BootSourceOverrideTarget'].lower()
+        response['target'] = 'no_override' if boot_target == 'none' else boot_target
         return response
     except KeyError as e:
-        logger.error('Incomplete or no data for boot target reading from GET on systems schema: {}'.format(e.message))
-        raise KeyError('Incomplete or no data from systems schema. {} not found.'.format(e.message))
+        logger.error(
+            'Incomplete or no data for boot target reading from GET on systems schema: '
+            '{}'.format(e.message)
+        )
+        raise KeyError(
+            'Incomplete or no data from systems schema. {} not found.'.format(e.message)
+        )
 
 
 def set_boot(target, links, timeout, username, password):
@@ -491,15 +545,19 @@ def set_boot(target, links, timeout, username, password):
 
     try:
         # connects to find out if BootSourceOverideEnabled is Disabled:
-        current_boot = get_data(
+        current_boot = conn.get_data(
             link=links[0],
             timeout=timeout,
             username=username,
             password=password
         )
     except ValueError as e:
-        logger.error('No data retrieved on GET of systems schema: {}'.format(e.message))
-        raise SynseException('Cannot retrieve data from systems schema: {}'.format(e.message))
+        logger.error(
+            'No data retrieved on GET of systems schema: {}'.format(e.message)
+        )
+        raise SynseException(
+            'Cannot retrieve data from systems schema: {}'.format(e.message)
+        )
 
     try:
         current_boot = current_boot['Boot']
@@ -507,12 +565,13 @@ def set_boot(target, links, timeout, username, password):
         if str(current_boot['BootSourceOverrideEnabled']).lower() != 'disabled':
             boot_target = 'None' if target == 'no_override' else target.capitalize()
             current_target = current_boot['BootSourceOverrideTarget'].lower()
-            # if there is no need to patch to BootSourceOverrideTarget, this avoids making the requests.
+            # if there is no need to patch to BootSourceOverrideTarget, this avoids
+            # making the requests.
             if current_target != boot_target.lower():
                 _payload = {'Boot': {'BootSourceOverrideTarget': boot_target}}
 
                 try:
-                    patch_data(
+                    conn.patch_data(
                         link=links[0],
                         payload=_payload,
                         timeout=timeout,
@@ -526,8 +585,14 @@ def set_boot(target, links, timeout, username, password):
                         password=password
                     )
                 except ValueError as e:
-                    logger.error('LED state not set on PATCH or response not returned on GET: {}'.format(e.message))
-                    raise SynseException('LED state cannot be set. POST error or GET error: {}'.format(e.message))
+                    logger.error(
+                        'LED state not set on PATCH or response not returned on GET: '
+                        '{}'.format(e.message)
+                    )
+                    raise SynseException(
+                        'LED state cannot be set. POST error or GET error: '
+                        '{}'.format(e.message)
+                    )
 
                 response['target'] = new_boot['target']
 
@@ -537,9 +602,21 @@ def set_boot(target, links, timeout, username, password):
             return response
 
         else:
-            logger.error('Boot target unable to be overridden because BootTargetOverride is disabled on remote system.')
-            raise ValueError('Cannot override boot target because BootTargetOverride is disabled on remote system.')
+            logger.error(
+                'Boot target unable to be overridden because BootTargetOverride '
+                'is disabled on remote system.'
+            )
+            raise ValueError(
+                'Cannot override boot target because BootTargetOverride is '
+                'disabled on remote system.'
+            )
 
     except KeyError as e:
-        logger.error('Incomplete data for boot target from GET on systems schema. {} not found'.format(e.message))
-        raise SynseException('Incomplete or no data for boot from systems schema. {} not found.'.format(e.message))
+        logger.error(
+            'Incomplete data for boot target from GET on systems schema. '
+            '{} not found'.format(e.message)
+        )
+        raise SynseException(
+            'Incomplete or no data for boot from systems schema. '
+            '{} not found.'.format(e.message)
+        )

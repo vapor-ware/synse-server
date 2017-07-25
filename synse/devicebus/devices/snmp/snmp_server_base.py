@@ -22,26 +22,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import copy
 import logging
-
 from abc import ABCMeta, abstractmethod
 
-from ....errors import CommandNotSupported
-from ....errors import SynseException
-from .snmp_row import SnmpRow
-from ...constants import CommandId as cid
-from ....version import __api_version__, __version__
-from ....devicebus.response import Response
+from pysnmp.proto.rfc1902 import (Counter32, Counter64, Gauge32, Integer,
+                                  Integer32, ObjectName, TimeTicks, Unsigned32)
 
-from pysnmp.proto.rfc1902 import Counter32
-from pysnmp.proto.rfc1902 import Counter64
-from pysnmp.proto.rfc1902 import Gauge32
-from pysnmp.proto.rfc1902 import Integer
-from pysnmp.proto.rfc1902 import Integer32
-from pysnmp.proto.rfc1902 import ObjectName
-from pysnmp.proto.rfc1902 import TimeTicks
-from pysnmp.proto.rfc1902 import Unsigned32
+from ....devicebus.response import Response
+from ....errors import CommandNotSupported, SynseException
+from ....version import __api_version__, __version__
+from ...constants import CommandId as cid
+from .snmp_row import SnmpRow
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +166,7 @@ class SnmpServerBase(object):
             # the board id does not exist, the Synse server is not serving
             # anything at the URL specified by the client.
             # Therefore 404 Not Found.
-            raise SynseException("No rack with id {}.".format(client_rack_id))
+            raise SynseException('No rack with id {}.'.format(client_rack_id))
 
         public_scan_results = self.get_public_scan_results()
 
@@ -242,7 +235,7 @@ class SnmpServerBase(object):
             # the board id does not exist, the Synse server is not serving
             # anything at the URL specified by the client.
             # Therefore 404 Not Found.
-            raise SynseException("No board on rack {} with id {}.".format(
+            raise SynseException('No board on rack {} with id {}.'.format(
                 command.data['rack_id'], board_id))
 
         return Response(
@@ -262,8 +255,14 @@ class SnmpServerBase(object):
         """ Raw walk results and aggregated get results from SNMP client are
         heavily typed, for example some rows:
 
-        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.8.19')), OctetString('Portez ce'))]
-        [ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.9.15')), Integer(25))]
+        [
+            ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.8.19')),
+            OctetString('Portez ce'))
+        ]
+        [
+            ObjectType(ObjectIdentity(ObjectName('1.3.6.1.4.1.61439.6.5.1.2.1.9.15')),
+            Integer(25))
+        ]
 
         It's easier to work with a dictionary of string OIDs and data values, for example:
         '1.3.6.1.4.1.61439.6.4.2.2.1.6.23': 17
@@ -278,8 +277,8 @@ class SnmpServerBase(object):
         converted = {}
         for row in results:
             oid = str(row[0][0].getOid())
-            if isinstance(row[0][1],
-                          (Counter32, Counter64, Gauge32, TimeTicks, Integer32, Integer, Unsigned32)):
+            if isinstance(row[0][1], (Counter32, Counter64, Gauge32, TimeTicks,
+                                      Integer32, Integer, Unsigned32)):
                 converted_data = int(row[0][1])
             else:
                 converted_data = str(row[0][1])

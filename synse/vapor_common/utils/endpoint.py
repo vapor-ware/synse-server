@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   13 Dec 2016
-    
+
     \\//
      \/apor IO
 
@@ -28,7 +28,6 @@ along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 from functools import partial
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -46,6 +45,6 @@ def make_url_builder(base):
     Returns:
         partial: a partial object that can be used to build urls.
     """
-    def _url_builder(uri, url_base):
+    def _url_builder(uri, url_base):  # pylint: disable=missing-docstring
         return url_base + uri
     return partial(_url_builder, url_base=base)

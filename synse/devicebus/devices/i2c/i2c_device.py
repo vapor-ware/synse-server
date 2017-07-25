@@ -25,15 +25,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import lockfile
+
 import logging
+
+import lockfile
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
-from synse.devicebus.response import Response
 from synse.devicebus.devices.serial_device import SerialDevice
+from synse.devicebus.response import Response
 from synse.version import __api_version__, __version__
-
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,9 @@ class I2CDevice(SerialDevice):
         }
 
     def __str__(self):
-        return '<{} (rack: {}, board: {:08x})>'.format(self.__class__.__name__, self.rack_id, self.board_id)
+        return '<{} (rack: {}, board: {:08x})>'.format(
+            self.__class__.__name__, self.rack_id, self.board_id
+        )
 
     def __repr__(self):
         return self.__str__()
@@ -91,9 +94,12 @@ class I2CDevice(SerialDevice):
 
         device_config = cls.get_device_config(devicebus_config)
         if not device_config:
-            raise ValueError('Unable to get configuration for device - unable to register.')
+            raise ValueError(
+                'Unable to get configuration for device - unable to register.'
+            )
 
-        # sensor-specific configuration -- these should be made available to all registered I2C devices
+        # sensor-specific configuration -- these should be made available to all
+        # registered I2C devices
         _altitude_m = device_config.get('altitude', 0)  # default: 0 meters
 
         # now, for each device in i2c devices, we create a device instance
@@ -102,7 +108,8 @@ class I2CDevice(SerialDevice):
                 for i2c_device in rack['devices']:
                     i2c_device['rack_id'] = rack['rack_id']
                     i2c_device['board_offset'] = app_config['I2C_BOARD_OFFSET'].next()
-                    i2c_device['board_id_range'] = device_config.get('board_id_range', const.I2C_BOARD_RANGE)
+                    i2c_device['board_id_range'] = device_config.get('board_id_range',
+                                                                     const.I2C_BOARD_RANGE)
                     i2c_device['hardware_type'] = rack.get('hardware_type', 'unknown')
                     i2c_device['device_name'] = rack['device_name']
                     i2c_device['lockfile'] = rack['lockfile']

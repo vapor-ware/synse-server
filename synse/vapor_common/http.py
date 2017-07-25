@@ -26,12 +26,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
-import requests.exceptions
-import requests
+
 import logging
 
-from errors import *
+import requests
+import requests.exceptions
 
+from synse.vapor_common.errors import (VaporError, VaporHTTPError,
+                                       VaporRequestError)
 
 logger = logging.getLogger(__name__)
 

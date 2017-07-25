@@ -1,12 +1,20 @@
-FROM vaporio/vapor-endpoint-base-x64:1.0
-MAINTAINER Matt Hink <mhink@vapor.io>
+FROM ubuntu:16.04
+MAINTAINER Vapor IO <eng@vapor.io>
 
-RUN pip2 install --upgrade pip
-RUN pip2 install wheel setuptools
-RUN pip install -I \
-    snmpsim==0.3.0 \
-    pysnmp==4.3.4 \
-    pyasn1==0.2.3
+COPY requirements.txt requirements.txt
+
+RUN set -ex \
+    && buildDeps='python-dev python-pip gcc' \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python $buildDeps \
+    && pip install --upgrade pip setuptools \
+    && pip install -r requirements.txt \
+    && pip uninstall -y setuptools \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge -y --auto-remove $buildDeps \
+    && apt-get autoremove -y \
+    && apt-get clean
 
 # The emulator will not start as root, so we need to add a user.
 # snmp-emulator    | ERROR: cant drop priveleges: Must drop priveleges to a non-priveleged user&group (sic)
@@ -23,6 +31,7 @@ ADD python-mibs/* ~/.pysnmp/mibs/
 # so copy where it will be found.
 #
 RUN mkdir -p /home/snmp/.snmpsim/variation && \
+    mkdir /logs && \
     cp /usr/local/snmpsim/variation/* /home/snmp/.snmpsim/variation && \
     chown snmp:docker /home/snmp -R && \
     chown snmp:docker /logs -R
@@ -35,4 +44,4 @@ EXPOSE 11013/udp
 # data directory (typically /home/snmp/data)
 # port (normally using 11011 for single emulator)
 # log file name (trying to keep these names unique)
-CMD ["./start_snmp_emulator.sh","./data","11013","snmp-emulator-synse-test-device1.log"]
+CMD ["./start_snmp_emulator.sh", "./data", "11013", "snmp-emulator-synse-test-device1.log"]

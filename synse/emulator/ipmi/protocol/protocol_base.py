@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   08/29/2016
-    
+
     \\//
      \/apor IO
 
@@ -29,6 +29,8 @@ import abc
 
 
 class ProtocolBase(object):
+    """ Base class for network protocol models used by the IPMI emulator.
+    """
     __metaclass__ = abc.ABCMeta
 
     def __init__(self):
@@ -42,8 +44,12 @@ class ProtocolBase(object):
 
     @abc.abstractproperty
     def header(self):
+        """ The packet header.
+        """
         pass
 
     @abc.abstractproperty
     def body(self):
+        """ The packet body.
+        """
         pass

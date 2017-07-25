@@ -22,15 +22,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 
 from synse import constants as const
 
-from .snmp_client import SnmpClient
-from .snmp_server_factory import SnmpServerFactory
-from ..lan_device import LANDevice
 from ....devicebus.constants import CommandId as cid
 from ....devicebus.response import Response
+from ..lan_device import LANDevice
+from .snmp_client import SnmpClient
+from .snmp_server_factory import SnmpServerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,8 @@ class SnmpDevice(LANDevice):
 
     # See docs in the base DevicebusInterface. This is used as a convenience to:
     # - Provide a more or less human readable string that describes the device.
-    # - Give us a unique key to reference that instance during registration for certain device types.
+    # - Give us a unique key to reference that instance during registration for
+    #   certain device types.
     _instance_name = 'snmp'
 
     def __init__(self, app_cfg, **kwargs):
@@ -89,24 +91,94 @@ class SnmpDevice(LANDevice):
     # region Commands
 
     def _fan(self, command):
+        """ Synse API fan command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the fan response.
+        """
         return self.run_command(command)
 
     def _led(self, command):
+        """ Synse API LED command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the LED response.
+        """
         return self.run_command(command)
 
     def _power(self, command):
+        """ Synse API power command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the power response.
+        """
         return self.run_command(command)
 
     def _read(self, command):
+        """ Synse API read command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the read response.
+        """
         return self.run_command(command)
 
     def _scan(self, command):
+        """ Synse API scan command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the scan response.
+        """
         return self.run_command(command)
 
     def _scan_all(self, command):
+        """ Synse API scan all command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the scan all response.
+        """
         return self.run_command(command)
 
     def _version(self, command):
+        """ Synse API version command implementation for an SNMP server.
+
+        Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+        Returns:
+            Request: a Request object corresponding to the incoming Command
+                object, containing the data from the version response.
+        """
         return self.run_command(command)
 
     # endregion
@@ -136,8 +208,8 @@ class SnmpDevice(LANDevice):
             # If we fail to initialize a server, don't fail all of Synse.
             message = 'SNMP Server not initialized. Unable to run command.'
             logger.error(message)
-            # Cannot raise here. If we raise, then one uninitialized server will break the rest on scan.
-            # Return an empty response.
+            # Cannot raise here. If we raise, then one uninitialized server will break the rest
+            # on scan. Return an empty response.
             # TODO: This should be a common 'do nothing' scan response including the error logging.
             # Notification should only go out on the initial scan (we told you, we didn't spam you)
             return Response(
@@ -199,28 +271,32 @@ class SnmpDevice(LANDevice):
 
                         # The scan cache needs these.
                         snmp_device_config['board_id_range_min'] = int(
-                            snmp_device_config.get('board_id_range_min', const.SNMP_BOARD_RANGE[0]))
+                            snmp_device_config.get('board_id_range_min', const.SNMP_BOARD_RANGE[0])
+                        )
                         snmp_device_config['board_id_range_max'] = int(
-                            snmp_device_config.get('board_id_range_max', const.SNMP_BOARD_RANGE[1]))
+                            snmp_device_config.get('board_id_range_max', const.SNMP_BOARD_RANGE[1])
+                        )
                         snmp_device_config['board_id_range'] = (
-                            snmp_device_config['board_id_range_min'], snmp_device_config['board_id_range_max'])
+                            snmp_device_config['board_id_range_min'],
+                            snmp_device_config['board_id_range_max'])
 
                         logger.debug(
-                            'Initializing SNMP Device for rack {}, snmp_device {}, snmp_device_config {}.'.format(
+                            'Initializing SNMP Device for rack {}, snmp_device {}, '
+                            'snmp_device_config {}.'.format(
                                 rack['rack_id'], snmp_device, snmp_device_config
                             ))
                         snmp_device = SnmpDevice(app_config, ** snmp_device_config)
 
-                        # when an SNMP device has been successfully initialized, it will maintain its
-                        # own SNMP server implementation. the SNMP server should scan on init and be
-                        # assigned a board_id, if it does not already have one. since each SNMP device
-                        # has only a single SNMP server implementation, we can use that same board id
-                        # to identify the device bus implementation.
+                        # when an SNMP device has been successfully initialized, it will maintain
+                        # its own SNMP server implementation. the SNMP server should scan on init
+                        # and be assigned a board_id, if it does not already have one. since each
+                        # SNMP device has only a single SNMP server implementation, we can use that
+                        # same board id to identify the device bus implementation.
                         board_id = snmp_device.snmp_server.board_id
                         if not board_id:
                             logger.error(
-                                'Error initializing SNMP Device {} - no board id assigned; unable to '
-                                'add device to internal lookup table.'.format(snmp_device)
+                                'Error initializing SNMP Device {} - no board id assigned; unable '
+                                'to add device to internal lookup table.'.format(snmp_device)
                             )
                         else:
                             device_cache[snmp_device.device_uuid] = snmp_device

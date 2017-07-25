@@ -47,8 +47,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 """
-import os
+
 import json
+import os
 
 database = {}
 
@@ -58,9 +59,11 @@ users = {'root': 'redfish'}
 
 
 def get_all_resources(mockup_name):
+    """ Get all resources for the specified Redfish mockup.
+    """
     root_dir_path = os.path.normpath('./Resources/{}'.format(mockup_name))
     try:
-        for dir_name, sub_dir_list, file_list in os.walk(root_dir_path):
+        for dir_name, _, file_list in os.walk(root_dir_path):
             for file_name in file_list:
                 if file_name != 'index.json':
                     continue
@@ -75,7 +78,10 @@ def get_all_resources(mockup_name):
 
 
 def register_users(mockup_name):
-    root_dir_path = os.path.normpath('./Resources/{}/redfish/v1/AccountService/Accounts'.format(mockup_name))
+    """ Get a mapping of users in the Redfish mockup.
+    """
+    root_dir_path = os.path.normpath(
+        './Resources/{}/redfish/v1/AccountService/Accounts'.format(mockup_name))
     for name in os.listdir(root_dir_path):
         if name not in ['index.json', 'root']:
             database_key = os.path.join(root_dir_path, name)

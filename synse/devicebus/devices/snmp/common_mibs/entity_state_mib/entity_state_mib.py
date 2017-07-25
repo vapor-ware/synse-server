@@ -24,10 +24,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from ...snmp_mib import SnmpMib
-
-from .entity_state_objects import EntityStateObjectsTable
 from .entity_state_conformance import EntityStateConformanceTable
 from .entity_state_groups import EntityStateGroupsTable
+from .entity_state_objects import EntityStateObjectsTable
 
 
 class EntityStateMib(SnmpMib):

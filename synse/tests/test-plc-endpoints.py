@@ -19,26 +19,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
 import logging
-from vapor_common.test_utils import run_suite, exit_suite
+import unittest
 
+from plc_endpoints.test_asset_info import AssetInfoTestCase
+from plc_endpoints.test_boot_target import BootTargetTestCase
+from plc_endpoints.test_chamber_fan import ChamberFanSpeedTestCase
+from plc_endpoints.test_chamber_led import ChamberLedTestCase
 from plc_endpoints.test_device_read import DeviceReadTestCase
-from plc_endpoints.test_version import VersionTestCase
+from plc_endpoints.test_fan import FanSpeedTestCase
+from plc_endpoints.test_host_info import HostInfoTestCase
+from plc_endpoints.test_led import ChassisLedTestCase
+from plc_endpoints.test_line_noise import LineNoiseTestCase
+from plc_endpoints.test_location import LocationTestCase
 from plc_endpoints.test_power import PowerTestCase
 from plc_endpoints.test_power_old import OldPowerTestCase
 from plc_endpoints.test_scan import ScanTestCase
-from plc_endpoints.test_line_noise import LineNoiseTestCase
-from plc_endpoints.test_location import LocationTestCase
-from plc_endpoints.test_fan import FanSpeedTestCase
-from plc_endpoints.test_led import ChassisLedTestCase
-from plc_endpoints.test_boot_target import BootTargetTestCase
-from plc_endpoints.test_asset_info import AssetInfoTestCase
-from plc_endpoints.test_vapor_rectifier import VaporRectifierTestCase
 from plc_endpoints.test_vapor_battery import VaporBatteryTestCase
-from plc_endpoints.test_chamber_led import ChamberLedTestCase
-from plc_endpoints.test_chamber_fan import ChamberFanSpeedTestCase
-from plc_endpoints.test_host_info import HostInfoTestCase
+from plc_endpoints.test_vapor_rectifier import VaporRectifierTestCase
+from plc_endpoints.test_version import VersionTestCase
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

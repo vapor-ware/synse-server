@@ -40,12 +40,13 @@ class ArgumentChecker(object):
     def check_instance(expected_type, variable):
         """If the variable is not an instance of the specified type, raise a ValueError."""
         if not isinstance(variable, expected_type):
-            raise TypeError('Expected instance {}, got {}'.format(expected_type, variable.__class__))
+            raise TypeError('Expected instance {}, got {}'.format(
+                expected_type, variable.__class__))
         return variable
 
     @staticmethod
     def check_type(expected_type, variable):
         """If the type(variable) is not the specified type, raise a ValueError."""
-        if not type(variable) != expected_type:
+        if not isinstance(variable, expected_type):
             raise TypeError('Expected type {}, got {}'.format(expected_type, type(variable)))
         return variable

@@ -25,13 +25,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
-import json
-from uuid import uuid4 as uuid
-from synse.errors import CommandNotSupported
-from synse.devicebus.constants import CommandId
-from synse.errors import SynseException
 
+import json
+import logging
+from uuid import uuid4 as uuid
+
+from synse.devicebus.constants import CommandId
+from synse.errors import CommandNotSupported, SynseException
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +124,8 @@ class DevicebusInterface(object):
                     return device
 
         elif isinstance(device_id, basestring):
-            # if this is a non-numeric device_id, we'll look for the device by the string id and return its record
+            # if this is a non-numeric device_id, we'll look for the device by the string
+            # id and return its record
             for device in self.board_record['devices']:
                 if 'device_info' in device:
                     if device_id.lower() == device['device_info'].lower() and \
@@ -132,7 +133,9 @@ class DevicebusInterface(object):
                         return device
 
         # if we get here, numeric and string device_id search has failed, so raise exception
-        raise SynseException('Device ID {} not found in board record for {}.'.format(device_id, self.board_id))
+        raise SynseException(
+            'Device ID {} not found in board record for {}.'.format(device_id, self.board_id)
+        )
 
     @classmethod
     def get_device_config(cls, devicebus_config):

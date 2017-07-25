@@ -29,9 +29,8 @@ import unittest
 
 from synse.tests.test_config import PREFIX
 from synse.tests.test_utils import TestThreadExecutor
-
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 # number of threads for each test
 THREAD_COUNT = 25
@@ -224,14 +223,14 @@ class ThreadedTestCase(unittest.TestCase):
         """
 
         def test_power():
-            r = http.get(PREFIX + "/power/status/0000000A/02FF", timeout=self.timeout)
+            r = http.get(PREFIX + '/power/status/0000000A/02FF', timeout=self.timeout)
             self.assertTrue(http.request_ok(r.status_code))
             response = r.json()
-            self.assertEqual(response["pmbus_raw"], "64,0,0,0")
-            self.assertEqual(response["power_status"], "off")
-            self.assertEqual(response["power_ok"], True)
-            self.assertEqual(response["over_current"], False)
-            self.assertEqual(response["under_voltage"], False)
+            self.assertEqual(response['pmbus_raw'], '64,0,0,0')
+            self.assertEqual(response['power_status'], 'off')
+            self.assertEqual(response['power_ok'], True)
+            self.assertEqual(response['over_current'], False)
+            self.assertEqual(response['under_voltage'], False)
 
         executor = TestThreadExecutor(THREAD_COUNT, test_power)
         results = executor.execute()
@@ -244,7 +243,7 @@ class ThreadedTestCase(unittest.TestCase):
 
         def test_power():
             with self.assertRaises(VaporHTTPError) as ctx:
-                http.get(PREFIX + "/power/status/0000000B/02FF", timeout=self.timeout)
+                http.get(PREFIX + '/power/status/0000000B/02FF', timeout=self.timeout)
 
             self.assertEqual(ctx.exception.status, 500)
 

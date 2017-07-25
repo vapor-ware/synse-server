@@ -34,6 +34,8 @@ services:
       - VAPOR_DEBUG=true
 
   redfish-emulator-x64:
-    image: vaporio/redfish-emulator-x64
+    build:
+      context: ../../../emulator/redfish
+      dockerfile: Dockerfile.x64
     ports:
       - 5040:5040

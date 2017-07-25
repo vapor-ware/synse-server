@@ -23,15 +23,15 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import json
-import docker
 import logging
+
+import docker
 
 from synse.tests.synse_test import SynseHttpTest
 from synse.tests.test_utils import Uri
-
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
-from vapor_common.tests.utils.strings import _S
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
+from synse.vapor_common.tests.utils.strings import _S
 
 logger = logging.getLogger(__name__)
 

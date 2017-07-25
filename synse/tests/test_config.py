@@ -25,8 +25,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from version import __api_version__
+
 from synse import constants as const
+from synse.version import __api_version__
 
 _PORT = const.port
 _ENDPOINTPREFIX = const.endpoint_prefix

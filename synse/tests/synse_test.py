@@ -23,11 +23,10 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
-
 import unittest
 
-from vapor_common.errors import VaporHTTPError
-from vapor_common.tests.utils.strings import _S
+from synse.vapor_common.errors import VaporHTTPError
+from synse.vapor_common.tests.utils.strings import _S
 
 logger = logging.getLogger(__name__)
 

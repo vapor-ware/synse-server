@@ -27,9 +27,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from synse.tests.test_config import PREFIX
-
 import grequests as async
+
+from synse.tests.test_config import PREFIX
 
 
 class IPMIEmulatorThroughputTestCase(unittest.TestCase):

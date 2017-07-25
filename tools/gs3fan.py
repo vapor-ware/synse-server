@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 
 """ Run this off the command line by:
-sudo -HE env PATH=$PATH PYTHONPATH="../protocols:${PYTHONPATH}" ./gs3fan.py get
+sudo -HE env PATH=$PATH ./gs3fan.py get
 """
 
 import sys
+import os
 import serial
 import logging
 from binascii import hexlify
 import struct
-from modbus import dkmodbus
 import time
-import conversions.conversions as conversions
-import i2c_common.i2c_common as i2c_common
+
+# before we import the synse protocol packages, we want to make sure it
+# is reachable on the pythonpath
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from synse.protocols.modbus import dkmodbus
+from synse.protocols.conversions import conversions
+from synse.protocols.i2c_common import i2c_common
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -282,6 +288,7 @@ def _print_usage():
     print '\ttemp: gets temperature and humidity'
     print '\ttherm: gets all thermistors'
     print '\tpressure: gets all differential pressures'
+    print '\tambient: gets ambient temperature'
 
 
 def _read_airflow(ser):
@@ -311,6 +318,16 @@ def _read_all_fan(ser):
 
 
 def _read_differential_pressures():
+    # Configure for 9 bit resolution.
+    if i2c_common.configure_differential_pressure(1) != 0:
+        print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 1.'
+        return 1
+    if i2c_common.configure_differential_pressure(2) != 0:
+        print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 2.'
+        return 1
+    if i2c_common.configure_differential_pressure(4) != 0:
+        print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 4.'
+        return 1
     readings = i2c_common.read_differential_pressures(3)
     # TODO: Should try to read 4 sensors when only 3 ports exist on current hardware.
     counter = 0
@@ -331,6 +348,23 @@ def _read_rpm(ser):
     client = dkmodbus.dkmodbus(ser)
     result = client.read_holding_registers(1, 0x2107, 1)
     return conversions.unpack_word(result)
+
+
+def _read_temperature_ambient(ser):
+    # Slave address is 3. Register is 0 for temp, 1 for humidity.
+
+    client = dkmodbus.dkmodbus(ser)
+    result = client.read_input_registers(3, 0, 2)
+
+    logger.debug('result {}'.format(hexlify(result)))
+    temperature_raw = int(hexlify(result[0:2]), 16)
+    humidity_raw = int(hexlify(result[2:4]), 16)
+    logger.debug('temperature_raw {}'.format(temperature_raw))
+    logger.debug('humidity_raw {}'.format(humidity_raw))
+    temperature = conversions.temperature_sht31(result)
+    humidity = conversions.humidity_sht31(result)
+    print "Temperature = %0.2f C" % temperature
+    print "Relative Humidity = %0.2f %%" % humidity
 
 
 def _read_temperature_and_humidity(ser):
@@ -470,6 +504,8 @@ def main():
         _read_airflow(ser)
     elif sys.argv[1] == 'test1':
         _test1(ser)
+    elif sys.argv[1] == 'ambient':
+        _read_temperature_ambient(ser)
     else:
         _print_usage()
         return 1

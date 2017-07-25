@@ -29,8 +29,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
-import logging
 import json
+import logging
 import os
 import re
 
@@ -49,8 +49,8 @@ class ConfigManager(object):
     to generate the JSON file.
 
     Note that when writing out the config JSON, the ConfigManager will ignore
-    any attribute which starts with "_" (reserved for object private members).
-    Accordingly, values in the config JSON should never start with "_".
+    any attribute which starts with '_' (reserved for object private members).
+    Accordingly, values in the config JSON should never start with '_'.
     """
     def __init__(self, default, override=None):
         """ Constructor for the ConfigManager class.
@@ -97,7 +97,8 @@ class ConfigManager(object):
 
                 elif match_count > 1:
                     logger.warning(
-                        'Found {} files for override config, but was expecting 1: {}'.format(match_count, matching)
+                        'Found {} files for override config, but was expecting 1: {}'.format(
+                            match_count, matching)
                     )
 
             except OSError as e:
@@ -161,5 +162,7 @@ class ConfigManager(object):
         with open(path, 'w+') as f:
             f.seek(0)
 
-            cfg_dict = {k: v for (k, v) in self.__dict__.copy().iteritems() if not k.startswith("_")}
+            cfg_dict = {k: v for (k, v) in self.__dict__.copy().iteritems()
+                        if not k.startswith('_')}
+
             json.dump(cfg_dict, f)

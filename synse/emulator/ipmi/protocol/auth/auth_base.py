@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   09/02/2016
-    
+
     \\//
      \/apor IO
 
@@ -171,7 +171,7 @@ class IPMIAuthType(object):
         This method should be overridden for all subclasses to define which data gets put into
         the session context, if any.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abc.abstractmethod
     def build_response(self, request, response_data, raw_data):
@@ -190,26 +190,30 @@ class IPMIAuthType(object):
                 should be used as the raw packet response or whether it should
                 be framed.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abc.abstractmethod
     def set_header_from_state(self):
         """ Update the object's header value based on the individual values currently
         defined in its instance state.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abc.abstractmethod
     def set_body_from_state(self):
         """ Update the object's body value based on the individual values currently
         defined in its instance state.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def header(self):
+        """ Get the packet header.
+        """
         return self._header
 
     @property
     def body(self):
+        """ Get the packet body.
+        """
         return self._body

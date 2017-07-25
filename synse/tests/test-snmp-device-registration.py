@@ -25,8 +25,10 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 import unittest
 
-from snmp_device_registration.test_snmp_device_registration import SnmpDeviceRegistrationTestCase
-from vapor_common.test_utils import run_suite, exit_suite
+from snmp_device_registration.test_snmp_device_registration import \
+    SnmpDeviceRegistrationTestCase
+
+from synse.vapor_common.test_utils import exit_suite, run_suite
 
 
 def get_suite():

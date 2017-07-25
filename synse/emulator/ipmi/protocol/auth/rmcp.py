@@ -25,14 +25,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import auth_base
-import auth_types
-import random
+
 import hashlib
 import hmac
+import random
+
 from Crypto.Cipher import AES
 
-from auth_context import SessionContext
+from . import auth_base, auth_types
+from .auth_context import SessionContext
 
 
 class AuthRMCP(auth_base.IPMIAuthType):
@@ -40,16 +41,14 @@ class AuthRMCP(auth_base.IPMIAuthType):
     """
     auth_type = auth_types.RMCP
 
-    def __init__(self, ipmi_packet):
-        super(AuthRMCP, self).__init__(ipmi_packet)
-
     def update_ctx(self):
         """ Dispatcher to update the BMC session context based on the object's
         payload type.
         """
         # define a no-op method used as the default if no context update method
         # is specified for a given payload type
-        def _pass(): pass
+        def _pass():  # pylint: disable=missing-docstring
+            pass
 
         {
             0x10: self._update_for_open_session_request,
@@ -62,7 +61,7 @@ class AuthRMCP(auth_base.IPMIAuthType):
         # if we get an open session request, there will be no current context
         # because there is no session to associate the context with. as such,
         # we will want to create a session and add the context.
-        def get_session_id():
+        def get_session_id():  # pylint: disable=missing-docstring
             return [random.randint(1, 255) for _ in range(4)]
 
         new_session_id = get_session_id()
@@ -108,7 +107,9 @@ class AuthRMCP(auth_base.IPMIAuthType):
 
         # first, get the session context. if it does not exist, we have a problem
         if session not in self.bmc._active_sessions:
-            raise KeyError('Session ID on incoming request ({}) is not tracked by the BMC.'.format(self.bmc_session_id))
+            raise KeyError(
+                'Session ID on incoming request ({}) is not tracked by the BMC.'.format(
+                    self.bmc_session_id))
 
         session_ctx = self.bmc._active_sessions[session]['ctx']
 
@@ -179,7 +180,8 @@ class AuthRMCP(auth_base.IPMIAuthType):
                     raise ValueError('Payload length does not match header specification')
 
             else:
-                raise ValueError('Unsupported authentication algorithm: {}'.format(self.authentication_type))
+                raise ValueError('Unsupported authentication algorithm: {}'.format(
+                    self.authentication_type))
 
         # if the packet is not integrity authenticated, then the remainder of the packet is the
         # body of the packet
@@ -197,7 +199,11 @@ class AuthRMCP(auth_base.IPMIAuthType):
             self.confidentiality_trailer = data[44:]
 
             iv = body[:16]
-            cipher = AES.new(''.join(map(chr, session_ctx.k2[0:16])), AES.MODE_CBC, ''.join(map(chr, iv)))
+            cipher = AES.new(
+                ''.join(map(chr, session_ctx.k2[0:16])),
+                AES.MODE_CBC,
+                ''.join(map(chr, iv))
+            )
             decrypted = cipher.decrypt(''.join(map(chr, body[16:])))
             _d = map(ord, decrypted)
             padsize = _d[-1] + 1
@@ -341,7 +347,9 @@ class AuthRMCP(auth_base.IPMIAuthType):
 
         # unknown or unsupported
         else:
-            raise ValueError('Unknown or unsupported payload type for RMCP message: {}'.format(hex(self.payload_type)))
+            raise ValueError(
+                'Unknown or unsupported payload type for RMCP message: {}'.format(
+                    hex(self.payload_type)))
 
         # Now that the incoming packet has been parsed and the data collected into the
         # appropriate fields, we want to update the BMC's session context with any relevant
@@ -573,8 +581,10 @@ class AuthRMCP(auth_base.IPMIAuthType):
 
             # finally, we want to generate additional keying material (see IPMI spec 13.32 -
             # Generating Additional Keying Material)
-            session_ctx.k1 = [ord(i) for i in hmac.new(_sik_digest, b'\x01' * 20, hashlib.sha1).digest()]
-            session_ctx.k2 = [ord(i) for i in hmac.new(_sik_digest, b'\x02' * 20, hashlib.sha1).digest()]
+            session_ctx.k1 = [ord(i) for i in
+                              hmac.new(_sik_digest, b'\x01' * 20, hashlib.sha1).digest()]
+            session_ctx.k2 = [ord(i) for i in
+                              hmac.new(_sik_digest, b'\x02' * 20, hashlib.sha1).digest()]
 
         elif request.payload_type == 0x00:
             self.payload_type = 0x00
@@ -602,7 +612,8 @@ class AuthRMCP(auth_base.IPMIAuthType):
 
                 # set the completion code as success (0x00) if we did not specify an
                 # error completion code in the request packet from earlier processing.
-                self.completion_code = 0x00 if request.completion_code is None else request.completion_code
+                self.completion_code = 0x00 if request.completion_code is None else \
+                    request.completion_code
 
                 # get the data
                 self.data = response_data if response_data is not None else []
@@ -674,7 +685,11 @@ class AuthRMCP(auth_base.IPMIAuthType):
             self.payload_length = [(new_payload_size >> 0) & 0xff, (new_payload_size >> 8) & 0xff]
 
             self.iv = [random.randint(0, 255) for _ in range(16)]
-            cipher = AES.new(''.join(map(chr, session_ctx.k2[0:16])), AES.MODE_CBC, ''.join(map(chr, self.iv)))
+            cipher = AES.new(
+                ''.join(map(chr, session_ctx.k2[0:16])),
+                AES.MODE_CBC,
+                ''.join(map(chr, self.iv)))
+
             encrypted = cipher.encrypt(''.join(map(chr, _aespad(_data))))
             self._body = self.iv + map(ord, encrypted)
 

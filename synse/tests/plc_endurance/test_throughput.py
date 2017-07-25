@@ -29,10 +29,8 @@ import unittest
 
 from synse.tests.test_config import PREFIX
 from synse.tests.test_utils import threaded
-
-from vapor_common import http
-from vapor_common.errors import VaporHTTPError
-
+from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 # number of threads to spawn for each test. currently, it seems that >10 threads
 # causes a 502 error to be returned
@@ -144,7 +142,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         @threaded(THREAD_COUNT)
         def test_power():
-            r = http.get(PREFIX + "/power/status/0000000A/02FF")
+            r = http.get(PREFIX + '/power/status/0000000A/02FF')
             self.assertTrue(http.request_ok(r.status_code))
 
         test_power()
@@ -156,7 +154,7 @@ class ThroughputTestCase(unittest.TestCase):
         @threaded(THREAD_COUNT)
         def test_power():
             with self.assertRaises(VaporHTTPError) as ctx:
-                http.get(PREFIX + "/power/status/0000000B/02FF")
+                http.get(PREFIX + '/power/status/0000000B/02FF')
 
             self.assertEqual(ctx.exception.status, 500)
 

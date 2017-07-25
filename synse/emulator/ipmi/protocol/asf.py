@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   08/29/2016
-    
+
     \\//
      \/apor IO
 
@@ -80,6 +80,11 @@ class ASF(object):
 
     @classmethod
     def make_pong(cls, data=None):
+        """ Create an ASF pong response.
+
+        Args:
+            data (list): the data to send back in the pong.
+        """
         if data is None:
             data = []
         data_length = len(data)

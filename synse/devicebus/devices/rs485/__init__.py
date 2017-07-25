@@ -25,8 +25,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from f660_airflow import F660Airflow
-from gs3_2010_fan_controller import GS32010Fan
-from sht31_humidity import SHT31Humidity
+# pylint: skip-file
 
-from rs485_device import RS485Device
+from synse.devicebus.devices.rs485.f660_airflow import F660Airflow
+from synse.devicebus.devices.rs485.gs3_2010_fan_controller import GS32010Fan
+from synse.devicebus.devices.rs485.rs485_device import RS485Device
+from synse.devicebus.devices.rs485.sht31_humidity import SHT31Humidity

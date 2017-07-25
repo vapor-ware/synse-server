@@ -29,12 +29,8 @@ import unittest
 
 from synse.devicebus.devices.plc.plc_bus import DeviceBusPacket
 from synse.errors import BusDataException
-from synse.utils import (
-    board_id_to_bytes,
-    board_id_join_bytes,
-    device_id_to_bytes,
-    device_id_join_bytes
-)
+from synse.utils import (board_id_join_bytes, board_id_to_bytes,
+                         device_id_join_bytes, device_id_to_bytes)
 
 
 class DevicebusTestCase(unittest.TestCase):

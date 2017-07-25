@@ -3,7 +3,7 @@
 
     Author: Erick Daniszewski
     Date:   08/31/2016
-    
+
     \\//
      \/apor IO
 
@@ -25,8 +25,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import os
+
 import json
+import os
 from itertools import count
 
 
@@ -44,7 +45,8 @@ class SDR(object):
       * Get SDR
     """
 
-    def __init__(self, sdr_version, record_count, free_space, latest_addition_ts, latest_erase_ts, operation_support):
+    def __init__(self, sdr_version, record_count, free_space, latest_addition_ts,
+                 latest_erase_ts, operation_support):
         # initialize a dictionary to map session ids to reservation ids
         self.sdr_reservation = {}
 
@@ -61,7 +63,8 @@ class SDR(object):
         self.free_space = self._encode_free_space(free_space)
         self.latest_addition_ts = self._encode_timestamp(latest_addition_ts)
         self.latest_erase_ts = self._encode_timestamp(latest_erase_ts)
-        self.operation_support = int(operation_support, 16) if isinstance(operation_support, basestring) else operation_support
+        self.operation_support = int(operation_support, 16) if \
+            isinstance(operation_support, basestring) else operation_support
 
     @classmethod
     def from_config(cls, config_file):
@@ -74,9 +77,12 @@ class SDR(object):
             SDR: an instance of the SDR object
         """
         if not os.path.isfile(config_file):
-            raise ValueError('Specified config file for SDR record not found : {}'.format(config_file))
+            raise ValueError(
+                'Specified config file for SDR record not found : {}'.format(
+                    config_file))
 
-        # let any exception propagate upwards so the user knows there was a misconfiguration
+        # let any exception propagate upwards so the user knows there was
+        # a misconfiguration
         with open(config_file, 'r') as f:
             _cfg = json.load(f)
 
@@ -89,9 +95,12 @@ class SDR(object):
             config_file (str): the path/name containing the SDR entry
         """
         if not os.path.isfile(config_file):
-            raise ValueError('Specified config file for SDR Entry record(s) not found : {}'.format(config_file))
+            raise ValueError(
+                'Specified config file for SDR Entry record(s) not found : {}'.format(
+                    config_file))
 
-        # let any exception propagate upwards so the user knows there was a misconfiguration
+        # let any exception propagate upwards so the user knows there was
+        # a misconfiguration
         with open(config_file, 'r') as f:
             _cfg = json.load(f)
 
@@ -101,8 +110,13 @@ class SDR(object):
         # allows us to track the index of the next reading for that given sensor as
         # well as adding in references to the next record, for convenience so we don't
         # have to do it later.
-        for i in range(len(entries)):
-            record = entries[i]
+        for i, record in enumerate(entries):
+
+            event_msgs = int(record['event_messages'], 16) if \
+                record['event_messages'] is not None else None
+
+            threshold_cmp = [int(t, 16) for t in record['threshold_comparison']] if \
+                record['threshold_comparison'] is not None else None
 
             # define the key value pair
             k = int(record['id'], 16)
@@ -110,8 +124,8 @@ class SDR(object):
                 'id': int(record['id'], 16),
                 'data': [int(d, 16) for d in record['data']],
                 'readings': record['readings'],
-                'event_messages': int(record['event_messages'], 16) if record['event_messages'] is not None else None,
-                'threshold_comparison': [int(t, 16) for t in record['threshold_comparison']] if record['threshold_comparison'] is not None else None,
+                'event_messages': event_msgs,
+                'threshold_comparison': threshold_cmp,
 
                 # for convenience, pull out the sensor id
                 'sensor_number': int(record['data'][7], 16),
@@ -202,11 +216,13 @@ class SDR(object):
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
         if _reservation != b'\x00\x00':
             if _reservation not in self.sdr_reservation:
-                raise ValueError('Reservation {} not found in SDR tracked reservations.'.format(reservation))
+                raise ValueError(
+                    'Reservation {} not found in SDR tracked reservations.'.format(reservation))
 
             known_session = self.sdr_reservation[_reservation]
             if known_session != session:
-                raise ValueError('Session ID does not match that with reservation {}'.format(reservation))
+                raise ValueError(
+                    'Session ID does not match that with reservation {}'.format(reservation))
 
         # now, get out the data from the specified record id
         _id = record_id[0]
@@ -272,7 +288,7 @@ class SDR(object):
         """
         # FIXME - sensor thresholds should be sensor-specific. for now, will just
         # return 0 for each threshold, however.
-        sensor_num = packet.data[0]
+        sensor_num = packet.data[0]  # pylint: disable=unused-variable
         return [
             0x00,  # readable thresholds - setting this bitmask to 0 indicates that
                    # none of the thresholds are readable.
@@ -289,8 +305,8 @@ class SDR(object):
     def _encode_version(version):
         """ Encode the version number as a byte.
 
-        Note, everything will be encoded as if it were decimal form, e.g. 2, "2", "2.0" and 2.0 would
-        encode the same way, so both are valid inputs.
+        Note, everything will be encoded as if it were decimal form, e.g. 2, "2",
+        "2.0" and 2.0 would encode the same way, so both are valid inputs.
 
         Args:
             version (int | float | str): the sdr version
@@ -314,7 +330,8 @@ class SDR(object):
             return _version
 
         else:
-            raise ValueError('SDR version expected to be int or float but was {}'.format(type(version)))
+            raise ValueError(
+                'SDR version expected to be int or float but was {}'.format(type(version)))
 
     @staticmethod
     def _encode_record_count(record_count):

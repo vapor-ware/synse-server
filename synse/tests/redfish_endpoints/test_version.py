@@ -27,10 +27,9 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
 
-from synse.version import __api_version__
 from synse.tests.test_config import PREFIX
-
-from vapor_common import http
+from synse.vapor_common import http
+from synse.version import __api_version__
 
 
 class RedfishVersionTestCase(unittest.TestCase):

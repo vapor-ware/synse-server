@@ -11,8 +11,8 @@ import json
 import os
 import unittest
 
-from vapor_common.vapor_config import ConfigManager
 from vapor_common.constants import PACKAGE_INSTALL_DIR
+from vapor_common.vapor_config import ConfigManager
 
 
 class ConfigurationManagerTestCase(unittest.TestCase):

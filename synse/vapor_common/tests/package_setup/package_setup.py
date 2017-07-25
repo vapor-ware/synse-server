@@ -12,8 +12,7 @@ import logging
 import os
 import unittest
 
-from vapor_common.constants import LICENSE_PATH
-from vapor_common.constants import PACKAGE_INSTALL_DIR
+from vapor_common.constants import LICENSE_PATH, PACKAGE_INSTALL_DIR
 from vapor_common.errors import TestException
 
 logger = logging.getLogger(__name__)

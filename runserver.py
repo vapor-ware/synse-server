@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """ Synse Server Runner - Used to launch Synse from package
-via flask/nginx
+via flask
 
     Author:  andrew
     Date:    7/28/2015
@@ -26,11 +26,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-from synse import main
+from synse.app import main
 import sys
 
 # leave this import, it is used by uwsgi
-from synse import app
+from synse.app import app
 
 if len(sys.argv) == 3:
     main(serial_port=sys.argv[1], hardware=sys.argv[2])

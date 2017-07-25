@@ -24,8 +24,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
-from synse.devicebus.devices.snmp.snmp_table import SnmpTable
 
+from synse.devicebus.devices.snmp.snmp_table import SnmpTable
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ class PowerTable(SnmpTable):
         return scan_device
 
     # TODO: This needs to be addressed in the interface cleanup.
-    def get_row_reading(self, row, device_type_string):
+    def get_row_reading(self, row, device_type_string):  # pylint: disable=unused-argument
         """ Given an SnmpRow row, translate it to a reading.
 
         Args:

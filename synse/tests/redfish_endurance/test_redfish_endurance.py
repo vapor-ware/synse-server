@@ -29,8 +29,7 @@ import random
 import unittest
 
 from synse.tests.test_config import PREFIX
-
-from vapor_common import http
+from synse.vapor_common import http
 
 
 class RedfishEnduranceTestCase(unittest.TestCase):

@@ -27,21 +27,11 @@ import unittest
 from subprocess import PIPE, Popen
 
 from pysnmp.entity.rfc3413.oneliner import cmdgen
-from pysnmp.hlapi import CommunityData
-from pysnmp.hlapi import ContextData
-from pysnmp.hlapi import getCmd
-from pysnmp.hlapi import ObjectIdentity
-from pysnmp.hlapi import ObjectType
-from pysnmp.hlapi import SnmpEngine
-from pysnmp.hlapi import UdpTransportTarget
-
-from pysnmp.proto.rfc1902 import Integer
-from pysnmp.proto.rfc1902 import Integer32
+from pysnmp.hlapi import (CommunityData, ContextData, ObjectIdentity,
+                          ObjectType, SnmpEngine, UdpTransportTarget, getCmd)
+from pysnmp.proto.rfc1902 import (Integer, Integer32, ObjectIdentifier,
+                                  ObjectName, OctetString, TimeTicks)
 from pysnmp.proto.rfc1905 import NoSuchInstance
-from pysnmp.proto.rfc1902 import ObjectIdentifier
-from pysnmp.proto.rfc1902 import ObjectName
-from pysnmp.proto.rfc1902 import OctetString
-from pysnmp.proto.rfc1902 import TimeTicks
 
 logger = logging.getLogger(__name__)
 

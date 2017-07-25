@@ -26,9 +26,10 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 import unittest
+
+from pyghmi.exceptions import IpmiException
 from pyghmi.ipmi.command import Command
 from pyghmi.ipmi.sdr import SensorReading
-from pyghmi.exceptions import IpmiException
 
 
 class IPMIEmulatorTestCase(unittest.TestCase):
