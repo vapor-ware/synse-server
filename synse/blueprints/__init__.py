@@ -27,4 +27,5 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 # pylint: skip-file
 
+from graphql_blueprint import graphql
 from main_blueprint import core

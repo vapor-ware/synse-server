@@ -9,6 +9,8 @@ services:
     volumes:
       - ../test/config/bmc.json:/synse/bmc_config.json
       - ../test/config/ipmi.json:/synse/override/config.json
+    environment:
+      - VAPOR_DEBUG=true
     links:
       - ipmi-emulator:ipmi-emulator-1-1
       - ipmi-emulator:ipmi-emulator-1-2

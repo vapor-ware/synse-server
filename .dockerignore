@@ -1,8 +1,8 @@
 # Synse specific components
-dockerfile
+assets/
+dockerfile/
 tools/generate_rack_config.py
 tools/ipmi_diag.py
-docs
 
 # JetBrains (PyCharm, WebStorm, etc.)
 .idea
@@ -35,6 +35,7 @@ docs
 .pep8
 
 # Logs
+logs/
 *.log
 
 # Docker
@@ -42,6 +43,7 @@ Dockerfile.*
 **/*.dockerfile
 
 # Docs
+docs/
 **/*.md
 **/*.rst
 

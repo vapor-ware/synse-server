@@ -248,4 +248,4 @@ class LocationTestCase(unittest.TestCase):
         with self.assertRaises(VaporHTTPError) as ctx:
             http.get(PREFIX + '/location/bad_char%/00000000/9F00')
 
-        self.assertEqual(ctx.exception.status, 500)
+        self.assertEqual(ctx.exception.status, 400)

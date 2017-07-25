@@ -45,7 +45,7 @@ import arrow
 from flask import Flask, g, jsonify
 
 import synse.constants as const
-from synse.blueprints import core
+from synse.blueprints import core, graphql
 from synse.devicebus.command_factory import CommandFactory
 from synse.devicebus.devices.i2c import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from synse.devicebus.devices.ipmi import *  # pylint: disable=wildcard-import,unused-wildcard-import
@@ -300,6 +300,7 @@ def main(serial_port=None, hardware=None):
         app.config['SINGLE_BOARD_DEVICES'] = {}
 
         app.register_blueprint(core)
+        app.register_blueprint(graphql)
         register_app_devices(app)
 
         logger.info('Registered {} Device(s)'.format(len(app.config['DEVICES'])))
