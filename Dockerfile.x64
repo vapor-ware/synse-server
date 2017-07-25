@@ -29,6 +29,10 @@ RUN set -ex \
 ADD . /synse
 WORKDIR /synse
 
+# update the python path to include the synse module so that it
+# can be successfully be imported
+ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
+
 RUN mkdir -p /etc/uwsgi \
     && touch /etc/uwsgi/reload \
     && ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/synse.ini \
@@ -36,14 +40,11 @@ RUN mkdir -p /etc/uwsgi \
     && ln -s /synse/configs/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf \
     && rm -f /etc/logrotate.d/nginx \
     && cp /synse/configs/nginx/nginx.logrotate /etc/logrotate.d/nginx \
+    && sed -i -e "s/VERSION_SENTINEL/$(python synse/version.py api)/g" /synse/configs/nginx/nginx.conf \
     && mkdir /logs \
     && chown :www-data /logs \
     && chmod 775 /logs \
     && ln -sf /proc/1/fd/1 /logs/err
-
-# update the python path to include the synse module so that it
-# can be successfully be imported
-ENV PYTHONPATH="/synse/synse:${PYTHONPATH}"
 
 # Expose our API endpoint port.
 EXPOSE 5000

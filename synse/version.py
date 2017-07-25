@@ -27,6 +27,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
+import sys
 
 from synse import __version__
 
@@ -44,4 +45,11 @@ major, minor, _ = _version
 __api_version__ = major + '.' + minor
 
 if __name__ == '__main__':
+    args = sys.argv[1:]
+
+    if args:
+        if 'api' in args:
+            print(__api_version__)
+            exit()
+
     print(__version__)
