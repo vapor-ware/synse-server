@@ -39,8 +39,8 @@ PCA9546_READ_ADDRESS = '\xE3'
 DIFFERENTIAL_PRESSURE_READ_COUNT = 25
 
 
-def _start_i2c():
-    """Common code for starting i2c reads."""
+def _open_vec_i2c():
+    """Open the i2c port on the VEC USB for i2c operations."""
     # Port A I2C for PCA9546A
     vec = MPSSE()
     vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
@@ -60,8 +60,8 @@ def _start_i2c():
     return vec, gpio
 
 
-def _stop_i2c(vec, gpio):
-    """Common code for stopping i2c reads."""
+def _close_vec_i2c(vec, gpio):
+    """Close the i2c port on the VEC USB."""
     vec.Stop()
     vec.Close()
     gpio.Close()
@@ -256,7 +256,7 @@ def read_differential_pressure(channel):
     CEC board.
     :param channel: The channel to read.
     :returns: The differential pressure in Pascals, or None on failure."""
-    vec, gpio = _start_i2c()
+    vec, gpio = _open_vec_i2c()
 
     readings = None
     if vec.GetAck() == ACK:
@@ -275,10 +275,10 @@ def read_differential_pressure(channel):
 
     else:
         logger.error('No ACK from PCA9546A')
-        _stop_i2c(vec, gpio)
+        _close_vec_i2c(vec, gpio)
         return None
 
-    _stop_i2c(vec, gpio)
+    _close_vec_i2c(vec, gpio)
 
     # Now that the bus is closed, normalize the results.
     normalized_result = _normalize_differential_pressure_result(channel, readings)
@@ -294,7 +294,7 @@ def read_differential_pressures(count):
     differential pressure sensor configuration. None is returned on failure."""
 
     start_time = datetime.datetime.now()
-    vec, gpio = _start_i2c()
+    vec, gpio = _open_vec_i2c()
     result = []
     raw_result = []
 
@@ -319,10 +319,10 @@ def read_differential_pressures(count):
         vec.Stop()
     else:
         logger.error('No ACK from PCA9546A')
-        _stop_i2c(vec, gpio)
+        _close_vec_i2c(vec, gpio)
         return None
 
-    _stop_i2c(vec, gpio)
+    _close_vec_i2c(vec, gpio)
 
     # Now that the bus is closed, normalize the results.
     for index, raw in enumerate(raw_result):
@@ -350,7 +350,7 @@ def read_thermistors(count):
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
 
-    vec, gpio = _start_i2c()
+    vec, gpio = _open_vec_i2c()
 
     ad_reading = None
     if vec.GetAck() == ACK:
@@ -398,10 +398,10 @@ def read_thermistors(count):
 
     else:
         logger.error('No ACK from thermistors.')
-        _stop_i2c(vec, gpio)
+        _close_vec_i2c(vec, gpio)
         return None
 
-    _stop_i2c(vec, gpio)
+    _close_vec_i2c(vec, gpio)
 
     # Convert the raw reading for each thermistor.
     result = []
