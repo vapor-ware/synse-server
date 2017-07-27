@@ -9,20 +9,13 @@
 # ------------------------------------------------------------------------
 
 include mk/docker.makefile
+include mk/lint.makefile
+include mk/package.makefile
 
 
 PKG_VER := $(shell python synse/__init__.py)
 GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
-FPM_OPTS := -s dir -n synse-server -v $(PKG_VER) \
-	--architecture native \
-	--url "https://github.com/vapor-ware/synse-server" \
-	--license GPL2 \
-	--description "IoT sensor management and telemetry system" \
-	--maintainer "Thomas Rampelberg <thomasr@vapor.io>" \
-	--vendor "Vapor IO" \
-	--config-files lib/systemd/system/synse-server.service \
-	--after-install synse-server.systemd.postinst
 
 run: build
 	docker-compose -f compose/emulator.yml up -d
@@ -34,73 +27,14 @@ down:
 # Build
 # -----------------------------------------------
 
-# FPM is used to generate the actual packages.
-# FIXME: The version is hardcoded right now, should be dynamic.
-build-fpm:
-	docker build -f dockerfile/fpm.dockerfile \
-		-t vaporio/fpm:latest \
-		-t vaporio/fpm:1.8.1 .
-
-# hub is used to create the release in github and upload it.
-# FIXME: The version is hardcoded right now, should be dynamic.
-build-hub:
-	docker build -f dockerfile/hub.dockerfile \
-		-t vaporio/hub:latest \
-		-t vaporio/hub:2.3.0-pre9 .
-
-# packagecloud is used to upload the packages to repos
-# FIXME: The version is hardcoded right now, should be dynamic.
-build-packagecloud:
-	docker build -f dockerfile/packagecloud.dockerfile \
-		-t vaporio/packagecloud:latest \
-		-t vaporio/packagecloud:0.2.42 .
-
 build:
-	docker build -f Dockerfile.x64 \
+	docker build -f dockerfile/release.dockerfile \
 		-t vaporio/synse-server:latest \
 		-t vaporio/synse-server:$(PKG_VER) \
 		-t vaporio/synse-server:$(GIT_VER) .
 
-# -----------------------------------------------
-# Packages
-# -----------------------------------------------
 
-ubuntu1604:
-	docker run -it -v $(PWD)/packages:/data vaporio/fpm \
-	-t deb \
-	--iteration ubuntu1604 \
-	--depends "docker-ce > 17" \
-	$(FPM_OPTS) .
 
-deb: ubuntu1604
-
-el7:
-	docker run -it -v $(PWD)/packages:/data vaporio/fpm \
-	-t rpm \
-	--iteration el7 \
-	--depends "docker-engine > 17" \
-	$(FPM_OPTS) .
-
-rpm: el7
-
-release-github:
-	docker run -it -v $(PWD):/data vaporio/hub \
-		release create -d \
-		-a packages/synse-server-$(PKG_VER)*rpm \
-		-a packages/synse-server_$(PKG_VER)*deb \
-		-m "v$(PKG_VER)" v$(PKG_VER)
-
-release-packagecloud:
-	docker run -it -v $(PWD):/data vaporio/packagecloud \
-		push VaporIO/synse/el/7 /data/$(shell ls packages/*.rpm)
-	docker run -it -v $(PWD):/data vaporio/packagecloud \
-		push VaporIO/synse/ubuntu/xenial /data/$(shell ls packages/*.deb)
-
-release: deb rpm release-github release-packagecloud
-
-#################################################
-# Testing and Development
-#################################################
 
 # -----------------------------------------------
 #  Variables / functions.
@@ -194,57 +128,8 @@ test: \
 	graphql-test
 
 dev: run
-	-docker exec -it synse-server /bin/sh
+	-docker exec -it synse-server /bin/bash
 
 dev-ipmi dev-plc dev-i2c dev-redfish dev-rs485 dev-snmp:
 	docker-compose -f compose/$@.yml up -d && docker exec -it synse-server-dev /bin/bash
-
-
-.PHONY: source-volume
-source-volume:
-	docker volume create source
-
-.PHONY: lint
-lint: source-volume
-	COMMAND='tox -e lint' \
-		docker-compose -f compose/lint.yml up \
-			--build \
-			--abort-on-container-exit \
-			--exit-code-from synse-lint
-
-
-# -----------------------------------------------
-# GraphQL Commands
-# -----------------------------------------------
-define graphql-clean
-	docker-compose -f compose/graphql-test.yml down --remove-orphans
-	docker-compose -f compose/graphql-release.yml down --remove-orphans
-endef
-
-graphql-build-test:
-	docker-compose -f compose/graphql-test.yml build
-
-graphql-build-release:
-	docker-compose -f compose/graphql-release.yml build
-
-graphql-test-service:
-	docker-compose -f compose/graphql-test.yml up -d
-
-graphql-dev graphql-test: %: graphql-build-test graphql-test-service real-%
-	$(call graphql-clean)
-
-real-graphql-dev:
-	-docker exec -it synse-graphql-test /bin/sh
-
-real-graphql-test:
-	# Removed the -t on docker exec since Jenkins does not have a tty.
-	-docker exec -i synse-graphql-test /bin/sh -c "bin/wait && tox"
-
-graphql-clean:
-	$(call graphql-clean)
-
-graphql-run: graphql-build-release
-	docker-compose -f compose/graphql-release.yml up
-
-
 

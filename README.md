@@ -120,7 +120,7 @@ included Makefile can be used to package up the distribution.
 
 In the simplest case, from the Synse directory:
 ```
-make x64
+make build
 ```
 
 ## Emulators
@@ -155,44 +155,9 @@ There are many test cases, so running the full suite of tests may take some time
 
 ## GraphQL
 
-GraphQL endpoints are included in synse-server and can be found in the `graphql`
-subdirectory. The GraphQL endpoints run alongside the Synse endpoints and are served
-from the same port.
-
-### Development
-
-#### Run the server
-
-```
-make graphql-dev
-python runserver.py &
-```
-
-This will drop you into an interactive session on the Synse container. From here you
-can run `curl localhost:5000/synse/1.4/graphql/test` to verify that the GraphQL endpoints
-started and are being served.
-
-#### Run the tests
-
-```
-make graphql-test
-```
-
-If these tests succed, you should see the summary:
-```
-___________________________________ summary ____________________________________
-  py36: commands succeeded
-  congratulations :)
-```
-
-Tests can also be run as part of development (see section above). From the `synse-server/graphql`
-directory, you can run:
-```
-make one test="-a now"
-```
-
-(See [nosetests](http://nose.readthedocs.io/en/latest/usage.html) for some more examples.)
-Adding `@attr('now')` to the top of a function is a convenient way to just run a single test.
+GraphQL endpoints are included in synse-server. The GraphQL endpoints run alongside the 
+Synse endpoints and are served
+from the same app.
 
 ## License
 Synse is released under GPLv2 - see [LICENSE](license) for more information.
@@ -202,16 +167,6 @@ Synse is released under GPLv2 - see [LICENSE](license) for more information.
 
 #### Unable to access docker image.
 - Workaround is docker login, even if logged in already.
-
-#### Getting isort errors on GraphQL tests?
-
-- See the changes:
-
-    isort graphql_frontend tests -rc -vb --dont-skip=__init_.py --diff
-
-- Atomic updates:
-
-    isort graphql_frontend tests -rc -vb --dont-skip=__init_.py --atomic
 
 
 [cli]: https://github.com/vapor-ware/synse-cli

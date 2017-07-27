@@ -27,6 +27,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from __future__ import print_function
+
 import sys
 
 from synse import __version__
