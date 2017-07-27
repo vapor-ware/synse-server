@@ -19,6 +19,14 @@ from mpsse import (ACK, GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
                    ONE_HUNDRED_KHZ)
 
 from ..conversions import conversions
+from binascii import hexlify
+from mpsse import *
+from ..conversions import conversions
+import copy
+import datetime
+import logging
+import time
+from synse.stats import stats
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +34,13 @@ logger = logging.getLogger(__name__)
 PCA9546_WRITE_ADDRESS = '\xE2'
 PCA9546_READ_ADDRESS = '\xE3'
 
+# The number of times we read a differential pressure sensor in order to handle
+# the turbulence that causes single reads to vary wildly.
+DIFFERENTIAL_PRESSURE_READ_COUNT = 25
 
-def _start_i2c():
-    """Common code for starting i2c reads."""
+
+def _open_vec_i2c():
+    """Open the i2c port on the VEC USB for i2c operations."""
     # Port A I2C for PCA9546A
     vec = MPSSE()
     vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
@@ -48,19 +60,65 @@ def _start_i2c():
     return vec, gpio
 
 
-def _stop_i2c(vec, gpio):
-    """Common code for stopping i2c reads."""
+def _close_vec_i2c(vec, gpio):
+    """Close the i2c port on the VEC USB."""
     vec.Stop()
     vec.Close()
     gpio.Close()
 
 
+def get_channel_ordinal(channel):
+    """The differential pressure sensors have a channel setting that uses a
+    bit shift.
+    :raises: ValueError on invalid channel."""
+    channels = [1, 2, 4, 8, 16, 32, 64, 128]
+    return channels.index(channel)
+
+
+def get_channel_from_ordinal(ordinal):
+    """The differential pressure sensors have a channel setting that uses a
+    bit shift.
+    :raises: ValueError on invalid channel."""
+    channels = [1, 2, 4, 8, 16, 32, 64, 128]
+    return channels[ordinal]
+
+
+def _normalize_differential_pressure_result(channel, readings):
+    """Normalize the raw differential pressure readings to produce a result.
+    The raw readings will vary wildly due to turbulence.
+    :param channel: The I2C channel of the sensor.
+    :param readings: The raw differential pressure readings from the sensor.
+    """
+    # Dict for aggregating and logging.
+    result_stats = {'sample_count': DIFFERENTIAL_PRESSURE_READ_COUNT}
+    result_stats['raw_mean'], result_stats['raw_stddev'] = stats.std_dev(readings)
+
+    # Remove outliers.
+    readings_copy = copy.deepcopy(readings)
+    outlier_results = stats.remove_outliers_percent(readings_copy, .3)
+
+    # Get the results:
+    result_stats['remove_count'] = outlier_results['removed']
+    result_stats['outliers'] = outlier_results['outliers']
+    result_stats['list'] = outlier_results['list']
+    result_stats['mean'] = outlier_results['mean']
+    result_stats['stddev'] = outlier_results['stddev']
+
+    logger.debug('Differential Pressure Reading channel {}: result_stats{}'.format(
+        channel, result_stats))
+
+    return result_stats
+
+
 def _read_differential_pressure_channel(vec, channel):
-    """Internal common code for dp reads.
+    """Internal common code for dp reads. This part handles the per channel bus
+    reads.
     :param vec: Handle for reading.
     :param channel: The i2c channel to read.
-    :returns: The differntial pressure in Pascals on success, None on
-    failure."""
+    :returns: A list of differential pressure readings in Pascals. These will
+    vary widely due to turbulence."""
+    result = []
+
     # Set channel
     # Convert channel number to string and add to address.
     channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
@@ -86,10 +144,8 @@ def _read_differential_pressure_channel(vec, channel):
     vec.Stop()
     vec.SendAcks()
 
-    # Read DPS sensor connected to the set channel
-    raw_results = []
-    read_count = 5  # We read multiple times due to turbulence.
-    for _ in range(read_count):
+    # Read DP sensor connected to the set channel.
+    for i in range(DIFFERENTIAL_PRESSURE_READ_COUNT):
 
         # Read DPS sensor connected to the set channel
         vec.SendAcks()
@@ -107,23 +163,14 @@ def _read_differential_pressure_channel(vec, channel):
         sensor_data = vec.Read(3)
         vec.Stop()
 
-        logger.debug('Raw differential pressure bytes (hexlified) channel {}: {}'.format(
-            channel, hexlify(sensor_data)))
-
         if _crc8(sensor_data):
-            # Faster is to average, then convert, but this way is saner for debugging.
-            raw_results.append(conversions.differential_pressure_sdp610(sensor_data, 0))
+            result.append(conversions.differential_pressure_sdp610(sensor_data, 0))
         else:
             logger.error('CRC failure reading Differential Pressure')
 
-    for raw in raw_results:
-        logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(channel, raw))
-
-    if len(raw_results) == 0:
+    if len(result) == 0:
         logger.error('No differential pressure readings for channel {}'.format(channel))
         return None
-    result = sum(raw_results) / len(raw_results)
-    logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(channel, result))
     return result
 
 
@@ -209,9 +256,9 @@ def read_differential_pressure(channel):
     CEC board.
     :param channel: The channel to read.
     :returns: The differential pressure in Pascals, or None on failure."""
-    vec, gpio = _start_i2c()
+    vec, gpio = _open_vec_i2c()
 
-    result = None
+    readings = None
     if vec.GetAck() == ACK:
         # If we got an ack then switch is there.
         vec.SendNacks()
@@ -219,33 +266,23 @@ def read_differential_pressure(channel):
         vec.Stop()
         vec.SendAcks()
 
-        raw_results = []
-        read_count = 5  # We read multiple times due to turbulence.
-        for _ in range(read_count):
-            raw_results.append(_read_differential_pressure_channel(vec, channel))
+        readings = _read_differential_pressure_channel(vec, channel)
 
         channel_str = PCA9546_WRITE_ADDRESS + '\x00'
         vec.Start()
         vec.Write(channel_str)
         vec.Stop()
 
-        for raw in raw_results:
-            logger.debug('Raw Differential Pressure Reading on channel {}: {}'.format(
-                channel, raw))
-        if len(raw_results) == 0:
-            logger.error('Failed to get Differential Pressure Reading on channel {}'.format(
-                channel))
-            return None
-        result = sum(raw_results) / len(raw_results)
-        logger.debug('Average Differential Pressure Reading on channel {}: {}'.format(
-            channel, result))
-
     else:
-        # If we can't get an ack, result will be an empty list.
         logger.error('No ACK from PCA9546A')
+        _close_vec_i2c(vec, gpio)
+        return None
 
-    _stop_i2c(vec, gpio)
-    return result
+    _close_vec_i2c(vec, gpio)
+
+    # Now that the bus is closed, normalize the results.
+    normalized_result = _normalize_differential_pressure_result(channel, readings)
+    return normalized_result['mean']
 
 
 def read_differential_pressures(count):
@@ -257,8 +294,9 @@ def read_differential_pressures(count):
     differential pressure sensor configuration. None is returned on failure."""
 
     start_time = datetime.datetime.now()
-    vec, gpio = _start_i2c()
+    vec, gpio = _open_vec_i2c()
     result = []
+    raw_result = []
 
     if vec.GetAck() == ACK:
         # If we got an ack then switch is there.
@@ -271,7 +309,7 @@ def read_differential_pressures(count):
         # on the PCA9546A.
         channel = 1
         for _ in range(count):
-            result.append(_read_differential_pressure_channel(vec, channel))
+            raw_result.append(_read_differential_pressure_channel(vec, channel))
             # set the next channel
             channel <<= 1
 
@@ -280,10 +318,18 @@ def read_differential_pressures(count):
         vec.Write(channel_str)
         vec.Stop()
     else:
-        # If we can't get an ack, result will be an empty list.
         logger.error('No ACK from PCA9546A')
+        _close_vec_i2c(vec, gpio)
+        return None
 
-    _stop_i2c(vec, gpio)
+    _close_vec_i2c(vec, gpio)
+
+    # Now that the bus is closed, normalize the results.
+    for index, raw in enumerate(raw_result):
+        channel = get_channel_from_ordinal(index)
+        normalized = _normalize_differential_pressure_result(channel, raw)
+        result.append(normalized['mean'])
+
     end_time = datetime.datetime.now()
     logger.debug('Differential Pressure Read time: {} ms'.format(
         (end_time - start_time).total_seconds() * 1000))
@@ -304,7 +350,7 @@ def read_thermistors(count):
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
 
-    vec, gpio = _start_i2c()
+    vec, gpio = _open_vec_i2c()
 
     ad_reading = None
     if vec.GetAck() == ACK:
@@ -351,10 +397,11 @@ def read_thermistors(count):
         ad_reading = vec.Read(count * 2)
 
     else:
-        # If we can't get an ack, result will be an empty list. (see below)
         logger.error('No ACK from thermistors.')
+        _close_vec_i2c(vec, gpio)
+        return None
 
-    _stop_i2c(vec, gpio)
+    _close_vec_i2c(vec, gpio)
 
     # Convert the raw reading for each thermistor.
     result = []

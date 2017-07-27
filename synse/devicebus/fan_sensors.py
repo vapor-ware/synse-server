@@ -128,7 +128,7 @@ class FanSensors(object):
         self.differentialPressures = [None] * FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT
         for d in differential_pressure_devices:
             channel = d.channel
-            channel_ordinal = FanSensors._get_channel_ordinal(channel)
+            channel_ordinal = i2c_common.get_channel_ordinal(channel)
             self.differentialPressures[channel_ordinal] = \
                 FanSensor('differential_pressure_{}'.format(channel_ordinal), 'Pa', d)
 
@@ -176,7 +176,7 @@ class FanSensors(object):
                 if dpressure.device.channel > max_channel:
                     max_channel = dpressure.device.channel
 
-        result = FanSensors._get_channel_ordinal(max_channel)
+        result = i2c_common.get_channel_ordinal(max_channel)
         result += 1
         if result > FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT:
             raise ValueError('Unsupported differential pressure sensor count {}. Maximum {}'.format(
@@ -207,14 +207,6 @@ class FanSensors(object):
             if d.__class__.get_instance_name() == instance_name:
                 result.append(d)
         return result
-
-    @staticmethod
-    def _get_channel_ordinal(channel):
-        """The airflow sensor has a channel setting that uses a bit shift.
-        :raises: ValueError on invalid channel.
-        """
-        channels = [1, 2, 4, 8, 16, 32, 64, 128]
-        return channels.index(channel)
 
     def _read_thermistors(self):
         """Read the configured thermistors.
