@@ -1,7 +1,7 @@
 synse-server-dev:
   container_name: synse-server-dev
   build: ..
-  dockerfile: Dockerfile.x64
+  dockerfile: dockerfile/release.dockerfile
   links:
     - synse-test-container
 

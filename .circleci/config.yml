@@ -33,6 +33,3 @@ jobs:
       - run:
           name: Docker Compose Build
           command: docker-compose -f compose/release.yml build
-      - run:
-          name: Docker Compose Build GraphQL-Test
-          command: docker-compose -f compose/graphql-test.yml build
