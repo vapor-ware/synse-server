@@ -29,6 +29,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 
 import lockfile
+import os
 import serial
 
 from synse import constants as const
@@ -210,7 +211,12 @@ class RS485Device(SerialDevice):
     def create_modbus_client(self):
         """Production hardware only wrapper for creating the serial device that
          we use to speak modbus to the CEC (Central Exhaust Chamber) board.
-         This will not work for the emulator."""
+         This will not work for the emulator.
+         :returns: The dkmodbus client."""
+        # Test that the usb device is there. If not, reset the usb.
+        if not os.path.exists(self.device_name):
+            dkmodbus.dkmodbus.reset_usb([1, 2])
+
         ser = serial.Serial(self.device_name,  # Serial device name.
                             baudrate=self.baud_rate, parity=self.parity, timeout=self.timeout)
         return dkmodbus.dkmodbus(ser)
