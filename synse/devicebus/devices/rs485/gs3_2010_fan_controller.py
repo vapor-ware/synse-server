@@ -239,7 +239,10 @@ class GS32010Fan(RS485Device):
                         raise SynseException('RS485 Exception: {}'.format(result))
 
                     # create client and read registers, composing a reading to return
-                    return {const.UOM_VAPOR_FAN: result.registers[0]}
+                    return {
+                        const.UOM_VAPOR_FAN: result.registers[0],
+                        const.UOM_DIRECTION: 'forward'
+                    }
 
             elif self.hardware_type == 'production':
                 # Production
