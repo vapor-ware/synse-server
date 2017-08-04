@@ -43,8 +43,7 @@ RUN mkdir -p /etc/uwsgi \
     && sed -i -e "s/VERSION_SENTINEL/$(python synse/version.py api)/g" /synse/configs/nginx/nginx.conf \
     && mkdir /logs \
     && chown :www-data /logs \
-    && chmod 775 /logs \
-    && ln -sf /proc/1/fd/1 /logs/err
+    && chmod 775 /logs
 
 # Expose our API endpoint port.
 EXPOSE 5000

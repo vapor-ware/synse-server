@@ -58,7 +58,7 @@ from synse.errors import SynseException
 from synse.utils import cache_registration_dependencies, make_json_response
 from synse.vapor_common.util import setup_json_errors
 from synse.vapor_common.vapor_config import ConfigManager
-from synse.vapor_common.vapor_logging import get_startup_logger, setup_logging
+from synse.vapor_common.vapor_logging import setup_logging
 from synse.version import __api_version__
 
 cfg = ConfigManager(
@@ -263,9 +263,6 @@ def main(serial_port=None, hardware=None):
     logger.info('[{}]'.format(datetime.datetime.utcnow()))
     logger.info('=====================================')
 
-    # get an error logger to log out anything that could cause app startup failure
-    startup_logger = get_startup_logger()
-
     try:
         # FIXME - using app.config here isn't 'wrong', but when Synse changes to be
         #         anything more than single proc/thread, we will want to change this.
@@ -312,8 +309,8 @@ def main(serial_port=None, hardware=None):
         logger.info('----------------------------------------')
 
     except Exception as e:
-        startup_logger.error('Failed to start up Synse endpoint!')
-        startup_logger.exception(e)
+        logger.error('Failed to start up Synse endpoint!')
+        logger.exception(e)
         raise
 
     if __name__ == '__main__':
