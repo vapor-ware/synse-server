@@ -38,8 +38,8 @@ RUN mkdir -p /etc/uwsgi \
     && ln -s /synse/configs/uwsgi/synse.ini /etc/uwsgi/synse.ini \
     && chown -R www-data:www-data /etc/uwsgi \
     && ln -s /synse/configs/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf \
-    && rm -f /etc/logrotate.d/nginx \
-    && cp /synse/configs/nginx/nginx.logrotate /etc/logrotate.d/nginx \
+    && ln -sf /proc/1/fd/1 /var/log/nginx/access.log \
+    && ln -sf /proc/1/fd/2 /var/log/nginx/error.log \
     && sed -i -e "s/VERSION_SENTINEL/$(python synse/version.py api)/g" /synse/configs/nginx/nginx.conf \
     && mkdir /logs \
     && chown :www-data /logs \

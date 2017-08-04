@@ -3,10 +3,10 @@
   "disable_existing_loggers": false,
   "formatters": {
     "error": {
-      "format": "%(asctime)s - %(module)s:%(lineno)s [%(levelname)s] - %(message)s"
+      "format": "synse  | [%(asctime)s] %(module)s:%(lineno)s (%(levelname)s) - %(message)s"
     },
     "debug": {
-      "format": "%(asctime)s - %(module)s:%(lineno)s - %(message)s"
+      "format": "synse  | [%(asctime)s] %(module)s:%(lineno)s - %(message)s"
     }
   },
 
