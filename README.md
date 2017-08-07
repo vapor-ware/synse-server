@@ -159,6 +159,17 @@ GraphQL endpoints are included in synse-server. The GraphQL endpoints run alongs
 Synse endpoints and are served
 from the same app.
 
+## Logs
+
+Logs for Nginx, uWSGI, and the Synse Flask application are routed to stdout/stderr of the
+container, so they are all viewable via `docker logs`. Logs for a given component are prefaced
+with the name of that component, e.g. for Nginx, `nginx  |` - this makes it 
+easier to see the logs for the components individually. Where `docker logs synse` (assuming the
+container is named `synse`) would get logs for everything, 
+- `docker logs synse | grep "synse  |"` would give logs for the Synse Flask application
+- `docker logs synse | grep "nginx  |"` would give logs for Nginx
+- `docker logs synse | grep "uwsgi  |"` would give logs for uWSGI
+
 ## License
 Synse is released under GPLv2 - see [LICENSE](license) for more information.
 

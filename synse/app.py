@@ -304,7 +304,6 @@ def main(serial_port=None, hardware=None):
         for v in app.config['DEVICES'].values():
             logger.info('... {}'.format(v))
 
-        logger.info('app.config: {}'.format(app.config))
         logger.info('Endpoint Setup and Registration Complete')
         logger.info('----------------------------------------')
 
