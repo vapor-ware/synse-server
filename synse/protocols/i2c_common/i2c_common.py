@@ -9,28 +9,24 @@
         under the devicebus.
 """
 
-import datetime
-import logging
-import time
-from binascii import hexlify
-
 # pylint: disable=import-error
 from mpsse import (ACK, GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
                    ONE_HUNDRED_KHZ)
 
-from ..conversions import conversions
 from binascii import hexlify
 from mpsse import *
 from ..conversions import conversions
 import copy
 import datetime
 import logging
+import struct
 import time
 from synse.stats import stats
 
 logger = logging.getLogger(__name__)
 
 # Proto 2 Board
+# PCA9546A is a four channel I2C / SMBus switch.
 PCA9546_WRITE_ADDRESS = '\xE2'
 PCA9546_READ_ADDRESS = '\xE3'
 
@@ -63,6 +59,55 @@ def _open_vec_i2c():
 def _close_vec_i2c(vec, gpio):
     """Close the i2c port on the VEC USB."""
     vec.Stop()
+    vec.Close()
+    gpio.Close()
+
+
+def _open_led_i2c():
+    """Open the i2c port on the VEC USB for led controller operations."""
+    # Construct string to set channel number to 3
+    channel_str = PCA9546_WRITE_ADDRESS + '\x08'
+
+    # Port A I2C for PCA9546A
+    vec = MPSSE()
+    vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
+
+    # Port B I2C for debug leds (don't need the io expander for the LED Port)
+    gpio = MPSSE()
+    gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
+
+    # Set RESET line on PCA9546A to high to activate switch
+    vec.PinHigh(GPIOL0)
+
+    # Set channel on PCA9546A to 3 for PCA9632 (LED Port) Keep in mind this also is connected to the MAX11608
+    vec.Start()
+    vec.Write(channel_str)
+    vec.Stop()
+
+    # verify channel was set.
+    vec.Start()
+    vec.Write(PCA9546_READ_ADDRESS)
+    vec.SendNacks()
+    reg = vec.Read(1)
+    vec.Stop()
+    reg = ord(reg)
+    if reg != 0x08:
+        raise ValueError('Failed to set PCA9546A Control Register to 0x08. Is 0x{:02x}'.format(reg))
+
+    vec.SendAcks()
+    vec.Start()
+
+    # Configure PCA9632 for our setup (IE totem pole with inverted driver output, etc)
+    # Writes to Mode 1 and Mode 2 Registers
+    vec.Start()
+    vec.Write('\xC4\x80\x00\x35')
+    vec.Stop()
+
+    return vec, gpio
+
+
+def _close_led_i2c(vec, gpio):
+    """Close the i2c port on the VEC USB."""
     vec.Close()
     gpio.Close()
 
@@ -336,6 +381,145 @@ def read_differential_pressures(count):
     for reading in result:
         logger.debug('Differential Pressure Reading:   {} Pa'.format(reading))
     return result
+
+# PCA9632 LED Controller constants.
+PCA9632_WRITE = chr(0xC4)
+PCA9632_READ = chr(0xC5)
+PCA9632_LEDOUT_BLINK = chr(0x3F)        # Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
+PCA9632_LEDOUT_STEADY = chr(0x2A)       # Brightness controlled by PWMx register.
+PCA9632_LEDOUT_OFF = chr(0x00)          # Led output off.
+PCA9632_GRPPWM_FULL = chr(0xFC)         # 98.4 % group duty cycle. 64-step duty cycle resolution.
+PCA9632_GRPFREQ_1S_BLINK = chr(0x17)    # Blink all LEDs at 1 second frequency.
+
+# register options
+PCA9632_AUTO_INCR = chr(0x80)   # Enables Auto-Increment, Mode register 1.
+
+# register map
+PCA9632_MODE1 = chr(0x00)   # Mode register 1
+PCA9632_MODE2 = chr(0x01)   # Mode register 2
+PCA9632_PWM0 = chr(0x02)    # brightness control LED0
+PCA9632_PWM1 = chr(0x03)    # brightness control LED1
+PCA9632_PWM2 = chr(0x04)    # brightness control LED2
+PCA9632_PWM3 = chr(0x05)    # brightness control LED3 (Unused if I understand correctly.)
+PCA9632_GRPPWM = chr(0x06)  # group duty cycle control
+PCA9632_GRPFREQ = chr(0x07) # group frequency
+PCA9632_LEDOUT = chr(0x08)  # LED output state
+
+
+def read_led():
+    """Read the led state from the led controller. There is one led controller
+    per wedge.
+    :returns: state, color, and blink
+    state is on or off.
+    color is a 3 byte RGB color.
+    blink is blink or steady."""
+    vec, gpio = _open_led_i2c()
+
+    # Read out color. PWM0 register. (Register 2)
+    vec.Start()
+    # write, auto increment, start at PWM0 register.
+    vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)))
+    vec.Stop()
+
+    vec.Start()
+    vec.Write(PCA9632_READ)    # start a read
+    color = vec.Read(2)  # read three bytes to read PWM0, PWM1, PWM2
+    vec.SendNacks()
+    c2 = vec.Read(1)
+    color += c2
+    vec.Stop()
+
+    # Read out Register 0x08 (LEDOUT).
+    vec.Start()
+    vec.Write(PCA9632_WRITE + PCA9632_LEDOUT)
+    vec.Stop()
+
+    vec.Start()
+    vec.Write(PCA9632_READ)    # start a read
+    ledout = vec.Read(1)
+    vec.Stop()
+
+    _close_led_i2c(vec, gpio)
+
+    ledout = ord(ledout)
+    logger.debug('PCA9632 Register 0x08: 0x{:02x}'.format(ledout))
+    ledout = chr(ledout)
+    color = hexlify(color)
+
+    # Convert state and blink from the LEDOUT state register.
+    if ledout == PCA9632_LEDOUT_OFF:
+        state = 'off'
+        blink = 'steady'
+    elif ledout == PCA9632_LEDOUT_STEADY:
+        state = 'on'
+        blink = 'steady'
+    elif ledout == PCA9632_LEDOUT_BLINK:
+        state = 'on'
+        blink = 'blink'
+    else:
+        raise ValueError('Unknown LEDOUT state 0x{}.'.format(hexlify(ledout)))
+
+    return state, color, blink
+
+
+def write_led(state, color=None, blink_state=None):
+    """Set the led state.
+    :param state: on or off
+    :param color: A 3 byte RGB color or hex string. None is fine for off.
+    :param blink_state: blink, steady, or no_override. None is fine for off."""
+
+    # If color is a string, assume hex and convert to int.
+    if isinstance(color, basestring):
+        color = int(color, 16)
+
+    # Parameter checks.
+    if state not in ['on', 'off']:
+        raise ValueError('Invalid state parameter {}.'.format(state))
+    if blink_state not in ['blink', 'steady', 'no_override', None]:
+        raise ValueError('Invalid blink_state {}.'.format(blink_state))
+    if color is not None and (color < 0 or color > 0xFFFFFF):
+        raise ValueError('Color {} out of range. 0 <= color < 0xFFFFFF'.format(color))
+    elif color is not None and blink_state is None:
+        raise ValueError('color is not None and blink_state is None')
+    elif color is None and blink_state is not None:
+        raise ValueError('color is None and blink_state is not None')
+
+    vec, gpio = _open_led_i2c()
+
+    if state == 'off':
+        # Turn off all outputs with the LEDOUT register.
+        vec.Start()
+        vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_OFF)  # write, LEDOUT register, 0x00 for off.
+        vec.Stop()
+    else:
+        # Set the colors.
+        color_bytes = struct.pack('>L', color)  # Pack color to three bytes.
+        color_bytes = color_bytes[1:]
+        to_write = PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_PWM0)) + color_bytes
+
+        vec.Start()
+        vec.Write(to_write)
+        vec.Stop()
+
+        # Set the blink state.
+        if blink_state == 'steady':
+            vec.Start()
+            vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_STEADY)
+            vec.Stop()
+        elif blink_state == 'blink':
+            vec.Start()
+            # Set group period for 1 second and group duty cycle of 50% (controls the blinking)
+            # This writes to registers 6 and 7 by setting the increment bit in the register (0x86)
+            vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_GRPPWM)) +
+                      '\x80' + PCA9632_GRPFREQ_1S_BLINK)
+            vec.Stop()
+
+            # Set the output to enable the blinking.
+            vec.Start()
+            vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_BLINK)
+            vec.Stop()
+
+    _close_led_i2c(vec, gpio)
 
 
 def read_thermistors(count):
