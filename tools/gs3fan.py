@@ -2,6 +2,11 @@
 
 """ Run this off the command line by:
 sudo -HE env PATH=$PATH ./gs3fan.py get
+
+This started out as a command line tool to read and write fan speeds on the
+initial rev of the fan controller. It has morphed into a command line tool to
+read and write to sensors on the I2C and RS485 buses, as well as to read and
+write arbitrary fan registers.
 """
 
 import sys
@@ -290,6 +295,7 @@ def _print_usage():
     print '\tair: gets CEC airflow'
     print '\ttherm: gets all thermistors'
     print '\tpressure: gets all differential pressures'
+    print '\tled [<state>[<color> <blink_state>]]: Read or write to the LED controller.'
 
 
 def _read_airflow(ser):
@@ -482,6 +488,32 @@ def _write_fan_register(ser, register, data):
     client.write_multiple_registers(1, register, 1, 2, data)
 
 
+def _read_led():
+    print '_read_led'
+    state, color, blink = i2c_common.read_led()
+    print 'state {}, RGB color 0x{}, blink {}'.format(state, color, blink)
+
+
+def _write_led(state, color=None, blink_state=None):
+    print '_write_led'
+    i2c_common.write_led(state, color, blink_state)
+
+
+def _led():
+    if len(sys.argv) == 2:
+        _read_led()
+    elif len(sys.argv) == 3:
+        state = sys.argv[2]
+        _write_led(state)
+    elif len(sys.argv) == 5:
+        state = sys.argv[2]
+        color = sys.argv[3]
+        blink_state = sys.argv[4]
+        _write_led(state, color, blink_state)
+    else:
+        raise ValueError('Unexpected args')
+
+
 def main():
     if sys.argv[1] == 'reset' and sys.argv[2] == 'usb':
         return _reset_usb()  # Do this without trying to open the serial port. We may not be able to open it.
@@ -492,6 +524,9 @@ def main():
         return 0
     elif sys.argv[1] == 'pressure':
         _read_differential_pressures()
+        return 0
+    elif sys.argv[1] == 'led':
+        _led()
         return 0
 
     ser = serial.Serial("/dev/ttyUSB3", baudrate=19200, parity='E', timeout=0.15)
