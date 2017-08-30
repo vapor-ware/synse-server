@@ -389,7 +389,7 @@ PCA9632_LEDOUT_BLINK = chr(0x3F)        # Brightness controlled by PWMx register
 PCA9632_LEDOUT_STEADY = chr(0x2A)       # Brightness controlled by PWMx register.
 PCA9632_LEDOUT_OFF = chr(0x00)          # Led output off.
 PCA9632_GRPPWM_FULL = chr(0xFC)         # 98.4 % group duty cycle. 64-step duty cycle resolution.
-PCA9632_GRPFREQ_1S_BLINK = chr(0x17)    # Blink all LEDs at 1 second frequency.
+PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. (one second on, one second off)
 
 # register options
 PCA9632_AUTO_INCR = chr(0x80)   # Enables Auto-Increment, Mode register 1.
@@ -511,7 +511,7 @@ def write_led(state, color=None, blink_state=None):
             # Set group period for 1 second and group duty cycle of 50% (controls the blinking)
             # This writes to registers 6 and 7 by setting the increment bit in the register (0x86)
             vec.Write(PCA9632_WRITE + chr(ord(PCA9632_AUTO_INCR) | ord(PCA9632_GRPPWM)) +
-                      '\x80' + PCA9632_GRPFREQ_1S_BLINK)
+                      '\x80' + PCA9632_GRPFREQ_2S_BLINK)
             vec.Stop()
 
             # Set the output to enable the blinking.
