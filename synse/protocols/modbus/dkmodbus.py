@@ -11,6 +11,7 @@
 """
 
 import logging
+import random
 import struct
 import time
 from binascii import hexlify
@@ -190,8 +191,8 @@ class dkmodbus(object):
         # Send packet out serial port
         logger.debug('Packet: {}'.format(hexlify(packet)))
         tries = 10
-        sleep_time_on_retry = .5  # second(s)
         for attempt in range(tries):
+            sleep_time_on_retry = .25 + (random.random() / 4)  # second(s)
             try:
                 logger.debug('Write attempt {}'.format(attempt))
                 self.serial_device.write(packet)

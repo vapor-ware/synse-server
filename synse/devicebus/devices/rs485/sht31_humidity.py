@@ -30,6 +30,8 @@ import logging
 import sys
 
 import lockfile
+
+from flask import request
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
 
@@ -124,6 +126,46 @@ class SHT31Humidity(RS485Device):
                 device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
+        """ Convenience method to return the sensor reading.
+
+        If the sensor is configured to be read indirectly (e.g. from background)
+        it will do so -- otherwise, we perform a direct read.
+        """
+        if self.from_background:
+            return self._indirect_sensor_read()
+        return self._direct_sensor_read()
+
+    def _indirect_sensor_read(self):
+        """Read the sensor data from the intermediary data file.
+
+        FIXME - reading from file is only for the POC. once we can
+        confirm that this works and have it stable for the short-term, we
+        will need to move on to the longer-term plan of having this done
+        via socket.
+
+        Returns:
+            dict: the thermistor reading value.
+        """
+        logger.debug('indirect_sensor_read')
+
+        # If we are not the vec leader we need to redirect this call to the leader.
+        # The Synse configuration is supposed to be the same for all vecs in the chamber.
+        if not RS485Device.is_vec_leader():
+            response = RS485Device.redirect_call_to_vec_leader(request.url)
+            return {
+                const.UOM_HUMIDITY: response[const.UOM_HUMIDITY],
+                const.UOM_TEMPERATURE: response[const.UOM_TEMPERATURE],
+            }
+
+        data_file = self._get_bg_read_file(
+            str(self.unit), '{0:04d}'.format(self.register_base))
+        data = SHT31Humidity.read_sensor_data_file(data_file)
+        return {
+            const.UOM_TEMPERATURE: data[0],
+            const.UOM_HUMIDITY: data[1]
+        }
+
+    def _direct_sensor_read(self):
         """ Internal method for reading data off of the SHT31 Humidity device.
 
         Returns:

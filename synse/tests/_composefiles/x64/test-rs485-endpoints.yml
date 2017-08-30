@@ -5,7 +5,7 @@ services:
     image: vaporio/synse-server
     build:
       context: ../../../..
-      dockerfile: Dockerfile.x64
+      dockerfile: dockerfile/release.dockerfile
     entrypoint: []
     command: bash -c "sleep 5 && python ./synse/tests/test-rs485-endpoints.py"
     links:
@@ -15,7 +15,7 @@ services:
     image: vaporio/synse-server
     build:
       context: ../../../..
-      dockerfile: Dockerfile.x64
+      dockerfile: dockerfile/release.dockerfile
     command: emulate-rs485-with-cfg ./synse/tests/data/rs485_emulator/rs485-002.json
     expose:
       - 5000

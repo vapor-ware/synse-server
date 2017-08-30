@@ -462,6 +462,26 @@ def read_led():
     return state, color, blink
 
 
+def check_led_write_parameters(state, color=None, blink_state=None):
+    """Check parameter validity.
+    :param state: on or off
+    :param color: A 3 byte RGB color or hex string. None is fine for off.
+    :param blink_state: blink, steady, or no_override. None is fine for off."""
+    # Parameter checks.
+    if state not in ['on', 'off']:
+        raise ValueError('Invalid state parameter {}.'.format(state))
+    if state == 'on' and (color is None or blink_state is None):
+        raise ValueError('Color and blink_state must be specified when state is on.')
+    if blink_state not in ['blink', 'steady', 'no_override', None]:
+        raise ValueError('Invalid blink_state {}.'.format(blink_state))
+    if color is not None and (color < 0 or color > 0xFFFFFF):
+        raise ValueError('Color {:0x} out of range. 0 <= color < 0xFFFFFF'.format(color))
+    elif color is not None and blink_state is None:
+        raise ValueError('color is not None and blink_state is None')
+    elif color is None and blink_state is not None:
+        raise ValueError('color is None and blink_state is not None')
+
+
 def write_led(state, color=None, blink_state=None):
     """Set the led state.
     :param state: on or off
@@ -473,16 +493,7 @@ def write_led(state, color=None, blink_state=None):
         color = int(color, 16)
 
     # Parameter checks.
-    if state not in ['on', 'off']:
-        raise ValueError('Invalid state parameter {}.'.format(state))
-    if blink_state not in ['blink', 'steady', 'no_override', None]:
-        raise ValueError('Invalid blink_state {}.'.format(blink_state))
-    if color is not None and (color < 0 or color > 0xFFFFFF):
-        raise ValueError('Color {} out of range. 0 <= color < 0xFFFFFF'.format(color))
-    elif color is not None and blink_state is None:
-        raise ValueError('color is not None and blink_state is None')
-    elif color is None and blink_state is not None:
-        raise ValueError('color is None and blink_state is not None')
+    check_led_write_parameters(state, color, blink_state)
 
     vec, gpio = _open_led_i2c()
 
@@ -528,8 +539,6 @@ def read_thermistors(count):
     :returns: An array of thermistor readings in degrees Celsius. The array
     index will be the same as the channel in the synse i2c max-11608 thermistor
     configuration."""
-
-    logger.debug('read_thermistors 1')
 
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
