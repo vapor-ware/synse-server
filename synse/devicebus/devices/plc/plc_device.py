@@ -28,12 +28,12 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import fcntl
 import logging
 import sys
+import threading
 import time
 from uuid import getnode as get_mac_addr
-
-import lockfile
 
 import synse.strings as _s_
 from synse import constants as const
@@ -79,7 +79,7 @@ class PLCDevice(SerialDevice):
     def __init__(self, **kwargs):
         super(PLCDevice, self).__init__(lock_path=kwargs['lockfile'])
 
-        self._lock = lockfile.LockFile(self.serial_lock)
+        self._lock = open(self.serial_lock, 'w')
 
         # these are required, so if they are missing from the config
         # dict passed in, we will want the exception to propagate up
@@ -320,7 +320,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the version response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -351,6 +352,8 @@ class PLCDevice(SerialDevice):
                     'api_version': __api_version__
                 }
             )
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _scan(self, command):
         """ Get the scan information for a given board.
@@ -363,7 +366,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the scan response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -379,10 +383,12 @@ class PLCDevice(SerialDevice):
 
             except Exception:
                 raise SynseException(
-                    'Scan: Error when scanning board {}'.format(
+                    'Scan: Error when scanning board {:08x}.'.format(
                         board_id)), None, sys.exc_info()[2]
 
             return Response(command=command, response_data=response_dict)
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _scan_all(self, command):
         """ Get the scan information from a 'broadcast' (e.g. scan all) command.
@@ -397,7 +403,8 @@ class PLCDevice(SerialDevice):
         """
         response_dict = {'racks': []}
 
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             mac_addr = str(get_mac_addr())
@@ -423,6 +430,8 @@ class PLCDevice(SerialDevice):
                         e)), None, sys.exc_info()[2]
 
             return Response(command=command, response_data=response_dict)
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -435,7 +444,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the read response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -454,7 +464,6 @@ class PLCDevice(SerialDevice):
             bus.flush()
 
             logger.debug('>>Read: {}'.format([hex(x) for x in request.serialize()]))
-            response = None
 
             try:
                 response = plc_bus.DeviceReadResponse(
@@ -468,6 +477,8 @@ class PLCDevice(SerialDevice):
                     'No response from bus on sensor read.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.DeviceReadResponse)
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
         try:
             device_type_string = device_type_string.lower()
@@ -536,7 +547,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the power response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -618,6 +630,8 @@ class PLCDevice(SerialDevice):
             except Exception:
                 raise SynseException(
                     'Power: Unexpected error when converting PMBUS data.'), None, sys.exc_info()[2]
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _asset(self, command):
         """ Asset info command for a given board and device.
@@ -630,7 +644,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the asset response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -711,6 +726,8 @@ class PLCDevice(SerialDevice):
                 raise SynseException(
                     'Asset Info: Unexpected exception when converting asset info'), \
                     None, sys.exc_info()[2]
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _boot_target(self, command):
         """ Boot target command for a given board and device.
@@ -723,7 +740,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the boot target response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -786,6 +804,8 @@ class PLCDevice(SerialDevice):
                 raise SynseException(
                     'Boot Target: Unexpected exception when converting boot target'
                     ' data'), None, sys.exc_info()[2]
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _chamber_led(self, command):
         """ Chamber LED control command.
@@ -798,7 +818,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the chamber LED response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -859,6 +880,8 @@ class PLCDevice(SerialDevice):
                 return Response(command=command, response_data=led_response)
             else:
                 raise SynseException('Invalid Chamber LED response data.')
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
     def _led(self, command):
         """ LED command for a given board and device.
@@ -885,7 +908,8 @@ class PLCDevice(SerialDevice):
             )
             return self._read(c)
 
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -908,7 +932,6 @@ class PLCDevice(SerialDevice):
             bus.flush()
 
             logger.debug('>>LED: {}'.format([hex(x) for x in request.serialize()]))
-            response = None
 
             try:
                 response = plc_bus.DeviceWriteResponse(
@@ -922,6 +945,8 @@ class PLCDevice(SerialDevice):
                     'LED write command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.DeviceWriteResponse)
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
         # get raw value to ensure remote device took the write.
         try:
@@ -959,7 +984,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the fan response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -979,7 +1005,6 @@ class PLCDevice(SerialDevice):
             bus.flush()
 
             logger.debug('>>Fan_Speed: {}'.format([hex(x) for x in request.serialize()]))
-            response = None
 
             try:
                 response = plc_bus.DeviceWriteResponse(
@@ -992,6 +1017,8 @@ class PLCDevice(SerialDevice):
                 raise SynseException('Fan command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.DeviceWriteResponse)
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
         # get raw value to ensure remote device took the write.
         try:
@@ -1028,7 +1055,8 @@ class PLCDevice(SerialDevice):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the host info response.
         """
-        with self._lock:
+        try:
+            fcntl.flock(self._lock, fcntl.LOCK_EX)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -1046,7 +1074,6 @@ class PLCDevice(SerialDevice):
             bus.flush()
 
             logger.debug('>>Host_Info: {}'.format([hex(x) for x in request.serialize()]))
-            response = None
 
             try:
                 response = plc_bus.HostInfoResponse(
@@ -1060,6 +1087,8 @@ class PLCDevice(SerialDevice):
                     'Host Info command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.HostInfoResponse)
+        finally:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
 
         # get raw value to ensure remote device took the write.
         try:

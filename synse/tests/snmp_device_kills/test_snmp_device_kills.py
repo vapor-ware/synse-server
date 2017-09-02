@@ -69,8 +69,8 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
 
         cli = docker.Client(base_url='unix://var/run/docker.sock')
 
-        # stop one of the containers
-        cli.stop(SNMP_EMULATOR_SYNSE_TESTDEVICE1_BOARD1, timeout=0)
+        # Kill one of the containers.
+        cli.kill(SNMP_EMULATOR_SYNSE_TESTDEVICE1_BOARD1)
 
         # now, we get the running containers to verify
         running = cli.containers(filters={'status': 'running'})
@@ -815,7 +815,7 @@ class SnmpDeviceKillsTestCase(SynseHttpTest):
             self._verify_vapor_http_error(e, 404, _S.ERROR_FLASK_404)
 
     def test_led_set_invalid_states_rack2_board1(self):
-        """SNMP write of LED. Sad casee.
+        """SNMP write of LED. Sad case.
         NOTE: If a write fails or the write back to original fails, this test may be
         non-reentrant.
         """

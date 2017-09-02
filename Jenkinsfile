@@ -59,26 +59,12 @@ def cleanupDocker() {
     sh('docker images -a')
 }
 
-// __pycache__ and .tox are lingering as root on the Jenkins slaves.
-// This indicates an issue with the Jenkins slave setup, for now this is
-// a workaround.
-def cleanupHack() {
-
-    sh('sudo rm -rf synse-server/graphql/graphql_frontend/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/graphql_frontend/schema/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/tests/queries/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/tests/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/tests/integration/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/.tox')
-}
-
 node {
     stage('Display Parameters') {
         displayParameters()
     }
 
     stage('Getting synse-server') {
-        cleanupHack()
 
         getSource('synse-server', vaporWareGitOrgUrl + 'synse-server',
             synse_server_branch)
@@ -88,22 +74,12 @@ node {
         try {
             cleanupDocker()
 
-            // TEMP: build the synse-server image - since it currently doesn't
-            // exit in dockerhub and is required by the graphql tests, we need
-            // to build it locally.
-            buildAndTest('synse-server', synse_server_branch,
-                'synse-server', 'make build')
-
-            // Test graphql.
-            buildAndTest('synse-server', synse_server_branch,
-                'synse-server', 'make graphql-test')
-
             // Test the backend.
             buildAndTest('synse-server', synse_server_branch,
-                'synse-server/synse/tests/', 'make test-x64')
+                'synse-server', 'make test')
+
         } finally {
             echo('Cleaning up.')
-            cleanupHack()
             cleanupDocker()
         }
     }

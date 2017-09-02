@@ -29,6 +29,7 @@ import unittest
 
 from synse.tests.test_config import PREFIX
 from synse.vapor_common import http
+from synse.vapor_common.errors import VaporHTTPError
 
 
 class ScanAllTestCase(unittest.TestCase):
@@ -43,7 +44,6 @@ class ScanAllTestCase(unittest.TestCase):
         self.assertTrue(http.request_ok(r.status_code))
         self.assertEqual(len(response['racks'][0]['boards']), 10)
 
-    '''
     def test_002_scan_all_fail(self):
         """ Test expecting failed results (error, error, error --> 500)
         """
@@ -97,4 +97,3 @@ class ScanAllTestCase(unittest.TestCase):
         response = r.json()
         self.assertEqual(len(response['boards']), 1)
         self.assertEqual(len(response['boards'][0]['devices']), 2)
-    '''

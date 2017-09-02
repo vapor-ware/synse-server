@@ -63,6 +63,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 200)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_002_test_read(self):
         """ Test reading a voltage sensor in IPMI mode.
         """
@@ -78,6 +79,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_003_test_read(self):
         """ Test reading a fan speed sensor in IPMI mode.
         """
@@ -93,6 +95,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_004_test_read(self):
         """ Test reading a temperature sensor in IPMI mode.
         """
@@ -108,6 +111,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_005_test_power(self):
         """ Test getting power status in IPMI mode.
         """
@@ -123,6 +127,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_006_test_power(self):
         """ Test power control (off) in IPMI mode.
         """
@@ -138,6 +143,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_007_test_power(self):
         """ Test power control (on) in IPMI mode.
         """
@@ -153,6 +159,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_008_test_asset_info(self):
         """ Test getting asset info in IPMI mode.
         """
@@ -168,6 +175,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_009_test_boot_target(self):
         """ Test getting boot target info in IPMI mode.
         """
@@ -183,6 +191,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_010_test_boot_target(self):
         """ Test setting boot target info in IPMI mode.
         """
@@ -198,6 +207,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_011_test_boot_target(self):
         """ Test setting boot target info in IPMI mode.
         """
@@ -213,6 +223,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_012_test_location(self):
         """ Test getting location info in IPMI mode.
         """
@@ -228,6 +239,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_013_test_led(self):
         """ Test getting led state in IPMI mode.
         """
@@ -243,6 +255,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_014_test_led(self):
         """ Test setting led state (on) in IPMI mode.
         """
@@ -258,6 +271,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_015_test_led(self):
         """ Test setting led state (off) in IPMI mode.
         """
@@ -273,6 +287,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_016_test_fan(self):
         """ Test getting fan speed in IPMI mode.
         """
@@ -288,6 +303,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_017_test_host_info(self):
         """ Test getting host info in IPMI mode.
         """
@@ -304,6 +320,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
             # while the this is pretty much just info from the BMC config, so should not fail
             self.assertEqual(resp, 200)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_018_test_scan(self):
         """ Test scanning a rack in IPMI mode.
         """
@@ -319,6 +336,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223.')
     def test_019_test_scan(self):
         """ Test scanning a board in IPMI mode.
         """
