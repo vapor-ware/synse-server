@@ -38,12 +38,6 @@ class VaporError(Exception):
     pass
 
 
-class RequestValidationError(VaporError):
-    """ A request failed to validate identity hash headers.
-    """
-    pass
-
-
 class VaporRequestError(VaporError):
     """ An error class which is raised fails for any reason, be it a connection
     error, timeout, etc.
