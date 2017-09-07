@@ -80,7 +80,7 @@ class DeviceBus(object):
     mediates access to the device bus based on the hardware profile in use.
     """
     def __init__(self, hardware_type=DEVICEBUS_UNKNOWN_HARDWARE, device_name=None,
-                 timeout=0.25, bps=115200):
+                 timeout=0.5, bps=115200):
         """ Constructor for the DeviceBus, which is used to communicate with
         devices on the configured bus.
 

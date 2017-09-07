@@ -6,7 +6,7 @@ services:
     image: vaporio/synse-server
     build:
       context: ../../../..
-      dockerfile: Dockerfile.x64
+      dockerfile: dockerfile/release.dockerfile
     entrypoint: []
     command: bash -c "sleep 5 && python ./synse/tests/test-snmp-emulator.py"
     links:

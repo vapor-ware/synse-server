@@ -106,9 +106,9 @@ snmp-tests: \
 	test-snmp-device-kills-force-scan
 
 redfish-tests: \
-    test-redfish-endpoints \
-    test-redfish-endurance \
-    test-redfish-emulator
+	test-redfish-endpoints \
+	test-redfish-endurance \
+	test-redfish-emulator
 
 general-tests: \
 	test-utils \
@@ -124,8 +124,7 @@ test: \
 	i2c-tests \
 	snmp-tests \
 	redfish-tests \
-	general-tests \
-	graphql-test
+	general-tests
 
 dev: run
 	-docker exec -it synse-server /bin/bash

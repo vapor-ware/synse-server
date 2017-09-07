@@ -69,8 +69,8 @@ class SnmpDeviceKillsForceScanTestCase(SynseHttpTest):
 
         cli = docker.Client(base_url='unix://var/run/docker.sock')
 
-        # stop one of the containers
-        cli.stop(SNMP_EMULATOR_SYNSE_TESTDEVICE1_BOARD1, timeout=0)
+        # Kill one of the containers.
+        cli.kill(SNMP_EMULATOR_SYNSE_TESTDEVICE1_BOARD1)
 
         # now, we get the running containers to verify
         running = cli.containers(filters={'status': 'running'})

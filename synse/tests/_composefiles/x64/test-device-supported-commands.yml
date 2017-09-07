@@ -5,7 +5,7 @@ services:
     image: vaporio/synse-server
     build:
       context: ../../../..
-      dockerfile: Dockerfile.x64
+      dockerfile: dockerfile/release.dockerfile
     entrypoint: []
     command: python ./synse/tests/test-device-supported-commands.py
     environment:

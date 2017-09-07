@@ -53,7 +53,7 @@ class ThreadedTestCase(unittest.TestCase):
     """
     @classmethod
     def setUpClass(cls):
-        cls.timeout = 10
+        cls.timeout = 20
 
     def test_001_good_scan_results(self):
         """ Threaded test against a scan which should return good results
@@ -63,8 +63,8 @@ class ThreadedTestCase(unittest.TestCase):
             r = http.get(PREFIX + '/scan/rack_1/0000000A', timeout=self.timeout)
             self.assertTrue(http.request_ok(r.status_code))
             response = r.json()
-            self.assertEqual(len(response['boards']), 1)
-            self.assertEqual(len(response['boards'][0]['devices']), 3)
+            self.assertEqual(len(response['boards']), 1)                # One board.
+            self.assertEqual(len(response['boards'][0]['devices']), 3)  # 3 devices on that one board.
 
         executor = TestThreadExecutor(THREAD_COUNT, test_scan)
         results = executor.execute()

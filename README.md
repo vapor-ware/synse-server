@@ -57,8 +57,6 @@ response should be all your configured servers.
     curl http://localhost:5000/synse/1.4/scan
     ```
 
-5. You can check out some queries by directing your browser to `http://localhost:5000/synse/1.4/graphql`.
-
 ### CentOS 7
 
 1. Get the software.
@@ -89,8 +87,6 @@ response should be all your configured servers.
     ```
     curl http://localhost:5000/synse/1.4/scan
     ```
-
-5. You can check out some queries by directing your browser to `http://localhost:5000/synse/1.4/graphql`.
 
 ### Docker
 

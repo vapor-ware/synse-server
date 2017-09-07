@@ -7,7 +7,7 @@ services:
     image: vaporio/synse-server
     build:
       context: ../../../..
-      dockerfile: Dockerfile.x64
+      dockerfile: dockerfile/release.dockerfile
     entrypoint: []
     command: bash -c "sleep 15 && python ./synse/tests/test-snmp-device-kills.py"
     links:
@@ -24,7 +24,7 @@ services:
     image: vaporio/synse-server
     build:
       context: ../../../..
-      dockerfile: Dockerfile.x64
+      dockerfile: dockerfile/release.dockerfile
     ports:
       - 5000:5000
     volumes:
