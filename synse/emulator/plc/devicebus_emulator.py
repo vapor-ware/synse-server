@@ -31,8 +31,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 # this is an old piece of code that needs to be refactored, but doing so
 # is a bit of work. for now, just disable pylint here.
 
-import json
-import logging
 import sys
 
 import vapor_common.vapor_logging as vapor_logging

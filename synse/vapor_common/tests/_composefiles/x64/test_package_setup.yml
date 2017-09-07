@@ -1,6 +1,0 @@
-test-container-x64:
-  container_name: test-container-x64
-  dockerfile: Dockerfile.x64
-  build: ../..
-  # Run the tests straight out of the package installation directory. Mount no volumes.
-  command: python /usr/local/lib/python2.7/dist-packages/vapor_common/tests/test_package_setup.py

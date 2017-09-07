@@ -27,40 +27,7 @@ along with OpenDCRE.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
 import sys
-import time
 import unittest
-
-
-class VaporBaseTestCase(unittest.TestCase):
-    """ Base class for Vapor test cases.
-
-    The VaporBaseTestCase subclasses unittest.TestCase in order to add timing
-    output to the tests that run. If the test case completes successfully, the
-    TextRunner output should include the times it took for each test to complete.
-
-    This timing information can be useful for finding bottlenecks in the code.
-    """
-    view_test_times = False
-
-    @classmethod
-    def setUpClass(cls):
-        cls.test_times = []
-
-    @classmethod
-    def tearDownClass(cls):
-        if cls.view_test_times:
-            print '{:<8} {:<25}'.format('-' * 7, '-' * 25)
-            print '{:<8} {:<25}'.format('Time', 'Test')
-            print '{:<8} {:<25}'.format('-' * 7, '-' * 25)
-            for _test, _time in cls.test_times:
-                print '{:<8.3f} {:<25}'.format(_time, _test)
-
-    def setUp(self):
-        self.start_time = time.time()
-
-    def tearDown(self):
-        t = time.time() - self.start_time
-        self.test_times.append((self.id().split('.')[-1], t))
 
 
 class Tee(object):

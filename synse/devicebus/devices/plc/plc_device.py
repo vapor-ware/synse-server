@@ -52,10 +52,11 @@ from synse.errors import (BusCommunicationError, BusDataException,
                           SynseException)
 from synse.utils import (board_id_to_hex_string, device_id_to_hex_string,
                          get_device_type_code, get_device_type_name)
-from synse.vapor_common.constants import PLC_RACK_ID
 from synse.version import __api_version__, __version__
 
 logger = logging.getLogger(__name__)
+
+PLC_RACK_ID = 'vapor_plc_rack'
 
 
 class PLCDevice(SerialDevice):
