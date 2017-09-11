@@ -13,6 +13,7 @@ RUN set -ex \
     && echo "deb-src http://nginx.org/packages/ubuntu/ xenial nginx" >> /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y nginx \
+    && apt-get install -y cython3 \
     && pip install --upgrade pip setuptools \
     && pip install -r requirements.txt \
     && pip install uwsgi \

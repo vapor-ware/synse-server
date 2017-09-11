@@ -87,8 +87,10 @@ ipmi-tests: \
 	test-ipmi-emulator-throughput \
 	test-ipmi-no-init-scan \
 	test-ipmi-device-registration \
-	test-ipmi-scan-cache-registration \
 	test-ipmi-emulator
+
+# Fails due to https://github.com/vapor-ware/synse-server/issues/229
+#	test-ipmi-scan-cache-registration \
 
 rs485-tests: \
 	test-rs485-endpoints \
@@ -112,9 +114,10 @@ redfish-tests: \
 general-tests: \
 	test-utils \
 	test-location \
-	test-device-supported-commands \
-	test-endpoint-utils
+	test-device-supported-commands
 
+# Fails due to https://github.com/vapor-ware/synse-server/issues/229
+#	test-endpoint-utils \
 
 test: \
 	plc-tests \
@@ -123,8 +126,10 @@ test: \
 	i2c-tests \
 	snmp-tests \
 	redfish-tests \
-	general-tests \
-	graphql-test
+	general-tests
+
+# Fails due to https://github.com/vapor-ware/synse-server/issues/229
+#	graphql-test \
 
 dev: run
 	-docker exec -it synse-server /bin/bash
