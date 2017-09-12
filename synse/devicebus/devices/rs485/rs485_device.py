@@ -28,9 +28,11 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 
+import json
 import lockfile
 import os
 import serial
+import string
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
@@ -38,7 +40,9 @@ from synse.devicebus.devices.serial_device import SerialDevice
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.modbus import dkmodbus
+from synse.vapor_common import http
 from synse.version import __api_version__, __version__
+from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +51,7 @@ class RS485Device(SerialDevice):
     """ Base class for all RS485 device implementations.
     """
     HARDWARE_TYPE_UNKNOWN = 'Unknown hardware type {}.'
+    proto = 'rs485'
 
     def __init__(self, **kwargs):
         super(RS485Device, self).__init__(lock_path=kwargs['lockfile'])
@@ -66,6 +71,9 @@ class RS485Device(SerialDevice):
         self.method = kwargs.get('method', 'rtu')
 
         self._lock = lockfile.LockFile(self.serial_lock)
+
+        # the device is read from a background process
+        self.from_background = kwargs.get('from_background', False)
 
         # Common RS-485 commands.
         self._command_map = {
@@ -116,6 +124,10 @@ class RS485Device(SerialDevice):
                     rs485_device['hardware_type'] = rack.get('hardware_type', 'unknown')
                     rs485_device['device_name'] = rack['device_name']
                     rs485_device['lockfile'] = rack['lockfile']
+
+                    # check whether the device is controlled by a background process
+                    # or if directly by the synse app.
+                    rs485_device['from_background'] = rack.get('from_background', False)
 
                     # since we are unable to import subclasses (circular import), but
                     # we still need to initialize a subclassed device interface, we
@@ -231,3 +243,41 @@ class RS485Device(SerialDevice):
             raise SynseException(
                 RS485Device.HARDWARE_TYPE_UNKNOWN.format(hardware_type))
         self.hardware_type = hardware_type
+
+    @staticmethod
+    def is_vec_leader():
+        """Return true if this VEC is the leader, else false.
+        :returns: True if this VEC is the leader, else False."""
+        with open('/crate/mount/.state-file') as f:
+            data = json.load(f)
+            if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
+                logger.debug('is_vec_leader: True')
+                return True
+        logger.debug('is_vec_leader: False')
+        return False
+
+    @staticmethod
+    def _get_vec_leader():
+        """Return the VEC leader IP address.
+        :returns: The VEC leader IP address."""
+        with open('/crate/mount/.state-file') as f:
+            data = json.load(f)
+            return data['VAPOR_VEC_LEADER']
+
+    @staticmethod
+    def redirect_call_to_vec_leader(local_url):
+        """All VECs in the chamber have a connection to the same VEC USB board.
+        We need to provide a sense of bus ownership (one VEC that owns the bus)
+        in order to avoid bus collisions. We designate the VEC leader as the
+        owner. Therefore when web requests come in on VEC that is not the
+        leader, we redirect them to the leader.
+        :param local_url: The web request url on the local VEC.
+        :returns: The json response of the same url redirected to the VEC
+        leader."""
+        vec_leader_ip = RS485Device._get_vec_leader()
+        parse = urlparse(local_url)
+        hostname = parse.hostname
+        redirect_url = string.replace(local_url, hostname, vec_leader_ip)
+        logger.debug('redirect url is: {}'.format(redirect_url))
+        r = http.get(redirect_url)
+        return r.json()

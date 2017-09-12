@@ -30,6 +30,7 @@ import logging
 import sys
 
 import lockfile
+from flask import request
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
 
@@ -247,14 +248,22 @@ class GS32010Fan(RS485Device):
             elif self.hardware_type == 'production':
                 # Production
                 if action == 'set_speed' and speed_rpm is not None:
-                    GS32010Fan._check_fan_speed_setting(speed_rpm)
-                    self._set_rpm(speed_rpm)
-                    # Return the speed_rpm setting and not a read since the fan
-                    # is likely ramping up or coasting down to the set speed.
-                    return {const.UOM_VAPOR_FAN: speed_rpm}
+                    if self.from_background:
+                        self._write_indirect(speed_rpm)
+                        return {const.UOM_VAPOR_FAN: speed_rpm}
 
-                rpm = self._get_rpm()
-                direction = self._get_direction()
+                    else:
+                        GS32010Fan._check_fan_speed_setting(speed_rpm)
+                        self._set_rpm(speed_rpm)
+                        # Return the speed_rpm setting and not a read since the fan
+                        # is likely ramping up or coasting down to the set speed.
+                        return {const.UOM_VAPOR_FAN: speed_rpm}
+
+                if self.from_background:
+                    rpm, direction = self._read_indirect()
+                else:
+                    rpm, direction = self._read_direct()
+
                 return {
                     const.UOM_VAPOR_FAN: rpm,
                     const.UOM_DIRECTION: direction,
@@ -262,6 +271,44 @@ class GS32010Fan(RS485Device):
 
             raise SynseException(RS485Device.HARDWARE_TYPE_UNKNOWN.format(
                 self.hardware_type))
+
+    def _write_indirect(self, speed_rpm):
+        """Indirect write to set the speed on the fan controller.
+        :param speed_rpm: The speed to set in rpm."""
+        # If we are not the vec leader we need to redirect this call to the leader.
+        # The Synse configuration is supposed to be the same for all vecs in the chamber.
+        if not RS485Device.is_vec_leader():
+            RS485Device.redirect_call_to_vec_leader(request.url)
+            return
+
+        data_file = self._get_bg_write_file(str(self.unit), '{0:04d}'.format(self.register_base))
+        logger.debug('data_file: {}, speed_rpm: {}'.format(data_file, speed_rpm))
+
+        with open(data_file, 'w') as f:
+            f.write(str(speed_rpm))
+
+    def _read_indirect(self):
+        """Indirect read of the fan controller.
+        :returns: A set of (rpm, direction). rpm is an int. direction is forward or reverse."""
+        logger.debug('_read_indirect')
+
+        # If we are not the vec leader we need to redirect this call to the leader.
+        # The Synse configuration is supposed to be the same for all vecs in the chamber.
+        if not RS485Device.is_vec_leader():
+            response = RS485Device.redirect_call_to_vec_leader(request.url)
+            return response[const.UOM_VAPOR_FAN], response[const.UOM_DIRECTION]
+
+        data_file = self._get_bg_read_file(str(self.unit), '{0:04d}'.format(self.register_base))
+        data = GS32010Fan.read_sensor_data_file(data_file)
+        return (
+            int(data[0]),  # rpm
+            data[1]        # direction
+        )
+
+    def _read_direct(self):
+        """Direct read of the fan controller. This read hits the bus.
+        :returns: A set of (rpm, direction). rpm is an int. direction is forward or reverse."""
+        return self._get_rpm(), self._get_direction()
 
     @staticmethod
     def _check_fan_speed_setting(speed_rpm):
@@ -296,13 +343,14 @@ class GS32010Fan(RS485Device):
         return conversions.unpack_word(result)
 
     def _set_rpm(self, rpm):
-        """Set fan speed to the given RPM."""
+        """Set fan speed to the given RPM.
+        :returns: The RPM setting."""
 
         client = self.create_modbus_client()
 
         if rpm == 0:  # Turn the fan off.
             result = client.write_multiple_registers(
-                1,  # Slave address.
+                1,  # Slave address. TODO: Slave address should come from the config.
                 0x91B,  # Register to write to.
                 1,  # Number of registers to write to.
                 2,  # Number of bytes to write.

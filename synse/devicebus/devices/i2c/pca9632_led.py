@@ -27,6 +27,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
+import os
 import sys
 
 import lockfile
@@ -158,6 +159,7 @@ class PCA9632Led(I2CDevice):
 
         except Exception:
             raise SynseException(
+                # NOTE: Writes go through this code path. Always did.
                 'Error reading LED status (device id: {})'.format(
                     device_id)), None, sys.exc_info()[2]
 
@@ -265,21 +267,9 @@ class PCA9632Led(I2CDevice):
                 }
             elif self.hardware_type == 'production':
                 if state is None and blink is None and color is None:
-                    # This is a read.
-                    state, color, blink = i2c_common.read_led()
-                    return self._led_response(state, color, blink)
+                    return self._read_sensor()
                 elif state is not None:
-                    # This is a write.
-                    i2c_common.write_led(state=state, blink_state=blink, color=color)
-                    if color is not None:
-                        # color can be an int or a string.
-                        if isinstance(color, int):
-                            self.last_color = '{:06x}'.format(color)
-                        else:
-                            self.last_color = color
-                    if blink is not None and blink != 'no_override':
-                        self.last_blink = blink
-                    return self._led_response(state, color, blink)
+                    return self._write_sensor(state, color, blink)
                 else:
                     logger.error('_control_led() Not read or write.')
                     raise SynseException(
@@ -287,3 +277,97 @@ class PCA9632Led(I2CDevice):
                             state, color, blink))
             else:
                 raise SynseException('Unknown hardware_type {}.'.format(self.hardware_type))
+
+    def _write_sensor(self, state, color, blink):
+        """Write to the led controller either directly or indirectly.
+        :param state: The LED state, on or off.
+        :param color: The three byte hex RGB color of the LED.
+            Example 0xff0000.
+        :param blink: The blink state to return. steady or blink.
+        :returns: The parameters in a dictionary with values as strings."""
+        # We need to explicitly set the blink state internally in order to enable the LED output.
+        if blink == 'no_override':
+            blink = self.last_blink
+
+        if self.from_background:
+            return self._indirect_write(state, color, blink)
+        else:
+            return self.direct_write(state, color, blink)
+
+    def _cache_write(self, color, blink):
+        """Cache data written on a write.
+        :param color: The three byte hex RGB color of the LED.
+            Example 0xff0000.
+        :param blink: The blink state to cache. steady or blink."""
+        if color is not None:
+            # color can be an int or a string. Cache as string.
+            if isinstance(color, int):
+                self.last_color = '{:06x}'.format(color)
+            else:
+                self.last_color = color
+        if blink is not None and blink != 'no_override':
+            self.last_blink = blink
+
+    def direct_write(self, state, color, blink):
+        """Direct write to the led controller.
+        :param state: The LED state, on or off.
+        :param color: The three byte hex RGB color of the LED.
+            Example 0xff0000.
+        :param blink: The blink state to return. steady or blink.
+        :returns: The parameters in a dictionary with values as strings."""
+        i2c_common.write_led(state=state, blink_state=blink, color=color)
+        self._cache_write(color, blink)
+        return self._led_response(state, color, blink)
+
+    def _indirect_write(self, state, color, blink):
+        """Write to a file that the daemon will read and send to the LED
+        controller.
+        :param state: The LED state, on or off.
+        :param color: The three byte hex RGB color of the LED.
+            Example 0xff0000.
+        :param blink: The blink state to return. steady or blink.
+        :returns: The parameters in a dictionary with values as strings."""
+        logger.debug('indirect_sensor_write')
+        i2c_common.check_led_write_parameters(state, color, blink)
+
+        data_file = self._get_bg_write_file('{:04x}'.format(self.channel))
+
+        if color is None:
+            color_str = ''
+        else:
+            color_str = '{:06x}'.format(color)
+
+        if blink is None:
+            blink_str = ''
+        else:
+            blink_str = str(blink)
+
+        write_data = state + os.linesep + color_str + os.linesep + blink_str + os.linesep
+        logger.debug('LED _indirect_write() write_data: {}'.format(write_data))
+
+        with open(data_file, 'w') as f:
+            f.write(write_data)
+
+        self._cache_write(color, blink)
+        return self._led_response(state, color, blink)
+
+    def _read_sensor(self):
+        """Read from the LED controller either directly or indirectly.
+        :returns: A dictionary of state, color and blink."""
+        if self.from_background:
+            return self._indirect_read()
+        return self.direct_read()
+
+    def direct_read(self):
+        """Direct read of the LED controller.
+        :returns: A dictionary of state, color and blink."""
+        state, color, blink = i2c_common.read_led()
+        return self._led_response(state, color, blink)
+
+    def _indirect_read(self):
+        """Read from a file created by a daemon.
+        :returns: A dictionary of state, color and blink."""
+        logger.debug('indirect_sensor_read')
+        data_file = self._get_bg_read_file('{:04x}'.format(self.channel))
+        data = PCA9632Led.read_sensor_data_file(data_file)
+        return self._led_response(data[0], data[1], data[2])  # state, color, blink are data 0,1,2.
