@@ -79,6 +79,9 @@ cat <<USAGE
             This can take a filename as a parameter to specify an
             emulator configuration.
 
+    start-sensor-readers
+            Start the sensor readers that own the buses.
+
     emulate-plc
             Start the PLC emulator. A default configuration file
             will be used.
@@ -167,6 +170,10 @@ function start-rs485-emulator {
 
 }; function emulate-rs485 { emulate-rs485-with-cfg /synse/synse/emulator/rs485/data/example.json ;}
 
+# Start the sensor readers that own the buses.
+function start-sensor-readers {
+    synse/sensors/start_sensor_readers.sh &
+}
 
 _setup_container_environment() {
     if [[ ${VAPOR_DEBUG} && ${VAPOR_DEBUG} = "true" ]]
@@ -194,5 +201,6 @@ fi
 
 # start synse
 _setup_container_environment
+start-sensor-readers # TODO: Does not belong in open source synse, nor do the daemons.
 service nginx restart 2>&1
 uwsgi --ini /etc/uwsgi/synse.ini 2>&1

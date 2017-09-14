@@ -319,6 +319,7 @@ class IPMIEmulatorFailureThroughputTestCase(unittest.TestCase):
         for resp in responses:
             self.assertEqual(resp, 500)
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_019_test_scan(self):
         """ Test scanning a board in IPMI mode.
         """

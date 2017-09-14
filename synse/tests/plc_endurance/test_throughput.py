@@ -50,6 +50,7 @@ class ThroughputTestCase(unittest.TestCase):
     will be written to stdout (or to a logfile, eventually).
     """
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_001_good_scan_results(self):
         """ Threaded test against a scan which should return good results
         """
@@ -61,6 +62,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         test_scan()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_002_bad_scan_results(self):
         """ Threaded test against a scan which should not return good results
         """
@@ -74,6 +76,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         test_scan()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_003_good_version_results(self):
         """ Threaded test against a version request which should return good results
         """
@@ -85,6 +88,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         test_version()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_004_bad_version_results(self):
         """ Threaded test against a version request which should not return good results
         """
@@ -98,6 +102,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         test_version()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_005_good_read_results(self):
         """ Threaded test against a read request which should return good results
         """
@@ -115,6 +120,7 @@ class ThroughputTestCase(unittest.TestCase):
         test_read_thermistor()
         test_read_humidity()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_006_bad_read_results(self):
         """ Threaded test against a read request which should not return good results
         """
@@ -136,6 +142,7 @@ class ThroughputTestCase(unittest.TestCase):
         test_read_thermistor()
         test_read_humidity()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_007_good_power_results(self):
         """ Threaded test against a power status request which should return good results
         """
@@ -147,6 +154,7 @@ class ThroughputTestCase(unittest.TestCase):
 
         test_power()
 
+    @unittest.skip('https://github.com/vapor-ware/synse-server/issues/223')
     def test_008_bad_power_results(self):
         """ Threaded test against a power status request which should not return good results
         """

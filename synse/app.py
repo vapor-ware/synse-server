@@ -191,7 +191,7 @@ def fan_sensors():
         if thermistor is not None:
             result[thermistor.name] = thermistor.reading
 
-    for dpressure in sensors.differentialPressures:
+    for dpressure in sensors.differential_pressures:
         if dpressure is not None:
             result[dpressure.name] = dpressure.reading
 

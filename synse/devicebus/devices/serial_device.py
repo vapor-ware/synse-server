@@ -26,7 +26,10 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import logging
 from synse.devicebus.devices.base import DevicebusInterface
+
+logger = logging.getLogger(__name__)
 
 
 class SerialDevice(DevicebusInterface):
@@ -40,3 +43,26 @@ class SerialDevice(DevicebusInterface):
     @classmethod
     def register(cls, devicebus_config, app_config, app_cache):
         raise NotImplementedError
+
+    @staticmethod
+    def read_sensor_data_file(path):
+        """Read in data from a sensor data file. The file will have one data
+        point per line.
+        :param path: The path of the file to read.
+        :returns: A list of data. Some coercion is done here to try to get the
+        data types correct."""
+        # TODO - might need a lock around here?
+        with open(path, 'r') as f:
+            data = f.read()
+
+        data = data.split()
+        for i, _ in enumerate(data):
+            if data[i] == 'null':
+                data[i] = None  # JSON null to python None.
+            else:
+                # See if this is a float, otherwise treat as a string.
+                try:
+                    data[i] = float(data[i])  # Precision is sensor specific.
+                except (TypeError, ValueError):
+                    pass  # Ignore.
+        return data

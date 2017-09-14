@@ -8,7 +8,7 @@
         {
           "device_name": "/dev/ttyAMA0",
           "retry_limit": 3,
-          "timeout": 0.25,
+          "timeout": 0.50,
           "time_slice": 75,
           "bps": 115200
         }
