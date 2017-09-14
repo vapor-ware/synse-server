@@ -55,6 +55,7 @@ class DevicebusInterface(object):
     register method.
     """
     _instance_name = None
+    proto = None
 
     def __init__(self):
         # map command ids to the devicebus methods which will be used to operate
@@ -67,6 +68,18 @@ class DevicebusInterface(object):
         # each device will have its own UUID. this id is used internally for quicker
         # lookups when routing commands to specific devices.
         self.device_uuid = uuid()
+
+        # defines a flag that can be checked to see whether the device is configured
+        # to operate directly (e.g. via the synse application) or indirectly
+        # (e.g. via a background process). this flag is set on device registration
+        # if the device is configured with the "from_background" field (default
+        # False).
+        self.from_background = False
+
+        # the rack id for which the device resides on. initialized as None here, but
+        # when the subclasses are registered/initialized, they will provide the
+        # actual rack_id
+        self.rack_id = None
 
     @classmethod
     def register(cls, devicebus_config, app_config, app_cache):
@@ -136,6 +149,58 @@ class DevicebusInterface(object):
         raise SynseException(
             'Device ID {} not found in board record for {}.'.format(device_id, self.board_id)
         )
+
+    def _get_bg_path(self, *device_ident):
+        """
+        Elements in device_ident must be passed in as strings.
+        """
+        device_identity = '/'.join(device_ident)
+        return '/synse/sensors/{proto}/{rack}/{model}/{id}'.format(
+            proto=self.proto,
+            rack=self.rack_id,
+            model=self._instance_name,
+            id=device_identity
+        )
+
+    def _get_bg_read_file(self, *device_ident):
+        """ Convenience method for the background read POC
+
+        TODO -- will need to change once this is proven out and the real
+        implementation work begins.
+
+        This method is used to get the location of the file that
+        is used as the interface between the background process
+        and the device.
+
+        Args:
+            *device_ident: a tuple of device identity string parameters that
+                will be concatenated (in order) to generate the
+                identity for the device. while the identity format should
+                be the same for all devices of a given protocol, this is
+                kept general so it can apply to devices of any protocol.
+        """
+        result = '/'.join((self._get_bg_path(*device_ident), 'read'))
+        logger.debug('bg_file: {}'.format(result))
+        return result
+
+    def _get_bg_write_file(self, *device_ident):
+        """ Convenience method for the background write POC
+
+        TODO -- will need to change once this is proven out and the real
+        implementation work begins.
+
+        This method is used to get the location of the file that
+        is used as the interface between the background process
+        and the device.
+
+        Args:
+            *device_ident: a tuple of device identity parameters that
+                will be concatenated (in order) to generate the
+                identity for the device. while the identity format should
+                be the same for all devices of a given protocol, this is
+                kept general so it can apply to devices of any protocol.
+        """
+        return '/'.join((self._get_bg_path(*device_ident), 'write'))
 
     @classmethod
     def get_device_config(cls, devicebus_config):

@@ -384,7 +384,7 @@ class PLCDevice(SerialDevice):
 
             except Exception:
                 raise SynseException(
-                    'Scan: Error when scanning board {:08x}.'.format(
+                    'Scan: Error when scanning board {:08x}'.format(
                         board_id)), None, sys.exc_info()[2]
 
             return Response(command=command, response_data=response_dict)
@@ -549,7 +549,7 @@ class PLCDevice(SerialDevice):
                 object, containing the data from the power response.
         """
         try:
-            fcntl.flock(self._lock, fcntl.LOCK_EX)
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
             bus = self._get_bus()
 
             # get the command data out from the incoming command
@@ -631,6 +631,7 @@ class PLCDevice(SerialDevice):
             except Exception:
                 raise SynseException(
                     'Power: Unexpected error when converting PMBUS data.'), None, sys.exc_info()[2]
+
         finally:
             fcntl.flock(self._lock, fcntl.LOCK_UN)
 
@@ -1088,6 +1089,7 @@ class PLCDevice(SerialDevice):
                     'Host Info command bus timeout.'), None, sys.exc_info()[2]
             except (BusDataException, ChecksumException):
                 response = self._retry_command(bus, request, plc_bus.HostInfoResponse)
+
         finally:
             fcntl.flock(self._lock, fcntl.LOCK_UN)
 

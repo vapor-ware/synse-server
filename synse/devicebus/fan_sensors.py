@@ -28,12 +28,15 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import datetime
+import json
 import logging
 
+from synse import constants as const
 from synse.devicebus.devices.i2c.max11608_adc_thermistor import \
     Max11608Thermistor
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
 from synse.protocols.i2c_common import i2c_common
+from synse.vapor_common.vapor_config import ConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -83,10 +86,13 @@ class FanSensors(object):
         self.start_time = None
         self.end_time = None
         self.read_time = None
+        self.thermistor_devices = None
         self.thermistors = None
-        self.differentialPressures = None
+        self.differential_pressure_devices = None
+        self.differential_pressures = None
         self.thermistor_read_count = None
         self.differential_pressure_read_count = None
+        self.from_background = None
 
     def initialize(self, app_config):
         """Initialize the FanSensors object which is used for the fan_sensors
@@ -111,30 +117,35 @@ class FanSensors(object):
 
         # From i2c.
 
+        # FUTURE: We should probably do this the way the i2c daemon does it by reading the synse config.
+
         # FUTURE: All thermistors need the same device_name to support bulk reads.
         # It doesn't matter now since we're not even using device_name from the synse
         # config for production i2c sensor reads. Also true for differential pressure (i2c as well).
-        thermistor_devices = self._find_devices_by_instance_name(
+        self.thermistor_devices = self._find_devices_by_instance_name(
             Max11608Thermistor.get_instance_name())
         # List length FanSensors.SUPPORTED_THERMISTOR_COUNT, all entries are None.
         self.thermistors = [None] * FanSensors.SUPPORTED_THERMISTOR_COUNT
-        for d in thermistor_devices:
+        for d in self.thermistor_devices:
             channel = d.channel
             self.thermistors[channel] = FanSensor('thermistor_{}'.format(channel), 'C', d)
 
-        differential_pressure_devices = \
+        self.differential_pressure_devices = \
             self._find_devices_by_instance_name(SDP610Pressure.get_instance_name())
         # List length SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT, all entries are None.
-        self.differentialPressures = [None] * FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT
-        for d in differential_pressure_devices:
+        self.differential_pressures = [None] * FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT
+        for d in self.differential_pressure_devices:
             channel = d.channel
             channel_ordinal = i2c_common.get_channel_ordinal(channel)
-            self.differentialPressures[channel_ordinal] = \
+            self.differential_pressures[channel_ordinal] = \
                 FanSensor('differential_pressure_{}'.format(channel_ordinal), 'Pa', d)
 
         # Compute the number of thermistors and differential pressure sensors to read.
         self.thermistor_read_count = self._thermistor_read_count()
         self.differential_pressure_read_count = self._differential_pressure_read_count()
+
+        # Direct or indirect sensor reads.
+        self.from_background = FanSensors._get_from_background()
 
         self._dump()
 
@@ -158,7 +169,7 @@ class FanSensors(object):
         for t in self.thermistors:
             if t is not None:
                 t.reading = None
-        for dp in self.differentialPressures:
+        for dp in self.differential_pressures:
             if dp is not None:
                 dp.reading = None
 
@@ -171,7 +182,7 @@ class FanSensors(object):
         # Find the maximum channel for each differential pressure sensor.
         # Compute ordinal.
         max_channel = -1
-        for dpressure in self.differentialPressures:
+        for dpressure in self.differential_pressures:
             if dpressure is not None and dpressure.device is not None:
                 if dpressure.device.channel > max_channel:
                     max_channel = dpressure.device.channel
@@ -190,10 +201,11 @@ class FanSensors(object):
         logger.debug('Dumping FanSensors:')
         for t in self.thermistors:
             logger.debug('thermistor:  {}'.format(t))
-        for dp in self.differentialPressures:
+        for dp in self.differential_pressures:
             logger.debug('pressure:  {}'.format(dp))
         logger.debug('thermistor read count {}'.format(self.thermistor_read_count))
         logger.debug('d pressure read count {}'.format(self.differential_pressure_read_count))
+        logger.debug('self.from_background: {}'.format(self.from_background))
 
     def _find_devices_by_instance_name(self, instance_name):
         """Used on initialization to find a device by class name.
@@ -208,19 +220,89 @@ class FanSensors(object):
                 result.append(d)
         return result
 
+    # TODO: We need configuration testing here.
+    # TODO: from_background should probably be per synse instance, not per rack.
+    @staticmethod
+    def _get_from_background():
+        """Read in the from_background setting from the synse configuration.
+        It's defined at the per rack level. Ideally all are the same."""
+        from_background = None
+        i2c_config = FanSensors._get_i2c_config()
+        for rack in i2c_config['racks']:
+            background_setting = rack.get('from_background', None)
+            if background_setting is not None:
+                if from_background is None:
+                    from_background = background_setting
+                else:
+                    if from_background != background_setting:
+                        logger.error(
+                            'i2c configuration error. from_background is {}, ignoring new setting {}'.format(
+                                from_background, background_setting))
+        if from_background is None:
+            from_background = False
+        logger.info('from_background: {}'.format(from_background))
+        return from_background
+
+    @staticmethod
+    def _get_i2c_config():
+        """Get the configuration from the Synse i2c config file."""
+        cfg = ConfigManager(
+            default='/synse/default/default.json',
+            override='/synse/override'
+        )
+
+        # Find the location of the Synse configuration file.
+        location = cfg['devices']['i2c']['from_config']
+        logger.debug('i2c_config file location: {}'.format(location))
+        # Read the Synse configuration file.
+        with open(location) as config:
+            i2c_config = json.load(config)
+            return i2c_config
+
     def _read_thermistors(self):
-        """Read the configured thermistors.
-        """
+        """Read the configured thermistors."""
+        if self.from_background:
+            self._read_thermistors_indirect()
+        else:
+            self._read_thermistors_direct()
+
+    def _read_thermistors_direct(self):
+        """Read the configured thermistors by hitting the bus."""
         readings = i2c_common.read_thermistors(self.thermistor_read_count)
         for i, reading in enumerate(readings):
             self.thermistors[i].reading = reading
 
+    def _read_thermistors_indirect(self):
+        """Read the configured thermistors without hitting the bus."""
+        for t in self.thermistor_devices:
+            channel = t.channel
+            data = t.indirect_sensor_read()[const.UOM_TEMPERATURE]
+            self.thermistors[channel].reading = data
+        logger.debug('_read_thermistors_indirect: {}'.format(self.thermistors))
+
     def _read_differential_pressures(self):
-        """Read the configured differential pressure sensors.
-        """
+        """Read the configured differential pressure sensors."""
+        if self.from_background:
+            self._read_differential_pressures_indirect()
+        else:
+            self._read_differential_pressures_direct()
+
+    def _read_differential_pressures_direct(self):
+        """Read the configured differential pressure sensors by hitting the
+        bus."""
         readings = i2c_common.read_differential_pressures(self.differential_pressure_read_count)
         for i, reading in enumerate(readings):
-            self.differentialPressures[i].reading = reading
+            self.differential_pressures[i].reading = reading
+
+    def _read_differential_pressures_indirect(self):
+        """Read the configured differential pressure sensors without hitting
+        the bus."""
+        for dp in self.differential_pressure_devices:
+            channel = dp.channel
+            ordinal = i2c_common.get_channel_ordinal(channel)
+            data = dp.indirect_sensor_read()[const.UOM_PRESSURE]
+            self.differential_pressures[ordinal].reading = data
+        logger.debug('_read_differential_pressures_indirect: {}'.format(self.differential_pressures))
 
     def _thermistor_read_count(self):
         """Determine the number of thermistors to read on each
