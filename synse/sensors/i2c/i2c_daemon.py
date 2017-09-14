@@ -19,8 +19,6 @@ from synse.sensors import common
 from synse.vapor_common.vapor_config import ConfigManager
 from synse.vapor_common.vapor_logging import setup_logging
 
-# TODO: Rename file. i2c_daemon.py (in case writes are ever involved.)
-
 # Constants
 
 # List of all I2C thermistor sensor models.

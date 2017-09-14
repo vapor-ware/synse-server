@@ -22,8 +22,6 @@ from synse.sensors import common
 from synse.vapor_common.vapor_config import ConfigManager
 from synse.vapor_common.vapor_logging import setup_logging
 
-# TODO: Rename file. rs485_daemon.py (writes are involved.)
-
 # Base path to write the sensor data to.
 BASE_FILE_PATH = '/synse/sensors/'
 RS485_DIR_PATH = BASE_FILE_PATH + 'rs485/{}/{}/{}/{}'  # rack_id, device_model, device_unit, base_address
