@@ -124,6 +124,10 @@ def _get_rs485_config():
         override='/synse/override'
     )
 
+    # if no rs485 is configured, no config to get.
+    if 'rs485' not in cfg['devices']:
+        return None
+
     # Find the location of the Synse configuration file.
     location = cfg['devices']['rs485']['from_config']
     logger.debug('rs485_config file location: {}'.format(location))
@@ -302,6 +306,10 @@ def main():
         rs485_config = _get_rs485_config()
         logger.debug('rs485_config:')
         logger.debug(json.dumps(rs485_config, sort_keys=True, indent=4, separators=(',', ': ')))
+
+        if rs485_config is None:
+            logger.info('No RS485 config set - terminating RS485 daemon.')
+            return
 
         # TODO: from_background should be at the same level as racks. (once per config file)
         # Daemons and straight bus reads from a web client will collide.

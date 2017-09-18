@@ -183,6 +183,10 @@ def _get_i2c_config():
         override='/synse/override'
     )
 
+    # if no i2c is configured, no config to get.
+    if 'i2c' not in cfg['devices']:
+        return None
+
     # Find the location of the Synse configuration file.
     location = cfg['devices']['i2c']['from_config']
     logger.debug('i2c_config file location: {}'.format(location))
@@ -310,6 +314,10 @@ def main():
         i2c_config = _get_i2c_config()
         logger.debug('i2c_config:')
         logger.debug(json.dumps(i2c_config, sort_keys=True, indent=4, separators=(',', ': ')))
+
+        if i2c_config is None:
+            logger.info('No I2C config set - terminating I2C daemon.')
+            return
 
         # TODO: from_background should be at the same level as racks. (once per config file)
         # Daemons and straight bus reads from a web client will collide.
