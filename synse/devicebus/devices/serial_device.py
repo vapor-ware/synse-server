@@ -27,6 +27,7 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
+import os
 from synse.devicebus.devices.base import DevicebusInterface
 
 logger = logging.getLogger(__name__)
@@ -51,9 +52,15 @@ class SerialDevice(DevicebusInterface):
         :param path: The path of the file to read.
         :returns: A list of data. Some coercion is done here to try to get the
         data types correct."""
+        logger.debug('reading sensor data from: {}'.format(path))
+
         # TODO - might need a lock around here?
-        with open(path, 'r') as f:
-            data = f.read()
+        try:
+            with open(path, 'r') as f:
+                data = f.read()
+        except Exception as e:
+            logger.exception(e)
+            raise
 
         data = data.split()
         for i, _ in enumerate(data):
