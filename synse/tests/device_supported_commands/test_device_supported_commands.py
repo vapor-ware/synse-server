@@ -29,7 +29,7 @@ import unittest
 from itertools import count
 
 from synse.devicebus.command_factory import CommandFactory
-from synse.devicebus.devices.i2c.max11608_adc_thermistor import \
+from synse.devicebus.devices.i2c.max116xx_adc_thermistor import \
     Max11608Thermistor
 from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure

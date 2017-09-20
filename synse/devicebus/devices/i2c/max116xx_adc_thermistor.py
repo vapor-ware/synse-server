@@ -36,7 +36,7 @@ import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.i2c.i2c_device import I2CDevice
-from synse.devicebus.devices.i2c.max11608_adc_emulator import read_emulator
+from synse.devicebus.devices.i2c.max116xx_adc_emulator import read_emulator
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.conversions import conversions
