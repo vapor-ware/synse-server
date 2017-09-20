@@ -33,6 +33,7 @@ import lockfile
 import os
 import serial
 import string
+import requests
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
@@ -248,21 +249,38 @@ class RS485Device(SerialDevice):
     def is_vec_leader():
         """Return true if this VEC is the leader, else false.
         :returns: True if this VEC is the leader, else False."""
-        with open('/crate/mount/.state-file') as f:
-            data = json.load(f)
-            if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
-                logger.debug('is_vec_leader: True')
-                return True
-        logger.debug('is_vec_leader: False')
+
+        leader = RS485Device._get_vec_leader()
+        if leader is not None:
+            self = os.environ['POD_IP']
+            logger.debug('leader is: {}'.format(leader))
+            logger.debug('self is: {}'.format(self))
+            return self == leader
+
         return False
 
     @staticmethod
     def _get_vec_leader():
         """Return the VEC leader IP address.
         :returns: The VEC leader IP address."""
-        with open('/crate/mount/.state-file') as f:
-            data = json.load(f)
-            return data['VAPOR_VEC_LEADER']
+        # FIXME (etd) - we will probably want to be smarter about how we do this.
+        #   for now, just making the request here, but perhaps we should have some
+        #   sort of client with retries, etc.
+        r = requests.get('http://elector-headless:2288/status')
+        logger.debug('request for vec leader: {}'.format(r))
+        leader = None
+        if r.ok:
+            data = r.json()
+            logger.debug('data: {}'.format(data))
+            for k, v in data['members'].iteritems():
+                if v == 'leader':
+                    leader = k
+                    break
+        else:
+            logger.error('Could not determine the leader: {}'.format(r))
+
+        logger.debug('leader: {}'.format(leader))
+        return leader
 
     @staticmethod
     def redirect_call_to_vec_leader(local_url):

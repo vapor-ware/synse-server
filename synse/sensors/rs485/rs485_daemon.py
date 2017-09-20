@@ -16,6 +16,8 @@ import logging
 import os
 import serial
 import time
+import requests
+
 from synse.protocols.conversions import conversions
 from synse.protocols.modbus import dkmodbus
 from synse.sensors import common
@@ -163,11 +165,37 @@ def _handle_fan_speed_write(fan_info):
 def _is_vec_leader():
     """Return true if this VEC is the leader, else false.
     :returns: True if this VEC is the leader, else False."""
-    with open('/crate/mount/.state-file') as f:
-        data = json.load(f)
-        if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
-            return True
+    leader = _get_vec_leader()
+    if leader is not None:
+        self = os.environ['POD_IP']
+        logger.debug('leader is: {}'.format(leader))
+        logger.debug('self is: {}'.format(self))
+        return self == leader
+
     return False
+
+
+def _get_vec_leader():
+    """Return the VEC leader IP address.
+    :returns: The VEC leader IP address."""
+    # FIXME (etd) - we will probably want to be smarter about how we do this.
+    #   for now, just making the request here, but perhaps we should have some
+    #   sort of client with retries, etc.
+    r = requests.get('http://elector-headless:2288/status')
+    logger.debug('request for vec leader: {}'.format(r))
+    leader = None
+    if r.ok:
+        data = r.json()
+        logger.debug('data: {}'.format(data))
+        for k, v in data['members'].iteritems():
+            if v == 'leader':
+                leader = k
+                break
+    else:
+        logger.error('Could not determine the leader: {}'.format(r))
+
+    logger.debug('leader: {}'.format(leader))
+    return leader
 
 
 def _read_device_by_model(rack_id, serial_device, device):
