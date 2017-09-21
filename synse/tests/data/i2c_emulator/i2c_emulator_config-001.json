@@ -42,6 +42,41 @@
           "device_info": "CEC Temperature 5 - no-device"
         },
         {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0020",
+          "device_model": "max-11610",
+          "device_info": "CEC Temperature 1b - min-max"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0021",
+          "device_model": "max-11610",
+          "device_info": "CEC Temperature 2b - steps"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0022",
+          "device_model": "max-11610",
+          "device_info": "CEC Temperature 3b - bad-device"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0023",
+          "device_model": "max-11610",
+          "device_info": "CEC Temperature 4b - one-value"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0024",
+          "device_model": "max-11610",
+          "device_info": "CEC Temperature 5b - no-device"
+        },
+        {
           "device_type": "pressure",
           "device_id": "0001",
           "channel": "0008",

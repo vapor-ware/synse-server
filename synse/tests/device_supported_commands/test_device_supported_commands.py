@@ -29,8 +29,8 @@ import unittest
 from itertools import count
 
 from synse.devicebus.command_factory import CommandFactory
-from synse.devicebus.devices.i2c.max116xx_adc_thermistor import \
-    Max11608Thermistor
+from synse.devicebus.devices.i2c.max116xx_adc_thermistor import Max11608Thermistor
+from synse.devicebus.devices.i2c.max116xx_adc_thermistor import Max11610Thermistor
 from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
 from synse.devicebus.devices.ipmi.ipmi_device import IPMIDevice
@@ -77,6 +77,7 @@ class SupportedDeviceCommandsTestCase(unittest.TestCase):
             'altitude': 0
         }
         cls.max11608thermistor = Max11608Thermistor(**i2c_kwargs)
+        cls.max11610thermistor = Max11610Thermistor(**i2c_kwargs)
         cls.pca9632led = PCA9632Led(**i2c_kwargs)
         cls.sdp610pressure = SDP610Pressure(**i2c_kwargs)
 
@@ -273,6 +274,89 @@ class SupportedDeviceCommandsTestCase(unittest.TestCase):
         """
         with self.assertRaises(CommandNotSupported):
             self.max11608thermistor.handle(self._retry)
+
+
+
+    def test_014_max11610thermistor(self):
+        """ Test the I2C device for VERSION command support. This command is now supported.
+        """
+        self.max11610thermistor.handle(self._version)
+
+    def test_015_max11610thermistor(self):
+        """ Test the I2C device for SCAN command support.
+        """
+        self.max11610thermistor.handle(self._scan)
+
+    def test_016_max11610thermistor(self):
+        """ Test the I2C device for SCAN_ALL command support.
+        """
+        self.max11610thermistor.handle(self._scan_all)
+
+    def test_017_max11610thermistor(self):
+        """ Test the I2C device for READ command support.
+        """
+        with self.assertRaises(KeyError):
+            self.max11610thermistor.handle(self._read)
+
+    def test_018_max11610thermistor(self):
+        """ Test the I2C device for WRITE command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._write)
+
+    def test_019_max11610thermistor(self):
+        """ Test the I2C device for POWER command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._power)
+
+    def test_020_max11610thermistor(self):
+        """ Test the I2C device for ASSET command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._asset)
+
+    def test_021_max11610thermistor(self):
+        """ Test the I2C device for BOOT_TARGET command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._boot_tgt)
+
+    def test_022_max11610thermistor(self):
+        """ Test the I2C device for LOCATION command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._location)
+
+    def test_023_max11610thermistor(self):
+        """ Test the I2C device for CHAMBER_LED command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._chamber_led)
+
+    def test_024_max11610thermistor(self):
+        """ Test the I2C device for LED command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._led)
+
+    def test_025_max11610thermistor(self):
+        """ Test the I2C device for FAN command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._fan)
+
+    def test_026_max11610thermistor(self):
+        """ Test the I2C device for HOST_INFO command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._host_info)
+
+    def test_027_max11610thermistor(self):
+        """ Test the I2C device for RETRY command support.
+        """
+        with self.assertRaises(CommandNotSupported):
+            self.max11610thermistor.handle(self._retry)
 
     def test_028_pca9632led(self):
         """ Test the I2C device for VERSION command support. This command is now supported.
