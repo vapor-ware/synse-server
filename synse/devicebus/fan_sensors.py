@@ -31,9 +31,7 @@ import datetime
 import json
 import logging
 
-# from synse import constants as const
-from synse.devicebus.devices.i2c.max116xx_adc_thermistor import \
-    Max11608Thermistor
+from synse.devicebus.devices.i2c.max116xx_adc_thermistor import Max11608Thermistor
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
 from synse.protocols.i2c_common import i2c_common
 from synse.vapor_common.vapor_config import ConfigManager

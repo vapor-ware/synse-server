@@ -34,6 +34,8 @@ import logging
 import os
 import re
 
+# TODO: Logging is not yet initialized here, so log statements will never emit.
+# ^ Issue 238.
 logger = logging.getLogger()
 
 
@@ -105,6 +107,10 @@ class ConfigManager(object):
                 logger.error('Given override path is invalid: {}'.format(e))
             except Exception as e:
                 logger.error('Unexpected exception when searching for override file: {}'.format(e))
+
+        if not default and not override:
+            # TODO: What to do here? This will not be logged until logging is initialized.
+            raise ValueError('NOT Initializing synse config. No default or override.')
 
     def __getitem__(self, item):
         """ Get an item from the object __dict__ """

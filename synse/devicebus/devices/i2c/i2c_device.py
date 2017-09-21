@@ -130,8 +130,10 @@ class I2CDevice(SerialDevice):
                     # we still need to initialize a subclassed device interface, we
                     # match the configured 'device_model' with the '_instance_name' of
                     # all subclasses to determine the correct subclass at runtime.
+
+                    subclasses = cls.get_all_subclasses()
                     device_model = {
-                        klass._instance_name: klass for klass in cls.__subclasses__()
+                        klass._instance_name: klass for klass in subclasses
                     }.get(i2c_device['device_model'].lower())
 
                     if device_model:
