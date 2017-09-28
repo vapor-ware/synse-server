@@ -1,13 +1,28 @@
 #!/usr/bin/env python
-"""
-        \\//
-         \/apor IO
+""" Simple python modbus serial implementation. Originally by Dave Kaplin.
+This is here since pymodbus has a framing issue over serial when the client
+packet is reflected back to the caller.
 
+    \\//
+     \/apor IO
 
-        Simple python modbus serial implementation. Originally by Dave Kaplin.
-        This is here since pymodbus has a framing issue over serial when the
-        client packet is reflected back to the caller, which both the fan and
-        CEC board do.
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
+
+This file is part of Synse.
+
+Synse is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+Synse is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
@@ -22,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 class dkmodbus(object):
-    """Class that contains the logic and state for this simple modbus
+    """ Class that contains the logic and state for this simple modbus
     serial implementation.
     """
 
@@ -50,21 +65,28 @@ class dkmodbus(object):
     # region public
 
     def __init__(self, serial_device):
-        """'
-        Create the dkmodbus object for communication over the given serial
+        """ Create the dkmodbus object for communication over the given serial
         device.
-        :param serial_device: The serial device for Modbus communication.
-        example: ser = serial.Serial('/dev/ttyUSB3', baudrate=19200,
-        parity='E', timeout=0.1)"""
+
+        Args:
+            serial_device (serial.Serial): the serial device for Modbus communication.
+                for example, serial.Serial('/dev/ttyUSB3', baudrate=19200, parity='E',
+                timeout=0.1)
+        """
         self.serial_device = serial_device
 
     def read_holding_registers(self, slave_address, register, register_count):
-        """Read one or more registers over modbus.
-        :param slave_address: The slave address of the device to read, In
-        synse this is unfortunately called device_unit.
-        :param register: The first register to read.
-        :param register_count: The number of registers to read.
-        :returns: A byte array with two bytes per register."""
+        """ Read one or more registers over modbus.
+
+        Args:
+            slave_address (int): the slave address of the device to read. in Synse
+                this is unfortunately called device_unit.
+            register (int): the first register to read.
+            register_count (int): the number of registers to read.
+
+        Returns:
+            a byte array with two bytes per register.
+        """
         slave_address_bytes = struct.pack('>B', slave_address)
         modbus_function_code = dkmodbus._READ_HOLDING_REGISTERS
         register_bytes = struct.pack('>H', register)
@@ -73,12 +95,17 @@ class dkmodbus(object):
         return self._send_receive_packet(packet)
 
     def read_input_registers(self, slave_address, register, register_count):
-        """Read one or more registers over modbus.
-        :param slave_address: The slave address of the device to read, In
-        synse this is unfortunately called device_unit.
-        :param register: The first register to read.
-        :param register_count: The number of registers to read.
-        :returns: A byte array with two bytes per register."""
+        """ Read one or more registers over modbus.
+
+        Args:
+            slave_address (int): the slave address of the device to read. in Synse
+                this is unfortunately called device_unit.
+            register (int): the first register to read.
+            register_count (int): the number of registers to read.
+
+        Returns:
+            a byte array with two bytes per register.
+        """
         slave_address_bytes = struct.pack('>B', slave_address)
         modbus_function_code = dkmodbus._READ_INPUT_REGISTER
         register_bytes = struct.pack('>H', register)
@@ -88,13 +115,17 @@ class dkmodbus(object):
 
     @staticmethod
     def reset_usb(usb_list):
-        """The FTDI driver has a known issue where the USB device under /dev
+        """ The FTDI driver has a known issue where the USB device under /dev
         will disappear. This will reset the USB and clear the issue.
+
         Resetting the usb with the serial port open is problematic. /dev/ttyUSB3
         will come up as /dev/ttyUSB4. Also the serial port does not need to be
         reset if the serial_device is open. The serial port only needs to be
         reset when /dev/ttyUSB3 disappears.
-        :param usb_list: List of usbs to reset. For our case this is [1, 2]"""
+
+        Args:
+            usb_list (list): list of usbs to reset. for our case, this is [1, 2]
+        """
         logger.error('Resetting USB.')  # Something is bad if you need to do this.
         for usb in usb_list:
             for x in range(2):
@@ -105,15 +136,16 @@ class dkmodbus(object):
                     time.sleep(.1)
         return 0
 
-    def write_multiple_registers(
-            self, slave_address, register, register_count, byte_count, data):
-        """Write multiple registers over modbus.
-        :param slave_address: The slave address of the device to write, In
-        synse this is unfortunately called device_unit.
-        :param register: The first register to write.
-        :param register_count: The number of registers to write.
-        :param byte_count: The number of bytes to write. 1, 2, 4, or 8.
-        :param data: The data to write in bytes.
+    def write_multiple_registers(self, slave_address, register, register_count, byte_count, data):
+        """ Write multiple registers over modbus.
+
+        Args:
+            slave_address (int): the slave address of the device to write, In
+                Synse this is unfortunately called device_unit.
+            register (int): the first register to write.
+            register_count (int): the number of registers to write.
+            byte_count (int): the number of bytes to write. 1, 2, 4, or 8.
+            data: the data to write, in bytes.
         """
         slave_address_bytes = struct.pack('>B', slave_address)
         modbus_function_code = dkmodbus._WRITE_MULTIPLE_REGISTERS
@@ -131,7 +163,11 @@ class dkmodbus(object):
 
     @staticmethod
     def _calculate_crc(data):
-        """:param data: The data to calculate the CRC for."""
+        """ Calculate the CRC.
+
+        Args:
+            data: the data to calculate the CRC for.
+        """
 
         crc = 0xFFFF
         polynomial = 0xA001  # CRC Calculation
@@ -148,7 +184,11 @@ class dkmodbus(object):
 
     @staticmethod
     def _check_crc(data):
-        """:param data: The data to check the CRC of."""
+        """ Check the CRC on the given data.
+
+        Args:
+            data: the data to check.
+        """
 
         # Do not include the 2 byte crc in crc calculation.
         crc = dkmodbus._calculate_crc(data[:-2])
@@ -160,7 +200,7 @@ class dkmodbus(object):
         return crc == rx_crc
 
     def _send_receive_packet(self, packet):
-        """Send a packet and then receive the response.
+        """ Send a packet and then receive the response.
         """
         # Construct the ADU packet containing PDU packet above
         # Calculate CRC and append at the end of the ADU packet

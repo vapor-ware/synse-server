@@ -149,6 +149,7 @@ def synse_version():
     return make_json_response({'version': __api_version__})
 
 
+# FIXME (etd) - remove for open source release?
 @app.route(PREFIX + '/plc_config', methods=['GET', 'POST'])
 def plc_config():
     """ Test routine to return the PLC modem configuration parameters
@@ -160,6 +161,8 @@ def plc_config():
     )
 
 
+# FIXME (etd) -- this route seems specific to auto-fan (proprietary), do we want to remove
+#   for open source release?
 # Global FanSensors object because we do not want to hunt for the sensors on
 # each fan_sensors call and we shouldn't have to.
 SENSORS = FanSensors()
@@ -203,7 +206,7 @@ def register_app_devices(application):
     file with the Flask application.
 
     Args:
-        application (Flask): the Flask application to register the devices to.
+        application (flask.Flask): the Flask application to register the devices to.
     """
     # before registering any devices, make sure all dependencies are cached
     # globally -- this is needed for any threaded registration.
@@ -252,7 +255,7 @@ def main(serial_port=None, hardware=None):
         serial_port (str): specify the serial port to use; the default is fine
             for production, but for testing it is necessary to pass in an emulator
             port here.
-        hardware (int): the type of hardware we are working with - see devicebus.py
+        hardware (int): the type of hardware we are working with - see constants.py
             for values -> by default we use the emulator, but may use VEC; this
             dictates what type of configuration we do on startup and throughout.
     """

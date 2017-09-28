@@ -1,16 +1,31 @@
 #!/usr/bin/env python
-"""
-        \\//
-         \/apor IO
+""" Common sensor conversions.
 
+These are needed in at least three places:
+ 1. Synse emulators.
+ 2. Synse physical hardware.
+ 3. Synse command line tools.
 
-        Common file for sensor conversions. We need conversions in at least
-        three places.
-        1. Synse emulators.
-        2. Synse physical hardware.
-        3. Synse command line tools.
+    \\//
+     \/apor IO
 
-        This file is a common place for them.
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
+
+This file is part of Synse.
+
+Synse is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+Synse is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging
@@ -21,20 +36,30 @@ logger = logging.getLogger(__name__)
 
 
 def airflow_f660(reading):
-    """Return the airflow velocity in millimeters per second given the raw two
+    """ Return the airflow velocity in millimeters per second given the raw two
     byte reading from the F660 airflow sensor.
-    :param reading: The raw two byte reading from the F660 airflow sensor.
-    :returns: The airflow velocity in millimeters per second."""
+
+    Args:
+        reading: The raw two byte reading from the F660 airflow sensor.
+
+    Returns:
+        The airflow velocity in millimeters per second.
+    """
     return unpack_word(reading)
 
 
 def differential_pressure_sdp610(reading, altitude):
-    """Return the differential pressure reading in Pascals given the raw three
+    """ Return the differential pressure reading in Pascals given the raw three
     byte reading from the sdp610 differential pressure sensor.
-    :param reading: The raw three byte reading from the sdp610 differential
-    pressure sensor.
-    :param altitude: (int | float): the altitude in meters above sea level.
-    :returns: The differential pressure reading in Pascals."""
+
+    Args:
+        reading: The raw three byte reading from the sdp610 differential
+            pressure sensor.
+        altitude (int | float): the altitude in meters above sea level.
+
+    Returns:
+        The differential pressure reading in Pascals.
+    """
     # Third byte off the raw reading is the crc. Ignore that.
     data = unpack_word(reading[:2])
 
@@ -46,17 +71,18 @@ def differential_pressure_sdp610(reading, altitude):
 
 
 def differential_pressure_sdp610_altitude(altitude):
-    """This needs to be separated from differential_pressure_sdp610 for now
+    """ This needs to be separated from differential_pressure_sdp610 for now
     since some tests directly call it.
-    Get the altitude correction factor, given an altitude in meters.
 
+    Get the altitude correction factor, given an altitude in meters.
     http://www.mouser.com/ds/2/682/Sensirion_Differential_Pressure_SDP6x0series_Datas-767275.pdf
 
     Args:
         altitude (int | float): the altitude in meters above sea level.
 
     Returns:
-        float: The conversion factor."""
+        float: The conversion factor.
+    """
     # Altitude below zero is not specified in the datasheet. Use the lowest specified.
     if altitude < 250:
         corr = 0.95
@@ -79,11 +105,17 @@ def differential_pressure_sdp610_altitude(altitude):
 
 
 def fan_gs3_2010_rpm_to_packed_hz(rpm):
-    """Convert an rpm setting for the gs3 2010 fan controller to Hz and packs
+    """ Convert an rpm setting for the gs3 2010 fan controller to Hz and packs
     the result into bytes. Setting the fan to a given rpm requires it.
+
     Does no input range validation.
-    :param rpm: User provided rpm setting.
-    :returns: Hz packed into two bytes."""
+
+    Args:
+        rpm: User provided rpm setting.
+
+    Returns:
+        Hz packed into two bytes.
+    """
     # User manual for the gs3 fan controller is here:
     # https://cdn.automationdirect.com/static/manuals/gs3m/gs3m.pdf
 
@@ -107,54 +139,84 @@ def fan_gs3_2010_rpm_to_packed_hz(rpm):
 
 
 def flow_mm_s_to_cfm(mm_s):
-    """Convert flow from mm/s to cubic feet per minute.
+    """ Convert flow from mm/s to cubic feet per minute.
     This works for airflow on the V1 chamber based on the cross section of the
     chimney and the size of the fan. It may or may not work in the future.
     Dimensions could change.
-    :param mm_s: Flow velocity in millimeters per second.
-    :returns: The volume flow in cfm."""
+
+    Args:
+        mm_s: Flow velocity in millimeters per second.
+
+    Returns:
+        The volume flow in cfm.
+    """
     return mm_s * 6.28
 
 
 def humidity_sht31(reading):
-    """Convert the raw humidity reading from the sht31 humidity sensor to
+    """ Convert the raw humidity reading from the sht31 humidity sensor to
     percent.
-    :param reading: The reading from the sht31 humidity sensor.
-    :returns: The humidity reading in percent."""
+
+    Args:
+        reading: The reading from the sht31 humidity sensor.
+
+    Returns:
+        The humidity reading in percent.
+    """
     return (unpack_word(reading[2:4]) / 65535.0) * 100
 
 
 def humidity_sht31_int(reading):
-    """Convert the raw humidity reading from the sht31 humidity sensor to
+    """ Convert the raw humidity reading from the sht31 humidity sensor to
     percent.
-    :param reading: The reading from the sht31 humidity sensor as an int.
-    :returns: The humidity reading in percent."""
+
+    Args:
+        reading: The reading from the sht31 humidity sensor as an int.
+
+    Returns:
+        The humidity reading in percent.
+    """
     return (reading / 65535.0) * 100
 
 
 def temperature_sht31(reading):
-    """Convert the raw temperature reading from the sht31 humidity sensor to
+    """ Convert the raw temperature reading from the sht31 humidity sensor to
     degrees Celsius.
-    :param reading: The first byte of the reading from the sht31 humidity
-    sensor.
-    :returns: The temperature reading in degrees Celsius."""
+
+    Args:
+        reading: The first byte of the reading from the sht31 humidity
+            sensor.
+
+    Returns:
+        The temperature reading in degrees Celsius.
+    """
     return ((unpack_word(reading[0:2]) / 65535.0) * 175) - 45
 
 
 def temperature_sht31_int(reading):
-    """Convert the raw temperature reading from the sht31 humidity sensor to
+    """ Convert the raw temperature reading from the sht31 humidity sensor to
     degrees Celsius.
-    :param reading: The reading from the sht31 humidity sensor as an int.
-    :returns: The temperature reading in degrees Celsius."""
+
+    Args:
+        reading: The reading from the sht31 humidity sensor as an int.
+
+    Returns:
+        The temperature reading in degrees Celsius.
+    """
     return ((reading / 65535.0) * 175) - 45
 
 
 def thermistor_max11608_adc(reading):
-    """Convert the raw two byte reading from the max11608-adc thermistor to
+    """ Convert the raw two byte reading from the max11608-adc thermistor to
     degrees Celsius.
-    :param reading: The two byte reading from the max11608-adc thermistor.
-    :returns: The temperature reading in degrees Celsius or None if no thermistor
-    is present."""
+
+    Args:
+        reading: The two byte reading from the max11608-adc thermistor.
+
+    Returns:
+        The temperature reading in degrees Celsius or None if no thermistor
+        is present.
+    """
     raw = unpack_word(reading)
     if raw == 0xFFFF:
         # All f means no thermistor plugged in.
@@ -201,12 +263,18 @@ def thermistor_max11608_adc(reading):
 
 
 def unpack_byte(reading):
-    """Unpack a single byte sensor reading given the byte.
-    :param reading: The raw single byte sensor reading."""
+    """ Unpack a single byte sensor reading given the byte.
+
+    Args:
+        reading: The raw single byte sensor reading.
+    """
     return struct.unpack('>B', reading)[0]
 
 
 def unpack_word(reading):
-    """Unpack a two byte word sensor reading given the bytes.
-    :param reading: The raw two byte word sensor reading."""
+    """ Unpack a two byte word sensor reading given the bytes.
+
+    Args:
+        reading: The raw two byte word sensor reading.
+    """
     return struct.unpack('>H', reading)[0]

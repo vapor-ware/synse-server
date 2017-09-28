@@ -25,6 +25,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 import sys
 import unittest
@@ -64,14 +65,16 @@ class Tee(object):
 
 
 def run_suite(log_name, suite, loglevel=logging.DEBUG):
-    """Setup the root logger to log everything to console and file.
+    """ Setup the root logger to log everything to console and file.
+
     Test log file in /logs/test_results<log_name>.txt.
     There will be two things writing to the same file without locks, but all
     the info is there and it's not terribly disruptive.
 
-    :param log_name: The name of the logger to use.
-    :param suite: The test suite to run.
-    :param loglevel: The log level to use in logging events.
+    Args:
+        log_name (str): the name of the logger to use.
+        suite (unittest.TestSuite): the test suite to run.
+        loglevel (int): the log level to use in logging events.
     """
     stream = Tee('/logs/test_results-{}.txt'.format(log_name), 'w')
 
@@ -85,8 +88,12 @@ def run_suite(log_name, suite, loglevel=logging.DEBUG):
 
 
 def exit_suite(suite_result):
-    """Exit the suite and fail make on failure.
-    :param suite_result: The result from the return value of run_suite."""
+    """ Exit the suite and fail make on failure.
+
+    Args:
+        suite_result (unittest.result.TestResult): the result from the return
+            value of run_suite
+    """
     if not suite_result.wasSuccessful():
         sys.exit(1)
     sys.exit(0)

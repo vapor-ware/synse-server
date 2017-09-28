@@ -45,17 +45,6 @@ GET = 'get'
 POST = 'post'
 
 
-def disable_warnings():
-    """ Disable the warnings raised by urllib3 around ssl certs.
-
-    The warning in question::
-
-        SecurityWarning: Certificate has no `subjectAltName`, falling back
-        to check for a `commonName` for now.
-    """
-    requests.packages.urllib3.disable_warnings()
-
-
 def request_ok(status_code):
     """ Check if a request is ok.
 

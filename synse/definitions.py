@@ -51,6 +51,7 @@ SHUFFLE_BOARD_ID = 1 << SHUFFLE_BIT
 SAVE_BOARD_ID = 1 << SAVE_BIT
 
 
+# FIXME (etd) -- do we need this here?? e.g. should it be released?
 # fan speed constraints
 MAX_FAN_SPEED = 10000
 MIN_FAN_SPEED = 0

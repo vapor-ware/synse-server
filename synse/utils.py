@@ -304,8 +304,6 @@ def get_measure_for_device_type(device_type):
 # -------------------------------------
 
 
-## TODO (etd) -- perhaps rename to 'normalize'
-
 def check_valid_board_and_device(board_id=None, device_id=None):
     """ Validate that the board and device IDs are valid for the operation, and
     convert from hex string to int value for each, if valid.
@@ -408,8 +406,6 @@ def write_scan_cache(data):
 # -------------------------------------
 # Device Interface Utilities
 # -------------------------------------
-
-## TODO (etd) perhaps rename to get_devicebus_instance
 
 def get_device_instance(board_id):
     """ Get a device instance for a given board id.

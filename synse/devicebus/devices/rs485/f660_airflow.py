@@ -30,7 +30,6 @@ import logging
 import sys
 
 from flask import request
-
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 from pymodbus.pdu import ExceptionResponse
 

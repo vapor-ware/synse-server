@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 """ Resource handler
 
-Functions called on emulator startup to walk through mockup file tree and populate a dictionary
-database with paths to resources as keys and content of the resource index.json file as values.
-Stores username and passwords found in mockup's AccountService/Accounts in dictionary for basic
-auth.
+Functions called on emulator startup to walk through mockup file tree
+and populate a dictionary database with paths to resources as keys and
+content of the resource index.json file as values. Stores username and
+passwords found in mockup's AccountService/Accounts in dictionary for
+basic auth.
 
-This was based off of DMTF's Redfish-Profile-Simulator (see LICENSE.txt in the redfish emulator
-directory, and attribution, below) - https://github.com/DMTF/Redfish-Profile-Simulator
+This was based off of DMTF's Redfish-Profile-Simulator (see LICENSE.txt
+in the redfish emulator directory, and attribution, below) -
+https://github.com/DMTF/Redfish-Profile-Simulator
 
     Author:  Linh Hoang
     Date:    02/09/17
@@ -53,8 +55,8 @@ import os
 
 database = {}
 
-# users dictionary for HTTPbasicauth based on existing accounts in AccountServices mockup file
-# in addition to hardcoded username and password
+# users dictionary for HTTPbasicauth based on existing accounts in AccountServices
+# mockup file in addition to hardcoded username and password
 users = {'root': 'redfish'}
 
 

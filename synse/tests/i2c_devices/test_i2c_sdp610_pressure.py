@@ -25,9 +25,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-import unittest
 
+import unittest
 from collections import Counter
+
 from synse.protocols.conversions import conversions
 from synse.stats import stats
 

@@ -233,7 +233,7 @@ def scan_all():
 
 @core.route(url('/scan/force'))
 def force_scan():
-    """ Force the scan of all racks, boards, and devices. This will ignore
+    """ Force the (re)scan of all racks, boards, and devices. This will ignore
     any existing cache. If the forced scan is successful, it will update the
     cache.
 
@@ -286,19 +286,16 @@ def get_board_devices(rack_id, board_id=None):
 
     board_id = check_valid_board(board_id)
 
-    # FIXME (etd) - unclear why this was temporarily disabled, we probably want
-    # to re-enable.
-    # FIXME: temporarily disabled scan cache
-    # _cache = get_scan_cache()
-    # if _cache:
-    #    _cache = filter_cache_meta(_cache)
-    #    for rack in _cache['racks']:
-    #        if rack['rack_id'] == rack_id:
-    #            for board in rack['boards']:
-    #                if int(board['board_id'], 16) == board_id:
-    #                    return make_json_response({'boards': [board]})
-    #                else:
-    #                    break
+    # first, attempt to get the info from the scan cache.
+    _cache = get_scan_cache()
+    if _cache:
+        _cache = _filter_cache_meta(_cache)
+        for rack in _cache['racks']:
+            if rack['rack_id'] == rack_id:
+                for board in rack['boards']:
+                    if int(board['board_id'], 16) == board_id:
+                        return make_json_response({'boards': [board]})
+                break
 
     cmd = current_app.config['CMD_FACTORY'].get_scan_command({
         _s_.RACK_ID: rack_id,
@@ -447,8 +444,9 @@ def boot_target(rack_id, board_id, device_id, target=None):
     board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
     if target is not None and target not in [_s_.BT_PXE, _s_.BT_HDD, _s_.BT_NO_OVERRIDE]:
-        logger.error('Boot Target: Invalid boot target specified: %s board_id: %s device_id: %s', target, board_id,
-                     device_id)
+        logger.error(
+            'Boot Target: Invalid boot target specified: {} board_id: {} '
+            'device_id: {}'.format(target, board_id, device_id))
         raise SynseException('Invalid boot target specified.')
 
     cmd = current_app.config['CMD_FACTORY'].get_boot_target_command({
@@ -519,6 +517,7 @@ def device_location(rack_id, board_id=None, device_id=None):  # pylint: disable=
     })
 
 
+# FIXME (etd) - chamber stuff is vapor-specific .. do we want to include in the open source release?
 def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, blink_state):
     """ Control the Vapor Chamber LED via PLC.
 
@@ -619,6 +618,7 @@ def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, bl
     return make_json_response(response.get_response_data())
 
 
+# FIXME (etd) - writing to fan is for CEC fan -- do we want as part of open source release?
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>/<fan_speed>'), methods=['GET'])
 def fan_control(rack_id, board_id, device_id, fan_speed=None):

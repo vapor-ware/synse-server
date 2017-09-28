@@ -1,26 +1,40 @@
 #!/usr/bin/env python
+""" Common I2C operations.
+
+    \\//
+     \/apor IO
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
+
+This file is part of Synse.
+
+Synse is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+Synse is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-        \\//
-         \/apor IO
-
-
-        Common file for i2c operations to avoid cut and paste.
-        gs3 command line tool uses this code. This code will also be used
-        under the devicebus.
-"""
-
 # pylint: disable=import-error
-from mpsse import (ACK, GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
-                   ONE_HUNDRED_KHZ)
 
-from binascii import hexlify
-from mpsse import *
-from ..conversions import conversions
 import copy
 import datetime
 import logging
 import struct
 import time
+from binascii import hexlify
+
+from mpsse import (ACK, GPIOL0, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
+                   ONE_HUNDRED_KHZ)
+
+from synse.protocols.conversions import conversions
 from synse.stats import stats
 
 logger = logging.getLogger(__name__)
@@ -79,7 +93,8 @@ def _open_led_i2c():
     # Set RESET line on PCA9546A to high to activate switch
     vec.PinHigh(GPIOL0)
 
-    # Set channel on PCA9546A to 3 for PCA9632 (LED Port) Keep in mind this also is connected to the MAX11608
+    # Set channel on PCA9546A to 3 for PCA9632 (LED Port) Keep in mind this
+    # also is connected to the MAX11608
     vec.Start()
     vec.Write(channel_str)
     vec.Stop()
@@ -113,30 +128,48 @@ def _close_led_i2c(vec, gpio):
 
 
 def get_channel_ordinal(channel):
-    """The differential pressure sensors have a channel setting that uses a
+    """ The differential pressure sensors have a channel setting that uses a
     bit shift.
-    :raises: ValueError on invalid channel."""
+
+    Args:
+        channel (int): the channel number.
+
+    Raises:
+        ValueError on invalid channel.
+    """
     channels = [1, 2, 4, 8, 16, 32, 64, 128]
     return channels.index(channel)
 
 
 def get_channel_from_ordinal(ordinal):
-    """The differential pressure sensors have a channel setting that uses a
+    """ The differential pressure sensors have a channel setting that uses a
     bit shift.
-    :raises: ValueError on invalid channel."""
+
+    Args:
+        ordinal (int): the index into the channels list.
+
+    Raises:
+        ValueError on invalid channel.
+    """
     channels = [1, 2, 4, 8, 16, 32, 64, 128]
     return channels[ordinal]
 
 
 def _normalize_differential_pressure_result(channel, readings):
-    """Normalize the raw differential pressure readings to produce a result.
+    """ Normalize the raw differential pressure readings to produce a result.
+
     The raw readings will vary wildly due to turbulence.
-    :param channel: The I2C channel of the sensor.
-    :param readings: The raw differential pressure readings from the sensor.
+
+    Args:
+        channel: the I2C channel of the sensor.
+        readings: the raw differential pressure readings from the sensor.
     """
     # Dict for aggregating and logging.
-    result_stats = {'sample_count': DIFFERENTIAL_PRESSURE_READ_COUNT}
-    result_stats['raw_mean'], result_stats['raw_stddev'] = stats.std_dev(readings)
+    result_stats = {
+        'sample_count': DIFFERENTIAL_PRESSURE_READ_COUNT,
+        'raw_mean': stats.std_dev(readings)[0],
+        'raw_stddev': stats.std_dev(readings)[1]
+    }
 
     # Remove outliers.
     readings_copy = copy.deepcopy(readings)
@@ -156,12 +189,17 @@ def _normalize_differential_pressure_result(channel, readings):
 
 
 def _read_differential_pressure_channel(vec, channel):
-    """Internal common code for dp reads. This part handles the per channel bus
+    """ Internal common code for dp reads. This part handles the per channel bus
     reads.
-    :param vec: Handle for reading.
-    :param channel: The i2c channel to read.
-    :returns: A list of differential pressure readings in Pascals. These will
-    vary widely due to turbulence."""
+
+    Args:
+        vec: handle for reading.
+        channel: the I2C channel to read.
+
+    Returns:
+        list: a list of differential pressure readings in Pascals. These will
+            vary widely due to turbulence.
+    """
     result = []
 
     # Set channel
@@ -190,7 +228,7 @@ def _read_differential_pressure_channel(vec, channel):
     vec.SendAcks()
 
     # Read DP sensor connected to the set channel.
-    for i in range(DIFFERENTIAL_PRESSURE_READ_COUNT):
+    for _ in range(DIFFERENTIAL_PRESSURE_READ_COUNT):
 
         # Read DPS sensor connected to the set channel
         vec.SendAcks()
@@ -220,10 +258,14 @@ def _read_differential_pressure_channel(vec, channel):
 
 
 def configure_differential_pressure(channel):
-    """Configure the differential pressure sensor for 9 bit resolution. Default
-    is 12. This needs to be done once per power up. For our case we call this
+    """ Configure the differential pressure sensor for 9 bit resolution.
+
+    Default is 12. This needs to be done once per power up. For our case we call this
     on synse container startup.
-    :param channel: The channel to configure."""
+
+    Args:
+        channel: the channel to configure.
+    """
     logger.debug('Configuring Differential Pressure sensor on channel {}'.format(channel))
 
     # Port A I2C for PCA9546A
@@ -297,13 +339,17 @@ def configure_differential_pressure(channel):
 
 
 def read_differential_pressure(channel):
-    """This will read a single differential pressure sensor from the
+    """ This will read a single differential pressure sensor from the
     CEC board.
-    :param channel: The channel to read.
-    :returns: The differential pressure in Pascals, or None on failure."""
+
+    Args:
+        channel: the channel to read.
+
+    Returns:
+        The differential pressure in Pascals, or None on failure.
+    """
     vec, gpio = _open_vec_i2c()
 
-    readings = None
     if vec.GetAck() == ACK:
         # If we got an ack then switch is there.
         vec.SendNacks()
@@ -331,12 +377,17 @@ def read_differential_pressure(channel):
 
 
 def read_differential_pressures(count):
-    """This will read count number of differential pressure sensors from the
+    """ This will read count number of differential pressure sensors from the
     CEC board.
-    :param count: The number of differential pressure sensors to read.
-    :returns: An array of differential pressure sensor readings in Pascals.
-    The array index will be the same as the channel in the synse i2c sdp-610
-    differential pressure sensor configuration. None is returned on failure."""
+
+    Args:
+        count (int): the number of differential pressure sensors to read.
+
+    Returns:
+        list: an array of differential pressure sensor readings in Pascals.
+            The array index will be the same as the channel in the synse i2c sdp-610
+            differential pressure sensor configuration. None is returned on failure.
+    """
 
     start_time = datetime.datetime.now()
     vec, gpio = _open_vec_i2c()
@@ -382,37 +433,42 @@ def read_differential_pressures(count):
         logger.debug('Differential Pressure Reading:   {} Pa'.format(reading))
     return result
 
+
 # PCA9632 LED Controller constants.
 PCA9632_WRITE = chr(0xC4)
 PCA9632_READ = chr(0xC5)
-PCA9632_LEDOUT_BLINK = chr(0x3F)        # Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
+# Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
+PCA9632_LEDOUT_BLINK = chr(0x3F)
 PCA9632_LEDOUT_STEADY = chr(0x2A)       # Brightness controlled by PWMx register.
 PCA9632_LEDOUT_OFF = chr(0x00)          # Led output off.
 PCA9632_GRPPWM_FULL = chr(0xFC)         # 98.4 % group duty cycle. 64-step duty cycle resolution.
-PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. (one second on, one second off)
+PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. (1s on, 1s off)
 
 # register options
 PCA9632_AUTO_INCR = chr(0x80)   # Enables Auto-Increment, Mode register 1.
 
 # register map
-PCA9632_MODE1 = chr(0x00)   # Mode register 1
-PCA9632_MODE2 = chr(0x01)   # Mode register 2
-PCA9632_PWM0 = chr(0x02)    # brightness control LED0
-PCA9632_PWM1 = chr(0x03)    # brightness control LED1
-PCA9632_PWM2 = chr(0x04)    # brightness control LED2
-PCA9632_PWM3 = chr(0x05)    # brightness control LED3 (Unused if I understand correctly.)
-PCA9632_GRPPWM = chr(0x06)  # group duty cycle control
-PCA9632_GRPFREQ = chr(0x07) # group frequency
-PCA9632_LEDOUT = chr(0x08)  # LED output state
+PCA9632_MODE1 = chr(0x00)    # Mode register 1
+PCA9632_MODE2 = chr(0x01)    # Mode register 2
+PCA9632_PWM0 = chr(0x02)     # brightness control LED0
+PCA9632_PWM1 = chr(0x03)     # brightness control LED1
+PCA9632_PWM2 = chr(0x04)     # brightness control LED2
+PCA9632_PWM3 = chr(0x05)     # brightness control LED3 (Unused if I understand correctly.)
+PCA9632_GRPPWM = chr(0x06)   # group duty cycle control
+PCA9632_GRPFREQ = chr(0x07)  # group frequency
+PCA9632_LEDOUT = chr(0x08)   # LED output state
 
 
 def read_led():
-    """Read the led state from the led controller. There is one led controller
+    """ Read the led state from the led controller. There is one led controller
     per wedge.
-    :returns: state, color, and blink
-    state is on or off.
-    color is a 3 byte RGB color.
-    blink is blink or steady."""
+
+    Returns:
+        tuple: state, color, and blink.
+            state is on or off.
+            color is a 3 byte RGB color.
+            blink is blink or steady.
+    """
     vec, gpio = _open_led_i2c()
 
     # Read out color. PWM0 register. (Register 2)
@@ -463,10 +519,13 @@ def read_led():
 
 
 def check_led_write_parameters(state, color=None, blink_state=None):
-    """Check parameter validity.
-    :param state: on or off
-    :param color: A 3 byte RGB color or hex string. None is fine for off.
-    :param blink_state: blink, steady, or no_override. None is fine for off."""
+    """ Check parameter validity.
+
+    Args:
+        state (str): on or off
+        color (int): a 3-byte RGB color. None is fine for off.
+        blink_state (str): blink, steady, or no_override. None is fine for off.
+    """
     # Parameter checks.
     if state not in ['on', 'off']:
         raise ValueError('Invalid state parameter {}.'.format(state))
@@ -483,10 +542,13 @@ def check_led_write_parameters(state, color=None, blink_state=None):
 
 
 def write_led(state, color=None, blink_state=None):
-    """Set the led state.
-    :param state: on or off
-    :param color: A 3 byte RGB color or hex string. None is fine for off.
-    :param blink_state: blink, steady, or no_override. None is fine for off."""
+    """ Set the led state.
+
+    Args:
+        state (etd): on or off
+        color (int | str): a 3-byte RGB color or hex string. None is fine for off.
+        blink_state (str): blink, steady, or no_override. None is fine for off.
+    """
 
     # If color is a string, assume hex and convert to int.
     if isinstance(color, basestring):
@@ -500,7 +562,8 @@ def write_led(state, color=None, blink_state=None):
     if state == 'off':
         # Turn off all outputs with the LEDOUT register.
         vec.Start()
-        vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_OFF)  # write, LEDOUT register, 0x00 for off.
+        # write, LEDOUT register, 0x00 for off.
+        vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_OFF)
         vec.Stop()
     else:
         # Set the colors.
@@ -534,18 +597,22 @@ def write_led(state, color=None, blink_state=None):
 
 
 def read_thermistors(count):
-    """This will read count number of thermistors from the CEC board.
-    :param count: The number of thermistors to read.
-    :returns: An array of thermistor readings in degrees Celsius. The array
-    index will be the same as the channel in the synse i2c max-11608 thermistor
-    configuration."""
+    """ This will read count number of thermistors from the CEC board.
+
+    Args:
+        count (int): the number of thermistors to read.
+
+    Returns:
+        list: an array of thermistor readings in degrees Celsius. The array
+            index will be the same as the channel in the synse i2c max-11608
+            thermistor configuration.
+    """
 
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
 
     vec, gpio = _open_vec_i2c()
 
-    ad_reading = None
     if vec.GetAck() == ACK:
 
         # if we got an ack then slave is there
@@ -609,8 +676,11 @@ def read_thermistors(count):
 
 
 def _crc8(data):
-    """CRC check on the packet.
-    :returns: True on success, False on failure."""
+    """ CRC check on the packet.
+
+    Returns:
+        bool: True on success, False on failure.
+    """
     polynomial = 0x131
     crc = 0
     for x in range(len(data) - 1):
