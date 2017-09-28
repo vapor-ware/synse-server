@@ -42,7 +42,7 @@ import logging
 from itertools import count
 
 import arrow
-from flask import Flask, g, jsonify
+from flask import Flask, g
 
 import synse.constants as const
 from synse.blueprints import core
@@ -53,8 +53,6 @@ from synse.devicebus.devices.plc import *  # pylint: disable=wildcard-import,unu
 from synse.devicebus.devices.redfish import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from synse.devicebus.devices.rs485 import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from synse.devicebus.devices.snmp import *  # pylint: disable=wildcard-import,unused-wildcard-import
-from synse.devicebus.fan_sensors import FanSensors
-from synse.errors import SynseException
 from synse.utils import cache_registration_dependencies, make_json_response
 from synse.vapor_common.util import setup_json_errors
 from synse.vapor_common.vapor_config import ConfigManager
@@ -147,58 +145,6 @@ def synse_version():
     Synse REST API.
     """
     return make_json_response({'version': __api_version__})
-
-
-# FIXME (etd) - remove for open source release?
-@app.route(PREFIX + '/plc_config', methods=['GET', 'POST'])
-def plc_config():
-    """ Test routine to return the PLC modem configuration parameters
-    on the endpoint.
-    """
-    raise SynseException(
-        'Unsupported hardware type in use. '
-        'Unable to retrieve modem configuration.'
-    )
-
-
-# FIXME (etd) -- this route seems specific to auto-fan (proprietary), do we want to remove
-#   for open source release?
-# Global FanSensors object because we do not want to hunt for the sensors on
-# each fan_sensors call and we shouldn't have to.
-SENSORS = FanSensors()
-
-
-@app.route(PREFIX + '/fan_sensors', methods=['GET'])
-def fan_sensors():
-    """Get all sensor data we need for fan control from the VEC."""
-
-    global SENSORS
-    sensors = SENSORS
-    sensors.initialize(app.config)
-    if not sensors.initialized:
-        raise SynseException(
-            'Unable to read fan_sensors. All devices are not yet registered.'
-        )
-
-    sensors.read_sensors()
-
-    # Reading info.
-    result = {
-        'start_time': str(sensors.start_time),
-        'end_time': str(sensors.end_time),
-        'read_time': sensors.read_time
-    }
-
-    # Sensor data.
-    for thermistor in sensors.thermistors:
-        if thermistor is not None:
-            result[thermistor.name] = thermistor.reading
-
-    for dpressure in sensors.differential_pressures:
-        if dpressure is not None:
-            result[dpressure.name] = dpressure.reading
-
-    return jsonify(result)
 
 
 def register_app_devices(application):

@@ -22,7 +22,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-# pylint: disable=import-error
+# pylint: disable=import-error,line-too-long
 
 import copy
 import datetime
@@ -437,12 +437,11 @@ def read_differential_pressures(count):
 # PCA9632 LED Controller constants.
 PCA9632_WRITE = chr(0xC4)
 PCA9632_READ = chr(0xC5)
-# Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
-PCA9632_LEDOUT_BLINK = chr(0x3F)
+PCA9632_LEDOUT_BLINK = chr(0x3F)        # Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
 PCA9632_LEDOUT_STEADY = chr(0x2A)       # Brightness controlled by PWMx register.
 PCA9632_LEDOUT_OFF = chr(0x00)          # Led output off.
 PCA9632_GRPPWM_FULL = chr(0xFC)         # 98.4 % group duty cycle. 64-step duty cycle resolution.
-PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. (1s on, 1s off)
+PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. (one second on, one second off)
 
 # register options
 PCA9632_AUTO_INCR = chr(0x80)   # Enables Auto-Increment, Mode register 1.

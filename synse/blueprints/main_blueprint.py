@@ -517,40 +517,6 @@ def device_location(rack_id, board_id=None, device_id=None):  # pylint: disable=
     })
 
 
-# FIXME (etd) - chamber stuff is vapor-specific .. do we want to include in the open source release?
-def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, blink_state):
-    """ Control the Vapor Chamber LED via PLC.
-
-    Args:
-        board_id (str): the board id of the LED controller for vapor_led.
-        device_id (str): the device id of the LED controller for vapor_led.
-        led_state (str): the state to set the specified LED to. valid states
-            are: (on, off, no_override)
-        rack_id (str): the id of the rack whose LED segment is to be controlled
-            (MIN_RACK_ID..MAX_RACK_ID)
-        led_color (str): the RGB hex value of the color to set the LED to, or
-            'no_override'.
-        blink_state (str): the blink state of the LED. valid blink states are:
-            (blink, steady, no_override).
-    """
-    cmd = current_app.config['CMD_FACTORY'].get_chamber_led_command({
-        _s_.BOARD_ID: board_id,
-        _s_.DEVICE_ID: device_id,
-        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_VAPOR_LED),
-        _s_.DEVICE_TYPE_STRING: const.DEVICE_VAPOR_LED,
-        _s_.DEVICE_NAME: const.DEVICE_VAPOR_LED,
-        _s_.RACK_ID: rack_id,
-        _s_.LED_STATE: led_state,
-        _s_.LED_COLOR: led_color,
-        _s_.LED_BLINK_STATE: blink_state,
-    })
-
-    device = get_device_instance(board_id)
-    response = device.handle(cmd)
-
-    return make_json_response(response.get_response_data())
-
-
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>/<led_state>'), methods=['GET'])
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>/<led_state>/<led_color>/<blink_state>'), methods=['GET'])
@@ -595,11 +561,6 @@ def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, bl
     if blink_state is not None and blink_state not in [_s_.LED_BLINK, _s_.LED_STEADY, _s_.LED_NO_OVERRIDE]:
         raise SynseException('Invalid blink state specified for LED.')
 
-    elif (led_color is not None) and (blink_state is not None):
-        if not const.get_board_type(board_id) == const.BOARD_TYPE_SNMP:
-            return _chamber_led_control(board_id=board_id, device_id=device_id, led_state=led_state,
-                                        rack_id=rack_id, led_color=led_color, blink_state=blink_state)
-
     cmd = current_app.config['CMD_FACTORY'].get_led_command({
         _s_.BOARD_ID: board_id,
         _s_.DEVICE_ID: device_id,
@@ -618,7 +579,6 @@ def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, bl
     return make_json_response(response.get_response_data())
 
 
-# FIXME (etd) - writing to fan is for CEC fan -- do we want as part of open source release?
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>/<fan_speed>'), methods=['GET'])
 def fan_control(rack_id, board_id, device_id, fan_speed=None):
