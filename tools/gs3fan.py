@@ -392,14 +392,23 @@ def _read_temperature_and_humidity(ser):
 
 
 def _read_thermistors():
-    """Read all thermistors from the CEC board. A reading of -1 indicates that
-    no thermistor is present."""
-    # TODO: Should try to read 12 thermistors when only 8 ports exist on current hardware.
-    readings = i2c_common.read_thermistors(8)
-    counter = 0
-    for reading in readings:
-        print 'Thermistor [{}]: {} C'.format(counter, reading)
-        counter += 1
+    """Read all thermistors from the CEC board. A reading of None indicates
+    that no thermistor is present."""
+
+    # Get ADC model. Default is max11610. max11608 is also supported.
+    _type = 'max_11610'
+    if len(sys.argv) >= 3:
+        _type = 'max_116{:02}'.format(int(sys.argv[2]))
+
+    # Thermistor count may vary by type.
+    thermistor_count = 12
+    if _type == 'max_11608':
+        thermistor_count = 8
+
+    readings = i2c_common.read_thermistors(thermistor_count, _type)
+
+    for index, reading in enumerate(readings):
+        print 'Thermistor [{}]: {} C'.format(index, reading)
 
 
 def _reset_usb():
