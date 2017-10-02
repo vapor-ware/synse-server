@@ -246,11 +246,22 @@ class RS485Device(SerialDevice):
         self.hardware_type = hardware_type
 
     @staticmethod
-    def is_vec_leader():
-        """Return true if this VEC is the leader, else false.
+    def _is_vec_leader_crate_stack():
+        """Return true if this VEC is the leader, else False.
         :returns: True if this VEC is the leader, else False."""
+        with open('/crate/mount/.state-file') as f:
+            data = json.load(f)
+            if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
+                logger.debug('is_vec_leader_crate_stack: True')
+                return True
+            logger.debug('is_vec_leader_crate_stack: False')
+        return False
 
-        leader = RS485Device._get_vec_leader()
+    @staticmethod
+    def _is_vec_leader_k8_stack():
+        """Return true if this VEC is the leader, else False.
+        :returns: True if this VEC is the leader, else False."""
+        leader = RS485Device._get_vec_leader_k8_stack()
         if leader is not None:
             self = os.environ['POD_IP']
             logger.debug('leader is: {}'.format(leader))
@@ -260,27 +271,60 @@ class RS485Device(SerialDevice):
         return False
 
     @staticmethod
-    def _get_vec_leader():
-        """Return the VEC leader IP address.
+    def is_vec_leader():
+        """Return true if this VEC is the leader, else False.
+        :returns: True if this VEC is the leader, else False."""
+        # Try the new stack first, then fall back to the old stack.
+        is_leader = RS485Device._is_vec_leader_k8_stack()
+        if is_leader:
+            return is_leader
+        is_leader = RS485Device._is_vec_leader_crate_stack()
+        return is_leader
+
+    @staticmethod
+    def _get_vec_leader_crate_stack():
+        """Get the VEC leader when using the k8 stack. (old stack)
         :returns: The VEC leader IP address."""
-        # FIXME (etd) - we will probably want to be smarter about how we do this.
-        #   for now, just making the request here, but perhaps we should have some
-        #   sort of client with retries, etc.
-        r = requests.get('http://elector-headless:2288/status')
-        logger.debug('request for vec leader: {}'.format(r))
-        leader = None
-        if r.ok:
-            data = r.json()
-            logger.debug('data: {}'.format(data))
-            for k, v in data['members'].iteritems():
-                if v == 'leader':
-                    leader = k
-                    break
-        else:
-            logger.error('Could not determine the leader: {}'.format(r))
+        with open('/crate/mount/.state-file') as f:
+            data = json.load(f)
+            leader = data['VAPOR_VEC_LEADER']
+            logger.debug('leader: {}'.format(leader))
+            return leader
+
+    @staticmethod
+    def _get_vec_leader_k8_stack():
+        """Get the VEC leader when using the k8 stack. (new stack)
+        :returns: The VEC leader IP address."""
+        try:
+            r = requests.get('http://elector-headless:2288/status')
+            logger.debug('request for vec leader: {}'.format(r))
+            leader = None
+            if r.ok:
+                data = r.json()
+                logger.debug('data: {}'.format(data))
+                for k, v in data['members'].iteritems():
+                    if v == 'leader':
+                        leader = k
+                        break
+            else:
+                logger.error('Could not determine the leader for k8 stack: {}'.format(r))
+                return None
+        except requests.exceptions.ConnectionError:
+            logger.info('Unable to get vec leader from the k8 stack. Will try with the crate stack.')
+            return None
 
         logger.debug('leader: {}'.format(leader))
         return leader
+
+    @staticmethod
+    def _get_vec_leader():
+        """Return the VEC leader IP address.
+        :returns: The VEC leader IP address."""
+        # Try the new stack first, then fall back to the old stack.
+        leader = RS485Device._get_vec_leader_k8_stack()
+        if leader is not None:
+            return leader
+        return RS485Device._get_vec_leader_crate_stack()
 
     @staticmethod
     def redirect_call_to_vec_leader(local_url):
