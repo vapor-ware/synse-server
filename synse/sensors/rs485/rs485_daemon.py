@@ -145,7 +145,7 @@ def _handle_fan_speed_write(fan_info):
     :param fan_info: All information we need to write out the fan speed to the
     bus."""
     if fan_info is None:
-        return # Nothing to do
+        return  # Nothing to do
     try:
         logger.debug('_handle_fan_speed_write')
         if os.path.isfile(fan_info.path):
@@ -162,10 +162,22 @@ def _handle_fan_speed_write(fan_info):
     pass
 
 
-def _is_vec_leader():
-    """Return true if this VEC is the leader, else false.
+def _is_vec_leader_crate_stack():
+    """Return true if this VEC is the leader, else False.
     :returns: True if this VEC is the leader, else False."""
-    leader = _get_vec_leader()
+    with open('/crate/mount/.state-file') as f:
+        data = json.load(f)
+        if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
+            logger.debug('is_vec_leader_crate_stack: True')
+            return True
+        logger.debug('is_vec_leader_crate_stack: False')
+    return False
+
+
+def _is_vec_leader_k8_stack():
+    """Return true if this VEC is the leader, else False.
+    :returns: True if this VEC is the leader, else False."""
+    leader = _get_vec_leader_k8_stack()
     if leader is not None:
         self = os.environ['POD_IP']
         logger.debug('leader is: {}'.format(leader))
@@ -175,27 +187,63 @@ def _is_vec_leader():
     return False
 
 
-def _get_vec_leader():
-    """Return the VEC leader IP address.
+def _is_vec_leader():
+    """Return true if this VEC is the leader, else False.
+    :returns: True if this VEC is the leader, else False."""
+    # Try the new stack first, then fall back to the old stack.
+    is_leader = _is_vec_leader_k8_stack()
+    if is_leader:
+        return is_leader
+    is_leader = _is_vec_leader_crate_stack()
+    return is_leader
+
+
+def _get_vec_leader_crate_stack():
+    """Get the VEC leader when using the k8 stack. (old stack)
     :returns: The VEC leader IP address."""
+    with open('/crate/mount/.state-file') as f:
+        data = json.load(f)
+        leader = data['VAPOR_VEC_LEADER']
+        logger.debug('leader: {}'.format(leader))
+        return leader
+
+
+def _get_vec_leader_k8_stack():
+    """Get the VEC leader when using the k8 stack. (new stack)
+    :returns: The VEC leader IP address or None on failure."""
     # FIXME (etd) - we will probably want to be smarter about how we do this.
     #   for now, just making the request here, but perhaps we should have some
     #   sort of client with retries, etc.
-    r = requests.get('http://elector-headless:2288/status')
-    logger.debug('request for vec leader: {}'.format(r))
-    leader = None
-    if r.ok:
-        data = r.json()
-        logger.debug('data: {}'.format(data))
-        for k, v in data['members'].iteritems():
-            if v == 'leader':
-                leader = k
-                break
-    else:
-        logger.error('Could not determine the leader: {}'.format(r))
+    try:
+        r = requests.get('http://elector-headless:2288/status')
+        logger.debug('request for vec leader: {}'.format(r))
+        leader = None
+        if r.ok:
+            data = r.json()
+            logger.debug('data: {}'.format(data))
+            for k, v in data['members'].iteritems():
+                if v == 'leader':
+                    leader = k
+                    break
+        else:
+            logger.error('Could not determine the leader for k8 stack: {}'.format(r))
+            return None
+    except requests.exceptions.ConnectionError:
+        logger.info('Unable to get vec leader from the k8 stack. Will try with the crate stack.')
+        return None
 
     logger.debug('leader: {}'.format(leader))
     return leader
+
+
+def _get_vec_leader():
+    """Return the VEC leader IP address.
+    :returns: The VEC leader IP address."""
+    # Try the new stack first, then fall back to the old stack.
+    leader = _get_vec_leader_k8_stack()
+    if leader is not None:
+        return leader
+    return _get_vec_leader_crate_stack()
 
 
 def _read_device_by_model(rack_id, serial_device, device):
