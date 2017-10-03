@@ -234,9 +234,11 @@ class Rs485EndpointsTestCase(unittest.TestCase):
 
             response = r.json()
             self.assertIsInstance(response, dict)
-            self.assertIn('boards', response)
+            self.assertIn('racks', response)
+            self.assertIsInstance(response['racks'], list)
+            self.assertEqual(len(response['racks']), 1)
 
-            boards = response['boards']
+            boards = response['racks'][0]['boards']
             self.assertIsInstance(boards, list)
             self.assertEqual(len(boards), 1)
 

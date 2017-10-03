@@ -297,8 +297,8 @@ def get_board_devices(rack_id, board_id=None):
                         return make_json_response({'racks': [
                             {
                                 'rack_id': rack['rack_id'],
-                                'ip_addresses': rack['ip_addresses'],
-                                'hostnames': rack['hostnames'],
+                                'ip_addresses': rack.get('ip_addresses', []),
+                                'hostnames': rack.get('hostnames', []),
                                 'boards': [board]
                             }
                         ]})

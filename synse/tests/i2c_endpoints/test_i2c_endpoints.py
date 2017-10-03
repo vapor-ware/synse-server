@@ -275,13 +275,15 @@ class I2CEndpointsTestCase(unittest.TestCase):
             r = http.get(PREFIX + '/scan/rack_1/{}'.format(board_id))
             self.assertTrue(http.request_ok(r.status_code))
 
-            # Make sure we get boards.
+            # Make sure we get racks
             response = r.json()
             self.assertIsInstance(response, dict)
-            self.assertIn('boards', response)
+            self.assertIn('racks', response)
+            self.assertIsInstance(response['racks'], list)
+            self.assertEqual(len(response['racks']), 1)
 
-            # Make sure boards is a list of length 1.
-            boards = response['boards']
+            # Make sure we get boards.
+            boards = response['racks'][0]['boards']
             self.assertIsInstance(boards, list)
             self.assertEqual(len(boards), 1)
 
