@@ -294,7 +294,14 @@ def get_board_devices(rack_id, board_id=None):
             if rack['rack_id'] == rack_id:
                 for board in rack['boards']:
                     if int(board['board_id'], 16) == board_id:
-                        return make_json_response({'boards': [board]})
+                        return make_json_response({'racks': [
+                            {
+                                'rack_id': rack['rack_id'],
+                                'ip_addresses': rack['ip_addresses'],
+                                'hostnames': rack['hostnames'],
+                                'boards': [board]
+                            }
+                        ]})
                 break
 
     cmd = current_app.config['CMD_FACTORY'].get_scan_command({
