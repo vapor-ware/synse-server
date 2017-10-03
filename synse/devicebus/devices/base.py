@@ -267,3 +267,15 @@ class DevicebusInterface(object):
     def get_instance_name(cls):
         """Get the instance name of the device."""
         return cls._instance_name
+
+    @classmethod
+    def get_all_subclasses(cls):
+        """Recursive method to get all subclasses of a class, not just the ones
+        one level down."""
+        subclasses = []
+
+        for subclass in cls.__subclasses__():
+            subclasses.append(subclass)
+            subclasses.extend(subclass.get_all_subclasses())
+
+        return subclasses
