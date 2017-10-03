@@ -26,13 +26,14 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import logging
-
 import json
-import lockfile
+import logging
 import os
-import serial
 import string
+from urlparse import urlparse
+
+import lockfile
+import serial
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
@@ -42,7 +43,6 @@ from synse.errors import SynseException
 from synse.protocols.modbus import dkmodbus
 from synse.vapor_common import http
 from synse.version import __api_version__, __version__
-from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -221,10 +221,14 @@ class RS485Device(SerialDevice):
         )
 
     def create_modbus_client(self):
-        """Production hardware only wrapper for creating the serial device that
+        """ Production hardware only wrapper for creating the serial device that
          we use to speak modbus to the CEC (Central Exhaust Chamber) board.
+
          This will not work for the emulator.
-         :returns: The dkmodbus client."""
+
+         Returns:
+             The dkmodbus client.
+        """
         # Test that the usb device is there. If not, reset the usb.
         if not os.path.exists(self.device_name):
             dkmodbus.dkmodbus.reset_usb([1, 2])
@@ -234,10 +238,15 @@ class RS485Device(SerialDevice):
         return dkmodbus.dkmodbus(ser)
 
     def _set_hardware_type(self, hardware_type):
-        """Known hardware types are emulator and production. Check that the
+        """ Known hardware types are emulator and production. Check that the
         parameter is known and set self.hardware_type.
-        :param hardware_type: The hardware_type the caller would like to set.
-        :raises SynseException: The given hardware_type is not known."""
+
+        Args:
+            hardware_type: The hardware_type the caller would like to set.
+
+        Raises:
+            SynseException: The given hardware_type is not known.
+        """
         known = ['emulator', 'production']
         if hardware_type not in known:
             raise SynseException(
@@ -246,8 +255,11 @@ class RS485Device(SerialDevice):
 
     @staticmethod
     def is_vec_leader():
-        """Return true if this VEC is the leader, else false.
-        :returns: True if this VEC is the leader, else False."""
+        """ Return true if this VEC is the leader, else false.
+
+        Returns:
+            True if this VEC is the leader, else False.
+        """
         with open('/crate/mount/.state-file') as f:
             data = json.load(f)
             if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
@@ -258,22 +270,30 @@ class RS485Device(SerialDevice):
 
     @staticmethod
     def _get_vec_leader():
-        """Return the VEC leader IP address.
-        :returns: The VEC leader IP address."""
+        """ Return the VEC leader IP address.
+
+        Returns:
+            The VEC leader IP address.
+        """
         with open('/crate/mount/.state-file') as f:
             data = json.load(f)
             return data['VAPOR_VEC_LEADER']
 
     @staticmethod
     def redirect_call_to_vec_leader(local_url):
-        """All VECs in the chamber have a connection to the same VEC USB board.
+        """ All VECs in the chamber have a connection to the same VEC USB board.
         We need to provide a sense of bus ownership (one VEC that owns the bus)
         in order to avoid bus collisions. We designate the VEC leader as the
         owner. Therefore when web requests come in on VEC that is not the
         leader, we redirect them to the leader.
-        :param local_url: The web request url on the local VEC.
-        :returns: The json response of the same url redirected to the VEC
-        leader."""
+
+        Args:
+            local_url: The web request url on the local VEC.
+
+        Returns:
+            The json response of the same url redirected to the VEC
+            leader.
+        """
         vec_leader_ip = RS485Device._get_vec_leader()
         parse = urlparse(local_url)
         hostname = parse.hostname

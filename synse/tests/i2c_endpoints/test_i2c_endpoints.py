@@ -275,13 +275,15 @@ class I2CEndpointsTestCase(unittest.TestCase):
             r = http.get(PREFIX + '/scan/rack_1/{}'.format(board_id))
             self.assertTrue(http.request_ok(r.status_code))
 
-            # Make sure we get boards.
+            # Make sure we get racks
             response = r.json()
             self.assertIsInstance(response, dict)
-            self.assertIn('boards', response)
+            self.assertIn('racks', response)
+            self.assertIsInstance(response['racks'], list)
+            self.assertEqual(len(response['racks']), 1)
 
-            # Make sure boards is a list of length 1.
-            boards = response['boards']
+            # Make sure we get boards.
+            boards = response['racks'][0]['boards']
             self.assertIsInstance(boards, list)
             self.assertEqual(len(boards), 1)
 
@@ -1171,161 +1173,6 @@ class I2CEndpointsTestCase(unittest.TestCase):
         self.assertEqual(response['led_color'], "ffffff")
         self.assertEqual(response['blink_state'], "blink")
 
-    def test_028_read_write(self):
-        """ Test reading and writing an I2C device.
-        """
-        # The board id 50010011 is using channel 0015 (emulator data).
-
-        # first read what's there
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "off")
-        self.assertEqual(response['led_color'], "000000")
-        self.assertEqual(response['blink_state'], "steady")
-
-        # then set and read back values x 3... [0]
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001/on/ffffff/steady')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "on")
-        self.assertEqual(response['led_color'], "ffffff")
-        self.assertEqual(response['blink_state'], "steady")
-
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "on")
-        self.assertEqual(response['led_color'], "ffffff")
-        self.assertEqual(response['blink_state'], "steady")
-
-        # [1]
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001/on/0beef0/blink')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "on")
-        self.assertEqual(response['led_color'], "0beef0")
-        self.assertEqual(response['blink_state'], "blink")
-
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "on")
-        self.assertEqual(response['led_color'], "0beef0")
-        self.assertEqual(response['blink_state'], "blink")
-
-        # [2]
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001/off/7ac055/blink')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "off")
-        self.assertEqual(response['led_color'], "7ac055")
-        self.assertEqual(response['blink_state'], "steady")
-
-        r = http.get(PREFIX + '/led/rack_1/50010011/0001')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "off")
-        self.assertEqual(response['led_color'], "7ac055")
-        self.assertEqual(response['blink_state'], "steady")
-
-    def test_029_bad_command_writes(self):
-        """ Send bad commands to LED and make sure it does not let anything through.
-        """
-        # The board id 5001000f is using channel 0014 (emulator data).
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/on')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/on/000000')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/on/blink')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/blink/000000')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/blink/000000/on')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/on/999999/blank')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/led/rack_1/5001000f/0001/onn/888888/blink')
-
-        # ensure we have not had any bad things happen to our device
-        r = http.get(PREFIX + '/read/led/rack_1/5001000f/0001')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "on")
-        self.assertEqual(response['led_color'], "ffffff")
-        self.assertEqual(response['blink_state'], "steady")
-
     def test_030_read_bad_device(self):
         """ Test reading a bad I2C device.  This device has no emulator behind it, so should raise 500.
         """
@@ -1362,25 +1209,6 @@ class I2CEndpointsTestCase(unittest.TestCase):
         # good board, bad device
         with self.assertRaises(VaporHTTPError):
             http.get(PREFIX + '/led/rack_1/5001000f/0002')
-
-    def test_031_read_one_valid_by_name(self):
-        """ Test reading an I2C device.  Read valid values out from the first led controller by name.
-        """
-        # The board id 5001000f is using channel 0014 (emulator data).
-        r = http.get(PREFIX + '/read/led/rack_1/5001000f/Rack LED - steady-white')
-        self.assertTrue(http.request_ok(r.status_code))
-
-        response = r.json()
-        self.assertIsInstance(response, dict)
-        self.assertIn('led_state', response)
-        self.assertIn('blink_state', response)
-        self.assertIn('led_color', response)
-        self.assertIsInstance(response['led_state'], basestring)
-        self.assertIsInstance(response['blink_state'], basestring)
-        self.assertIsInstance(response['led_color'], basestring)
-        self.assertEqual(response['led_state'], "on")
-        self.assertEqual(response['led_color'], "ffffff")
-        self.assertEqual(response['blink_state'], "steady")
 
     def test_032_read_invalid_device_type_or_command(self):
         """ Test reading an I2C device.  Read wrong type of device, or use wrong command.

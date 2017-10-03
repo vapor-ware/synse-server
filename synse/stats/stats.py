@@ -1,24 +1,45 @@
 #!/usr/bin/env python
+""" Statistical functions used by Synse.
+
+    \\//
+     \/apor IO
+
+-------------------------------
+Copyright (C) 2015-17  Vapor IO
+
+This file is part of Synse.
+
+Synse is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+Synse is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
-        \\//
-         \/apor IO
 
-
-        Statistical functions used by synse. This will end up getting moved out
-        of synse to the embedded code.
-"""
-
-import math
 import logging
+import math
 import sys
 
 logger = logging.getLogger(__name__)
 
 
 def std_dev(numbers):
-    """Find the average and standard deviation in numbers.
-    :param numbers: A list of numbers.
-    :returns: The average and the standard deviation for the numbers."""
+    """ Find the average and standard deviation in numbers.
+
+    Args:
+        numbers (list[int | float]): a list of numbers.
+
+    Returns:
+        tuple[int, int]: the average and the standard deviation for
+            the given list of numbers.
+    """
     average = sum(numbers)/len(numbers)
 
     x = 0
@@ -29,10 +50,15 @@ def std_dev(numbers):
 
 
 def grubbs(l):
-    """Find an outlier in list l if any. We need this since the differential
+    """ Find an outlier in list l if any. We need this since the differential
     pressure sensor readings vary wildly.
-    :param l: The list of numbers to find an outlier in.
-    :returns: The numbers with the max and min deviation in the list."""
+
+    Args:
+        l (list[int | float]): the list of numbers to find an outlier in.
+
+    Returns:
+        tuple[int, int]: the numbers with the max and min deviation in the list
+    """
     # See https://en.wikipedia.org/wiki/Grubbs%27_test_for_outliers
 
     # Find the mean and standard deviation.
@@ -59,16 +85,21 @@ def grubbs(l):
 
 
 def remove_outliers(l, count):
-    """Remove the biggest outlier from a list count number of times.
-    :param l: List of numbers.
-    :param count: How many times to remove the biggest outlier.
-    :returns: A dict with stats so that we can see what we're doing."""
+    """ Remove the biggest outlier from a list count number of times.
+
+    Args:
+        l (list[int | float]): list of numbers
+        count (int): the number of times to remove the biggest outlier.
+
+    Returns:
+        dict: a dictionary of the stats results.
+    """
     logger.debug('remove_outliers(l, count): {}, {}'.format(l, count))
     outliers = []
     result = {}
 
-    for x in range(count):
-        _max, _min = grubbs(l)
+    for _ in range(count):
+        _max, _ = grubbs(l)
 
         if _max is None:
             break  # for. Note that this will remove less than count. That's okay.
@@ -87,15 +118,19 @@ def remove_outliers(l, count):
 
 
 def remove_outliers_percent(l, percent):
-    """Remove a percentage of the list, considering them outliers.
-    :param l: List of numbers.
-    :param percent: 0-1 where 0 removes none, 1 removes all.
-    :returns: A dict with stats so that we can see what we're doing.
-    result['removed'] is the number of items removed.
-    result['outliers'] is the data that are considered outliers.
-    result['list'] is the list after removing outliers.
-    result['mean'] is the mean of result['list']
-    result['std_dev'] is the standard deviation of result['list']
+    """ Remove a percentage of the list, considering them outliers.
+
+    Args:
+        l (list[int | float]): a list of numbers.
+        percent (int | float): 0-1, where 0 removes none and 1 removes all.
+
+    Returns:
+        dict: a dictionary of stats so we can see what we're doing.
+            result['removed'] is the number of items removed.
+            result['outliers'] is the data that are considered outliers.
+            result['list'] is the list after removing outliers.
+            result['mean'] is the mean of result['list']
+            result['std_dev'] is the standard deviation of result['list']
     """
     # In the future it may be better to do this until the standard deviation
     # drops below a value. The code here is what was initially tested in

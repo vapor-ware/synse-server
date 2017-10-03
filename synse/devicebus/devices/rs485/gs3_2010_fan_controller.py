@@ -252,12 +252,11 @@ class GS32010Fan(RS485Device):
                         self._write_indirect(speed_rpm)
                         return {const.UOM_VAPOR_FAN: speed_rpm}
 
-                    else:
-                        GS32010Fan._check_fan_speed_setting(speed_rpm)
-                        self._set_rpm(speed_rpm)
-                        # Return the speed_rpm setting and not a read since the fan
-                        # is likely ramping up or coasting down to the set speed.
-                        return {const.UOM_VAPOR_FAN: speed_rpm}
+                    GS32010Fan._check_fan_speed_setting(speed_rpm)
+                    self._set_rpm(speed_rpm)
+                    # Return the speed_rpm setting and not a read since the fan
+                    # is likely ramping up or coasting down to the set speed.
+                    return {const.UOM_VAPOR_FAN: speed_rpm}
 
                 if self.from_background:
                     rpm, direction = self._read_indirect()
@@ -273,8 +272,11 @@ class GS32010Fan(RS485Device):
                 self.hardware_type))
 
     def _write_indirect(self, speed_rpm):
-        """Indirect write to set the speed on the fan controller.
-        :param speed_rpm: The speed to set in rpm."""
+        """ Indirect write to set the speed on the fan controller.
+
+        Args:
+            speed_rpm: The speed to set in rpm.
+        """
         # If we are not the vec leader we need to redirect this call to the leader.
         # The Synse configuration is supposed to be the same for all vecs in the chamber.
         if not RS485Device.is_vec_leader():
@@ -288,8 +290,11 @@ class GS32010Fan(RS485Device):
             f.write(str(speed_rpm))
 
     def _read_indirect(self):
-        """Indirect read of the fan controller.
-        :returns: A set of (rpm, direction). rpm is an int. direction is forward or reverse."""
+        """ Indirect read of the fan controller.
+
+        Returns:
+            A set of (rpm, direction). rpm is an int. direction is forward or reverse.
+        """
         logger.debug('_read_indirect')
 
         # If we are not the vec leader we need to redirect this call to the leader.
@@ -306,15 +311,23 @@ class GS32010Fan(RS485Device):
         )
 
     def _read_direct(self):
-        """Direct read of the fan controller. This read hits the bus.
-        :returns: A set of (rpm, direction). rpm is an int. direction is forward or reverse."""
+        """ Direct read of the fan controller. This read hits the bus.
+
+        Returns:
+            A set of (rpm, direction). rpm is an int. direction is forward or reverse.
+        """
         return self._get_rpm(), self._get_direction()
 
     @staticmethod
     def _check_fan_speed_setting(speed_rpm):
-        """Ensure that the caller's speed_rpm setting is valid.
-        :param speed_rpm: The speed_rpm setting from the caller.
-        :raises: SynseException on failure."""
+        """ Ensure that the caller's speed_rpm setting is valid.
+
+        Args:
+            speed_rpm: The speed_rpm setting from the caller.
+
+        Raises:
+            SynseException on failure.
+        """
         if not MIN_FAN_SPEED_RPM <= speed_rpm <= MAX_FAN_SPEED_RPM:
             raise SynseException(
                 'Invalid speed setting {} for GS3-2010 fan control - '
@@ -323,8 +336,11 @@ class GS32010Fan(RS485Device):
             )
 
     def _get_direction(self):
-        """Production only direction reads from gs3_2010_fan (vapor_fan).
-        :returns: String forward or reverse."""
+        """ Production only direction reads from gs3_2010_fan (vapor_fan).
+
+        Returns:
+            String forward or reverse.
+        """
         client = self.create_modbus_client()
         result = client.read_holding_registers(self.slave_address, 0x91C, 1)
         direction = conversions.unpack_word(result)
@@ -336,16 +352,21 @@ class GS32010Fan(RS485Device):
             raise ValueError('Unknown direction {}'.format(direction))
 
     def _get_rpm(self):
-        """Production only rpm reads from gs3_2010_fan (vapor_fan).
-        :returns: Integer rpm."""
+        """ Production only rpm reads from gs3_2010_fan (vapor_fan).
+
+        Returns:
+            Integer rpm.
+        """
         client = self.create_modbus_client()
         result = client.read_holding_registers(self.slave_address, 0x2107, 1)
         return conversions.unpack_word(result)
 
     def _set_rpm(self, rpm):
-        """Set fan speed to the given RPM.
-        :returns: The RPM setting."""
+        """ Set fan speed to the given RPM.
 
+        Returns:
+            The RPM setting.
+        """
         client = self.create_modbus_client()
 
         if rpm == 0:  # Turn the fan off.

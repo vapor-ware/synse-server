@@ -93,9 +93,14 @@ class RedfishScanTestCase(unittest.TestCase):
 
         response = r.json()
         self.assertIsInstance(response, dict)
-        self.assertIn('boards', response)
+        self.assertIn('racks', response)
 
-        boards = response['boards']
+        racks = response['racks']
+        self.assertIsInstance(racks, list)
+        self.assertEqual(len(racks), 1)
+        self.assertIn('boards', racks[0])
+
+        boards = racks[0]['boards']
         self.assertIsInstance(boards, list)
         self.assertEqual(len(boards), 1)
 

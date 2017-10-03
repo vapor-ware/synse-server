@@ -25,6 +25,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 from flask import jsonify
 from werkzeug.exceptions import HTTPException, default_exceptions
 
@@ -33,7 +34,7 @@ def setup_json_errors(app):
     """ Setup JSON error responses for the given Flask application.
 
     Args:
-        app (Flask): A Flask application instance.
+        app (flask.Flask): A Flask application instance.
     """
     for code in default_exceptions.iterkeys():
         app.register_error_handler(code, _make_json_error)

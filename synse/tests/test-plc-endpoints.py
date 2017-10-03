@@ -25,7 +25,6 @@ import unittest
 from plc_endpoints.test_asset_info import AssetInfoTestCase
 from plc_endpoints.test_boot_target import BootTargetTestCase
 from plc_endpoints.test_chamber_fan import ChamberFanSpeedTestCase
-from plc_endpoints.test_chamber_led import ChamberLedTestCase
 from plc_endpoints.test_device_read import DeviceReadTestCase
 from plc_endpoints.test_fan import FanSpeedTestCase
 from plc_endpoints.test_host_info import HostInfoTestCase
@@ -59,7 +58,6 @@ def get_suite():
     suite.addTest(unittest.makeSuite(AssetInfoTestCase))
     suite.addTest(unittest.makeSuite(VaporRectifierTestCase))
     suite.addTest(unittest.makeSuite(VaporBatteryTestCase))
-    suite.addTest(unittest.makeSuite(ChamberLedTestCase))
     suite.addTest(unittest.makeSuite(ChamberFanSpeedTestCase))
     suite.addTest(unittest.makeSuite(HostInfoTestCase))
     return suite

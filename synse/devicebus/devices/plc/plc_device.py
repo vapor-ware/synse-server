@@ -31,7 +31,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import fcntl
 import logging
 import sys
-import threading
 import time
 from uuid import getnode as get_mac_addr
 
@@ -509,11 +508,18 @@ class PLCDevice(SerialDevice):
 
                 elif device_type_string == const.DEVICE_FAN_SPEED:
                     # TODO: retrieve fan mode from the auto_fan controller
-                    response_data = {const.UOM_FAN_SPEED: device_raw, 'fan_mode': 'auto', 'direction': 'forward'}
+                    response_data = {
+                        const.UOM_FAN_SPEED: device_raw,
+                        'fan_mode': 'auto',
+                        'direction': 'forward'
+                    }
 
                 elif device_type_string == const.DEVICE_VAPOR_FAN:
                     # TODO: retrieve fan mode from the auto_fan controller
-                    response_data = {const.UOM_VAPOR_FAN: device_raw, 'fan_mode': 'auto'}
+                    response_data = {
+                        const.UOM_VAPOR_FAN: device_raw,
+                        'fan_mode': 'auto'
+                    }
 
                 elif device_type_string == const.DEVICE_LED:
                     if device_raw not in [1, 0]:

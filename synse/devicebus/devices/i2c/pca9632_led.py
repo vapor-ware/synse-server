@@ -42,7 +42,6 @@ from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.i2c_common import i2c_common
 
-
 logger = logging.getLogger(__name__)
 
 PCA9632_WRITE = chr(0xC4)
@@ -208,13 +207,18 @@ class PCA9632Led(I2CDevice):
                     device_id)), None, sys.exc_info()[2]
 
     def _led_response(self, state, color, blink):
-        """Return an LED response dictionary with the given parameters with
+        """ Return an LED response dictionary with the given parameters with
         slight modifications.
-        :param state: The LED state, on or off.
-        :param color: The three byte hex RGB color of the LED.
-            Example 0xff0000.
-        :param blink: The blink state to return. steady or blink.
-        :returns: The parameters in a dictionary with values as strings."""
+
+        Args:
+            state: The LED state, on or off.
+            color: The three byte hex RGB color of the LED.
+                Example 0xff0000.
+            blink: The blink state to return. steady or blink.
+
+        Returns:
+            The parameters in a dictionary with values as strings.
+        """
         led_response = dict()
         led_response['led_state'] = state
 
@@ -235,7 +239,6 @@ class PCA9632Led(I2CDevice):
         return led_response
 
     def _control_led(self, state=None, blink=None, color=None):
-
         """ Internal method for LED control.
 
         Args:
@@ -279,26 +282,34 @@ class PCA9632Led(I2CDevice):
                 raise SynseException('Unknown hardware_type {}.'.format(self.hardware_type))
 
     def _write_sensor(self, state, color, blink):
-        """Write to the led controller either directly or indirectly.
-        :param state: The LED state, on or off.
-        :param color: The three byte hex RGB color of the LED.
-            Example 0xff0000.
-        :param blink: The blink state to return. steady or blink.
-        :returns: The parameters in a dictionary with values as strings."""
+        """ Write to the led controller either directly or indirectly.
+
+        Args:
+            state: The LED state, on or off.
+            color: The three byte hex RGB color of the LED.
+                Example 0xff0000.
+            blink: The blink state to return. steady or blink.
+
+        Returns:
+            The parameters in a dictionary with values as strings.
+        """
         # We need to explicitly set the blink state internally in order to enable the LED output.
         if blink == 'no_override':
             blink = self.last_blink
 
         if self.from_background:
             return self._indirect_write(state, color, blink)
-        else:
-            return self.direct_write(state, color, blink)
+
+        return self.direct_write(state, color, blink)
 
     def _cache_write(self, color, blink):
-        """Cache data written on a write.
-        :param color: The three byte hex RGB color of the LED.
-            Example 0xff0000.
-        :param blink: The blink state to cache. steady or blink."""
+        """ Cache data written on a write.
+
+        Args:
+            color: The three byte hex RGB color of the LED.
+                Example 0xff0000.
+            blink: The blink state to cache. steady or blink.
+        """
         if color is not None:
             # color can be an int or a string. Cache as string.
             if isinstance(color, int):
@@ -309,24 +320,34 @@ class PCA9632Led(I2CDevice):
             self.last_blink = blink
 
     def direct_write(self, state, color, blink):
-        """Direct write to the led controller.
-        :param state: The LED state, on or off.
-        :param color: The three byte hex RGB color of the LED.
-            Example 0xff0000.
-        :param blink: The blink state to return. steady or blink.
-        :returns: The parameters in a dictionary with values as strings."""
+        """ Direct write to the led controller.
+
+        Args:
+            state: The LED state, on or off.
+            color: The three byte hex RGB color of the LED.
+                Example 0xff0000.
+            blink: The blink state to return. steady or blink.
+
+        Returns:
+            The parameters in a dictionary with values as strings.
+        """
         i2c_common.write_led(state=state, blink_state=blink, color=color)
         self._cache_write(color, blink)
         return self._led_response(state, color, blink)
 
     def _indirect_write(self, state, color, blink):
-        """Write to a file that the daemon will read and send to the LED
+        """ Write to a file that the daemon will read and send to the LED
         controller.
-        :param state: The LED state, on or off.
-        :param color: The three byte hex RGB color of the LED.
-            Example 0xff0000.
-        :param blink: The blink state to return. steady or blink.
-        :returns: The parameters in a dictionary with values as strings."""
+
+        Args:
+            state: The LED state, on or off.
+            color: The three byte hex RGB color of the LED.
+                Example 0xff0000.
+            blink: The blink state to return. steady or blink.
+
+        Returns:
+            The parameters in a dictionary with values as strings.
+        """
         logger.debug('indirect_sensor_write')
         i2c_common.check_led_write_parameters(state, color, blink)
 
@@ -352,21 +373,30 @@ class PCA9632Led(I2CDevice):
         return self._led_response(state, color, blink)
 
     def _read_sensor(self):
-        """Read from the LED controller either directly or indirectly.
-        :returns: A dictionary of state, color and blink."""
+        """ Read from the LED controller either directly or indirectly.
+
+        Returns:
+            A dictionary of state, color and blink.
+        """
         if self.from_background:
             return self._indirect_read()
         return self.direct_read()
 
     def direct_read(self):
-        """Direct read of the LED controller.
-        :returns: A dictionary of state, color and blink."""
+        """ Direct read of the LED controller.
+
+        Returns:
+            A dictionary of state, color and blink.
+        """
         state, color, blink = i2c_common.read_led()
         return self._led_response(state, color, blink)
 
     def _indirect_read(self):
-        """Read from a file created by a daemon.
-        :returns: A dictionary of state, color and blink."""
+        """ Read from a file created by a daemon.
+
+        Returns:
+            A dictionary of state, color and blink.
+        """
         logger.debug('indirect_sensor_read')
         data_file = self._get_bg_read_file('{:04x}'.format(self.channel))
         data = PCA9632Led.read_sensor_data_file(data_file)

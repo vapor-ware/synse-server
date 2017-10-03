@@ -22,6 +22,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,10 +36,18 @@ class ArgumentChecker(object):
     If a parameter is invalid:
         - TypeError is thrown if the input type is unexpected.
         - ValueError is thrown if the type is correct but the input value is
-        unexpected."""
+        unexpected.
+    """
+
     @staticmethod
     def check_instance(expected_type, variable):
-        """If the variable is not an instance of the specified type, raise a ValueError."""
+        """ If the variable is not an instance of the specified type,
+        raise a ValueError.
+
+        Args:
+            expected_type: the type which we expect the variable to hold.
+            variable: the variable to check the type of.
+        """
         if not isinstance(variable, expected_type):
             raise TypeError('Expected instance {}, got {}'.format(
                 expected_type, variable.__class__))
@@ -46,7 +55,13 @@ class ArgumentChecker(object):
 
     @staticmethod
     def check_type(expected_type, variable):
-        """If the type(variable) is not the specified type, raise a ValueError."""
+        """ If the type(variable) is not the specified type, raise a
+        ValueError.
+
+        Args:
+            expected_type: the type which we expect the variable to hold.
+            variable: the variable to check the type of.
+        """
         if not isinstance(variable, expected_type):
             raise TypeError('Expected type {}, got {}'.format(expected_type, type(variable)))
         return variable

@@ -233,7 +233,7 @@ def scan_all():
 
 @core.route(url('/scan/force'))
 def force_scan():
-    """ Force the scan of all racks, boards, and devices. This will ignore
+    """ Force the (re)scan of all racks, boards, and devices. This will ignore
     any existing cache. If the forced scan is successful, it will update the
     cache.
 
@@ -286,19 +286,23 @@ def get_board_devices(rack_id, board_id=None):
 
     board_id = check_valid_board(board_id)
 
-    # FIXME (etd) - unclear why this was temporarily disabled, we probably want
-    # to re-enable.
-    # FIXME: temporarily disabled scan cache
-    # _cache = get_scan_cache()
-    # if _cache:
-    #    _cache = filter_cache_meta(_cache)
-    #    for rack in _cache['racks']:
-    #        if rack['rack_id'] == rack_id:
-    #            for board in rack['boards']:
-    #                if int(board['board_id'], 16) == board_id:
-    #                    return make_json_response({'boards': [board]})
-    #                else:
-    #                    break
+    # first, attempt to get the info from the scan cache.
+    _cache = get_scan_cache()
+    if _cache:
+        _cache = _filter_cache_meta(_cache)
+        for rack in _cache['racks']:
+            if rack['rack_id'] == rack_id:
+                for board in rack['boards']:
+                    if int(board['board_id'], 16) == board_id:
+                        return make_json_response({'racks': [
+                            {
+                                'rack_id': rack['rack_id'],
+                                'ip_addresses': rack.get('ip_addresses', []),
+                                'hostnames': rack.get('hostnames', []),
+                                'boards': [board]
+                            }
+                        ]})
+                break
 
     cmd = current_app.config['CMD_FACTORY'].get_scan_command({
         _s_.RACK_ID: rack_id,
@@ -447,8 +451,9 @@ def boot_target(rack_id, board_id, device_id, target=None):
     board_id, device_id = check_valid_board_and_device(board_id, device_id)
 
     if target is not None and target not in [_s_.BT_PXE, _s_.BT_HDD, _s_.BT_NO_OVERRIDE]:
-        logger.error('Boot Target: Invalid boot target specified: %s board_id: %s device_id: %s', target, board_id,
-                     device_id)
+        logger.error(
+            'Boot Target: Invalid boot target specified: {} board_id: {} '
+            'device_id: {}'.format(target, board_id, device_id))
         raise SynseException('Invalid boot target specified.')
 
     cmd = current_app.config['CMD_FACTORY'].get_boot_target_command({
@@ -519,39 +524,6 @@ def device_location(rack_id, board_id=None, device_id=None):  # pylint: disable=
     })
 
 
-def _chamber_led_control(board_id, device_id, led_state, rack_id, led_color, blink_state):
-    """ Control the Vapor Chamber LED via PLC.
-
-    Args:
-        board_id (str): the board id of the LED controller for vapor_led.
-        device_id (str): the device id of the LED controller for vapor_led.
-        led_state (str): the state to set the specified LED to. valid states
-            are: (on, off, no_override)
-        rack_id (str): the id of the rack whose LED segment is to be controlled
-            (MIN_RACK_ID..MAX_RACK_ID)
-        led_color (str): the RGB hex value of the color to set the LED to, or
-            'no_override'.
-        blink_state (str): the blink state of the LED. valid blink states are:
-            (blink, steady, no_override).
-    """
-    cmd = current_app.config['CMD_FACTORY'].get_chamber_led_command({
-        _s_.BOARD_ID: board_id,
-        _s_.DEVICE_ID: device_id,
-        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_VAPOR_LED),
-        _s_.DEVICE_TYPE_STRING: const.DEVICE_VAPOR_LED,
-        _s_.DEVICE_NAME: const.DEVICE_VAPOR_LED,
-        _s_.RACK_ID: rack_id,
-        _s_.LED_STATE: led_state,
-        _s_.LED_COLOR: led_color,
-        _s_.LED_BLINK_STATE: blink_state,
-    })
-
-    device = get_device_instance(board_id)
-    response = device.handle(cmd)
-
-    return make_json_response(response.get_response_data())
-
-
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>/<led_state>'), methods=['GET'])
 @core.route(url('/led/<rack_id>/<board_id>/<device_id>/<led_state>/<led_color>/<blink_state>'), methods=['GET'])
@@ -595,11 +567,6 @@ def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, bl
 
     if blink_state is not None and blink_state not in [_s_.LED_BLINK, _s_.LED_STEADY, _s_.LED_NO_OVERRIDE]:
         raise SynseException('Invalid blink state specified for LED.')
-
-    elif (led_color is not None) and (blink_state is not None):
-        if not const.get_board_type(board_id) == const.BOARD_TYPE_SNMP:
-            return _chamber_led_control(board_id=board_id, device_id=device_id, led_state=led_state,
-                                        rack_id=rack_id, led_color=led_color, blink_state=blink_state)
 
     cmd = current_app.config['CMD_FACTORY'].get_led_command({
         _s_.BOARD_ID: board_id,

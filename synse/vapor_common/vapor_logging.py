@@ -25,16 +25,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import json
 import logging
 import logging.config
 import os
 
-_startup_logger = None
-
 
 def setup_logging(default_path='logging.json', default_level=logging.INFO, env_key='LOG_CFG'):
     """ Setup logging configuration
+
+    Args:
+        default_path (str): the default path for the logging file.
+        default_level (int): the default logging level to use.
+        env_key (str): the environment variable which can be used
+            to set the config path.
     """
     path = default_path
     value = os.getenv(env_key, None)

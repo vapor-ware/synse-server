@@ -42,7 +42,7 @@ import logging
 from itertools import count
 
 import arrow
-from flask import Flask, g, jsonify
+from flask import Flask, g
 
 import synse.constants as const
 from synse.blueprints import core
@@ -53,8 +53,6 @@ from synse.devicebus.devices.plc import *  # pylint: disable=wildcard-import,unu
 from synse.devicebus.devices.redfish import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from synse.devicebus.devices.rs485 import *  # pylint: disable=wildcard-import,unused-wildcard-import
 from synse.devicebus.devices.snmp import *  # pylint: disable=wildcard-import,unused-wildcard-import
-from synse.devicebus.fan_sensors import FanSensors
-from synse.errors import SynseException
 from synse.utils import cache_registration_dependencies, make_json_response
 from synse.vapor_common.util import setup_json_errors
 from synse.vapor_common.vapor_config import ConfigManager
@@ -149,61 +147,12 @@ def synse_version():
     return make_json_response({'version': __api_version__})
 
 
-@app.route(PREFIX + '/plc_config', methods=['GET', 'POST'])
-def plc_config():
-    """ Test routine to return the PLC modem configuration parameters
-    on the endpoint.
-    """
-    raise SynseException(
-        'Unsupported hardware type in use. '
-        'Unable to retrieve modem configuration.'
-    )
-
-
-# Global FanSensors object because we do not want to hunt for the sensors on
-# each fan_sensors call and we shouldn't have to.
-SENSORS = FanSensors()
-
-
-@app.route(PREFIX + '/fan_sensors', methods=['GET'])
-def fan_sensors():
-    """Get all sensor data we need for fan control from the VEC."""
-
-    global SENSORS
-    sensors = SENSORS
-    sensors.initialize(app.config)
-    if not sensors.initialized:
-        raise SynseException(
-            'Unable to read fan_sensors. All devices are not yet registered.'
-        )
-
-    sensors.read_sensors()
-
-    # Reading info.
-    result = {
-        'start_time': str(sensors.start_time),
-        'end_time': str(sensors.end_time),
-        'read_time': sensors.read_time
-    }
-
-    # Sensor data.
-    for thermistor in sensors.thermistors:
-        if thermistor is not None:
-            result[thermistor.name] = thermistor.reading
-
-    for dpressure in sensors.differential_pressures:
-        if dpressure is not None:
-            result[dpressure.name] = dpressure.reading
-
-    return jsonify(result)
-
-
 def register_app_devices(application):
     """ Register all devicebus interfaces specified in the Synse config
     file with the Flask application.
 
     Args:
-        application (Flask): the Flask application to register the devices to.
+        application (flask.Flask): the Flask application to register the devices to.
     """
     # before registering any devices, make sure all dependencies are cached
     # globally -- this is needed for any threaded registration.
@@ -252,7 +201,7 @@ def main(serial_port=None, hardware=None):
         serial_port (str): specify the serial port to use; the default is fine
             for production, but for testing it is necessary to pass in an emulator
             port here.
-        hardware (int): the type of hardware we are working with - see devicebus.py
+        hardware (int): the type of hardware we are working with - see constants.py
             for values -> by default we use the emulator, but may use VEC; this
             dictates what type of configuration we do on startup and throughout.
     """
