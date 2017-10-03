@@ -48,6 +48,27 @@ def airflow_f660(reading):
     return unpack_word(reading)
 
 
+def convert_thermistor_reading(ad_reading, index, device_name):
+    """Convert the thermistor reading for the given device_name.
+    :param ad_reading: The raw reading from the thermistor from the A/D
+    converter.
+    :param index: The index into the raw reading to convert. This is underneath
+    a bulk read. Two bytes per individual thermistor reading in ad_reading.
+    :param device_name: The type of A/D converter that the thermistor is
+    plugged in to. max_11610 and max_1108 are supported.
+    :returns: The temperature in degrees C, or None if no thermistor attached.
+    :raises: ValueError on unsupported device_name."""
+    if device_name == 'max_11610':
+        temperature = thermistor_max11610_adc(
+            ad_reading[index:index + 2])
+    elif device_name == 'max_11608':
+        temperature = thermistor_max11608_adc(
+            ad_reading[index:index + 2])
+    else:
+        raise ValueError('Unsupported device type {}.'.format(device_name))
+    return temperature
+
+
 def differential_pressure_sdp610(reading, altitude):
     """ Return the differential pressure reading in Pascals given the raw three
     byte reading from the sdp610 differential pressure sensor.
@@ -234,25 +255,76 @@ def thermistor_max11608_adc(reading):
     raw &= 0x3FF
 
     # Calculate the Linear Fit temperature
-    if raw >= 656:
+    if raw >= x1[0]:
         # Region 7
         temperature = slope[0] * (raw - x1[0]) + y1[0]
-    elif 399 <= raw <= 655:
+    elif x1[1] <= raw <= x1[0] - 1:
         # Region 6
         temperature = slope[1] * (raw - x1[1]) + y1[1]
-    elif 250 <= raw <= 398:
+    elif x1[2] <= raw <= x1[1] - 1:
         # Region 5
         temperature = slope[2] * (raw - x1[2]) + y1[2]
-    elif 171 <= raw <= 258:
+    elif x1[3] <= raw <= x1[2] - 1:
         # Region 4
         temperature = slope[3] * (raw - x1[3]) + y1[3]
-    elif 116 <= raw <= 170:
+    elif x1[4] <= raw <= x1[3] - 1:
         # Region 3
         temperature = slope[4] * (raw - x1[4]) + y1[4]
-    elif 77 <= raw <= 115:
+    elif x1[5] <= raw <= x1[4] - 1:
         # Region 2
         temperature = slope[5] * (raw - x1[5]) + y1[5]
-    elif 58 <= raw <= 76:
+    elif x1[6] <= raw <= x1[5] - 1:
+        # Region 1
+        temperature = slope[6] * (raw - x1[6]) + y1[6]
+    else:
+        # Hit max temperature of the thermistor
+        temperature = 105.0
+
+    return temperature
+
+
+def thermistor_max11610_adc(reading):
+    """Convert the raw two byte reading from the max11610-adc thermistor to
+    degrees Celsius.
+    :param reading: The two byte reading from the max11610-adc thermistor.
+    :returns: The temperature reading in degrees Celsius or None if no thermistor
+    is present."""
+    raw = unpack_word(reading)
+    if raw == 0xFFFF:
+        # All f means no thermistor plugged in.
+        return None
+
+    # These are used for converting raw thermistor readings to Celsius.
+    # Values used for slope intercept equation for temperature linear fit
+    # temperature = slope(ADC_VALUE - X1) + Y1
+    # From spreadsheet Sun Thermistor Plot MAX11610.xlxs and V of 4.8V
+    slope = [-0.07347, -0.07835, -0.10895, -0.15663, -0.25263, -0.37143, -0.52632]
+    x1 = [631, 382, 248, 161, 111, 74, 54]
+    y1 = [18, 38, 53, 67, 80, 94, 105]
+
+    # Convert to 10 bit decimal.
+    raw &= 0x3FF
+
+    # Calculate the Linear Fit temperature
+    if raw >= x1[0]:
+        # Region 7
+        temperature = slope[0] * (raw - x1[0]) + y1[0]
+    elif x1[1] <= raw <= x1[0] - 1:
+        # Region 6
+        temperature = slope[1] * (raw - x1[1]) + y1[1]
+    elif x1[2] <= raw <= x1[1] - 1:
+        # Region 5
+        temperature = slope[2] * (raw - x1[2]) + y1[2]
+    elif x1[3] <= raw <= x1[2] - 1:
+        # Region 4
+        temperature = slope[3] * (raw - x1[3]) + y1[3]
+    elif x1[4] <= raw <= x1[3] - 1:
+        # Region 3
+        temperature = slope[4] * (raw - x1[4]) + y1[4]
+    elif x1[5] <= raw <= x1[4] - 1:
+        # Region 2
+        temperature = slope[5] * (raw - x1[5]) + y1[5]
+    elif x1[6] <= raw <= x1[5] - 1:
         # Region 1
         temperature = slope[6] * (raw - x1[6]) + y1[6]
     else:

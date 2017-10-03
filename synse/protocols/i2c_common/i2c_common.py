@@ -595,17 +595,32 @@ def write_led(state, color=None, blink_state=None):
     _close_led_i2c(vec, gpio)
 
 
-def read_thermistors(count):
-    """ This will read count number of thermistors from the CEC board.
+def _get_thermistor_registers(device_name):
+    """Get the read and write registers for the max116xx A/D converter attached
+    to a thermistor.
+    :param device_name: max_11608 and max_11610 are supported.
+    :returns: read_register, write_register.
+    :raises ValueError if device_name is not supported"""
+    if device_name == 'max_11610':
+        read_register = '\x6B'
+        write_register = '\x6A'
+    elif device_name == 'max_11608':
+        read_register = '\x67'
+        write_register = '\x66'
+    else:
+        raise ValueError('Unknown device_name {}.'.format(device_name))
 
-    Args:
-        count (int): the number of thermistors to read.
+    return read_register, write_register
 
-    Returns:
-        list: an array of thermistor readings in degrees Celsius. The array
-            index will be the same as the channel in the synse i2c max-11608
-            thermistor configuration.
-    """
+
+def read_thermistors(count, device_name):
+    """This will read count number of thermistors from the CEC board.
+    :param count: The number of thermistors to read.
+    :param: device_name max_11608 and max_11610 are supported.
+    :returns: An array of thermistor readings in degrees Celsius. The array
+    index will be the same as the channel in the synse i2c max-11608 thermistor
+    configuration."""
+    read_register, write_register = _get_thermistor_registers(device_name)
 
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
@@ -633,7 +648,7 @@ def read_thermistors(count):
         vec.Read(1)
         vec.Stop()
 
-        # Configure MAX11608
+        # Configure MAX116xx
         # There are two registers to write to however there is no address.
         # Bit 7 determines which register gets written; 0 = Configuration byte,
         # 1 = Setup byte
@@ -641,13 +656,13 @@ def read_thermistors(count):
         vec.Start()
 
         # Following the slave address write 0xD2 for setup byte and 0x0F for configuration
-        # byte. See tables 1 and 2 in MAX11608 for byte definitions but basically sets up
+        # byte. See tables 1 and 2 in MAX116xx for byte definitions but basically sets up
         # for an internal reference and do an a/d conversion all channels
-        vec.Write('\x66\xD2\x0F')
+        vec.Write(write_register + '\xD2\x0F')
 
         # Initiating a read starts the conversion
         vec.Start()
-        vec.Write('\x67')
+        vec.Write(read_register)
 
         # delay for conversion since the libmpsse can't do clock stretching
         time.sleep(0.010)
@@ -667,8 +682,8 @@ def read_thermistors(count):
     if ad_reading:
         for x in range(count):
             index = x * 2
-            temperature = conversions.thermistor_max11608_adc(
-                ad_reading[index:index + 2])
+            temperature = conversions.convert_thermistor_reading(
+                ad_reading, index, device_name)
             result.append(temperature)
 
     return result

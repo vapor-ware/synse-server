@@ -210,6 +210,9 @@ def main(serial_port=None, hardware=None):
     logger.info('=====================================')
     logger.info('Starting Synse Endpoint')
     logger.info('[{}]'.format(datetime.datetime.utcnow()))
+    logger.info('Config default: {}'.format(cfg._default))
+    logger.info('Config override: {}'.format(cfg._override))
+    logger.info('cfg: {}'.format(vars(cfg)))
     logger.info('=====================================')
 
     try:

@@ -36,7 +36,7 @@ import synse.strings as _s_
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
 from synse.devicebus.devices.i2c.i2c_device import I2CDevice
-from synse.devicebus.devices.i2c.max11608_adc_emulator import read_emulator
+from synse.devicebus.devices.i2c.max116xx_adc_emulator import read_emulator
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.conversions import conversions
@@ -45,14 +45,13 @@ from synse.protocols.i2c_common import i2c_common
 logger = logging.getLogger(__name__)
 
 
-class Max11608Thermistor(I2CDevice):
-    """ Device subclass for thermistor via MAX11608 I2C ADC.
-    """
-    _instance_name = 'max-11608'
+class Max116xxThermistor(I2CDevice):
+    """Base device class for MAX 116xx Analog to Digital Converters with
+    thermistors plugged in."""
 
     def __init__(self, **kwargs):
-        super(Max11608Thermistor, self).__init__(**kwargs)
-        logger.debug('Max11608Thermistor kwargs: {}'.format(kwargs))
+        super(Max116xxThermistor, self).__init__(**kwargs)
+        logger.debug('Max116xxThermistor kwargs: {}'.format(kwargs))
 
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
@@ -73,7 +72,7 @@ class Max11608Thermistor(I2CDevice):
             }
         ]
 
-        logger.debug('Max11608Thermistor self: {}'.format(self))
+        logger.debug('Max116xxThermistor self: {}'.format(self))
 
     def _read(self, command):
         """ Read the data off of a given board's device.
@@ -156,8 +155,28 @@ class Max11608Thermistor(I2CDevice):
             elif self.hardware_type == 'production':
                 # Channel is zero based in the synse config.
                 # Read channel + 1 thermistors and return the last one read in the reading.
-                readings = i2c_common.read_thermistors(self.channel + 1)
+                readings = i2c_common.read_thermistors(self.channel + 1, self.__class__._instance_name)
                 return {const.UOM_TEMPERATURE: readings[self.channel]}
 
             else:
-                raise SynseException('Unknown hardware type {}.', self.hardware_type)
+                raise SynseException('Unknown hardware type {}.'.format(self.hardware_type))
+
+
+class Max11608Thermistor(Max116xxThermistor):
+    """Device class for a MAX11608 Analog to Digital Converter with a
+    thermistor plugged in.
+    """
+    _instance_name = 'max-11608'
+
+    def __init__(self, **kwargs):
+        super(Max11608Thermistor, self).__init__(**kwargs)
+
+
+class Max11610Thermistor(Max116xxThermistor):
+    """Device class for a MAX11610 Analog to Digital Converter with a
+    thermistor plugged in.
+    """
+    _instance_name = 'max-11610'
+
+    def __init__(self, **kwargs):
+        super(Max11610Thermistor, self).__init__(**kwargs)

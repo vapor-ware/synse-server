@@ -63,6 +63,12 @@ def main():
     devices = emulator_config['devices']
     counts = emulator_config['_counts']
 
+    logger.error('-----------------------------------------------------------------------')
+    logger.error('serial_device_name: {}'.format(serial_device_name))
+    logger.error('devices:            {}'.format(devices))
+    logger.error('counts:             {}'.format(counts))
+    logger.error('-----------------------------------------------------------------------')
+
     with serial.Serial(serial_device_name, baudrate=115200, timeout=None) as serial_device:
         _flush_all(serial_device)
 
@@ -86,15 +92,15 @@ def main():
                             _count = counts[addr] if addr in counts else 0
 
                             serial_device.write([int(x, 16) for x in devices[addr][_count]])
-                            logger.error('>> bytes: {}'.format([int(x, 16) for x in
-                                                                devices[addr][_count]]))
+                            logger.error('>> bytes: {}'.format([
+                                '{:02x}'.format(int(x, 16)) for x in devices[addr][_count]]))
 
                             _count += 1
                             counts[addr] = _count % len(devices[addr])
                         else:
                             serial_device.write([int(x, 16) for x in devices[addr]])
                             logger.error(
-                                '>> bytes: {}'.format([int(x, 16) for x in devices[addr]]))
+                                '>> bytes: {}'.format(['{:02x}'.format(int(x, 16)) for x in devices[addr]]))
                     else:
                         logger.error('! Not found: {}'.format(addr))
 
@@ -115,7 +121,7 @@ def main():
             except Exception, ex:
                 # let's clean up now, shall we
                 _flush_all(serial_device)
-                logger.error('! Flushed serial input and output. ({})'.format(ex))
+                logger.error('! Exception: Flushed serial input and output. ({})'.format(ex))
 
 if __name__ == '__main__':
 

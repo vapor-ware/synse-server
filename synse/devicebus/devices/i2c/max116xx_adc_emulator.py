@@ -37,11 +37,12 @@ logger = logging.getLogger(__name__)
 
 
 def read_emulator(device_name, channel):
-    """ Emulator read for Max11608 ADC thermistor.
+    """ Emulator read for Max11608 ADC thermistor. This is an emulator client
+    that reads two bytes from the i2c emulator and produces an integer reading.
     """
     # -- EMULATOR --
     try:
-        # use self.device_name for serial device, 115200, 0.25
+        # use self.device_name for serial device, 115200, 0.5
         with serial.Serial(device_name, baudrate=115200, timeout=0.5) as serial_device:
             serial_device.flushInput()
             serial_device.flushOutput()
