@@ -22,7 +22,7 @@ from synse.vapor_common.vapor_logging import setup_logging
 # Constants
 
 # List of all I2C thermistor sensor models.
-THERMISTOR_MODELS = ['max-11608']
+THERMISTOR_MODELS = ['max-11608', 'max-11610']
 
 # List of all I2C differential pressure sensor models.
 DIFFERENTIAL_PRESSURE_MODELS = ['sdp-610']
@@ -96,10 +96,12 @@ def _bulk_read_differential_pressure(differential_pressures, channels):
         logger.exception('Error reading differential pressure sensors.')
 
 
-def _bulk_read_thermistors(thermistors, channels):
+def _bulk_read_thermistors(thermistors, thermistor_model, channels):
     """Bulk read thermistors and write the results to files.
     :param thermistors: Dictionary of rack_id, device from the Synse i2c
     config. Thermistors are the device section of the config.
+    :param thermistor_model: The device model of the thermistors max-11610 and
+    max-11608 are supported.
     :param channels: A list of rack id keys and sorted thermistor
     channels per rack."""
     try:
@@ -107,7 +109,8 @@ def _bulk_read_thermistors(thermistors, channels):
             # Read the thermistors.
             if len(channels) > 0:
                 max_channel = channels[-1]  # channels is sorted low to high.
-                readings = i2c_common.read_thermistors(max_channel + 1)
+                readings = i2c_common.read_thermistors(max_channel + 1, thermistor_model)
+                logger.debug('thermistor readings: {}'.format(readings))
 
                 # Write out the file.
                 therms = thermistors[rack_id]
@@ -115,8 +118,8 @@ def _bulk_read_thermistors(thermistors, channels):
 
                     # Find the thermistor in order to create the path.
                     for thermistor in therms:
-                        if int(thermistor['channel']) == channel:
-                            # This is it. Create the path to get the write.
+                        if int(thermistor['channel'], 16) == channel:
+                            # This is it. Create the path to write the thermistor reading to.
                             path = I2C_FILE_PATH.format(
                                 rack_id, thermistor['device_model'], thermistor['channel'], READ)
                             common.write_reading(path, reading)
@@ -153,7 +156,7 @@ def _get_device_channels(devices):
     for rack_id, dev in devices.iteritems():
         channels = []
         for device in dev:
-            channels.append(int(device['channel']))
+            channels.append(int(device['channel'], 16))
         channels.sort()
         result[rack_id] = channels
     return result
@@ -204,9 +207,8 @@ def _handle_led_write(led_info):
     if led_info is None:
         return  # Nothing to do.
     try:
-        logger.debug('_handle_led_write')
         if os.path.isfile(led_info.path):
-            logger.debug('writing led info, path: {}'.format(led_info.path))
+            logger.debug('_handle_led_write() writing led info, path: {}'.format(led_info.path))
             # Read the file. It should contain the state and possibly color and blink.
             # Write the data to the LCD controller. Delete the file on success.
             with open(led_info.path, 'r') as f:
@@ -258,12 +260,14 @@ def _read_led_controllers(led_controllers):
         logger.exception('Error reading led controllers.')
 
 
-def _sensor_loop(thermistors, thermistor_channels,
+def _sensor_loop(thermistors, thermistor_model, thermistor_channels,
                  differential_pressures, differential_pressure_channels,
                  led_controllers, led_info):
     """Read / Write sensors. Write readings to files. Send writes from files.
     :param thermistors: Dictionary of rack_id, device from the Synse i2c
     config. Thermistors are the device section of the config.
+    :param thermistor_model: The device model of the thermistor. max-11610 and
+    max-11608 are supported.
     :param thermistor_channels: A list of rack id keys and sorted thermistor
     channels per rack.
     :param differential_pressures: Dictionary of rack_id, device from the Synse
@@ -293,13 +297,32 @@ def _sensor_loop(thermistors, thermistor_channels,
             _handle_led_write(led_info)
 
             # TODO: Metrics around the reads here.
-            _bulk_read_thermistors(thermistors, thermistor_channels)
+            _bulk_read_thermistors(thermistors, thermistor_model, thermistor_channels)
             _bulk_read_differential_pressure(differential_pressures, differential_pressure_channels)
             _read_led_controllers(led_controllers)
             # END: Metrics around the reads here.
         except:
             logger.exception('i2c_daemon _sensor_loop() exception')
         time.sleep(1)  # TODO: tuning.
+
+
+def _verify_thermistors_homogeneous(thermistors):
+    """Verify that all thermistors have the same device model. For now we do
+    this across all racks. We need them to be the same in order to perform bulk
+    reads (speed).
+    :param thermistors: The set of thermistors to verify.
+    :returns: The device_model of the thermistors if all are the same.
+    :raises: ValueError if not all thermistors are the same model."""
+    thermistor_model = None
+    for _, devices in thermistors.iteritems():  # _ is rack_id (thanks pylint)
+        for thermistor in devices:
+            if thermistor_model is None:
+                thermistor_model = thermistor['device_model']
+            else:
+                if thermistor_model != thermistor['device_model']:
+                    raise ValueError('Multiple thermistor models found {} and {}.'.format(
+                        thermistor_model, thermistor['device_model']))
+    return thermistor_model
 
 
 def main():
@@ -335,6 +358,10 @@ def main():
 
         # Get the thermistors and differential pressure sensors from the configuration.
         thermistors = _get_devices_by_models(i2c_config, THERMISTOR_MODELS)
+
+        # Make sure all thermistors are the same model.
+        thermistor_model = _verify_thermistors_homogeneous(thermistors)
+
         differential_pressures = _get_devices_by_models(i2c_config, DIFFERENTIAL_PRESSURE_MODELS)
         led_controllers = _get_devices_by_models(i2c_config, LED_CONTROLLER_MODELS)
 
@@ -352,7 +379,7 @@ def main():
 
         # Read sensors in a loop.
         _sensor_loop(
-            thermistors, thermistor_channels,
+            thermistors, thermistor_model, thermistor_channels,
             differential_pressures,  differential_pressure_channels,
             led_controllers, led_info)
     except:

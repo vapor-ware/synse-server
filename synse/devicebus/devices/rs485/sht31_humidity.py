@@ -158,7 +158,7 @@ class SHT31Humidity(RS485Device):
             }
 
         data_file = self._get_bg_read_file(
-            str(self.unit), '{0:04d}'.format(self.register_base))
+            str(self.unit), '{0:04x}'.format(self.register_base))
         data = SHT31Humidity.read_sensor_data_file(data_file)
         return {
             const.UOM_TEMPERATURE: data[0],

@@ -147,7 +147,7 @@ class SDP610Pressure(I2CDevice):
             dict: the thermistor reading value.
         """
         logger.debug('indirect_sensor_read')
-        data_file = self._get_bg_read_file('{0:04d}'.format(self.channel))
+        data_file = self._get_bg_read_file('{0:04x}'.format(self.channel))
         data = SDP610Pressure.read_sensor_data_file(data_file)
         return {const.UOM_PRESSURE: data[0]}
 
