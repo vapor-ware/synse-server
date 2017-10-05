@@ -1,0 +1,24 @@
+# IPMI Development Composefile
+#   a composefile that defines a development environment for IPMI. it builds
+#   a synse server container and IPMI emulator and links them.
+version: "3"
+services:
+  synse-server-dev:
+    container_name: synse-server-dev
+    image: vaporio/synse-server-dev
+    build:
+      context: ..
+      dockerfile: dockerfile/release.dockerfile
+    links:
+      - ipmi-emulator
+
+  ipmi-emulator:
+    container_name: ipmi-emulator
+    image: vaporio/ipmi-emulator
+    build:
+      context: ../synse/emulator/ipmi
+      dockerfile: Dockerfile.x64
+    ports:
+      - 623:623/udp
+    environment:
+      - VAPOR_DEBUG=true

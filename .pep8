@@ -1,0 +1,3 @@
+[pep8]
+filename=*.py
+max-line-length = 120

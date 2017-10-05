@@ -1,0 +1,39 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "bmcs": [
+        {
+          "bmc_ip": "ipmi-emulator-1",
+          "username": "ADMIN",
+          "password": "ADMIN"
+        },
+        {
+          "bmc_ip": "ipmi-emulator-2",
+          "username": "ADMIN",
+          "password": "ADMIN"
+        },
+        {
+          "bmc_ip": "ipmi-emulator-3",
+          "username": "ADMIN",
+          "password": "ADMIN"
+        },
+        {
+          "bmc_ip": "ipmi-emulator-4",
+          "username": "ADMIN",
+          "password": "ADMIN"
+        },
+        {
+          "bmc_ip": "ipmi-emulator-5",
+          "username": "ADMIN",
+          "password": "ADMIN"
+        },
+        {
+          "bmc_ip": "ipmi-emulator-6",
+          "username": "ADMIN",
+          "password": "ADMIN"
+        }
+      ]
+    }
+  ]
+}

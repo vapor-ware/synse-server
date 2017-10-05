@@ -1,0 +1,30 @@
+version: '3'
+services:
+  # This is the container where the tests run.
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    entrypoint: []
+    command: |
+      bash -c "/synse/bin/wait_for.sh synse-test-container 5000 && python ./synse/tests/test-plc-scanall.py"
+    links:
+      - synse-test-container
+
+  # This is the synse container running the plc emulator.
+  synse-test-container:
+    container_name: synse-test-container
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    command: |
+      --override=/synse/synse/tests/data/plc_override_config.json
+      emulate-plc-with-cfg /synse/synse/emulator/plc/data/test_scanall.json
+    expose:
+      - 5000
+    environment:
+      - VAPOR_DEBUG=true
+

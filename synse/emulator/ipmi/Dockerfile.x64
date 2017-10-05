@@ -1,0 +1,24 @@
+FROM ubuntu:16.04
+MAINTAINER Vapor IO <eng@vapor.io>
+
+COPY requirements.txt requirements.txt
+
+RUN set -ex \
+    && buildDeps='python-dev python-pip gcc' \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python $buildDeps \
+    && pip install --upgrade pip setuptools \
+    && pip install -r requirements.txt \
+    && pip uninstall -y setuptools \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge -y --auto-remove $buildDeps \
+    && apt-get autoremove -y \
+    && apt-get clean
+
+ADD . /emulator
+WORKDIR /emulator
+
+EXPOSE 623/udp
+
+ENTRYPOINT ["python",  "-u", "ipmi_emulator.py"]

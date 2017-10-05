@@ -1,0 +1,15 @@
+# Release Composefile
+#   this composefile is used to spin up an instance of synse server
+#   that is purely just a build of the release dockerfile.
+version: "3"
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server
+    build:
+      context: ..
+      dockerfile: dockerfile/release.dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      - VAPOR_DEBUG=true

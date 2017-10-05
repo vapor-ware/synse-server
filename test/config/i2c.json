@@ -1,0 +1,82 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_7",
+      "device_name": "/dev/ttyVapor006",
+      "lockfile": "/tmp/i2c-0.lock",
+      "hardware_type": "emulator",
+      "devices": [
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0000",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 1"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0001",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 2"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0002",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 3"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0003",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 4"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0004",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 5"
+        },
+        {
+          "device_type": "temperature",
+          "device_id": "0001",
+          "channel": "0005",
+          "device_model": "max-11608",
+          "device_info": "CEC Temperature 6"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0006",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 1"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0007",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 2"
+        },
+        {
+          "device_type": "pressure",
+          "device_id": "0001",
+          "channel": "0008",
+          "device_model": "sdp-610",
+          "device_info": "CEC Pressure 3"
+        },
+        {
+          "device_type": "vapor_led",
+          "device_id": "0001",
+          "channel": "0014",
+          "device_model": "pca-9632",
+          "device_info": "Rack LED"
+        }
+      ]
+    }
+  ]
+}

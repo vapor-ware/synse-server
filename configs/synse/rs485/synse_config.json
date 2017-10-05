@@ -1,0 +1,11 @@
+{
+  "scan_cache_file": "/tmp/synse/cache.json",
+  "cache_timeout": 600,
+  "cache_threshold": 500,
+
+  "devices": {
+    "rs485": {
+        "from_config": "rs485_config.json"
+      }
+  }
+}

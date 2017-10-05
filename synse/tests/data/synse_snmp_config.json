@@ -1,0 +1,9 @@
+{
+  "scan_cache_file": "/tmp/synse/cache.json",
+
+  "devices": {
+    "snmp": {
+      "from_config": "/synse/synse/tests/data/snmp_config/merged/test_snmp_device_registration/snmp_config.json"
+    }
+  }
+}

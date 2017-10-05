@@ -1,0 +1,18 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "lockfile": "/tmp/Synse.lock",
+      "hardware_type": "emulator",
+      "devices": [
+        {
+          "device_name": "/dev/ttyVapor002",
+          "retry_limit": 3,
+          "timeout": 0.50,
+          "time_slice": 75,
+          "bps": 115200
+        }
+      ]
+    }
+  ]
+}

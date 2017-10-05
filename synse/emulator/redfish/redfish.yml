@@ -1,0 +1,8 @@
+redfish-emulator:
+  container_name: redfish-emulator
+  dockerfile: Dockerfile.x64
+  build: .
+  ports:
+    - 5040:5040
+
+

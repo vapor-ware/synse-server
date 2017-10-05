@@ -1,0 +1,28 @@
+{
+  "boards": [
+    {
+      "board_id": "00000001",
+      "firmware_version" : "Version Response 1",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "0,0,0,0", "64,0,0,0", "2048,0,0,0", "2056,0,0,0", "2064,0,0,0", "2072,0,0,0" ]
+            }
+        }
+      ]
+    }
+  ]
+}

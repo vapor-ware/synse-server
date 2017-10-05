@@ -1,0 +1,40 @@
+version: '3'
+services:
+  # the container which tests are run from
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    entrypoint: []
+    command: |
+      bash -c "/synse/bin/wait_for.sh synse-test-container 5000 && python ./synse/tests/test-ipmi-emulator-throughput.py"
+    links:
+      - synse-test-container
+
+  # the synse server container under test
+  synse-test-container:
+    container_name: synse-test-container
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    command: |
+      --override=/synse/synse/tests/data/ipmi_override_02.json
+    ports:
+      - 5000:5000
+    environment:
+      - VAPOR_DEBUG=true
+    links:
+      - ipmi-emulator
+
+  # ipmi emulator backing for the synse server container
+  ipmi-emulator:
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    ports:
+      - 623:623/udp
+    environment:
+      - VAPOR_DEBUG=true
