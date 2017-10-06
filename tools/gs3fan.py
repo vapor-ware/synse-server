@@ -22,6 +22,7 @@ import time
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from synse.protocols.modbus import dkmodbus  # nopep8
+from synse.protocols.modbus import modbus_common  # nopep8
 from synse.protocols.conversions import conversions  # nopep8
 from synse.protocols.i2c_common import i2c_common  # nopep8
 
@@ -276,7 +277,7 @@ def _get(ser):
     elif sys.argv[2] == 'all':
         _read_all_fan(ser)
     elif sys.argv[2] == 'register':
-        _read_fan_register(ser, int(sys.argv[3], 16))
+        modbus_common.read_fan_register(ser, int(sys.argv[3], 16))
     else:
         raise ValueError('Unexpected args')
 
@@ -288,7 +289,7 @@ def _print_usage():
     print '\t\t all: registers.'
     print '\t\t register: get fan register in the form of 0x91c'
     print '\tset options:'
-    print '\t\t <integer> set speed in RPM (0 < 1755). settings from 1 to 174 are not recommended.'
+    print '\t\t <integer> set speed in RPM. Setting a speed under 10% of the max is not recommended.'
     print '\t\t register: set fan register in the form of 0x91c {data}'
     print '\ttemp: gets temperature and humidity'
     print '\tambient: gets ambient temperature'
@@ -341,14 +342,6 @@ def _read_differential_pressures():
     for reading in readings:
         print 'Differential Pressure [{}]: {} Pa'.format(counter, reading)
         counter += 1
-
-
-def _read_fan_register(ser, register):
-    client = dkmodbus.dkmodbus(ser)
-    register_data = client.read_holding_registers(1, register, 1)
-    result = conversions.unpack_word(register_data)
-    print '0x{}'.format(result)
-    return result
 
 
 def _read_rpm(ser):
@@ -425,10 +418,12 @@ def _set(ser):
         _write_fan_register(ser, int(sys.argv[3], 16), struct.pack('>H', int(sys.argv[4], 16)))
     else:
         speed_rpm = int(sys.argv[2])
-        if speed_rpm < 0 or speed_rpm > 1755:
-            raise ValueError("Speed setting {} must be between 0 (off) and 1755.".format(speed_rpm))
+        max_rpm = modbus_common.get_fan_max_rpm_gs3(ser)
+        if speed_rpm < 0 or speed_rpm > max_rpm:
+            raise ValueError("Speed setting {} must be between 0 (off) and {}.".format(
+                speed_rpm, max_rpm))
         logger.debug('Setting fan speed to {}'.format(speed_rpm))
-        write(ser, speed_rpm)
+        write(ser, max_rpm, speed_rpm)
 
 
 def _test1(ser):
@@ -468,11 +463,16 @@ def _test1(ser):
             time.sleep(.1)
 
 
-def write(ser, rpm):
-    """Set fan speed to the given RPM."""
+def write(ser, max_rpm, rpm_setting):
+    """Set fan speed to the given RPM.
+    :param ser: Serial connection to the gs3 fan controller.
+    :param max_rpm: The maximum rpm of the fan motor.
+    :param rpm_setting: The user supplied rpm setting.
+    returns: The modbus write result."""
+
     client = dkmodbus.dkmodbus(ser)
 
-    if rpm == 0:    # Turn the fan off.
+    if rpm_setting == 0:    # Turn the fan off.
         result = client.write_multiple_registers(
             1,      # Slave address.
             0x91B,  # Register to write to.
@@ -481,7 +481,11 @@ def write(ser, rpm):
             '\x00\x00')      # Data to write.
 
     else:           # Turn the fan on at the desired RPM.
-        packed_hz = conversions.fan_gs3_2010_rpm_to_packed_hz(rpm)
+        rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(ser, max_rpm)
+        hz = rpm_setting * rpm_to_hz
+        logger.debug('Set rpm to {}, Hz to {}'.format(rpm_setting, hz))
+        packed_hz = conversions.fan_gs3_packed_hz(hz)
+
         result = client.write_multiple_registers(
             1,      # Slave address.
             0x91A,  # Register to write to.

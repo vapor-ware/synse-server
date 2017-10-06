@@ -135,6 +135,8 @@ UOM_PRESSURE = intern('pressure_pa')
 UOM_TEMPERATURE = intern('temperature_c')
 UOM_THERMISTOR = intern('temperature_c')
 UOM_VAPOR_FAN = intern('speed_rpm')
+UOM_VAPOR_FAN_MIN = intern('speed_rpm_min')
+UOM_VAPOR_FAN_MAX = intern('speed_rpm_max')
 UOM_VOLTAGE = intern('voltage')
 
 
