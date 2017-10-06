@@ -396,13 +396,13 @@ def _read_thermistors():
     that no thermistor is present."""
 
     # Get ADC model. Default is max11610. max11608 is also supported.
-    _type = 'max_11610'
+    _type = 'max-11610'
     if len(sys.argv) >= 3:
-        _type = 'max_116{:02}'.format(int(sys.argv[2]))
+        _type = 'max-116{:02}'.format(int(sys.argv[2]))
 
     # Thermistor count may vary by type.
     thermistor_count = 12
-    if _type == 'max_11608':
+    if _type == 'max-11608':
         thermistor_count = 8
 
     readings = i2c_common.read_thermistors(thermistor_count, _type)

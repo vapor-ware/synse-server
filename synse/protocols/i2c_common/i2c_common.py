@@ -536,13 +536,13 @@ def write_led(state, color=None, blink_state=None):
 def _get_thermistor_registers(device_name):
     """Get the read and write registers for the max116xx A/D converter attached
     to a thermistor.
-    :param device_name: max_11608 and max_11610 are supported.
+    :param device_name: max-11608 and max-11610 are supported.
     :returns: read_register, write_register.
     :raises ValueError if device_name is not supported"""
-    if device_name == 'max_11610':
+    if device_name == 'max-11610':
         read_register = '\x6B'
         write_register = '\x6A'
-    elif device_name == 'max_11608':
+    elif device_name == 'max-11608':
         read_register = '\x67'
         write_register = '\x66'
     else:
@@ -554,7 +554,7 @@ def _get_thermistor_registers(device_name):
 def read_thermistors(count, device_name):
     """This will read count number of thermistors from the CEC board.
     :param count: The number of thermistors to read.
-    :param: device_name max_11608 and max_11610 are supported.
+    :param: device_name max-11608 and max-11610 are supported.
     :returns: An array of thermistor readings in degrees Celsius. The array
     index will be the same as the channel in the synse i2c max-11608 thermistor
     configuration."""

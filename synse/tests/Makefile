@@ -137,8 +137,9 @@ test-ipmi-throughput-x64:
 test-ipmi-device-registration-x64:
 	$(call run_test,test-ipmi-device-registration)
 
-test-ipmi-scan-cache-registration-x64:
-	$(call run_test,test-ipmi-scan-cache-registration)
+# Broken #229 (twisted up with graphql)
+#test-ipmi-scan-cache-registration-x64:
+#	$(call run_test,test-ipmi-scan-cache-registration)
 
 test-ipmi-no-init-scan-x64:
 	$(call run_test,test-ipmi-no-init-scan)
@@ -199,8 +200,9 @@ test-redfish-emulator-x64:
 test-device-supported-commands-x64:
 	$(call run_test,test-device-supported-commands)
 
-test-endpoint-utils-x64:
-	$(call run_test,test-endpoint-utils)
+# Broken #229. Twisted up with graphql.
+#test-endpoint-utils-x64:
+#	$(call run_test,test-endpoint-utils)
 
 test-utils-x64:
 	$(call run_test,test-utils)
@@ -225,8 +227,9 @@ test-x64-ipmi: \
 	test-ipmi-throughput-x64 \
 	test-ipmi-no-init-scan-x64 \
 	test-ipmi-device-registration-x64 \
-	test-ipmi-scan-cache-registration-x64 \
 	test-ipmi-emulator-x64
+
+# Broken #229	test-ipmi-scan-cache-registration-x64 \
 
 test-x64-rs485: \
 	test-rs485-endpoints-x64 \
@@ -250,8 +253,9 @@ test-x64-redfish: \
 test-x64-general: \
 	test-utils-x64 \
 	test-location-x64 \
-	test-device-supported-commands-x64 \
-	test-endpoint-utils-x64
+	test-device-supported-commands-x64
+
+	# Broken #229: test-endpoint-utils-x64
 
 
 test-x64: \

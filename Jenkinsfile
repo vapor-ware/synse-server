@@ -12,6 +12,7 @@ def vaporWareGitOrgUrl = 'http://github.com/vapor-ware/'
 
 // Output the Jenkins job parameters at the top of the output so that
 // we can tell what we're testing.
+// TODO: Could rename below to synse_server_internal, but this is all going away.
 def displayParameters() {
     echo("Jenkins job parameters:")
     echo("synse_server_branch: ${synse_server_branch}")
@@ -59,51 +60,37 @@ def cleanupDocker() {
     sh('docker images -a')
 }
 
-// __pycache__ and .tox are lingering as root on the Jenkins slaves.
-// This indicates an issue with the Jenkins slave setup, for now this is
-// a workaround.
-def cleanupHack() {
-
-    sh('sudo rm -rf synse-server/graphql/graphql_frontend/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/graphql_frontend/schema/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/tests/queries/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/tests/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/tests/integration/__pycache__')
-    sh('sudo rm -rf synse-server/graphql/.tox')
-}
-
 node {
     stage('Display Parameters') {
         displayParameters()
     }
 
-    stage('Getting synse-server') {
-        cleanupHack()
+    stage('Getting synse-server-internal') {
 
-        getSource('synse-server', vaporWareGitOrgUrl + 'synse-server',
+        getSource('synse-server-internal', vaporWareGitOrgUrl + 'synse-server-internal',
             synse_server_branch)
     }
 
-    stage('Build and test synse-server') {
+    stage('Build and test synse-server-internal') {
         try {
             cleanupDocker()
 
-            // TEMP: build the synse-server image - since it currently doesn't
+            // TEMP: build the synse-server-internal image - since it currently doesn't
             // exit in dockerhub and is required by the graphql tests, we need
             // to build it locally.
-            buildAndTest('synse-server', synse_server_branch,
-                'synse-server', 'make build')
+            buildAndTest('synse-server-internal', synse_server_branch,
+                'synse-server-internal', 'make build')
 
             // Test graphql.
-            buildAndTest('synse-server', synse_server_branch,
-                'synse-server', 'make graphql-test')
+            // # Broken #229
+            // buildAndTest('synse-server', synse_server_branch,
+            //    'synse-server', 'make graphql-test')
 
             // Test the backend.
-            buildAndTest('synse-server', synse_server_branch,
-                'synse-server/synse/tests/', 'make test-x64')
+            buildAndTest('synse-server-internal', synse_server_branch,
+                'synse-server-internal/synse/tests/', 'make test-x64')
         } finally {
             echo('Cleaning up.')
-            cleanupHack()
             cleanupDocker()
         }
     }
