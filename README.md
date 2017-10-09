@@ -180,7 +180,7 @@ Synse is released under GPLv2 - see [LICENSE](license) for more information.
 
 
 [cli]: https://github.com/vapor-ware/synse-cli
-[docs]: http://opendcre.com
+[docs]: http://synse-server.readthedocs.io/en/stable/
 [license]: https://github.com/vapor-ware/synse-server/blob/master/LICENSE
 [pkg-cloud]: https://packagecloud.io/VaporIO/synse/install
 [prometheus]: https://github.com/vapor-ware/synse-prometheus
