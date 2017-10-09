@@ -1,0 +1,1206 @@
+{
+  "boards": [
+    {
+      "board_id": "00000000",
+      "firmware_version" : "Synse Emulator v0.8.1",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                656, 646, 636, 625, 615, 605, 594, 584, 573, 563, 553, 542,
+                532, 522, 512, 502, 491, 482, 472, 462, 452
+              ]
+            }
+        },
+        {
+          "device_id": "03FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                656, 646, 636, 625, 615, 605, 594, 584, 573, 563, 553, 542,
+                532, 522, 512, 502, 491, 482, 472, 462, 452
+              ]
+            }
+        },
+        {
+          "device_id": "08FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                656, 646, 636, 625, 615, 605, 594, 584, 573, 563, 553, 542,
+                532, 522, 512, 502, 491, 482, 472, 462, 452
+              ]
+            }
+        },
+        {
+          "device_id": "09FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                656, 646, 636, 625, 615, 605, 594, 584, 573, 563, 553, 542,
+                532, 522, 512, 502, 491, 482, 472, 462, 452
+              ]
+            }
+        },
+        {
+          "device_id": "0AFF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                656, 646, 636, 625, 615, 605, 594, 584, 573, 563, 553, 542,
+                532, 522, 512, 502, 491, 482, 472, 462, 452
+              ]
+            }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 1486313281, 1486313281 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000003",
+      "firmware_version" : "Synse Emulator v0.8.1",
+      "raw_data": [ [ [1, 10, 999, 156, 0, 0, 0, 3, 0, 1, 156, 1002, 4] ] ]
+    },
+    {
+      "board_id": "0000000A",
+      "firmware_version" : "Version Response 1",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "0000000B",
+      "firmware_version" : [
+        1, 255, 1, 255, 1, 255, 255, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111,
+        110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115,
+        101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32,
+        86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101,
+        114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121,
+        32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111,
+        110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32,
+        82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115,
+        112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110,
+        115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32,
+        86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114,
+        121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76,
+        111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103,
+        32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101,
+        115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111,
+        110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101,
+        32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101,
+        114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32,
+        76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110,
+        103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82,
+        101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112,
+        111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115,
+        101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101,
+        114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76,
+        111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32,
+        82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112,
+        111, 110, 115, 101, 32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101,
+        32, 86, 101, 114, 121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 32, 86, 101, 114,
+        121, 32, 76, 111, 110, 103, 32, 82, 101, 115, 112, 111, 110, 115, 101, 156, 4],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "0000000C",
+      "firmware_version" : "",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "0000000D",
+      "firmware_version" : "Version 0x01",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "0000000E",
+      "firmware_version" : "Version 0x02",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "0000000F",
+      "firmware_version" : "Version 0x03",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000010",
+      "firmware_version" : "Version 0x04",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000011",
+      "firmware_version" : "Version 0x05",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000012",
+      "firmware_version" : "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000014",
+      "firmware_version" : "Synse Emulator v0.5.1",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                0
+              ]
+            }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 0 ]
+            }
+        },
+        {
+          "device_id": "04FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 32768 ]
+            }
+        },
+        {
+          "device_id": "05FF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 65535, 4294901760 ]
+            }
+        },
+        {
+          "device_id": "07FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 65535 ]
+            }
+        },
+        {
+          "device_id": "08FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 65534 ]
+            }
+        },
+        {
+          "device_id": "09FF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 4294967295 ]
+            }
+        },
+        {
+          "device_id": "0BFF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [
+                1, 56, 1, 156, 1, 1, 255, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51,
+                52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50,
+                51, 52, 53, 49, 50, 51, 52, 53, 108, 4
+              ] ]
+            }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [
+                1, 56, 1, 156, 1, 1, 255, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51,
+                52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50, 51, 52, 53, 49, 50,
+                51, 52, 53, 49, 50, 51, 52, 53, 108, 4
+              ] ]
+            }
+        },
+        {
+          "device_id": "0DFF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [
+                1, 50, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32,
+                33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32, 33, 34,
+                35, 39, 158, 4
+              ] ]
+            }
+        },
+        {
+          "device_id": "0EFF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [
+                1, 50, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32,
+                33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32, 33, 34,
+                35, 39, 158, 3
+              ] ]
+            }
+        },
+        {
+          "device_id": "0FFF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [1, 50, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34,
+                35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32, 33, 34, 35, 39, 31, 32, 33, 34, 35, 31, 32,
+                33, 34, 35, 39, 159, 4
+              ] ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000015",
+      "firmware_version" : "Synse Emulator v0.5.1",
+      "devices" : [
+        {
+          "device_id": "0001",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              30.03
+            ]
+          }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "invalid"
+            ]
+          }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "30.03"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "30"
+            ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              30
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000016",
+      "firmware_version" : "Synse Emulator v1.0.0 - pressure tests",
+      "devices" : [
+        {
+          "device_id": "0001",
+          "device_type": "pressure",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              0.00
+            ]
+          }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "pressure",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "invalid"
+            ]
+          }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "pressure",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "-0.12"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "pressure",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "1"
+            ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "pressure",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              -1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "0000001E",
+      "firmware_version" : "Version Response 1",
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "0,0,0,0", "64,0,0,0", "2048,0,0,0", "2056,0,0,0", "2064,0,0,0", "2072,0,0,0" ]
+            }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "humidity",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 1486313281 ]
+            }
+        },
+        {
+          "device_id": "03FF",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": false,
+              "responses" : [ ]
+            }
+        },
+        {
+          "device_id": "04FF",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": false,
+              "responses" : [ "" ]
+            }
+        },
+        {
+          "device_id": "05FF",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": false,
+              "responses" : [
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              ]
+            }
+        },
+        {
+          "device_id": "06FF",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": false,
+              "responses" : [ 0 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000028",
+      "firmware_version": "Synse Emulator v1.0.0",
+      "devices": [
+        {
+          "device_id": "0001",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              4100
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "fan speed"
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              ""
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              12345678901234567890
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              -12345
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000030",
+      "firmware_version" : "Synse Emulator v1.0.0 - Chassis LED Tests",
+      "devices" : [
+        {
+          "device_id": "0001",
+          "device_type": "led",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                1
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W1"
+              ]
+            }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "led",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                0
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W0"
+              ]
+            }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "led",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [
+                "",
+                2,
+                3,
+                "A"
+              ]
+            },
+          "write":
+            {
+              "repeatable": true,
+              "responses": [
+                "W2",
+                "W3",
+                1,
+                0,
+                2
+              ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000040",
+      "firmware_version" : "Synse Emulator v1.0.0 - Boot Target Tests",
+      "devices" : [
+        {
+          "device_id": "0001",
+          "device_type": "system",
+          "boot_target":
+            {
+              "repeatable": true,
+              "responses": [
+                "B0",
+                "B1",
+                "B2"
+              ]
+            }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "system",
+          "boot_target":
+            {
+              "repeatable": true,
+              "responses": [
+                "B1"
+              ]
+            }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "system",
+          "boot_target":
+            {
+              "repeatable": true,
+              "responses": [
+                "",
+                "B3",
+                2,
+                3,
+                "B?"
+              ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000050",
+      "firmware_version" : "Synse Emulator v1.0.0 - Asset Info Tests",
+      "devices" : [
+        {
+          "device_id": "0001",
+          "device_type": "system",
+          "asset_info":
+            {
+              "repeatable": true,
+              "responses": [
+                "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+              ]
+            }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "system",
+          "boot_target":
+            {
+              "repeatable": true,
+              "responses": [
+                ""
+              ]
+            }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "system",
+          "boot_target":
+            {
+              "repeatable": true,
+              "responses": [
+                "just a string",
+                "1234",
+                3,
+                "B?"
+              ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000060",
+      "firmware_version" : "Synse Emulator v1.0.0 - Rectifier Tests",
+      "devices" : [
+        {
+         "device_id": "0001",
+          "device_type": "vapor_rectifier",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "0,0,0,0", "64,0,0,0", "2048,0,0,0", "2056,0,0,0", "2064,0,0,0", "2072,0,0,0" ]
+            }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "vapor_rectifier",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+           "device_id": "0003",
+          "device_type": "power",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "junk,response,for,you" ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000061",
+      "firmware_version" : "Synse Emulator v1.0.0 - BBU Tests",
+      "devices" : [
+        {
+         "device_id": "0001",
+          "device_type": "vapor_battery",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "charging,100" ]
+            }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "vapor_battery",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "vapor_battery",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "junk,response,for,you" ]
+            }
+        },
+        {
+         "device_id": "0004",
+          "device_type": "vapor_battery",
+          "power":
+            {
+              "repeatable": true,
+              "responses": [ "discharging,45" ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000070",
+      "firmware_version" : "Synse Emulator v1.0.0 - Chamber LED Tests",
+      "devices" : [
+        {
+         "device_id": "0001",
+          "device_type": "vapor_led",
+          "write":
+            {
+              "repeatable": true,
+              "responses": [ "1,ffffff,0", "0,000000,0", "0,7ac055,1", "1,0beef0,1" ]
+            }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "vapor_led",
+          "write":
+            {
+              "repeatable": true,
+              "responses": [ ]
+            }
+        },
+        {
+           "device_id": "0003",
+          "device_type": "vapor_led",
+          "write":
+            {
+              "repeatable": true,
+              "responses": [ "junk,response,for,you" ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "00000080",
+      "firmware_version" : "Synse Emulator v1.0.0 - Chamber Fan Tests",
+      "devices": [
+        {
+          "device_id": "0001",
+          "device_type": "vapor_fan",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              4100
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "vapor_fan",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              "fan speed"
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "vapor_fan",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              ""
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "vapor_fan",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              12345678901234567890
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "vapor_fan",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              -12345
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000090",
+      "firmware_version" : "Synse Emulator v1.0.0 - Host Info Tests",
+      "devices": [
+        {
+          "device_id": "0001",
+          "device_type": "system",
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "hhostname1,i192.168.1.1"
+            ]
+          }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.15,htest-server0"
+            ]
+          }
+        },
+        {
+          "device_id": "0003",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "i10.10.1.15,htest-server00,i1.1.1.1,htest-server01"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [
+              "bad-string"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "Vapor IO,0001,Example Product,S1234567,rack mount chassis,P1234567,S1234567,A1234567,Vapor IO,P1234567,Example Product,S1234567,v1.2.0"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "B0",
+              "B1",
+              "B2"
+            ]
+          },
+          "host_info": {
+            "repeatable": true,
+            "responses": [ ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "000000B5",
+      "firmware_version" : [1, 11, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 189, 3],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "000000BF",
+      "firmware_version" : [1, 11, 1, 156, 1, 1, 255, 31, 32, 33, 34, 35, 190, 4],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ 656 ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "000000C9",
+      "firmware_version" : [0,2,3, 1, 14, 999, 255, 0,0,0,0, 255,255, 49, 50, 51, 52, 53, 1005, 4],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [ 0,2,3, 1, 12, 999, 255, 0, 0, 0, 0, 255, 255, 54, 53, 54, 1005, 4 ] ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "000000CB",
+      "firmware_version" : [0,2,3, 1, 14, 1, 255, 0,0,0,0, 255,255, 49, 50, 51, 52, 53, 3 ],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [ 0,2,3, 1, 12, 1, 255, 0, 0, 0, 0, 255, 255, 54, 53, 54, 97 ] ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "000000CD",
+      "firmware_version" : [0,2,3, 1, 14, 999, 255, 0,0,0,0, 255,255, 49, 50, 51, 52, 53, 1005, 4, 11,12,13],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [ 0,2,3, 1, 12, 999, 255, 0, 0, 0, 0, 255, 255, 54, 53, 54, 1005, 4, 11,12,13 ] ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "000000CF",
+      "firmware_version" : [10,11,12, 1, 14, 1, 255, 0,0,0,0, 255,255, 49, 50, 51, 52, 53, 2, 4, 10,11,12],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [ 0,2,3, 1, 12, 1, 255, 0, 0, 0, 0, 255, 255, 54, 53, 54, 98, 4, 10,11,12 ] ]
+            }
+        }
+      ]
+    },
+    {
+      "board_id": "000000D1",
+      "firmware_version" : [11, 14, 11, 255, 0,0,0,0, 255,255, 49, 50, 51, 52, 53, 3, 4],
+      "devices" : [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read":
+            {
+              "repeatable": true,
+              "responses": [ [ 11, 12, 11, 255, 0, 0, 0, 0, 255, 255, 54, 53, 54, 97, 4 ] ]
+            }
+        }
+      ]
+    }
+  ]
+}

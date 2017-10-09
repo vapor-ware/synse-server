@@ -1,0 +1,10 @@
+# This yml is only used when bringing up the emulator by make snmp-yml.
+# It is not used for any testing.
+snmp-emulator:
+  container_name: snmp-emulator
+  user: snmp
+  dockerfile: Dockerfile.x64
+  build: .
+  command: ./start_snmp_emulator.sh
+  ports:
+    - "11011:11011/udp"

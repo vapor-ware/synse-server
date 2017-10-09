@@ -1,0 +1,23 @@
+version: '3'
+services:
+  # the container which tests are run from
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    entrypoint: []
+    command: bash -c "python ./synse/tests/test-ipmi-emulator.py"
+    links:
+      - ipmi-emulator
+
+  # ipmi emulator backing for the test container
+  ipmi-emulator:
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    ports:
+      - 623:623/udp
+    environment:
+      - VAPOR_DEBUG=true

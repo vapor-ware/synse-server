@@ -1,0 +1,63 @@
+# IPMI Emulated Composefile
+#   this composefile spins up two containers: one being an IPMI emulator, and
+#   the other being a synse server instance that is configured for that
+#   IPMI emulator. while there is only one IPMI emulator instance, we use
+#   links to essentially create proxies to that emulator, so within synse server
+#   it looks like we have many IPMI emulators (BMCs).
+version: "3"
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server
+    restart: always
+    ports:
+      - 5000:5000
+    volumes:
+      - ../test/config/bmc.json:/synse/bmc_config.json
+      - ../test/config/ipmi.json:/synse/override/config.json
+    environment:
+      - VAPOR_DEBUG=true
+    links:
+      - ipmi-emulator:ipmi-emulator-1-1
+      - ipmi-emulator:ipmi-emulator-1-2
+      - ipmi-emulator:ipmi-emulator-1-3
+      - ipmi-emulator:ipmi-emulator-1-4
+      - ipmi-emulator:ipmi-emulator-1-5
+      - ipmi-emulator:ipmi-emulator-1-6
+      - ipmi-emulator:ipmi-emulator-2-1
+      - ipmi-emulator:ipmi-emulator-2-2
+      - ipmi-emulator:ipmi-emulator-2-3
+      - ipmi-emulator:ipmi-emulator-2-4
+      - ipmi-emulator:ipmi-emulator-2-5
+      - ipmi-emulator:ipmi-emulator-2-6
+      - ipmi-emulator:ipmi-emulator-3-1
+      - ipmi-emulator:ipmi-emulator-3-2
+      - ipmi-emulator:ipmi-emulator-3-3
+      - ipmi-emulator:ipmi-emulator-3-4
+      - ipmi-emulator:ipmi-emulator-3-5
+      - ipmi-emulator:ipmi-emulator-3-6
+      - ipmi-emulator:ipmi-emulator-4-1
+      - ipmi-emulator:ipmi-emulator-4-2
+      - ipmi-emulator:ipmi-emulator-4-3
+      - ipmi-emulator:ipmi-emulator-4-4
+      - ipmi-emulator:ipmi-emulator-4-5
+      - ipmi-emulator:ipmi-emulator-4-6
+      - ipmi-emulator:ipmi-emulator-5-1
+      - ipmi-emulator:ipmi-emulator-5-2
+      - ipmi-emulator:ipmi-emulator-5-3
+      - ipmi-emulator:ipmi-emulator-5-4
+      - ipmi-emulator:ipmi-emulator-5-5
+      - ipmi-emulator:ipmi-emulator-5-6
+      - ipmi-emulator:ipmi-emulator-6-1
+      - ipmi-emulator:ipmi-emulator-6-2
+      - ipmi-emulator:ipmi-emulator-6-3
+      - ipmi-emulator:ipmi-emulator-6-4
+      - ipmi-emulator:ipmi-emulator-6-5
+      - ipmi-emulator:ipmi-emulator-6-6
+
+  ipmi-emulator:
+    container_name: synse-server-ipmi-emulator
+    image: vaporio/ipmi-emulator-x64
+    restart: on-failure
+    expose:
+      - 623/udp

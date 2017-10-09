@@ -1,0 +1,25 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "bmcs": [
+        {
+          "bmc_ip": "192.168.1.118",
+          "username": "root",
+          "password": "vapor",
+          "auth_type": "RAKP_HMAC_SHA1",
+          "integrity_type": "HMAC_SHA1_96",
+          "encryption_type": "AES_CBC_128"
+        },
+        {
+          "bmc_ip": "192.168.1.119",
+          "username": "root",
+          "password": "vapor",
+          "auth_type": "RAKP_HMAC_SHA1",
+          "integrity_type": "HMAC_SHA1_96",
+          "encryption_type": "AES_CBC_128"
+        }
+      ]
+    }
+  ]
+}

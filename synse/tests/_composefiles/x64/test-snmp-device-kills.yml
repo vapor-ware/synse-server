@@ -1,0 +1,66 @@
+version: '3'
+services:
+  # This is the container running the tests.
+  # Link to the synse web service, not the SNMP emulator.
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    entrypoint: []
+    command: |
+      bash -c "/synse/bin/wait_for.sh synse-test-container 5000 && python ./synse/tests/test-snmp-device-kills.py"
+    links:
+      - synse-test-container
+      # These links are here to support pinging emulator containers from the test container..
+      - snmp-emulator-synse-testdevice1-board1
+      - snmp-emulator-synse-testdevice1-board2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # This container is where synse is running.
+  # Allows us to make web service calls against it.
+  synse-test-container:
+    container_name: synse-test-container
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    command: |
+      --override=/synse/synse/tests/data/synse_snmp_config.json
+    ports:
+      - 5000:5000
+    environment:
+      - VAPOR_DEBUG=true
+    links:
+      - snmp-emulator-synse-testdevice1-board1
+      - snmp-emulator-synse-testdevice1-board2
+
+  # This is the container running the emulator to test against
+  # for the Synse-TestDevice1 (board1) snmp emulator.
+  snmp-emulator-synse-testdevice1-board1:
+    container_name: snmp-emulator-synse-testdevice1-board1
+    build:
+      context: ../../../emulator/snmp
+      dockerfile: Dockerfile-synse-testdevice1-board1.x64
+    # This command will override what is in the dockerfile.
+    command: ./start_snmp_emulator.sh ./data 11012 snmp-emulator-synse-testdevice1-board1.log
+    ports:
+      - 11012:11012/udp
+    environment:
+      - VAPOR_DEBUG=true
+
+  # This is the container running the emulator to test against
+  # for the Synse-TestDevice1 (board2) snmp emulator.
+  snmp-emulator-synse-testdevice1-board2:
+    container_name: snmp-emulator-synse-testdevice1-board2
+    build:
+      context: ../../../emulator/snmp
+      dockerfile: Dockerfile-synse-testdevice1-board2.x64
+    # This command will override what is in the dockerfile.
+    command: ./start_snmp_emulator.sh ./data 11013 snmp-emulator-synse-testdevice1-board2.log
+    ports:
+      - 11013:11013/udp
+    environment:
+      - VAPOR_DEBUG=true

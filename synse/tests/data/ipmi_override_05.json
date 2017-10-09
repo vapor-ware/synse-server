@@ -1,0 +1,11 @@
+{
+  "scan_cache_file": "/synse/synse/tests/data/scan_cache.json",
+
+  "devices": {
+    "ipmi": {
+      "device_initializer_threads": 1,
+      "scan_on_init": true,
+      "from_config": "/synse/synse/tests/data/bmc_config/bmc_config005.json"
+    }
+  }
+}

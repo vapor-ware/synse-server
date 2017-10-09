@@ -1,0 +1,22 @@
+# Linting Composefile
+#   this composefile is used to spin up a test instance to run linting
+#   commands. the difference between this and the 'test' composefile is
+#   that this runs the service independent of any other requirements which
+#   may be needed for testing (e.g. linked containers). this allows linting
+#   to be quick and lightweight.
+#
+version: "3"
+services:
+  synse-lint:
+    container_name: synse-lint
+    image: vaporio/synse-test
+    build:
+      context: ..
+      dockerfile: dockerfile/test.dockerfile
+    volumes:
+      - ..:/code
+    command: ${COMMAND}
+
+volumes:
+  source:
+    external: true

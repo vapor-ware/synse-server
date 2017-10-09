@@ -1,0 +1,7 @@
+{
+  "devices": {
+    "rs485": {
+      "from_config": "/synse/synse/tests/data/rs485_emulator/rs485_emulator_config-002.json"
+    }
+  }
+}

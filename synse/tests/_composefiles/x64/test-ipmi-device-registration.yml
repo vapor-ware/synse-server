@@ -1,0 +1,80 @@
+version: '3'
+services:
+  # the container which tests are run from
+  test-container-x64:
+    container_name: test-container-x64
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    entrypoint: []
+    command: |
+      bash -c "/synse/bin/wait_for.sh synse-test-container 5000 && python ./synse/tests/test-ipmi-device-registration.py"
+    links:
+      - synse-test-container
+
+  # the synse server container under test
+  synse-test-container:
+    container_name: synse-test-container
+    image: vaporio/synse-server
+    build:
+      context: ../../../..
+      dockerfile: dockerfile/release.dockerfile
+    command: |
+      --override=/synse/synse/tests/data/ipmi_override_03.json
+    ports:
+      - 5000:5000
+    environment:
+      - VAPOR_DEBUG=true
+    links:
+      - ipmi-emulator-1
+      - ipmi-emulator-2
+      - ipmi-emulator-3
+      - ipmi-emulator-4
+
+  # ipmi emulator backing for the synse server container
+  ipmi-emulator-1:
+    container_name: ipmi-emulator-1
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    ports:
+      - 623:623/udp
+    environment:
+      - VAPOR_DEBUG=true
+
+  # ipmi emulator backing for the synse server container
+  ipmi-emulator-2:
+    container_name: ipmi-emulator-2
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    command: -p 624
+    ports:
+      - 624:624/udp
+    environment:
+      - VAPOR_DEBUG=true
+
+  # ipmi emulator backing for the synse server container
+  ipmi-emulator-3:
+    container_name: ipmi-emulator-3
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    command: -p 625
+    ports:
+      - 625:625/udp
+    environment:
+      - VAPOR_DEBUG=true
+
+  # ipmi emulator backing for the synse server container
+  ipmi-emulator-4:
+    container_name: ipmi-emulator-4
+    build:
+      context: ../../../emulator/ipmi
+      dockerfile: Dockerfile.x64
+    command: -p 626
+    ports:
+      - 626:626/udp
+    environment:
+      - VAPOR_DEBUG=true

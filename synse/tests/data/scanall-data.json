@@ -1,0 +1,931 @@
+{
+  "scanall": [
+    {
+      "_comment": "Initial scan - this is done during device registration before the tests begin",
+      "initial": {
+        "result": "ok"
+      }
+    },
+    {
+      "_comment": "Test 1 - All scans are ok, should return proper results",
+      "initial": {
+        "result": "ok"
+      }
+    },
+    {
+      "_comment": "Test 2 - All scans are bad, should return 500 error",
+      "initial": {
+        "result": "error",
+        "failed_board": "00000001"
+      },
+      "retry": [
+        {
+          "result": "error",
+          "failed_board": "00000005"
+        },
+        {
+          "result": "error",
+          "failed_board": "0000000A"
+        }
+      ]
+    },
+    {
+      "_comment": "Test 3 - Two bad scans, but we get a good one in the third.",
+      "initial": {
+        "result": "error",
+        "failed_board": "0000000A"
+      },
+      "retry": [
+        {
+          "result": "error",
+          "failed_board": "00000001"
+        },
+        {
+          "result": "ok"
+        }
+      ]
+    },
+    {
+      "_comment": "Test 4 - One bad scan, then a good one.",
+      "initial": {
+        "result": "error",
+        "failed_board": "00000005"
+      },
+      "retry": [
+        {
+          "result": "ok"
+        }
+      ]
+    },
+    {
+      "_comment": "Test 5 - Error followed by some reads",
+      "initial": {
+        "result": "error",
+        "failed_board": "00000001"
+      },
+      "retry": [
+        {
+          "result": "error",
+          "failed_board": "00000005"
+        },
+        {
+          "result": "error",
+          "failed_board": "0000000A"
+        }
+      ]
+    },
+    {
+      "_comment": "Test 6 - Error followed by board scan",
+      "initial": {
+        "result": "error",
+        "failed_board": "00000001"
+      },
+      "retry": [
+        {
+          "result": "error",
+          "failed_board": "00000005"
+        },
+        {
+          "result": "error",
+          "failed_board": "0000000A"
+        }
+      ]
+    }
+  ],
+  "boards": [
+    {
+      "board_id": "00000001",
+      "firmware_version": "Scan-All Protocol Test Board 1",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000002",
+      "firmware_version": "Scan-All Protocol Test Board 2",
+      "devices": [
+        {
+          "device_id": "0001",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656,
+              646,
+              636,
+              625,
+              615,
+              605,
+              594,
+              584,
+              573,
+              563,
+              553,
+              542,
+              532,
+              522,
+              512,
+              502,
+              491,
+              482,
+              472,
+              462,
+              452
+            ]
+          }
+        },
+        {
+          "device_id": "0002",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              4100,
+              4100,
+              4000,
+              4000,
+              3900,
+              3900,
+              3800,
+              3800,
+              3700,
+              3700,
+              3800,
+              3800,
+              3900,
+              3900,
+              4000,
+              4000,
+              4100,
+              4100,
+              4200,
+              4200
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        },
+        {
+          "device_id": "0004",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "led",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1,
+              0
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        },
+        {
+          "device_id": "0009",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656,
+              646,
+              636,
+              625,
+              615,
+              605,
+              594,
+              584,
+              573,
+              563,
+              553,
+              542,
+              532,
+              522,
+              512,
+              502,
+              491,
+              482,
+              472,
+              462,
+              452
+            ]
+          }
+        },
+        {
+          "device_id": "2000",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "4000",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "000D",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000003",
+      "firmware_version": "Scan-All Protocol Test Board 3",
+      "devices": [
+        {
+          "device_id": "0002",
+          "device_type": "fan_speed",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              4100,
+              4100,
+              4000,
+              4000,
+              3900,
+              3900,
+              3800,
+              3800,
+              3700,
+              3700,
+              3800,
+              3800,
+              3900,
+              3900,
+              4000,
+              4000,
+              4100,
+              4100,
+              4200,
+              4200
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        },
+        {
+          "device_id": "8001",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          }
+        },
+        {
+          "device_id": "8002",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "8003",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "8101",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          }
+        },
+        {
+          "device_id": "8102",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "8103",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "8201",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          }
+        },
+        {
+          "device_id": "8202",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "8203",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "8301",
+          "device_type": "system",
+          "asset_info": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          },
+          "boot_target": {
+            "repeatable": true,
+            "responses": [
+              "not yet implemented"
+            ]
+          }
+        },
+        {
+          "device_id": "8302",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "8303",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "0005",
+          "device_type": "led",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1,
+              0
+            ]
+          },
+          "write": {
+            "repeatable": true,
+            "responses": [
+              "W1"
+            ]
+          }
+        },
+        {
+          "device_id": "2000",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "4000",
+          "device_type": "temperature",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              28.78,
+              29.77,
+              30.75,
+              31.84,
+              32.82,
+              33.81,
+              34.89,
+              35.88,
+              36.96,
+              37.94,
+              38.93,
+              40.21,
+              41.27,
+              42.33,
+              43.39,
+              44.45,
+              45.61,
+              46.57,
+              47.63,
+              48.69,
+              49.75
+            ]
+          }
+        },
+        {
+          "device_id": "000D",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "0,0,0,0"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000004",
+      "firmware_version": "Scan-All Protocol Test Board 4",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000005",
+      "firmware_version": "Scan-All Protocol Test Board 5",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000006",
+      "firmware_version": "Scan-All Protocol Test Board 6",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000007",
+      "firmware_version": "Scan-All Protocol Test Board 7",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000008",
+      "firmware_version": "Scan-All Protocol Test Board 8",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "00000009",
+      "firmware_version": "Scan-All Protocol Test Board 9",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "board_id": "0000000A",
+      "firmware_version": "Scan-All Protocol Test Board A",
+      "devices": [
+        {
+          "device_id": "01FF",
+          "device_type": "thermistor",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              656
+            ]
+          }
+        },
+        {
+          "device_id": "02FF",
+          "device_type": "power",
+          "power": {
+            "repeatable": true,
+            "responses": [
+              "64,0,0,0"
+            ]
+          }
+        },
+        {
+          "device_id": "0CFF",
+          "device_type": "humidity",
+          "read": {
+            "repeatable": true,
+            "responses": [
+              1486313281
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

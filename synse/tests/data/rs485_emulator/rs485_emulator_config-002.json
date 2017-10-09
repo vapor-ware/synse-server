@@ -1,0 +1,92 @@
+{
+  "racks": [
+    {
+      "rack_id": "rack_1",
+      "device_name": "/dev/ttyVapor004",
+      "lockfile": "/tmp/rs485-0.lock",
+      "hardware_type": "emulator",
+      "devices": [
+        {
+          "device_type": "humidity",
+          "device_id": "0001",
+          "base_address": "3000",
+          "device_model": "sht31",
+          "device_unit": 1,
+          "device_info": "cec humidity 1"
+        },
+        {
+          "device_type": "humidity",
+          "device_id": "0001",
+          "base_address": "3002",
+          "device_model": "sht31",
+          "device_unit": 1,
+          "device_info": "cec humidity 2"
+        },
+        {
+          "device_type": "humidity",
+          "device_id": "0001",
+          "base_address": "7ac0",
+          "device_model": "sht31",
+          "device_unit": 1,
+          "device_info": "BAD HUMIDITY DEVICE - NO REGISTERS IN EMULATOR"
+        },
+        {
+          "device_type": "airflow",
+          "device_id": "0001",
+          "base_address": "4000",
+          "device_model": "f660",
+          "device_unit": 1,
+          "device_info": "cec airflow 1 - step ranges"
+        },
+        {
+          "device_type": "airflow",
+          "device_id": "0001",
+          "base_address": "4001",
+          "device_model": "f660",
+          "device_unit": 1,
+          "device_info": "cec airflow 2 - min max"
+        },
+        {
+          "device_type": "airflow",
+          "device_id": "0001",
+          "base_address": "4002",
+          "device_model": "f660",
+          "device_unit": 1,
+          "device_info": "cec airflow 3 - all bad"
+        },
+        {
+          "device_type": "airflow",
+          "device_id": "0001",
+          "base_address": "7ac0",
+          "device_model": "f660",
+          "device_unit": 1,
+          "device_info": "BAD AIRFLOW DEVICE - NO REGISTERS IN EMULATOR"
+        },
+        {
+          "device_type": "vapor_fan",
+          "device_id": "0001",
+          "base_address": "0000",
+          "device_model": "gs3-2010",
+          "device_unit": 1,
+          "device_info": "chamber fan"
+        },
+        {
+          "device_type": "vapor_fan",
+          "device_id": "0001",
+          "base_address": "1000",
+          "device_model": "gs3-2010",
+          "device_unit": 1,
+          "device_info": "chamber fan - set-get"
+        },
+        {
+          "device_type": "vapor_fan",
+          "device_id": "0001",
+          "base_address": "7ac0",
+          "device_model": "gs3-2010",
+          "device_unit": 1,
+          "device_info": "BAD FAN DEVICE - NO REGISTERS IN EMULATOR"
+        }
+      ]
+    }
+  ]
+}
