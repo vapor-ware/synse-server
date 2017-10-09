@@ -1,4 +1,5 @@
 [![CircleCI](https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield)](https://circleci.com/gh/vapor-ware/synse-server)
+[![Documentation Status](https://readthedocs.org/projects/synse-server/badge/?version=latest)](http://synse-server.readthedocs.io/en/latest/?badge=latest)
 <img src="https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png" width=25% align=right>
 
 # Synse Server
