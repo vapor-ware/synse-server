@@ -13,7 +13,7 @@ started with
 
 But this won't do very much, since it will have no devices configured to issue commands to. To get Synse Server working
 with real or even emulated hardware, there is a bit of configuration that needs to be done. Below, there is a
-"Quick Start" approach to getting start with using Synse Server. After, the "Detailed Start" covers a bit more detail
+"Quick Start" approach to getting started with using Synse Server. After, the "Detailed Start" covers a bit more detail
 all the ways in which Synse Server can be configured for running.
 
 Quick Start
@@ -88,7 +88,7 @@ Synse Server devices are all set up by configuration. These configurations can e
 (if building a custom Synse Server image) or mounted into the container, which is the preferred approach as it is more
 flexible.
 
-When Synse Server starts, it reads in is configuration files to determine which devices are configured. By default,
+When Synse Server starts, it reads in configuration files to determine which devices should exist. By default,
 Synse Server is not configured with any devices, so it won't do much other than sit there.
 
 .. code-block:: json

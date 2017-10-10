@@ -6,7 +6,7 @@ DeviceBus Interfaces
 ====================
 
 At the heart of Synse Server is the notion of "device bus" (or "devicebus"), which is so-named due to the original
-single-purpose PLC bus, and can now be said to describe "devices and busses" supported by Synse Server. Currently, there
+single-purpose PLC bus, and can now be said to describe "devices and buses" supported by Synse Server. Currently, there
 are six supported devicebus interfaces:
  - :ref:`synse-server-plc-device`
  - :ref:`synse-server-ipmi-device`
