@@ -55,13 +55,13 @@ def convert_thermistor_reading(ad_reading, index, device_name):
     :param index: The index into the raw reading to convert. This is underneath
     a bulk read. Two bytes per individual thermistor reading in ad_reading.
     :param device_name: The type of A/D converter that the thermistor is
-    plugged in to. max_11610 and max_1108 are supported.
+    plugged in to. max-11610 and max-1108 are supported.
     :returns: The temperature in degrees C, or None if no thermistor attached.
     :raises: ValueError on unsupported device_name."""
-    if device_name == 'max_11610':
+    if device_name == 'max-11610':
         temperature = thermistor_max11610_adc(
             ad_reading[index:index + 2])
-    elif device_name == 'max_11608':
+    elif device_name == 'max-11608':
         temperature = thermistor_max11608_adc(
             ad_reading[index:index + 2])
     else:

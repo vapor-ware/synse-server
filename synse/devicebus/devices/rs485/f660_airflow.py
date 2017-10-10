@@ -154,7 +154,7 @@ class F660Airflow(RS485Device):
             response = RS485Device.redirect_call_to_vec_leader(request.url)
             return {const.UOM_AIRFLOW: response[const.UOM_AIRFLOW]}
 
-        data_file = self._get_bg_read_file(str(self.unit), '{0:04d}'.format(self.register_base))
+        data_file = self._get_bg_read_file(str(self.unit), '{0:04x}'.format(self.register_base))
         data = F660Airflow.read_sensor_data_file(data_file)
         return {const.UOM_AIRFLOW: data[0]}
 

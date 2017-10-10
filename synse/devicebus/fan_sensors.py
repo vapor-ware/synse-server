@@ -32,8 +32,9 @@ import json
 import logging
 
 from synse.devicebus.devices.i2c.max116xx_adc_thermistor import \
-    Max11608Thermistor
+    Max11608Thermistor, Max11610Thermistor
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure
+from synse.errors import SynseException
 from synse.protocols.i2c_common import i2c_common
 from synse.vapor_common.vapor_config import ConfigManager
 
@@ -41,8 +42,10 @@ logger = logging.getLogger(__name__)
 
 
 class FanSensor(object):
-    """ Simple data about a sensor. These sensors are all related to auto-fan
-    and may not be on the fan controller proper. (Most are not).
+    """Collection of all sensors on a single VEC read in parallel by auto-fan.
+    This represents a single read of all sensors except the ones on the the
+    shared bus. These are the thermistors and differential pressure
+    sensors.
     """
     def __init__(self, name, units, device):
         if name is None:
@@ -118,16 +121,24 @@ class FanSensors(object):
 
         # From i2c.
 
-        # FUTURE: We should probably do this the way the i2c daemon does it by reading
-        # the synse config.
+        # Supported thermistor types are Max11610Thermistor and Max11608Thermistor.
+        max_11610_thermistors = self._find_devices_by_instance_name(
+            Max11610Thermistor.get_instance_name())
 
-        # FUTURE: All thermistors need the same device_name to support bulk reads.
-        # It doesn't matter now since we're not even using device_name from the synse
-        # config for production i2c sensor reads. Also true for differential pressure
-        # (i2c as well).
-        self.thermistor_devices = self._find_devices_by_instance_name(
+        max_11608_thermistors = self._find_devices_by_instance_name(
             Max11608Thermistor.get_instance_name())
-        # List length FanSensors.SUPPORTED_THERMISTOR_COUNT, all entries are None.
+
+        # Thermistors must all be the same type for bulk reads.
+        if len(max_11610_thermistors) != 0 and len(max_11608_thermistors) != 0:
+            raise SynseException('Found multiple thermistor models which is not supported')
+
+        if len(max_11610_thermistors) != 0:
+            self.thermistor_devices = self._find_devices_by_instance_name(
+                Max11610Thermistor.get_instance_name())
+        else:
+            self.thermistor_devices = self._find_devices_by_instance_name(
+                Max11608Thermistor.get_instance_name())
+
         self.thermistors = [None] * FanSensors.SUPPORTED_THERMISTOR_COUNT
         for d in self.thermistor_devices:
             channel = d.channel
@@ -279,9 +290,11 @@ class FanSensors(object):
 
     def _read_thermistors_direct(self):
         """Read the configured thermistors by hitting the bus."""
-        readings = i2c_common.read_thermistors(self.thermistor_read_count)
-        for i, reading in enumerate(readings):
-            self.thermistors[i].reading = reading
+        if self.thermistor_read_count < 0:
+            thermistor_model = type(self.thermistors)._instance_name
+            readings = i2c_common.read_thermistors(self.thermistor_read_count, thermistor_model)
+            for i, reading in enumerate(readings):
+                self.thermistors[i].reading = reading
 
     def _read_thermistors_indirect(self):
         """Read the configured thermistors without hitting the bus."""

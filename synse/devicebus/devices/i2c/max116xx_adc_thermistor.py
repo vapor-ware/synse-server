@@ -53,6 +53,8 @@ class Max116xxThermistor(I2CDevice):
         super(Max116xxThermistor, self).__init__(**kwargs)
         logger.debug('Max116xxThermistor kwargs: {}'.format(kwargs))
 
+        _instance_name = None  # Must be overridden in a subclass.
+
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
 
@@ -132,7 +134,7 @@ class Max116xxThermistor(I2CDevice):
             dict: the thermistor reading value.
         """
         logger.debug('indirect_sensor_read')
-        data_file = self._get_bg_read_file('{0:04d}'.format(self.channel))
+        data_file = self._get_bg_read_file('{0:04x}'.format(self.channel))
         data = Max11608Thermistor.read_sensor_data_file(data_file)
         return {const.UOM_TEMPERATURE: data[0]}
 
@@ -155,7 +157,8 @@ class Max116xxThermistor(I2CDevice):
             elif self.hardware_type == 'production':
                 # Channel is zero based in the synse config.
                 # Read channel + 1 thermistors and return the last one read in the reading.
-                readings = i2c_common.read_thermistors(self.channel + 1, self.__class__._instance_name)
+                readings = i2c_common.read_thermistors(
+                    self.channel + 1, type(self)._instance_name)
                 return {const.UOM_TEMPERATURE: readings[self.channel]}
 
             else:
