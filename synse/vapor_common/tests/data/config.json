@@ -1,1 +1,0 @@
-{"string_value": "value1", "dict_value": {"val2": 2, "val1": 1}, "bool_value": true, "list_value": [1, 2, 3, 4], "float_value": 1.234, "int_value": 5000, "none_value": null}
