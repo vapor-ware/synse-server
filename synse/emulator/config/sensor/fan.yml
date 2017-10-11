@@ -1,0 +1,14 @@
+version: 1.0
+type: emulated-fan
+model: emul8-fan
+
+locations:
+  unknown:
+    rack: unknown
+    board: unknown
+
+devices:
+  - id: 4
+    location: unknown
+    comment: emulated fan device
+    info: fan

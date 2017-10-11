@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+
+service InternalApi {
+
+    // Read from the specified device(s).
+    rpc Read(ReadRequest) returns (stream ReadResponse) {}
+
+    // Write to the specified device(s).
+    rpc Write(WriteRequest) returns (TransactionId) {}
+
+    // Get the metainformation from the background process that describes
+    // all of the available devices which that process owns
+    rpc Metainfo(MetainfoRequest) returns (stream MetainfoResponse) {}
+
+    // Check on the state of a write transaction.
+    rpc TransactionCheck(TransactionId) returns (WriteResponse) {}
+
+}
+
+
+// -------------------------------
+// Request Messages
+// -------------------------------
+
+
+// Read
+// ~~~~
+// the read request message contains the uuid of the device that
+// we desire to read. the uuid of the device should be generated
+// by the owning background process and should be returned to the
+// synse application in the MetainfoResponse, which Synse will
+// cache and use as a lookup table for routing requests.
+message ReadRequest {
+
+    string uid = 1;
+}
+
+
+// Write
+// ~~~~~
+// the write request message contains the uuid of the device that
+// we desire to write to, as well as a repeated string (e.g. a
+// list of strings in Python) which makes up the data that we
+// which to write to that device.
+message WriteRequest {
+
+    string uid = 1;
+
+    // TODO: should this be string or bytes?
+    repeated string data = 2;
+}
+
+
+// Metainfo
+// ~~~~~~~~
+// the metainfo request message contains a field for rack and board,
+// but neither are required. if specified, the response will contain
+// only information relating to the rack/board filter applied. if
+// they are left unspecified, the response will contain the entirety
+// of the metainfo scan information.
+message MetainfoRequest {
+
+    string rack = 1;
+    string board = 2;
+}
+
+
+// TransactionCheck
+// ~~~~~~~~~~~~~~~~
+// the transaction id gives identity to a single 'write' action. since
+// device writes are handled asynchronously, the background process
+// returns the transaction id when a write is registered, which the
+// caller can later pass back to `TransactionCheck` to get the status
+// of that write.
+message TransactionId {
+
+    string id = 1;
+
+}
+
+
+// -------------------------------
+// Response Messages
+// -------------------------------
+
+
+// Read
+// ~~~~
+// the read response provides the timestamp at which the reading was
+// taken, the type of the reading (e.g. temperature, humidity, led
+// state, etc.), and the value of that reading. read responses are
+// returned to the client as a stream, so a single device can return
+// multiple readings. (e.g. a humidity sensor can return a %humidity
+// reading and a temperature reading).
+message ReadResponse {
+
+    string timestamp = 1;
+    ReadingType type = 2;
+    string value = 3;
+}
+
+
+// Write
+// ~~~~~
+// See: `TransactionId`, above.
+
+
+// Metainfo
+// ~~~~~~~~
+// the metainfo response represents a single device that is owned by
+// the process. metainfo responses are returned to the client as a stream
+// so a background process can support any number of devices. the response
+// itself contains a timestamp for when the response was generated, an
+// for the device, and all other meta-information we have pertaining to
+// that device. the caller, Synse, will cache this information and use it
+// to route requests to the appropriate device as well as provide responses
+// for scan and info requests.
+message MetainfoResponse {
+
+    string timestamp = 1;
+    string uid = 2;
+    string type = 3;
+    string model = 4;
+    string manufacturer = 5;
+    string protocol = 6;
+    string info = 7;
+    string comment = 8;
+
+    MetaLocation location = 9;
+    repeated MetaOutput output = 10;
+}
+
+
+// TransactionCheck
+// ~~~~~~~~~~~~~~~~
+// the response for a transaction check command gives the status of the
+// transaction. transactions correspond to write requests. since writes
+// are performed asynchronously, the transaction id is used to track the
+// progress of that transaction.
+message WriteResponse {
+
+    enum WriteStatus {
+        UNKNOWN = 0;
+        PENDING = 1;
+        WRITING = 2;
+        DONE = 3;
+    }
+
+    enum WriteState {
+        OK = 0;
+        ERROR = 1;
+    }
+
+    string timestamp = 1;
+    WriteStatus status = 2;
+    WriteState state = 3;
+}
+
+
+// -------------------------------
+// Message Components
+// -------------------------------
+
+enum ReadingType {
+    UNKNOWN = 0;
+    TEMPERATURE = 1;
+    DIFFERENTIAL_PRESSURE = 2;
+    AIRFLOW = 3;
+    HUMIDITY = 4;
+    LED_STATE = 5;
+    LED_BLINK = 6;
+}
+
+
+message MetaOutputUnit {
+    string name = 1;
+    string symbol = 2;
+}
+
+
+message MetaOutputRange {
+    int32 min = 1;
+    int32 max = 2;
+}
+
+
+message MetaOutput {
+    string type = 1;
+    int32 precision = 2;
+    MetaOutputUnit unit = 3;
+    MetaOutputRange range = 4;
+}
+
+
+message MetaLocation {
+    string rack = 1;
+    string board = 2;
+    string device = 3;
+}

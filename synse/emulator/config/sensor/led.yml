@@ -1,0 +1,18 @@
+version: 1.0
+type: emulated-led
+model: emul8-led
+
+locations:
+  unknown:
+    rack: unknown
+    board: unknown
+
+devices:
+  - id: 5
+    location: unknown
+    comment: first emulated led device
+    info: Chamber LED 1
+  - id: 6
+    location: unknown
+    comment: second emulated led device
+    info: Chamber LED 2

@@ -1,0 +1,8 @@
+version: 1.0
+type: emulated-led
+model: emul8-led
+manufacturer: vaporio
+protocol: emulator
+output:
+  - type: led_state
+  - type: led_color

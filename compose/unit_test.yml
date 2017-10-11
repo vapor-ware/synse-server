@@ -1,0 +1,11 @@
+version: "3"
+services:
+  synse-test:
+    container_name: synse-test
+    image: vaporio/synse-server:${GIT_VER}
+    build:
+      context: ..
+      dockerfile: dockerfile/test.dockerfile
+    volumes:
+      - ..:/code
+    command: bin/run_tests.sh unit

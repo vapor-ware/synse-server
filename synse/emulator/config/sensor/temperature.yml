@@ -1,0 +1,22 @@
+version: 1.0
+type: emulated-temperature
+model: emul8-temp
+
+locations:
+  unknown:
+    rack: unknown
+    board: unknown
+
+devices:
+  - id: 1
+    location: unknown
+    comment: first emulated temperature device
+    info: CEC temp 1
+  - id: 2
+    location: unknown
+    comment: second emulated temperature device
+    info: CEC temp 2
+  - id: 3
+    location: unknown
+    comment: third emulated temperature device
+    info: CEC temp 3
