@@ -283,7 +283,7 @@ class GS32010Fan(RS485Device):
             RS485Device.redirect_call_to_vec_leader(request.url)
             return
 
-        data_file = self._get_bg_write_file(str(self.unit), '{0:04d}'.format(self.register_base))
+        data_file = self._get_bg_write_file(str(self.unit), '{0:04x}'.format(self.register_base))
         logger.debug('data_file: {}, speed_rpm: {}'.format(data_file, speed_rpm))
 
         with open(data_file, 'w') as f:
@@ -303,7 +303,7 @@ class GS32010Fan(RS485Device):
             response = RS485Device.redirect_call_to_vec_leader(request.url)
             return response[const.UOM_VAPOR_FAN], response[const.UOM_DIRECTION]
 
-        data_file = self._get_bg_read_file(str(self.unit), '{0:04d}'.format(self.register_base))
+        data_file = self._get_bg_read_file(str(self.unit), '{0:04x}'.format(self.register_base))
         data = GS32010Fan.read_sensor_data_file(data_file)
         return (
             int(data[0]),  # rpm

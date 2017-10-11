@@ -73,7 +73,7 @@ class _S(object):
     # TODO: Ticket. Should probably read device type rather than sensor type. (553)
     ERROR_WRONG_DEVICE_TYPE = 'Wrong sensor type. ' \
                               'Request to read {}, but this sensor reads {}.'
-    ERROR_NO_REGISTERED_DEVICE_FOR_BOARD = 'Board ID ({}) not associated with any registered devicebus handler.'
+    ERROR_NO_REGISTERED_DEVICE_FOR_BOARD = 'Board ID ({:08x}) not associated with any registered devicebus handler.'
 
     LED_COLOR = 'led_color'
     LED_STATE = 'led_state'
