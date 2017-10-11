@@ -75,6 +75,7 @@ __api/server__
         - [ ] support all permutations (rack/board/device)
 - [ ] add JSON error responses
 - [ ] add internal error codes for error responses (easier for error id and debug)
+- [ ] use vapor-ware/synse-server-grpc to get python client for GRPC
 
 
 __configuration__
@@ -116,6 +117,7 @@ __testing__
 
 
 __misc__
+- [ ] finish designing out the notion of "deterministic rack/board/device ids"
 - [ ] write docker files / compose files for
     - [ ] production (release)
     - [ ] development (dev)
