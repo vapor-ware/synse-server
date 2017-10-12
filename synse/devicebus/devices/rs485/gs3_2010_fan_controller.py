@@ -41,12 +41,9 @@ from synse.devicebus.devices.rs485.rs485_device import RS485Device
 from synse.devicebus.response import Response
 from synse.errors import SynseException
 from synse.protocols.conversions import conversions
+from synse.protocols.modbus import modbus_common  # nopep8
 
 logger = logging.getLogger(__name__)
-
-# establish constants for min/max fan speeds for this unit
-MIN_FAN_SPEED_RPM = 0
-MAX_FAN_SPEED_RPM = 1755
 
 
 class GS32010Fan(RS485Device):
@@ -99,6 +96,17 @@ class GS32010Fan(RS485Device):
         # Get remainder from kwargs that is not accounted for.
         self.slave_address = kwargs['device_unit']  # device_unit is the modbus slave address.
         self.device_model = kwargs['device_model']
+
+        # Get the max fan speed and the minimum allowed non-zero fan speed setting.
+        self.max_rpm = None
+        self.min_nonzero_rpm = None
+        if self.hardware_type == 'production':
+            client = self.create_modbus_client()
+            # Maximum rpm supported by the fan motor.
+            self.max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
+            # Minimum rpm setting allowed. For now this is 10% of the max. This is
+            # due to minimal back EMF at low rpms.
+            self.min_nonzero_rpm = self.max_rpm / 10
 
         logger.debug('GS32010Fan self: {}'.format(dir(self)))
 
@@ -205,7 +213,7 @@ class GS32010Fan(RS485Device):
         with self._lock:
             if self.hardware_type == 'emulator':
                 if action == 'set_speed' and speed_rpm is not None:
-                    GS32010Fan._check_fan_speed_setting(speed_rpm)
+                    self._check_fan_speed_setting(speed_rpm)
 
                     with ModbusClient(method=self.method, port=self.device_name,
                                       timeout=self.timeout) as client:
@@ -247,17 +255,20 @@ class GS32010Fan(RS485Device):
 
             elif self.hardware_type == 'production':
                 # Production
+                # Write speed.
                 if action == 'set_speed' and speed_rpm is not None:
                     if self.from_background:
                         self._write_indirect(speed_rpm)
                         return {const.UOM_VAPOR_FAN: speed_rpm}
 
-                    GS32010Fan._check_fan_speed_setting(speed_rpm)
+                    speed_rpm = int(speed_rpm)
+                    self._check_fan_speed_setting(speed_rpm)
                     self._set_rpm(speed_rpm)
                     # Return the speed_rpm setting and not a read since the fan
                     # is likely ramping up or coasting down to the set speed.
                     return {const.UOM_VAPOR_FAN: speed_rpm}
 
+                # Read speed.
                 if self.from_background:
                     rpm, direction = self._read_indirect()
                 else:
@@ -318,8 +329,7 @@ class GS32010Fan(RS485Device):
         """
         return self._get_rpm(), self._get_direction()
 
-    @staticmethod
-    def _check_fan_speed_setting(speed_rpm):
+    def _check_fan_speed_setting(self, speed_rpm):
         """ Ensure that the caller's speed_rpm setting is valid.
 
         Args:
@@ -328,12 +338,19 @@ class GS32010Fan(RS485Device):
         Raises:
             SynseException on failure.
         """
-        if not MIN_FAN_SPEED_RPM <= speed_rpm <= MAX_FAN_SPEED_RPM:
-            raise SynseException(
-                'Invalid speed setting {} for GS3-2010 fan control - '
-                'must be between {} and {}'.format(
-                    speed_rpm, MIN_FAN_SPEED_RPM, MAX_FAN_SPEED_RPM)
-            )
+        if self.hardware_type == 'emulator':
+            if speed_rpm < 0:
+                raise SynseException(
+                    'Invalid speed setting {} for GS3-2010 fan control.'.format(speed_rpm))
+        elif self.hardware_type == 'production':
+            if speed_rpm != 0:
+                if not self.min_nonzero_rpm <= speed_rpm <= self.max_rpm:
+                    raise SynseException(
+                        'Invalid speed setting {} for GS3-2010 fan control - '
+                        'must be zero or between {} and {}'.format(
+                            speed_rpm, self.min_nonzero_rpm, self.max_rpm))
+        else:
+            raise SynseException('Unknown hardware type {}.', self.hardware_type)
 
     def _get_direction(self):
         """ Production only direction reads from gs3_2010_fan (vapor_fan).
@@ -361,15 +378,17 @@ class GS32010Fan(RS485Device):
         result = client.read_holding_registers(self.slave_address, 0x2107, 1)
         return conversions.unpack_word(result)
 
-    def _set_rpm(self, rpm):
+    def _set_rpm(self, rpm_setting):
         """ Set fan speed to the given RPM.
 
+        :param rpm_setting: The user supplied rpm setting.
+        
         Returns:
             The RPM setting.
         """
         client = self.create_modbus_client()
 
-        if rpm == 0:  # Turn the fan off.
+        if rpm_setting == 0:  # Turn the fan off.
             result = client.write_multiple_registers(
                 1,  # Slave address. TODO: Slave address should come from the config.
                 0x91B,  # Register to write to.
@@ -378,7 +397,9 @@ class GS32010Fan(RS485Device):
                 '\x00\x00')  # Data to write.
 
         else:  # Turn the fan on at the desired RPM.
-            packed_hz = conversions.fan_gs3_2010_rpm_to_packed_hz(rpm)
+            rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(client.serial_device, self.max_rpm)
+            hz = rpm_setting * rpm_to_hz
+            packed_hz = conversions.fan_gs3_packed_hz(hz)
 
             result = client.write_multiple_registers(
                 1,  # Slave address.
