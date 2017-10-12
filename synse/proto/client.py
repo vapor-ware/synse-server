@@ -6,7 +6,9 @@ import grpc
 
 from synse.const import BG_SOCKS
 from synse.log import logger
-from synse.proto import api_pb2, api_pb2_grpc
+
+from synse_plugin import api as synse_api
+from synse_plugin import grpc as synse_grpc
 
 
 class SynseInternalClient(object):
@@ -42,7 +44,7 @@ class SynseInternalClient(object):
 
     def _stub(self):
         """ Convenience method to create the grpc stub. """
-        return api_pb2_grpc.InternalApiStub(self.channel)
+        return synse_grpc.InternalApiStub(self.channel)
 
     @classmethod
     def get_client(cls, name):
@@ -74,7 +76,7 @@ class SynseInternalClient(object):
         Args:
             device_id (str)
         """
-        req = api_pb2.ReadRequest(
+        req = synse_api.ReadRequest(
             uid=str(device_id)
         )
 
@@ -96,7 +98,7 @@ class SynseInternalClient(object):
         rack = rack if rack is not None else ''
         board = board if board is not None else ''
 
-        req = api_pb2.MetainfoRequest(
+        req = synse_api.MetainfoRequest(
             rack=str(rack),
             board=str(board)
         )
@@ -114,7 +116,7 @@ class SynseInternalClient(object):
             device_id (str):
             data (list[str]):
         """
-        req = api_pb2.WriteRequest(
+        req = synse_api.WriteRequest(
             uid=device_id,
             data=data
         )
@@ -128,7 +130,7 @@ class SynseInternalClient(object):
         Args:
             transaction_id (str):
         """
-        req = api_pb2.TransactionId(
+        req = synse_api.TransactionId(
             id=str(transaction_id)
         )
 

@@ -17,6 +17,11 @@ RUN set -e -x \
 COPY . /synse
 WORKDIR /synse
 
+# FIXME -- this is temporary until I can figure out how to properly get this from GH
+RUN ls -al
+RUN pip3 install synse_plugin-*.tar.gz
+RUN pip freeze
+
 # the location where the bg processes will place their
 # unix sockets so the Synse app can communicate.
 RUN mkdir -p /synse/procs
