@@ -681,17 +681,13 @@ class Rs485EndpointsTestCase(unittest.TestCase):
     def test_026_set_invalid_speed(self):
         """ Test writing an RS485 device.  Set invalid speed.
         """
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/1756')
-
+        # The fan code no longer checks the max speed at the endpoint.
+        # Max speed is motor specific and these tests do not have a motor.
         with self.assertRaises(VaporHTTPError):
             http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/-1')
 
         with self.assertRaises(VaporHTTPError):
             http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/taco')
-
-        with self.assertRaises(VaporHTTPError):
-            http.get(PREFIX + '/fan/rack_1/50000008/chamber fan - set-get/9000')
 
     def test_027_read_fan_version(self):
         """

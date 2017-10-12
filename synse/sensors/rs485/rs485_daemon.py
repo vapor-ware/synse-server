@@ -20,6 +20,7 @@ import requests
 
 from synse.protocols.conversions import conversions
 from synse.protocols.modbus import dkmodbus
+from synse.protocols.modbus import modbus_common  # nopep8
 from synse.sensors import common
 from synse.vapor_common.vapor_config import ConfigManager
 from synse.vapor_common.vapor_logging import setup_logging
@@ -153,7 +154,7 @@ def _handle_fan_speed_write(fan_info):
             # Read the file it should contain the speed in rpm.
             # Write the speed to the fan. Delete the file on success.
             with open(fan_info.path, 'r') as f:
-                speed = f.read()
+                speed = int(f.read())
             logger.debug('writing fan speed: {}.'.format(speed))
             _set_fan_rpm(fan_info.serial_device, fan_info.device, speed)
             os.remove(fan_info.path)
@@ -307,14 +308,14 @@ def _read_sht31_humidity(rack_id, serial_device, device):
     common.write_readings(path, [temperature, humidity])
 
 
-def _set_fan_rpm(serial_device, device, rpm):
+def _set_fan_rpm(serial_device, device, rpm_setting):
     """Set fan speed to the given RPM by calling out to the bus.
-    :param serial_device: The serial device name.
-    :param device: The vapor_fan device.
-    :param rpm: The fan speed setting in RPM.
-    :returns: The fan speed setting in RPM."""
+    :param serial_device: The serial device name. Example: /dev/ttyUSB3
+    :param device: The vapor_fan device. Example: class GS32010Fan
+    :param rpm_setting: The fan speed setting in RPM.
+    :returns: The modbus write result."""
     client = _create_modbus_client(serial_device, device)
-    if rpm == 0:  # Turn the fan off.
+    if rpm_setting == 0:  # Turn the fan off.
         result = client.write_multiple_registers(
             int(device['device_unit']),  # Slave address.
             0x91B,  # Register to write to.
@@ -323,7 +324,10 @@ def _set_fan_rpm(serial_device, device, rpm):
             '\x00\x00')  # Data to write.
 
     else:  # Turn the fan on at the desired RPM.
-        packed_hz = conversions.fan_gs3_2010_rpm_to_packed_hz(rpm)
+        max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
+        rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(client.serial_device, max_rpm)
+        hz = rpm_setting * rpm_to_hz
+        packed_hz = conversions.fan_gs3_packed_hz(hz)
 
         result = client.write_multiple_registers(
             int(device['device_unit']),  # Slave address.

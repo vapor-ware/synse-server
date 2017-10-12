@@ -645,15 +645,15 @@ def fan_control(rack_id, board_id, device_id, fan_speed=None):
     if fan_speed is None:
         return read_device(rack_id, const.DEVICE_FAN_SPEED, board_id, device_id)
 
-    # convert fan speed to int
-    if fan_speed is not None:
+    if fan_speed != 'max':
+        # max is a synse-server-internal only route. See gs3_2010_fan_controller.
         try:
+            # Check that we have a positive integer.
+            # We cannot check max here because max is fan motor specific.
             fan_speed_int = int(fan_speed)
-            # FIXME: we can move this to individual device instances which will give us finer-toothed control
-            if definitions.MAX_FAN_SPEED < fan_speed_int or definitions.MIN_FAN_SPEED > fan_speed_int:
+            if fan_speed_int < 0:
                 raise ValueError('Fan speed out of acceptable range.')
         except ValueError as e:
-            logger.error('Fan: Error converting fan_speed: %s', str(fan_speed))
             raise SynseException('Error converting fan_speed to integer ({}).'.format(e))
 
     cmd = current_app.config['CMD_FACTORY'].get_fan_command({

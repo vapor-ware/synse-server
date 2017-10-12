@@ -230,10 +230,10 @@ class FanSpeedTestCase(unittest.TestCase):
         r = http.get(PREFIX + '/fan/rack_1/00000028/0001/00000000004100')
         self.assertTrue(http.request_ok(r.status_code))
 
-        with self.assertRaises(VaporHTTPError) as ctx:
-            http.get(PREFIX + '/fan/rack_1/00000028/0001/12345678901234567890')
-
-        self.assertEqual(ctx.exception.status, 500)
+        # The fan code no longer checks the max speed at the endpoint.
+        # Max speed is motor specific and these tests do not have a motor.
+        http.get(PREFIX + '/fan/rack_1/00000028/0001/12345678901234567890')
+        self.assertTrue(http.request_ok(r.status_code))
 
     def test_011_write_neg_num(self):
         """ Test write with negative numbers.

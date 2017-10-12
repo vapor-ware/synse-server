@@ -50,11 +50,5 @@ SHUFFLE_BOARD_ID = 1 << SHUFFLE_BIT
 # set bit 4 of upper byte of board_id to 1=SAVE (0x10000000)
 SAVE_BOARD_ID = 1 << SAVE_BIT
 
-
-# fan speed constraints
-MAX_FAN_SPEED = 10000
-MIN_FAN_SPEED = 0
-
-
 # BMC port
 BMC_PORT = 623

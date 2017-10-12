@@ -484,9 +484,17 @@ class PLCDevice(SerialDevice):
         try:
             device_type_string = device_type_string.lower()
 
-            # for now, temperature and pressure are just a string->float, all else
-            # require int conversion
-            device_raw = float(''.join([chr(x) for x in response.data]))
+            # Temperature and pressure are just a string->float, all else
+            # require int conversion except the fan speed max route required
+            # for auto fan tests.
+            device_raw = ''.join([chr(x) for x in response.data])
+            try:
+                device_raw = float(device_raw)
+            except ValueError as e:
+                if not (isinstance(device_raw, basestring) and device_raw == 'max'):
+                    # Here is is the special case for the auto fan endpoint tests.
+                    # device_raw will come in as max.
+                    raise e
 
             if device_type_string == const.DEVICE_TEMPERATURE:
                 response_data = {const.UOM_TEMPERATURE: device_raw}
@@ -495,8 +503,10 @@ class PLCDevice(SerialDevice):
                 response_data = {const.UOM_PRESSURE: device_raw}
 
             else:
-                # for all other sensors get raw value as integer
-                device_raw = int(''.join([chr(x) for x in response.data]))
+                # For all other sensors get raw value as integer
+                # unless we have a string.
+                if isinstance(device_raw, float):
+                    device_raw = int(''.join([chr(x) for x in response.data]))
 
                 # convert raw value and jsonify the device reading
                 if device_type_string == const.DEVICE_THERMISTOR:
@@ -509,7 +519,21 @@ class PLCDevice(SerialDevice):
 
                 elif device_type_string == const.DEVICE_FAN_SPEED:
                     # TODO: retrieve fan mode from the auto_fan controller
-                    response_data = {const.UOM_FAN_SPEED: device_raw, 'fan_mode': 'auto', 'direction': 'forward'}
+                    if device_raw == 'max':
+                        # Response to test this url: GET /synse/1.4/fan/vapor_plc_rack/00000300/0001/max
+                        # For the auto_fan endpoint tests, pretend the fan goes from 0-1755 rpm
+                        # with a minimal non-zero setting of 175 rpm. (10% of 1755)
+                        response_data = {
+                            const.UOM_VAPOR_FAN_MIN: 175,
+                            const.UOM_VAPOR_FAN_MAX: 1755
+                        }
+                    else:
+                        # Response to test a fan speed get.
+                        response_data = {
+                            const.UOM_FAN_SPEED: device_raw,
+                            'fan_mode': 'auto',
+                            'direction': 'forward'
+                        }
 
                 elif device_type_string == const.DEVICE_VAPOR_FAN:
                     # TODO: retrieve fan mode from the auto_fan controller
