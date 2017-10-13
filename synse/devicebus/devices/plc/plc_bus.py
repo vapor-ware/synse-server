@@ -259,12 +259,14 @@ class DeviceBusPacket(object):
                 # them as-is, instead of collecting them under a general failure
                 logger.debug('<<Invalid_data ({}): {}'.format(e.message, str([hex(x) for x in serialbytes])))
                 raise e
-            except Exception:
+            except Exception as e:
                 # a catchall exception used to indicate that something bad has
                 # happened - this could be related to errors reading off the bus
                 # or reading nothing at all. in either case, we are unable to
                 # recover, so BusTimeoutException is passed up the chain for
                 # appropriate handling.
+                logger.error('Failed to communicate on PLC bus.')
+                logger.exception(e)
                 raise BusTimeoutException('No response from bus.')
 
         elif data_bytes is not None:
