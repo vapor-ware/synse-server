@@ -282,49 +282,19 @@ class FanSensors(object):
             return i2c_config
 
     def _read_thermistors(self):
-        """Read the configured thermistors."""
-        if self.from_background:
-            self._read_thermistors_indirect()
-        else:
-            self._read_thermistors_direct()
-
-    def _read_thermistors_direct(self):
         """Read the configured thermistors by hitting the bus."""
         if self.thermistor_read_count < 0:
-            thermistor_model = type(self.thermistors)._instance_name
+            thermistor_model = type(self.thermistors).get_instance_name()
             readings = i2c_common.read_thermistors(self.thermistor_read_count, thermistor_model)
             for i, reading in enumerate(readings):
                 self.thermistors[i].reading = reading
 
-    def _read_thermistors_indirect(self):
-        """Read the configured thermistors without hitting the bus."""
-        for t in self.thermistor_devices:
-            channel = t.channel
-            data = t.indirect_sensor_read()[const.UOM_TEMPERATURE]
-            self.thermistors[channel].reading = data
-        logger.debug('_read_thermistors_indirect: {}'.format(self.thermistors))
-
     def _read_differential_pressures(self):
-        """Read the configured differential pressure sensors."""
-        if self.from_background:
-            self._read_differential_pressures_indirect()
-        else:
-            self._read_differential_pressures_direct()
-
-    def _read_differential_pressures_direct(self):
         """Read the configured differential pressure sensors by hitting the bus."""
-        readings = i2c_common.read_differential_pressures(self.differential_pressure_read_count)
+        readings = i2c_common.read_differential_pressures(
+            self.differential_pressure_read_count)
         for i, reading in enumerate(readings):
             self.differential_pressures[i].reading = reading
-
-    def _read_differential_pressures_indirect(self):
-        """Read the configured differential pressure sensors without hitting the bus."""
-        for dp in self.differential_pressure_devices:
-            channel = dp.channel
-            ordinal = i2c_common.get_channel_ordinal(channel)
-            data = dp.indirect_sensor_read()[const.UOM_PRESSURE]
-            self.differential_pressures[ordinal].reading = data
-        logger.debug('_read_diff_pressures_indirect: {}'.format(self.differential_pressures))
 
     def _thermistor_read_count(self):
         """ Determine the number of thermistors to read on each
