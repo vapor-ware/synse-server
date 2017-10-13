@@ -125,6 +125,10 @@ function start-plc-emulator {
     socat PTY,link=/dev/ttyVapor001,mode=666 PTY,link=/dev/ttyVapor002,mode=666 &
     python -u /synse/synse/emulator/plc/devicebus_emulator.py $1 &
 
+    # Sleep for a short bit - this is to give the emulator enough time to start
+    # up and configure before synse starts hitting it with requests.
+    sleep 0.25
+
 }; function emulate-plc-with-cfg {
     start-plc-emulator $1
 
@@ -137,6 +141,10 @@ function start-plc-emulator {
 function start-i2c-emulator {
     socat PTY,link=/dev/ttyVapor005,mode=666 PTY,link=/dev/ttyVapor006,mode=666 &
     python -u /synse/synse/emulator/i2c/i2c_emulator.py $1 &
+
+    # Sleep for a short bit - this is to give the emulator enough time to start
+    # up and configure before synse starts hitting it with requests.
+    sleep 0.25
 
 }; function emulate-i2c-with-cfg {
     cp /synse/configs/synse/i2c/synse_config.json /synse/override/i2c_config.json
@@ -157,6 +165,10 @@ function start-i2c-emulator {
 function start-rs485-emulator {
     socat PTY,link=/dev/ttyVapor003,mode=666 PTY,link=/dev/ttyVapor004,mode=666 &
     python -u /synse/synse/emulator/rs485/rs485_emulator.py $1 &
+
+    # Sleep for a short bit - this is to give the emulator enough time to start
+    # up and configure before synse starts hitting it with requests.
+    sleep 0.25
 
 }; function emulate-rs485-with-cfg {
     cp /synse/configs/synse/rs485/synse_config.json /synse/override/rs485_config.json
