@@ -69,13 +69,6 @@ class DevicebusInterface(object):
         # lookups when routing commands to specific devices.
         self.device_uuid = uuid()
 
-        # defines a flag that can be checked to see whether the device is configured
-        # to operate directly (e.g. via the synse application) or indirectly
-        # (e.g. via a background process). this flag is set on device registration
-        # if the device is configured with the "from_background" field (default
-        # False).
-        self.from_background = False
-
         # the rack id for which the device resides on. initialized as None here, but
         # when the subclasses are registered/initialized, they will provide the
         # actual rack_id

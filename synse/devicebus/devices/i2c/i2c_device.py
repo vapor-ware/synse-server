@@ -55,9 +55,6 @@ class I2CDevice(SerialDevice):
 
         self._lock = lockfile.LockFile(self.serial_lock)
 
-        # the device is read from a background process
-        self.from_background = kwargs.get('from_background', False)
-
         # initialize board record -- all subclasses should implement their
         # own board record.
         self.board_record = None
@@ -118,10 +115,6 @@ class I2CDevice(SerialDevice):
                     i2c_device['hardware_type'] = rack.get('hardware_type', 'unknown')
                     i2c_device['device_name'] = rack['device_name']
                     i2c_device['lockfile'] = rack['lockfile']
-
-                    # check whether the device is controlled by a background process
-                    # or if directly by the synse app.
-                    i2c_device['from_background'] = rack.get('from_background', False)
 
                     # sensor configurations
                     i2c_device['altitude'] = _altitude_m
