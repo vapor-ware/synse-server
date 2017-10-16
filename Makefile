@@ -29,9 +29,9 @@ down:
 
 build:
 	docker build -f dockerfile/release.dockerfile \
-		-t vaporio/synse-server:latest \
-		-t vaporio/synse-server:$(PKG_VER) \
-		-t vaporio/synse-server:$(GIT_VER) .
+		-t vaporio/synse-server-internal:latest \
+		-t vaporio/synse-server-internal:$(PKG_VER) \
+		-t vaporio/synse-server-internal:$(GIT_VER) .
 
 
 
@@ -137,3 +137,6 @@ dev: run
 dev-ipmi dev-plc dev-i2c dev-redfish dev-rs485 dev-snmp:
 	docker-compose -f compose/$@.yml up -d && docker exec -it synse-server-dev /bin/bash
 
+# Build. Push to DockerHub.
+push: build
+	docker push vaporio/synse-server-internal:latest

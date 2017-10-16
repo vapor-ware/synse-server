@@ -2,7 +2,7 @@
 """ Diagnostics tool to verify IPMI compatibility.
 
 To Run: Just run ./ipmi_diag.py - this tool will then prepare its environment,
-        download the relevant Docker image (vaporio/synse-server), gather the
+        download the relevant Docker image (vaporio/synse-server-internal), gather the
         necessary BMC information and prop it into the Synse service on startup.
         From there, the output of Synse is validated, providing information on
         available capabilities. If errors are encountered, check the /logs
@@ -78,7 +78,7 @@ def pull_images():
     print "Pulling Synse Docker image... "
     try:
         cli = Client(base_url='unix://var/run/docker.sock')
-        cli.pull('vaporio/synse-server', 'v1.4.0')
+        cli.pull('vaporio/synse-server-internal', 'v1.4.0')
         print "Synse image pulled OK."
         return True
     except Exception, e:
@@ -116,7 +116,7 @@ def start_synse():
     print "Starting Synse... "
     try:
         cli = Client(base_url='unix://var/run/docker.sock')
-        cli.create_container(image='vaporio/synse-server:v1.4.0', detach=True, ports=[5000],
+        cli.create_container(image='vaporio/synse-server:v1.4.0-internal', detach=True, ports=[5000],
                              volumes=['/synse/bmc_config.json', '/logs'], name='synse',
                              command='./start_synse_plc_emulator.sh',
                              host_config=cli.create_host_config(binds=[

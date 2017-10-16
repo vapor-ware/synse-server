@@ -2,14 +2,14 @@
 steps:
 - id: synse-server
   name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/synse-server:$COMMIT_SHA', '-f', 'dockerfile/release.dockerfile', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/synse-server-internal:$COMMIT_SHA', '-f', 'dockerfile/release.dockerfile', '.']
   waitFor:
   - "-"
 - id: synse-server-tag
   name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/synse-server:$TAG_NAME', '-f', 'dockerfile/release.dockerfile', '.']
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/synse-server-internal:$TAG_NAME', '-f', 'dockerfile/release.dockerfile', '.']
   waitFor:
   - "-"
 images:
-- 'gcr.io/$PROJECT_ID/synse-server:$COMMIT_SHA'
-- 'gcr.io/$PROJECT_ID/synse-server:$TAG_NAME'
+- 'gcr.io/$PROJECT_ID/synse-server-internal:$COMMIT_SHA'
+- 'gcr.io/$PROJECT_ID/synse-server-internal:$TAG_NAME'

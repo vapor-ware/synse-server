@@ -28,7 +28,7 @@ __version__ = '1.4.0'
 __description__ = 'Synse Server'
 __author__ = 'Vapor IO'
 __author_email__ = 'eng@vapor.io'
-__url__ = 'https://github.com/vapor-ware/synse-server'
+__url__ = 'https://github.com/vapor-ware/synse-server-internal'
 
 
 if __name__ == '__main__':

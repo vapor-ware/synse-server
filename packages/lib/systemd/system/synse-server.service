@@ -5,7 +5,7 @@ Wants=network.target
 Requires=docker.service
 
 [Service]
-ExecStart=/usr/bin/docker run -v /var/log/synse:/logs -v /etc/synse/config.json:/synse/override/config.json -p 5000:5000 --name synse-server vaporio/synse-server
+ExecStart=/usr/bin/docker run -v /var/log/synse:/logs -v /etc/synse/config.json:/synse/override/config.json -p 5000:5000 --name synse-server vaporio/synse-server-internal
 ExecStop=/usr/bin/docker rm -f synse-server
 Restart=on-abnormal
 RestartSec=20
