@@ -3,7 +3,7 @@ services:
   # This is the container running the tests.
   test-container-x64:
     container_name: test-container-x64
-    image: vaporio/synse-server
+    image: vaporio/synse-server-internal
     build:
       context: ../../../..
       dockerfile: dockerfile/release.dockerfile

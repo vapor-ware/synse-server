@@ -76,9 +76,8 @@ class GS32010Fan(RS485Device):
                 'speed_rpm': self.register_base + 0x0000
             }
         else:
-            # Production. The full production register map is in
-            # synse-server/tools/gs3fan.py It does not lend itself well here
-            # for the limited functionality we need for synse.
+            # Production. The full production register map does not lend itself
+            # well here for the limited functionality we need for synse.
             pass
 
         self.board_id = int(kwargs['board_offset']) + int(kwargs['board_id_range'][0])

@@ -4,7 +4,7 @@ services:
   # Link to the synse web service, not the SNMP emulator.
   test-container-x64:
     container_name: test-container-x64
-    image: vaporio/synse-server
+    image: vaporio/synse-server-internal
     build:
       context: ../../../..
       dockerfile: dockerfile/release.dockerfile
@@ -16,7 +16,7 @@ services:
   # This container is where synse is running.
   # Allows us to make web service calls against it.
   synse-test-container:
-    image: vaporio/synse-server
+    image: vaporio/synse-server-internal
     build:
       context: ../../../..
       dockerfile: dockerfile/release.dockerfile

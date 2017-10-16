@@ -45,7 +45,7 @@ cat <<USAGE
   Synse container, but PLC, RS485, and I2C can be started parallel
   to Synse.
 
-  USAGE:  docker run vaporio/synse-server [flag | subcommand]
+  USAGE:  docker run vaporio/synse-server-internal [flag | subcommand]
 
   Flags:
     --help | -h     Show this message.

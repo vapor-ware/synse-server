@@ -31,7 +31,7 @@ Additional documentation may be found on the [Docs][docs] site.
 
     ```
     curl -s https://packagecloud.io/install/repositories/VaporIO/synse/script.deb.sh | sudo bash
-    sudo apt-get install synse-server
+    sudo apt-get install synse-server-internal
     ```
 
     > Note that if you'd like more detailed instructions, you can see [package cloud](pkg-cloud).
@@ -47,7 +47,7 @@ mocks out the data.
 3. Startup the server.
 
     ```
-    sudo systemctl start synse-server
+    sudo systemctl start synse-server-internal
     ```
 
 4. Verify that everything is up and running by issuing a 'scan' command. The
@@ -64,7 +64,7 @@ response should be all your configured servers.
 1. Get the software.
     ```
     curl -s https://packagecloud.io/install/repositories/VaporIO/synse/script.rpm.sh | sudo bash
-    sudo yum install synse-server
+    sudo yum install synse-server-internal
     ```
 
     > Note that if you'd like more detailed instructions, you can see [package cloud](pkg-cloud)
@@ -80,7 +80,7 @@ mocks out the data.
 3. Startup the server.
 
     ```
-    sudo systemctl start synse-server
+    sudo systemctl start synse-server-internal
     ```
 
 4. Verify that everything's up and running by issuing a 'scan' command. The
@@ -102,7 +102,7 @@ around, it is possible to [run an emulator](#emulator) that mocks out the data.
 2. Run the container
 
     ```
-    docker run -p 5000:5000 -v config.json:/etc/synse-server/config.json vaporio/synse-server
+    docker run -p 5000:5000 -v config.json:/etc/synse-server/config.json vaporio/synse-server-internal
     ```
 
 4. Verify that everything's up and running by issuing a 'scan' command. The
@@ -137,12 +137,12 @@ Starting with a PLC emulator can be done simply with:
 docker run \
     -p 5000:5000 \
     -v `pwd`/sample/config_plc.json:/synse/override/config.json \
-    vaporio/synse-server emulate-plc
+    vaporio/synse-server-internal emulate-plc
 ```
 
 For a full accounting of Synse's supported sub-commands, run Synse with the help flag:
 ```
-docker run vaporio/synse-server --help
+docker run vaporio/synse-server-internal --help
 ```
 
 ## Tests
