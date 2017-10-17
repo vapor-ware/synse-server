@@ -55,13 +55,13 @@ def convert_thermistor_reading(ad_reading, index, device_name):
     :param index: The index into the raw reading to convert. This is underneath
     a bulk read. Two bytes per individual thermistor reading in ad_reading.
     :param device_name: The type of A/D converter that the thermistor is
-    plugged in to. max_11610 and max_1108 are supported.
+    plugged in to. max-11610 and max-1108 are supported.
     :returns: The temperature in degrees C, or None if no thermistor attached.
     :raises: ValueError on unsupported device_name."""
-    if device_name == 'max_11610':
+    if device_name == 'max-11610':
         temperature = thermistor_max11610_adc(
             ad_reading[index:index + 2])
-    elif device_name == 'max_11608':
+    elif device_name == 'max-11608':
         temperature = thermistor_max11608_adc(
             ad_reading[index:index + 2])
     else:
@@ -125,7 +125,7 @@ def differential_pressure_sdp610_altitude(altitude):
     return corr
 
 
-def fan_gs3_2010_rpm_to_packed_hz(rpm):
+def fan_gs3_packed_hz(hz):
     """ Convert an rpm setting for the gs3 2010 fan controller to Hz and packs
     the result into bytes. Setting the fan to a given rpm requires it.
 
@@ -137,17 +137,6 @@ def fan_gs3_2010_rpm_to_packed_hz(rpm):
     Returns:
         Hz packed into two bytes.
     """
-    # User manual for the gs3 fan controller is here:
-    # https://cdn.automationdirect.com/static/manuals/gs3m/gs3m.pdf
-
-    # We use the result of this function to set register
-    # P9.26 / Serial Comm Speed Reference.
-
-    # This conversion is not in the manual, but can be derived from the
-    # register range of 0.0 to 400.0 Hz and the rpm range of 0 to 1755.
-    hz = float(rpm) / 29.22
-    logger.debug('Set rpm to {}, Hz to {}'.format(rpm, hz))
-
     # We shift the hz value here since the register is set by BCD (binary coded
     # decimal) except in tenths of Hz. Typically floats are not used on control
     # systems, so this is a 16 bit int (word). In order to get tenths of Hz,

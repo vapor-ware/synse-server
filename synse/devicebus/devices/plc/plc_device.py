@@ -89,7 +89,7 @@ class PLCDevice(SerialDevice):
 
         # these are optional values, so they may not exist in the config.
         # if they do not exist, they will hold a default value
-        self.bus_timeout = kwargs.get('timeout', 0.25)
+        self.bus_timeout = kwargs.get('timeout', 0.50)
         self.bus_baud = kwargs.get('bps', 115200)
         self.retry_limit = kwargs.get('retry_limit', 3)
         self.time_slice = kwargs.get('time_slice', 75)
@@ -202,7 +202,7 @@ class PLCDevice(SerialDevice):
                 rack_lockfile = rack['lockfile']
                 rack_id = rack['rack_id']  # pylint: disable=unused-variable
                 hardware_type = rack['hardware_type']
-                rack_timeout = rack.get('timeout', 0.25)  # pylint: disable=unused-variable
+                rack_timeout = rack.get('timeout', 0.50)  # pylint: disable=unused-variable
                 counter = app_config['COUNTER']
 
                 for plc_config in rack['devices']:

@@ -436,10 +436,15 @@ def get_device_instance(board_id):
     if device is not None:
         return device
 
-    raise SynseException(
-        'Board ID ({}) not associated with any registered devicebus handler.'.format(board_id)
-    )
-
+    # If board_id is a string it should be hex. If board_id is an int, format as hex.
+    if isinstance(board_id, basestring):
+        raise SynseException(
+            'Board ID ({}) not associated with any registered devicebus handler.'.format(board_id)
+        )
+    else:
+        raise SynseException(
+            'Board ID ({:08x}) not associated with any registered devicebus handler.'.format(board_id)
+        )
 
 # -------------------------------------
 # Threaded Registration Utilities

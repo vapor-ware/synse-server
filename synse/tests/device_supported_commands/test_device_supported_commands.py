@@ -91,7 +91,7 @@ class SupportedDeviceCommandsTestCase(unittest.TestCase):
             'device_id': 'test_device',
             'base_address': '0',
             'device_model': 'test_device',
-            'hardware_type': 'production'
+            'hardware_type': 'emulator'
         }
         cls.sht31humidity = SHT31Humidity(**rs485_kwargs)
         cls.f660airflow = F660Airflow(**rs485_kwargs)

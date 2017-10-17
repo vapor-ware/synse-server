@@ -72,9 +72,6 @@ class RS485Device(SerialDevice):
 
         self._lock = lockfile.LockFile(self.serial_lock)
 
-        # the device is read from a background process
-        self.from_background = kwargs.get('from_background', False)
-
         # Common RS-485 commands.
         self._command_map = {
             cid.SCAN: self._scan,
@@ -124,10 +121,6 @@ class RS485Device(SerialDevice):
                     rs485_device['hardware_type'] = rack.get('hardware_type', 'unknown')
                     rs485_device['device_name'] = rack['device_name']
                     rs485_device['lockfile'] = rack['lockfile']
-
-                    # check whether the device is controlled by a background process
-                    # or if directly by the synse app.
-                    rs485_device['from_background'] = rack.get('from_background', False)
 
                     # since we are unable to import subclasses (circular import), but
                     # we still need to initialize a subclassed device interface, we

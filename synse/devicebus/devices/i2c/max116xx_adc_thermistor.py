@@ -53,6 +53,8 @@ class Max116xxThermistor(I2CDevice):
         super(Max116xxThermistor, self).__init__(**kwargs)
         logger.debug('Max116xxThermistor kwargs: {}'.format(kwargs))
 
+        _instance_name = None  # Must be overridden in a subclass.
+
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
 
@@ -110,33 +112,6 @@ class Max116xxThermistor(I2CDevice):
                 device_id)), None, sys.exc_info()[2]
 
     def _read_sensor(self):
-        """ Convenience method to return the sensor reading.
-
-        If the sensor is configured to be read indirectly (e.g. from background)
-        it will do so -- otherwise, we perform a direct read.
-        """
-        logger.debug('self.from_background: {}'.format(self.from_background))
-        if self.from_background:
-            return self.indirect_sensor_read()
-        return self._direct_sensor_read()
-
-    def indirect_sensor_read(self):
-        """Read the sensor data from the intermediary data file.
-
-        FIXME - reading from file is only for the POC. once we can
-        confirm that this works and have it stable for the short-term, we
-        will need to move on to the longer-term plan of having this done
-        via socket.
-
-        Returns:
-            dict: the thermistor reading value.
-        """
-        logger.debug('indirect_sensor_read')
-        data_file = self._get_bg_read_file('{0:04d}'.format(self.channel))
-        data = Max11608Thermistor.read_sensor_data_file(data_file)
-        return {const.UOM_TEMPERATURE: data[0]}
-
-    def _direct_sensor_read(self):
         """ Internal method for reading data off of the device.
 
         Returns:
@@ -155,7 +130,8 @@ class Max116xxThermistor(I2CDevice):
             elif self.hardware_type == 'production':
                 # Channel is zero based in the synse config.
                 # Read channel + 1 thermistors and return the last one read in the reading.
-                readings = i2c_common.read_thermistors(self.channel + 1, self.__class__._instance_name)
+                readings = i2c_common.read_thermistors(
+                    self.channel + 1, type(self)._instance_name)
                 return {const.UOM_TEMPERATURE: readings[self.channel]}
 
             else:
