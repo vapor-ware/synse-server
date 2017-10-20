@@ -242,6 +242,8 @@ def configure_differential_pressure(channel):
     vec.Write(channel_str)
     vec.Stop()
 
+    time.sleep(0.010)
+
     logger.debug('PCA9546_READ_ADDRESS is: {}'.format(hexlify(PCA9546_READ_ADDRESS)))
 
     # verify channel was set
@@ -251,6 +253,8 @@ def configure_differential_pressure(channel):
     reg = vec.Read(1)
     vec.Stop()
     vec.SendAcks()
+
+    time.sleep(0.010)
 
     logger.debug('PCA9546A Control Register: 0x{:02x}'.format(ord(reg)))
 
