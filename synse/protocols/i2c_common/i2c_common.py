@@ -261,6 +261,10 @@ def configure_differential_pressure(channel):
     # 3. Write the new value to the advanced register.
     vec.Start()
     vec.Write('\x80\xE5')
+    if vec.GetAck() == ACK:
+        logger.debug('Got ack from vec')
+    else:
+        logger.error('No ack from vec')
     vec.Start()
     vec.Write('\x81')
 
