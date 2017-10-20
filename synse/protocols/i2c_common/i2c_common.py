@@ -47,7 +47,7 @@ def _open_vec_i2c():
 
     # Set RESET line on PCA9546A to high to activate switch
     vec.PinHigh(GPIOL0)
-    time.sleep(0.002)
+    time.sleep(0.010)
 
     # Read channel of PCA9546A
     vec.Start()
@@ -202,7 +202,7 @@ def _read_differential_pressure_channel(vec, channel):
         # Give DPS610 time for the conversion since clock stretching is not implemented
         # 5ms seems to work fine, if wonkyness happens may have to increase.
         # So far this seems fine for 9 bit resolution.
-        time.sleep(0.002)
+        time.sleep(0.010)
 
         # Read the three bytes out of the DPS sensor (two data bytes and crc)
         sensor_data = vec.Read(3)
@@ -232,7 +232,7 @@ def configure_differential_pressure(channel):
 
     # Set RESET line on PCA9546A to high to activate switch
     vec.PinHigh(GPIOL0)
-    time.sleep(0.002)
+    time.sleep(0.010)
 
     channel_str = PCA9546_WRITE_ADDRESS + chr(channel)
     logger.debug('PCA9546_WRITE_ADDRESS is: {}'.format(hexlify(PCA9546_WRITE_ADDRESS)))
@@ -265,7 +265,7 @@ def configure_differential_pressure(channel):
     vec.Write('\x81')
 
     # At this point the sensor needs to hold the master but the FT4232 doesn't do clock stretching.
-    time.sleep(0.002)  # This stays at 1 ms regardless of sensor resolution.
+    time.sleep(0.010)  # This stays at 1 ms regardless of sensor resolution.
 
     # Read the three bytes out of the DPS sensor (two data bytes and crc)
     sensor_data = vec.Read(3)
