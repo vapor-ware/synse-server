@@ -275,9 +275,8 @@ class RedfishDevice(LANDevice):
         thread_pool.wait_for_task_completion()
 
         # check for device initialization failures
-        if device_init_failure:
+        if len(device_init_failure) != 0:
             logger.error('Failed to initialize Redfish devices: {}'.format(device_init_failure))
-            raise SynseException('Failed to initialize Redfish devices.')
 
     @staticmethod
     def _process_server(server, app_config, rack_id, board_range, device_init_failure, mutate_lock,

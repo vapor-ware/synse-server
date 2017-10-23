@@ -133,9 +133,10 @@ class I2CDevice(SerialDevice):
                         try:
                             device_instance = device_model(**i2c_device)
                         except Exception as e:
-                            logger.error('Error initializing device: ')
+                            logger.error('Error initializing device: {}'.format(i2c_device))
                             logger.exception(e)
-                            raise
+                            # A raise here would cause subsequently configured devices to fail to register.
+                            # We want to try to register those devices.
 
                         # cache reference to device
                         device_cache[device_instance.device_uuid] = device_instance

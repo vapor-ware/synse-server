@@ -163,8 +163,6 @@ def register_app_devices(application):
 
     app_cache = (_devices, _single_board_devices)
 
-    _failed_registration = False
-
     for device_interface, device_config in DEVICES.iteritems():
         device_interface = device_interface.lower()
 
@@ -182,13 +180,6 @@ def register_app_devices(application):
             logger.error('Failed to register {} device: {}'.format(
                 device_interface, device_config))
             logger.exception(e)
-            _failed_registration = True
-
-    if _failed_registration:
-        raise ValueError(
-            'Failed to register all configured devices -- check that the device configuration '
-            'files are correct.'
-        )
 
     application.config['DEVICES'] = _devices
     application.config['SINGLE_BOARD_DEVICES'] = _single_board_devices

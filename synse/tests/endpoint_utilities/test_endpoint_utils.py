@@ -1280,7 +1280,8 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
 
     def test_017_register_ipmi(self):
         """ Test registering a single IPMI device when a device value is missing
-        from the given config.
+        from the given config. This test should not raise because Synse still
+        needs to start up.
         """
         # define the IPMI config
         ipmi_devices = {
@@ -1314,16 +1315,15 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
 
-        with self.assertRaises(SynseException):
-            # register the ipmi device(s)
-            IPMIDevice.register(
-                devicebus_config=ipmi_devices,
-                app_config=app.config,
-                app_cache=(
-                    app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES']
-                )
+        # register the ipmi device(s)
+        IPMIDevice.register(
+            devicebus_config=ipmi_devices,
+            app_config=app.config,
+            app_cache=(
+                app.config['DEVICES'],
+                app.config['SINGLE_BOARD_DEVICES']
             )
+        )
 
         # verify that the failure did not mutate any state
         self.assertEqual(len(app.config['DEVICES']), 0)
@@ -1332,6 +1332,7 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
     def test_018_register_ipmi(self):
         """ Test registering multiple IPMI devices when a device value is missing
         from the given config. In this case, the first record is malformed.
+        This test should not raise because Synse still needs to start up.
         """
         # define the IPMI config
         ipmi_devices = {
@@ -1381,16 +1382,15 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
 
-        with self.assertRaises(SynseException):
-            # register the ipmi device(s)
-            IPMIDevice.register(
-                devicebus_config=ipmi_devices,
-                app_config=app.config,
-                app_cache=(
-                    app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES']
-                )
+        # register the ipmi device(s)
+        IPMIDevice.register(
+            devicebus_config=ipmi_devices,
+            app_config=app.config,
+            app_cache=(
+                app.config['DEVICES'],
+                app.config['SINGLE_BOARD_DEVICES']
             )
+        )
 
         # because devices are being initialized in threads, we should expect to see
         # state mutated despite the bad config
@@ -1399,7 +1399,8 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
 
     def test_019_register_ipmi(self):
         """ Test registering multiple IPMI devices when a device value is missing
-        from the given config. In this case, the last record is malformed.
+        from the given config. In this case, the last record is malformed. This
+        test should not raise because Synse still needs to start up.
         """
         # define the IPMI config
         ipmi_devices = {
@@ -1449,16 +1450,15 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
 
-        with self.assertRaises(SynseException):
-            # register the ipmi device(s)
-            IPMIDevice.register(
-                devicebus_config=ipmi_devices,
-                app_config=app.config,
-                app_cache=(
-                    app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES']
-                )
+        # register the ipmi device(s)
+        IPMIDevice.register(
+            devicebus_config=ipmi_devices,
+            app_config=app.config,
+            app_cache=(
+                app.config['DEVICES'],
+                app.config['SINGLE_BOARD_DEVICES']
             )
+        )
 
         # here, we will get mutated state since valid configs were found
         # before the invalid config. this is okay though because it raises
@@ -1945,7 +1945,8 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         """ Test registering an IPMI device where an invalid hostname is given as the BMC
         IP. Unlike the case where an IP can be specified and it need not connect (e.g. can
         timeout without failing registration), this will fail registration under the guise
-        of 'misconfiguration', since the provided hostname is not defined.
+        of 'misconfiguration', since the provided hostname is not defined. This
+        test should not raise because Synse still needs to start up.
         """
         # define the IPMI config
         ipmi_devices = {
@@ -1980,16 +1981,15 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
 
-        with self.assertRaises(SynseException):
-            # register the ipmi device(s)
-            IPMIDevice.register(
-                devicebus_config=ipmi_devices,
-                app_config=app.config,
-                app_cache=(
-                    app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES']
-                )
+        # register the ipmi device(s)
+        IPMIDevice.register(
+            devicebus_config=ipmi_devices,
+            app_config=app.config,
+            app_cache=(
+                app.config['DEVICES'],
+                app.config['SINGLE_BOARD_DEVICES']
             )
+        )
 
         # since the device failed to register, we should not see any mutations to
         # the state.
@@ -1998,7 +1998,8 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
 
     def test_026_register_ipmi(self):
         """ Test registering multiple IPMI devices when a device value is missing
-        from the given config. In this case, the last record is malformed.
+        from the given config. In this case, the last record is malformed. This
+        test should not raise because Synse still needs to start up.
         """
         # define the IPMI config
         ipmi_devices = {
@@ -2048,16 +2049,15 @@ class EndpointUtilitiesTestCase(unittest.TestCase):
         self.assertEqual(len(app.config['DEVICES']), 0)
         self.assertEqual(len(app.config['SINGLE_BOARD_DEVICES']), 0)
 
-        with self.assertRaises(SynseException):
-            # register the ipmi device(s)
-            IPMIDevice.register(
-                devicebus_config=ipmi_devices,
-                app_config=app.config,
-                app_cache=(
-                    app.config['DEVICES'],
-                    app.config['SINGLE_BOARD_DEVICES']
-                )
+        # register the ipmi device(s)
+        IPMIDevice.register(
+            devicebus_config=ipmi_devices,
+            app_config=app.config,
+            app_cache=(
+                app.config['DEVICES'],
+                app.config['SINGLE_BOARD_DEVICES']
             )
+        )
 
         # here, we will get mutated state since valid configs were found
         # before the invalid config. this is okay though because it raises
