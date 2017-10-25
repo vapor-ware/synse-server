@@ -31,22 +31,6 @@ async def version_route(request):
     return response.to_json()
 
 
-@bp.route('/health/<rack>')
-@bp.route('/health/<rack>/<board>')
-@bp.route('/health/<rack>/<board>/<device>')
-async def health_route(request, rack, board=None, device=None):
-    """
-
-    Args:
-        request:
-        rack (str):
-        board (str):
-        device (str):
-    """
-    response = await commands.health()
-    return response.to_json()
-
-
 @bp.route('/info/<rack>')
 @bp.route('/info/<rack>/<board>')
 @bp.route('/info/<rack>/<board>/<device>')

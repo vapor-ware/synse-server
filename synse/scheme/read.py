@@ -67,7 +67,7 @@ class ReadResponse(SynseResponse):
                 'device': device.location.device,
                 'device_type': device.type
             },
-            'sensors': [putil.reading_type_name(r.type) for r in readings],
+            'sensors': [r.type for r in readings],
             'data': self.format_readings()
         }
 
@@ -79,7 +79,7 @@ class ReadResponse(SynseResponse):
 
         dev_output = self.device.output
         for reading in self.readings:
-            rt = putil.reading_type_name(reading.type)
+            rt = reading.type
 
             # these fields may not be specified, e.g. in cases where it wouldn't
             # make sense for a reading kind, e.g. LED state (on/off)

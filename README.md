@@ -76,6 +76,8 @@ __api/server__
 - [ ] add JSON error responses
 - [ ] add internal error codes for error responses (easier for error id and debug)
 - [ ] use vapor-ware/synse-server-grpc to get python client for GRPC
+    - [ ] use the python code generated via that repo
+    - [ ] install the python package on build (requires synse-server-grpc to be public)
 
 
 __configuration__

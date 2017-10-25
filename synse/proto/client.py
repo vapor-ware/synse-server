@@ -1,14 +1,52 @@
-from __future__ import print_function
+"""
+
+"""
 
 import os
 
 import grpc
+from synse_plugin import api as synse_api
+from synse_plugin import grpc as synse_grpc
 
 from synse.const import BG_SOCKS
 from synse.log import logger
 
-from synse_plugin import api as synse_api
-from synse_plugin import grpc as synse_grpc
+
+class WriteData(object):
+    """The WriteData object is a convenient way to group together
+    write actions and raw data into a single bundle for a single write
+    transaction.
+
+    Multiple WriteData can be specified for a gRPC Write command, e.g.
+    it may be the case for an LED that we want to turn it on and change
+    the color simultaneously. This can be done with two WriteData objects
+    passed in a list to the `SynseInternalClient.write` method, e.g.
+
+      color = WriteData(action='color', raw=[b'ffffff'])
+      state = WriteData(action='on')
+    """
+
+    def __init__(self, action=None, raw=None):
+        """Constructor for the WriteData object.
+
+        Args:
+            action (str): the action string for the write.
+            raw (list[bytes]): a list of bytes that constitute the raw data
+                that will be written by the write request.
+        """
+        self.action = action
+        self.raw = raw
+
+    def to_grpc(self):
+        """Convert the WriteData model into the gRPC model for WriteData.
+
+        Returns:
+            synse_api.WriteData: the gRPC model of the WriteData object.
+        """
+        return synse_api.WriteData(
+            action=self.action if self.action is not None else '',
+            raw=self.raw if self.raw is not None else []
+        )
 
 
 class SynseInternalClient(object):
@@ -114,11 +152,11 @@ class SynseInternalClient(object):
 
         Args:
             device_id (str):
-            data (list[str]):
+            data (list[WriteData]):
         """
         req = synse_api.WriteRequest(
             uid=device_id,
-            data=data
+            data=[d.to_grpc() for d in data]
         )
 
         resp = self.stub.Write(req)
