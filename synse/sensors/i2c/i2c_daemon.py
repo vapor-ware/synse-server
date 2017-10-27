@@ -127,6 +127,25 @@ def _bulk_read_thermistors(thermistors, thermistor_model, channels):
         logger.exception('Error reading thermistors.')
 
 
+def _configure_differential_pressures(channels):
+    """Configure differential pressure sensors for 9 bit resolution."""
+    logger.info(
+        'Configuring differential pressure channels {}.'.format(channels))
+    for rack_id, channels in channels.iteritems():
+        for channel in channels:
+            try:
+                if i2c_common.configure_differential_pressure(channel) != 0:
+                    # TODO: We may want to run the remainder of the tests, but for now
+                    # this is a hard failure.
+                    raise ValueError(
+                        'Failed to configure differential pressure sensor on '
+                        'channel {}.'.format(channel))
+            except:
+                logger.exception(
+                    'Error configuring differential pressure sensor on '
+                    'rack {}, channel {}.'.format(rack_id, channel))
+
+
 def _create_device_directories(devices):
     """Create directories for sensor files.
     :param devices: Dictionary of rack_id, devices from the Synse i2c
@@ -368,7 +387,8 @@ def main():
         # Get the channels for the thermistors and differential pressure sensors.
         thermistor_channels = _get_device_channels(thermistors)
         differential_pressure_channels = _get_device_channels(differential_pressures)
-        # We are note using the channel from the sysne configuration for the LED Controller.
+        _configure_differential_pressures(differential_pressure_channels)
+        # We are not using the channel from the sysne configuration for the LED Controller.
 
         # Setup information for LED Controller writes.
         led_info = None
