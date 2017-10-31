@@ -1,5 +1,6 @@
-# Simple demo that runs on one wedge.
+# Simple demo that runs on one VEC on one wedge.
 # Loop through thermistors, find the hottest, and set the LED colors.
+# Step up the fan to cool down and change LEDs accordingly.
 
 import datetime
 import json
@@ -17,9 +18,8 @@ from synse.vapor_common import http  # nopep8
 
 logging.basicConfig()
 logger = logging.getLogger()    # Root logger.
-# logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
-# Shut off info logging for requests and urllib3 (too chatty).
+# Turn down these loggers.
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
@@ -32,7 +32,7 @@ SYNSE_PORT = 5000
 
 
 def _get_synse_version():
-    """Gets the synse version for the name_or_ip machine.
+    """Gets the synse version for the VEC_IP machine.
     :returns: The synse version.
     :raises: When synse cannot be connected to."""
     url = PROTOCOL + VEC_IP + ':' + str(5000) + '/synse/version'
@@ -40,7 +40,6 @@ def _get_synse_version():
         r = http.get(url)
         response = json.loads(r.text)
         version = response['version']
-        # self.__version = version
         return version
     except Exception:
         logger.error(
@@ -69,10 +68,6 @@ def _scan():
     :returns: The scan results from synse."""
     r = http.get(_get_synse_prefix() + '/scan')
     result = r.json()
-    # self.__scan_results = result
-    # TODO: Ticket. Pretty sure we are hitting this case when we should not be.
-    # The logs indicate it. https://github.com/vapor-ware/auto_fan/issues/112
-    logger.debug('SynseInfo scan result:')
     logger.debug(json.dumps(result, sort_keys=True, indent=4, separators=(',', ': ')))
     return result
 
@@ -112,7 +107,6 @@ def _read_sensors(sensors):
     results = []
     for sensor in sensors:
         # Create the synse URL.
-        # url = _get_synse_prefix() + '/read/{}/{}/{}/{}'.format(
         url = _get_synse_prefix() + 'read/{}/{}/{}/{}'.format(
             sensor['device_type'],
             sensor['rack_id'],
@@ -137,17 +131,6 @@ def _find_max_temperature_reading(readings):
     return result
 
 
-# COLORS = {
-#     'off': 0x000000,
-#     'violet': 0x9400D3,
-#     'indigo': 0x4B0082,
-#     'blue': 0x0000FF,
-#     'green': 0x00FF00,
-#     'yellow': 0xFFFF00,
-#     'orange': 0xFF7F00,
-#     'red': 0xFF0000,
-# }
-
 COLORS = OrderedDict(
     [
         ('off', 0x000000),
@@ -161,49 +144,14 @@ COLORS = OrderedDict(
     ]
 )
 
-# COLORS = {
-#     'off': 0x000000,
-#     'violet': 0x9400D3,
-#     'indigo': 0x4B0082,
-#     'blue': 0x0000FF,
-#     'green': 0x00FF00,
-#     'yellow': 0xFFFF00,
-#     'orange': 0xFF7F00,
-#     'red': 0xFF0000,
-# }
-
 
 def _color_to_string(color):
-    """Quick and dirty - sorry."""
+    """From the COLORS value, find the key."""
     for name, our_color in COLORS.iteritems():
         if color == our_color:
             return name
     return '0x{:06x}'.format(color)
 
-
-# def _set_led_color(led_controller, color):
-#     """Set the LED color to the color based on the key in COLORS.
-#     No support for blink_state yet."""
-#     color_setting = COLORS[color]
-#     # Create the synse URL.
-#     if color == 'off':
-#         url = _get_synse_prefix() + '/led/{}/{}/{}/off'.format(
-#             led_controller['rack_id'],
-#             led_controller['board_id'],
-#             led_controller['device_id'],
-#         )
-#     else:
-#         url = _get_synse_prefix() + '/led/{}/{}/{}/on/0x{:06x}/steady'.format(
-#             led_controller['rack_id'],
-#             led_controller['board_id'],
-#             led_controller['device_id'],
-#             color_setting,
-#         )
-#     logger.debug('led url (color {}): {}'.format(color, url))
-#     r = http.get(url)
-#     if r.status_code != 200:
-#         logger.debug('FAIL: Setting LED to color {} setting 0x{:06x}.'.format(
-#             color, color_setting))
 
 def _set_led_color(led_controllers, color):
     """Set the LED color to the color based on the key in COLORS.
@@ -227,11 +175,7 @@ def _set_led_color(led_controllers, color):
                 color_setting,
             )
         logger.debug('led url (color {}): {}'.format(color, url))
-        r = http.get(url)
-        if r.status_code != 200:
-            # TODO: raise
-            logger.error('FAIL: Setting LED to color {} setting 0x{:06x}.'.format(
-                color, color_setting))
+        http.get(url)
 
 
 def _test_led_colors(led_controller):
@@ -247,15 +191,12 @@ def _set_fan_speed(rpm):
     """Set the fan controller to the given speed."""
     # curl http://localhost:4997/vaporcore/1.0/fan/manual/0
     # TODO / NOTE: Chicago/VEC4 happens to be the leader which is where I'm running this.
+    # TODO / NOTE: Believe it's running on VEC10 in Austin which is the leader as well.
     logger.info('Setting fan speed to {}'.format(rpm))
     url = 'http://localhost:4997/vaporcore/1.0/fan/manual/{}'.format(rpm)
     logger.debug('fan url (rpm {}): {}'.format(rpm, url))
 
-    r = http.get(url)
-    # TODO: raise
-    if r.status_code != 200:
-        logger.error('FAIL: Setting rpm to speed {}.'.format(
-            rpm))
+    http.get(url)
     return rpm
 
 
@@ -283,14 +224,6 @@ def _set_led_color_by_temperature(led_controllers, max_temperature):
         _set_led_color(led_controllers, 'red')
 
 
-# NEXT STEPS:
-# 1. DONE: Loop
-# 2. DONE: Set LED color based on the max temperature reading.
-# 3. DONE: Function to mess with the fan speeds to alter the temperature readings.
-# 4. Camera.
-# 5. Cleanup.
-
-
 def main():
     print 'Main start'
     start_time = datetime.datetime.now()
@@ -308,7 +241,6 @@ def main():
 
     fan_speed = _set_fan_speed(FAN_SPEED_INITIAL)
 
-    # TODO: Reactivate
     while datetime.datetime.now() < end_time:
         # Find max temp reading.
         temperatures = _read_sensors(temperature_sensors)
@@ -317,17 +249,16 @@ def main():
         logger.info('max_temperature: {}'.format(max_temperature))
 
         # Control LED.
-        # There is only one, but let's make a loop in case of future support.
-        # for led_controller in led_controllers:
-        # _test_led_colors(led_controllers)
-
         _set_led_color_by_temperature(led_controllers, max_temperature)
 
         time.sleep(10)
+        # Step the fan.
         fan_speed = _set_fan_speed(fan_speed + FAN_SPEED_STEP)
 
     # Shut off the fan. Turn led off.
-    _set_fan_speed(0)  # TODO: Should really put it back in auto, but this is better for demo.
+    _set_fan_speed(0)   # TODO: Should really put it back in auto,
+    #  but this is better for demo. Allows temp to cool for restart.
+
     _set_led_color(led_controllers, 'off')
     print 'Main end'
 
