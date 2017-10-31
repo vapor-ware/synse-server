@@ -204,21 +204,40 @@ FAN_SPEED_INITIAL = 175  # TODO: 86 for Austin.
 FAN_SPEED_STEP = 25      # rpm
 
 
-def _set_led_color_by_temperature(led_controllers, max_temperature):
+# def _set_led_color_by_temperature(led_controllers, max_temperature):
+#     """Set the led color based on the max temperature given."""
+#     if max_temperature < 25:
+#         _set_led_color(led_controllers, 'off')
+#     elif max_temperature < 25.2:
+#         _set_led_color(led_controllers, 'violet')
+#     elif max_temperature < 25.4:
+#         _set_led_color(led_controllers, 'indigo')
+#     elif max_temperature < 25.6:
+#         _set_led_color(led_controllers, 'blue')
+#     elif max_temperature < 25.8:
+#         _set_led_color(led_controllers, 'green')
+#     elif max_temperature < 26:
+#         _set_led_color(led_controllers, 'yellow')
+#     elif max_temperature < 26.2:
+#         _set_led_color(led_controllers, 'orange')
+#     else:
+#         _set_led_color(led_controllers, 'red')
+
+def _set_led_color_by_temperature(led_controllers, max_temperature, initial_max_temperature):
     """Set the led color based on the max temperature given."""
-    if max_temperature < 25:
+    if max_temperature < initial_max_temperature - 1.4:
         _set_led_color(led_controllers, 'off')
-    elif max_temperature < 25.2:
+    elif max_temperature < initial_max_temperature - 1.2:
         _set_led_color(led_controllers, 'violet')
-    elif max_temperature < 25.4:
+    elif max_temperature < initial_max_temperature - 1:
         _set_led_color(led_controllers, 'indigo')
-    elif max_temperature < 25.6:
+    elif max_temperature < initial_max_temperature - .8:
         _set_led_color(led_controllers, 'blue')
-    elif max_temperature < 25.8:
+    elif max_temperature < initial_max_temperature - .6:
         _set_led_color(led_controllers, 'green')
-    elif max_temperature < 26:
+    elif max_temperature < initial_max_temperature - .4:
         _set_led_color(led_controllers, 'yellow')
-    elif max_temperature < 26.2:
+    elif max_temperature < initial_max_temperature - .2:
         _set_led_color(led_controllers, 'orange')
     else:
         _set_led_color(led_controllers, 'red')
@@ -241,6 +260,8 @@ def main():
 
     fan_speed = _set_fan_speed(FAN_SPEED_INITIAL)
 
+    initial_max_temperature = None
+
     while datetime.datetime.now() < end_time:
         # Find max temp reading.
         temperatures = _read_sensors(temperature_sensors)
@@ -248,8 +269,12 @@ def main():
         max_temperature = _find_max_temperature_reading(temperatures)
         logger.info('max_temperature: {}'.format(max_temperature))
 
+        if initial_max_temperature is None:
+            initial_max_temperature = max_temperature
+
         # Control LED.
-        _set_led_color_by_temperature(led_controllers, max_temperature)
+        _set_led_color_by_temperature(
+            led_controllers, max_temperature, initial_max_temperature)
 
         time.sleep(10)
         # Step the fan.
