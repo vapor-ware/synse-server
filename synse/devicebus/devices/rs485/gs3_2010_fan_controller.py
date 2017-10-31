@@ -97,17 +97,67 @@ class GS32010Fan(RS485Device):
         self.device_model = kwargs['device_model']
 
         # Get the max fan speed and the minimum allowed non-zero fan speed setting.
+        # Only initialized on production hardware.
+        # Only initialized here on the vec leader with from_background.
         self.max_rpm = None
         self.min_nonzero_rpm = None
         if self.hardware_type == 'production':
-            client = self.create_modbus_client()
-            # Maximum rpm supported by the fan motor.
-            self.max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
-            # Minimum rpm setting allowed. For now this is 10% of the max. This is
-            # due to minimal back EMF at low rpms.
-            self.min_nonzero_rpm = self.max_rpm / 10
+            if self.from_background:
+                if RS485Device.is_vec_leader():
+                    self._initialize_min_max_rpm()
+            else:
+                self._initialize_min_max_rpm()
 
         logger.debug('GS32010Fan self: {}'.format(dir(self)))
+
+    def _initialize_min_max_rpm(self):
+        client = self.create_modbus_client()
+        # Maximum rpm supported by the fan motor.
+        self.max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
+        # Minimum rpm setting allowed. For now this is 10% of the max. This is
+        # due to minimal back EMF at low rpms.
+        self.min_nonzero_rpm = self.max_rpm / 10
+
+    def _max_route(self, command):
+        """Handle the max route.
+
+                Args:
+            command (Command): the command issued by the Synse endpoint
+                containing the data and sequence for the request.
+
+            Returns: A response for the route.
+        """
+        # synse-server-internal only (non-doc) route to get the max fan speed supported by the motor.
+        # This varies by motor. We already need to support at least three.
+        # The minimum non-zero fan speed will be 10% of this.
+        # Allows auto fan to get the minimum fan speed setting without hunt and peck.
+        # We could doc this route, for now it's not to limit support requirements.
+        if not RS485Device.is_vec_leader():
+            if self.min_nonzero_rpm is None or self.max_rpm is None:
+                response = RS485Device.redirect_call_to_vec_leader(request.url)
+                reading = {
+                    const.UOM_VAPOR_FAN_MIN: response[const.UOM_VAPOR_FAN_MIN],
+                    const.UOM_VAPOR_FAN_MAX: response[const.UOM_VAPOR_FAN_MAX],
+                }
+                # Lazy initialization.
+                self.min_nonzero_rpm = response[const.UOM_VAPOR_FAN_MIN]
+                self.max_rpm = response[const.UOM_VAPOR_FAN_MAX]
+            else:
+                # We have the data already.
+                reading = {
+                    const.UOM_VAPOR_FAN_MIN: self.min_nonzero_rpm,
+                    const.UOM_VAPOR_FAN_MAX: self.max_rpm,
+                }
+        else:
+            # We are vec_leader.
+            reading = {
+                const.UOM_VAPOR_FAN_MIN: self.min_nonzero_rpm,
+                const.UOM_VAPOR_FAN_MAX: self.max_rpm,
+            }
+        return Response(
+            command=command,
+            response_data=reading
+        )
 
     def _fan(self, command):
         """ Fan speed control command for a given board and device.
@@ -123,20 +173,9 @@ class GS32010Fan(RS485Device):
         # get the command data out from the incoming command
         device_id = command.data[_s_.DEVICE_ID]
 
-        # synse-server-internal only (non-doc) route to get the max fan speed supported by the motor.
-        # This varies by motor. We already need to support at least three.
-        # The minimum non-zero fan speed will be 10% of this.
-        # Allows auto fan to get the minimum fan speed setting without hunt and peck.
-        # We could doc this route, for now it's not to limit support requirements.
+        # Handle the max route here.
         if command.data[_s_.FAN_SPEED] == 'max':
-            reading = {
-                const.UOM_VAPOR_FAN_MIN: self.min_nonzero_rpm,
-                const.UOM_VAPOR_FAN_MAX: self.max_rpm,
-            }
-            return Response(
-                command=command,
-                response_data=reading
-            )
+            return self._max_route(command)
 
         fan_speed = int(command.data[_s_.FAN_SPEED])
 
