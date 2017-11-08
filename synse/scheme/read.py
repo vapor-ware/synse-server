@@ -3,12 +3,11 @@
 """
 
 from synse.log import logger
-from synse.proto import util as putil
 from synse.scheme.base_response import SynseResponse
 
 
 class ReadResponse(SynseResponse):
-    """ A ReadResponse is the response data for a Synse 'read' command.
+    """A ReadResponse is the response data for a Synse 'read' command.
 
     The JSON response returned by the Synse endpoint, constructed from
     the data here, should follow the scheme:
@@ -18,16 +17,8 @@ class ReadResponse(SynseResponse):
     Example:
 
         {
-          "meta": {
-            "board": "00000001",
-            "device": "0001",
-            "rack": "rack_1",
-            "device_type": "humidity"
-          },
-          "sensors": [
-            "temperature",
-            "humidity"
-          ],
+
+          "type": "humidity"
           "data": {
             "temperature": {
               "value": 123,
@@ -35,7 +26,7 @@ class ReadResponse(SynseResponse):
                 "symbol": "C",
                 "name": "degrees celsius"
               },
-              "timestamp": "123123123"
+              "timestamp": "2017-11-10 09:08:07"
             },
             "humidity": {
               "value": 123,
@@ -43,14 +34,14 @@ class ReadResponse(SynseResponse):
                 "symbol": "%",
                 "name": "percent"
               },
-              "timestamp": "12312415"
+              "timestamp": "2017-11-10 09:08:07"
             }
           }
         }
     """
 
     def __init__(self, device, readings):
-        """
+        """Constructor for the ReadResponse class.
 
         Args:
             device (): the device that is being read.
@@ -61,13 +52,7 @@ class ReadResponse(SynseResponse):
         self.readings = readings
 
         self.data = {
-            'meta': {
-                'rack': device.location.rack,
-                'board': device.location.board,
-                'device': device.location.device,
-                'device_type': device.type
-            },
-            'sensors': [r.type for r in readings],
+            'type': device.type,
             'data': self.format_readings()
         }
 

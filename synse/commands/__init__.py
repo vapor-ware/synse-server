@@ -2,7 +2,6 @@
 
 """
 
-from .health import health
 from .info import info
 from .location import location
 from .read import read

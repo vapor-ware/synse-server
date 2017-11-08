@@ -47,17 +47,6 @@ async def info_route(request, rack, board=None, device=None):
     return response.to_json()
 
 
-@bp.route('/location')
-async def location_route(request):
-    """
-
-    Args:
-        request:
-    """
-    response = await commands.location()
-    return response.to_json()
-
-
 @bp.route('/read/<rack>/<board>/<device>')
 async def read_route(request, rack, board, device):
     """ Endpoint to read sensor/device data.
@@ -112,4 +101,15 @@ async def write_route(request, rack, board, device):
     data = request.body
 
     response = await commands.write(rack, board, device, data)
+    return response.to_json()
+
+
+@bp.route('/config')
+async def config_route(request):
+    """
+
+    Args:
+        request:
+    """
+    response = await commands.config()
     return response.to_json()
