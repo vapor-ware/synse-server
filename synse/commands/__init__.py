@@ -3,7 +3,6 @@
 """
 
 from .info import info
-from .location import location
 from .read import read
 from .scan import scan
 from .test import test

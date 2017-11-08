@@ -10,7 +10,8 @@ import grpc
 
 from synse.emulator.src import devices
 from synse.emulator.src.servicer import InternalApiServicer
-from synse.proto import api_pb2_grpc
+
+from synse_plugin import grpc as synse_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
@@ -37,7 +38,7 @@ def serve():
 
     # then, create and configure the grpc server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    api_pb2_grpc.add_InternalApiServicer_to_server(
+    synse_grpc.add_InternalApiServicer_to_server(
         InternalApiServicer(), server
     )
 

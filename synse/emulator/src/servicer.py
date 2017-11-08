@@ -8,7 +8,9 @@ from uuid import uuid4 as uuid
 import grpc
 
 from synse.emulator.src import devices
-from synse.proto import api_pb2, api_pb2_grpc
+
+from synse_plugin import grpc as synse_grpc
+from synse_plugin import api as synse_api
 
 STATUS_UNKNOWN = 0
 STATUS_PENDING = 1
@@ -21,18 +23,7 @@ STATE_ERR = 1
 transactions = {}
 
 
-reading_type_lookup = {
-    'unknown': api_pb2.UNKNOWN,
-    'temperature': api_pb2.TEMPERATURE,
-    'differential_pressure': api_pb2.DIFFERENTIAL_PRESSURE,
-    'airflow': api_pb2.AIRFLOW,
-    'humidity': api_pb2.HUMIDITY,
-    'led_state': api_pb2.LED_STATE,
-    'led_blink': api_pb2.LED_BLINK
-}
-
-
-class InternalApiServicer(api_pb2_grpc.InternalApiServicer):
+class InternalApiServicer(synse_grpc.InternalApiServicer):
     """
     """
 
@@ -49,7 +40,7 @@ class InternalApiServicer(api_pb2_grpc.InternalApiServicer):
         if dev is None:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details('Could not find device with id {}'.format(uid))
-            return api_pb2.ReadResponse()
+            return synse_api.ReadResponse()
 
         # FIXME -- for now, we'll only get the first thing in the data list
         #       this needs to be improved because in cases where there are multiple
@@ -68,9 +59,9 @@ class InternalApiServicer(api_pb2_grpc.InternalApiServicer):
                 else:
                     val = 'unknown'
 
-            yield api_pb2.ReadResponse(
+            yield synse_api.ReadResponse(
                 timestamp=str(datetime.datetime.utcnow()),
-                type=reading_type_lookup.get(output.type),
+                type=output.type,
                 value=str(val)
             )
 
@@ -88,12 +79,12 @@ class InternalApiServicer(api_pb2_grpc.InternalApiServicer):
         if not dev.is_writable:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details('The device "{}" is not writable.'.format(dev.type))
-            return api_pb2.TransactionId()
+            return synse_api.TransactionId()
 
         dev.data = data
 
         _id = str(uuid())
-        resp = api_pb2.TransactionId(id=_id)
+        resp = synse_api.TransactionId(id=_id)
 
         transactions[_id] = STATUS_PENDING
         return resp
@@ -131,7 +122,7 @@ class InternalApiServicer(api_pb2_grpc.InternalApiServicer):
             elif status == STATUS_WRITING:
                 transactions[_id] = STATUS_DONE
 
-        return api_pb2.WriteResponse(
+        return synse_api.WriteResponse(
             timestamp=str(datetime.datetime.now()),
             status=status,
             state=state

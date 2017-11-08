@@ -7,7 +7,7 @@ import os
 
 import yaml
 
-from synse.proto import api_pb2
+from synse_plugin import api as synse_api
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +127,7 @@ class Device(object):
     def to_metaresponse(self):
         """
         """
-        return api_pb2.MetainfoResponse(
+        return synse_api.MetainfoResponse(
             timestamp=str(datetime.datetime.utcnow()),
             uid=self.uid,
             type=self.type,
@@ -158,7 +158,7 @@ class Output(object):
     def to_metaoutput(self):
         """
         """
-        return api_pb2.MetaOutput(
+        return synse_api.MetaOutput(
             type=self.type,
             unit=self.unit.to_metaunit(),
             precision=self.precision,
@@ -177,7 +177,7 @@ class Unit(object):
         self.symbol = unit_cfg.get('symbol')
 
     def to_metaunit(self):
-        return api_pb2.MetaOutputUnit(
+        return synse_api.MetaOutputUnit(
             name=self.name,
             symbol=self.symbol
         )
@@ -194,7 +194,7 @@ class Range(object):
         self.max = range_cfg.get('max')
 
     def to_metarange(self):
-        return api_pb2.MetaOutputRange(
+        return synse_api.MetaOutputRange(
             min=self.min,
             max=self.max
         )
@@ -213,7 +213,7 @@ class Location(object):
         return self.rack + self.board + self.device
 
     def to_metalocation(self):
-        return api_pb2.MetaLocation(
+        return synse_api.MetaLocation(
             rack=self.rack,
             board=self.board,
             device=self.device
