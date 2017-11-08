@@ -107,6 +107,14 @@ async def get_location_device_map():
         board = dev.location.board
         device = dev.location.device
 
+        # FIXME: if the device isn't specified in the location block, use
+        # the UID as the device. this is okay, but really its an issue with
+        # how we represent rack/board/device throughout the system (and also
+        # where it is represented). Will need to go through and make sure this
+        # is thought through from the plugin/sdk all the up through to here.
+        if not device:
+            device = uid
+
         if rack not in ld_map:
             ld_map[rack] = {board: {device: uid}}
 
@@ -179,7 +187,13 @@ def build_scan_cache(metainfo):
     for source in metainfo.values():
         rack = source.location.rack
         board = source.location.board
-        device = source.location.device
+
+        # FIXME: before, this was source.location.device -- need to spend some
+        # more time thinking about/designing out the world of IDs in our system.
+        # does the device id belong in the location? is there (or should there be)
+        # a difference between the internal UID and the id shown to the user?
+        # probably more questions surrounding this, but that's a start.
+        device = source.uid
 
         # the given rack does not yet exist in our scan cache.
         # in this case, we will create it, along with the board

@@ -5,10 +5,12 @@
 from sanic import Blueprint
 
 from synse import commands
+from synse.version import __api_version__
 
-bp = Blueprint(__name__)
+bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
 
 
+# FIXME - this BP is given the route /synse/2.0 -- do we want 'test' to be versioned?
 @bp.route('/test')
 async def test_route(request):
     """ Endpoint to test whether the service is up and reachable.
@@ -20,6 +22,7 @@ async def test_route(request):
     return response.to_json()
 
 
+# FIXME - this BP is given the route /synse/2.0 -- I don't think we want version to be versioned.
 @bp.route('/version')
 async def version_route(request):
     """ Endpoint to get the API version of the service.
