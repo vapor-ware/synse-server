@@ -1,5 +1,4 @@
-"""
-
+"""Response scheme for the /version endpoint.
 """
 
 from synse.scheme.base_response import SynseResponse
@@ -7,7 +6,10 @@ from synse.version import __api_version__, __version__
 
 
 class VersionResponse(SynseResponse):
-    """The response model for the /version endpoint.
+    """A VersionResponse is the response data for a Synse 'version' command.
+
+    The JSON response returned by the Synse endpoint, constructed from
+    the data here, should follow the scheme:
 
     Response Scheme:
         {

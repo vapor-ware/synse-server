@@ -1,5 +1,4 @@
-"""
-
+"""Response scheme for the /test endpoint.
 """
 
 import datetime
@@ -8,7 +7,10 @@ from synse.scheme.base_response import SynseResponse
 
 
 class TestResponse(SynseResponse):
-    """The response model for the /synse/<version>/test endpoint.
+    """A TestResponse is the response data for a Synse 'test' command.
+
+    The JSON response returned by the Synse endpoint, constructed from
+    the data here, should follow the scheme:
 
     Response Scheme:
         {
@@ -25,7 +27,7 @@ class TestResponse(SynseResponse):
           "type": "object"
         }
 
-    Example Response:
+    Response Example:
         {
           "status": "ok",
           "timestamp": "2017-09-27 14:33:57.804100"
@@ -38,6 +40,6 @@ class TestResponse(SynseResponse):
     }
 
     def __init__(self):
-        """
+        """Constructor for the TestResponse class.
         """
         self.data['timestamp'] = str(datetime.datetime.utcnow())

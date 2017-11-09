@@ -15,7 +15,7 @@ from synse.cache import get_location_device_map
 from synse.config import AIOCACHE
 from synse.const import BG_SOCKS
 from synse.log import logger
-from synse.proc import BGProc
+from synse.plugin import Plugin
 from synse.response import json
 
 
@@ -55,12 +55,12 @@ def configure_cache():
     aiocache.caches.set_config(AIOCACHE)
 
 
-# FIXME - maybe this moves to the 'proc' module?
-def register_background_processes():
-    """ Find the sockets for the configured background processes.
+# FIXME - maybe this moves to the 'plugin' module?
+def register_background_plugins():
+    """ Find the sockets for the configured background plugins.
 
-    Upon initialization, the BGProc instances are automatically registered
-    with the ProcManager.
+    Upon initialization, the Plugin instances are automatically registered
+    with the PluginManager.
     """
     logger.debug('Registering background processes')
     if not os.path.exists(BG_SOCKS):
@@ -76,8 +76,8 @@ def register_background_processes():
         name, _ = os.path.splitext(item)
 
         if stat.S_ISSOCK(os.stat(fqn).st_mode):
-            bgproc = BGProc(name=name, sock=fqn)
-            logger.debug('Found bgproc: {}'.format(bgproc))
+            plugin = Plugin(name=name, sock=fqn)
+            logger.debug('Found plugin: {}'.format(plugin))
         else:
             logger.debug('not a socket.. {}'.format(fqn))
 

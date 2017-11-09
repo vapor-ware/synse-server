@@ -1,5 +1,4 @@
 """
-
 """
 
 from synse.response import json

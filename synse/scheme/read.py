@@ -1,5 +1,4 @@
-"""
-
+"""Response scheme for the /read endpoint.
 """
 
 from synse.log import logger
@@ -12,12 +11,11 @@ class ReadResponse(SynseResponse):
     The JSON response returned by the Synse endpoint, constructed from
     the data here, should follow the scheme:
 
-    <TODO - WRITE SCHEME FOR RESPONSE>
+    Response Scheme:
+        <TODO - WRITE SCHEME FOR RESPONSE>
 
-    Example:
-
+    Response Example:
         {
-
           "type": "humidity"
           "data": {
             "temperature": {
@@ -38,6 +36,7 @@ class ReadResponse(SynseResponse):
             }
           }
         }
+
     """
 
     def __init__(self, device, readings):

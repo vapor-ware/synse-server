@@ -7,7 +7,7 @@ import grpc
 
 from synse import errors
 from synse.log import logger
-from synse.proc import BGProc, get_procs
+from synse.plugin import Plugin, get_plugins
 
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
@@ -70,9 +70,9 @@ async def get_metainfo_cache():
     # and use the associated client to get the meta information provided by
     # that backend.
 
-    logger.debug('process: {}'.format(BGProc.manager.processes))
+    logger.debug('process: {}'.format(Plugin.manager.processes))
 
-    for name, proc in get_procs():
+    for name, proc in get_plugins():
         logger.debug('{} -- {}'.format(name, proc))
 
         try:

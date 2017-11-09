@@ -1,5 +1,4 @@
-"""
-
+"""Synse Server application logging.
 """
 
 import logging
@@ -11,7 +10,7 @@ logger = logging.getLogger('synse')
 
 
 def setup_logger():
-    """
+    """Configure the Synse Server logger.
     """
     logging.config.dictConfig(LOGGING)
     logger.setLevel(logging.DEBUG)

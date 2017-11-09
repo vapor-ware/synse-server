@@ -11,7 +11,7 @@ if __name__ == '__main__':
     config.load()
 
     app = make_app()
-    app.register_background_processes()
+    app.register_background_plugins()
 
     app.run(
         host=config.options.get('host'),
