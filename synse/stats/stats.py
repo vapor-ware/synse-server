@@ -15,6 +15,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 
+# TODO: This is a bug. It's computing variance, not standard deviation.
 def std_dev(numbers):
     """Find the average and standard deviation in numbers.
     :param numbers: A list of numbers.

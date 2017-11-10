@@ -136,6 +136,18 @@ def _normalize_differential_pressure_result(channel, readings):
     """
     # Dict for aggregating and logging.
     result_stats = {'sample_count': DIFFERENTIAL_PRESSURE_READ_COUNT}
+
+    if readings is None:
+        # Bad sensor read. Don't fail the fan_sensors web route.
+        result_stats['raw_mean'] = None
+        result_stats['raw_stddev'] = None
+        result_stats['remove_count'] = None
+        result_stats['outliers'] = None
+        result_stats['list'] = None
+        result_stats['mean'] = None
+        result_stats['stddev'] = None
+        return result_stats
+
     result_stats['raw_mean'], result_stats['raw_stddev'] = stats.std_dev(readings)
 
     # Remove outliers.
@@ -327,6 +339,8 @@ def read_differential_pressure(channel):
 
     # Now that the bus is closed, normalize the results.
     normalized_result = _normalize_differential_pressure_result(channel, readings)
+    if normalized_result is None:
+        return None  # Read of bad sensor.
     return normalized_result['mean']
 
 
@@ -373,6 +387,10 @@ def read_differential_pressures(count):
     for index, raw in enumerate(raw_result):
         channel = get_channel_from_ordinal(index)
         normalized = _normalize_differential_pressure_result(channel, raw)
+        if normalized is None:
+            return None  # Read of bad sensor.
+
+        # Return the mean.
         result.append(normalized['mean'])
 
     end_time = datetime.datetime.now()

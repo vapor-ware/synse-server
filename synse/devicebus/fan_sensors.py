@@ -199,6 +199,9 @@ class FanSensors(object):
                 if dpressure.device.channel > max_channel:
                     max_channel = dpressure.device.channel
 
+        if max_channel == -1:
+            return 0  # No differential pressure sensors configured.
+
         result = i2c_common.get_channel_ordinal(max_channel)
         result += 1
         if result > FanSensors.SUPPORTED_DIFFERENTIAL_PRESSURE_COUNT:
