@@ -4,7 +4,7 @@
 from sanic import Sanic
 
 from synse.log import logger, setup_logger
-from synse.routes import aliases, base, synse
+from synse.routes import aliases, base, core
 from synse.utils import (configure_cache, disable_favicon,
                          register_background_plugins,
                          register_error_handling)
@@ -30,7 +30,7 @@ def make_app():
     # register the blueprints
     app.blueprint(aliases.bp)
     app.blueprint(base.bp)
-    app.blueprint(synse.bp)
+    app.blueprint(core.bp)
 
     disable_favicon(app)
     register_error_handling(app)

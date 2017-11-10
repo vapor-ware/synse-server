@@ -17,6 +17,16 @@ class TransactionResponse(SynseResponse):
 
     Response Example:
         {
+          "id": "b7jl0b2un4a154rn9u4g",
+          "context": {
+            "action": "blink",
+            "raw": ["steady"]
+          },
+          "state": "ok",
+          "status": "pending",
+          "created": "2017-11-08 14:11:46",
+          "updated": "2017-11-08 14:12:04",
+          "message": ""
         }
 
     """

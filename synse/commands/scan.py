@@ -1,5 +1,4 @@
-"""
-
+"""Command handler for the `scan` route.
 """
 
 from synse.cache import clear_all_meta_caches, get_scan_cache

@@ -1,5 +1,4 @@
-"""
-
+"""The aliased routes that make up the Synse Server JSON API.
 """
 
 from sanic import Blueprint

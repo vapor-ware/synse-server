@@ -1,5 +1,4 @@
-"""
-
+"""Synse Server python client for communicating to plugins via the gRPC API.
 """
 
 import os
@@ -108,14 +107,18 @@ class SynseInternalClient(object):
         logger.debug('  stub: {}'.format(cli.stub))
         return cli
 
-    def read(self, device_id):
-        """
+    def read(self, rack, board, device):
+        """Get a reading from the specified device.
 
         Args:
-            device_id (str)
+            rack (str): The rack which the device resides on.
+            board (str): The board which the device resides on.
+            device (str): The identifier for the device to read.
         """
         req = synse_api.ReadRequest(
-            uid=str(device_id)
+            device=device,
+            board=board,
+            rack=rack
         )
 
         resp = []
@@ -125,11 +128,11 @@ class SynseInternalClient(object):
         return resp
 
     def metainfo(self, rack=None, board=None):
-        """
+        """Get all meta-information from a plugin.
 
         Args:
-            rack (str):
-            board (str):
+            rack (str): The rack to filter by.
+            board (str): The board to filter by.
         """
         # if the rack or board is not specified, pass it through as an
         # empty string.
@@ -137,8 +140,8 @@ class SynseInternalClient(object):
         board = board if board is not None else ''
 
         req = synse_api.MetainfoRequest(
-            rack=str(rack),
-            board=str(board)
+            rack=rack,
+            board=board
         )
 
         resp = []
@@ -147,15 +150,19 @@ class SynseInternalClient(object):
 
         return resp
 
-    def write(self, device_id, data):
-        """
+    def write(self, rack, board, device, data):
+        """Write data to the specified device.
 
         Args:
-            device_id (str):
-            data (list[WriteData]):
+            rack (str): The rack which the device resides on.
+            board (str): The board which the device resides on.
+            device (str): The identifier for the device to write to.
+            data (list[WriteData]): The data to write to the device.
         """
         req = synse_api.WriteRequest(
-            uid=device_id,
+            device=device,
+            board=board,
+            rack=rack,
             data=[d.to_grpc() for d in data]
         )
 
@@ -163,13 +170,13 @@ class SynseInternalClient(object):
         return resp
 
     def check_transaction(self, transaction_id):
-        """
+        """Check the state of a write transaction.
 
         Args:
-            transaction_id (str):
+            transaction_id (str): The ID of the transaction to check.
         """
         req = synse_api.TransactionId(
-            id=str(transaction_id)
+            id=transaction_id
         )
 
         resp = self.stub.TransactionCheck(req)

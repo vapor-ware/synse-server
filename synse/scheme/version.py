@@ -13,17 +13,17 @@ class VersionResponse(SynseResponse):
 
     Response Scheme:
         {
+          "type": "object",
           "properties": {
             "api_version": {
-              "id": "/properties/api_version",
+              "$id": "/properties/api_version",
               "type": "string"
             },
             "version": {
-              "id": "/properties/version",
+              "$id": "/properties/version",
               "type": "string"
             }
-          },
-          "type": "object"
+          }
         }
 
     Response Example:

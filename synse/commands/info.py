@@ -1,5 +1,4 @@
-"""
-
+"""Command handler for the `info` route.
 """
 
 from synse import errors

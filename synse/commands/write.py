@@ -1,5 +1,4 @@
-"""
-
+"""Command handler for the `write` route.
 """
 
 import grpc

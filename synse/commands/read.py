@@ -1,4 +1,4 @@
-"""Synse Server "read" command.
+"""Command handler for the `read` route.
 """
 
 import grpc

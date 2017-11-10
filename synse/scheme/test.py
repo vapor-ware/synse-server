@@ -14,17 +14,17 @@ class TestResponse(SynseResponse):
 
     Response Scheme:
         {
+          "type": "object",
           "properties": {
             "status": {
-              "id": "/properties/status",
+              "$id": "/properties/status",
               "type": "string"
             },
             "timestamp": {
-              "id": "/properties/timestamp",
+              "$id": "/properties/timestamp",
               "type": "string"
             }
-          },
-          "type": "object"
+          }
         }
 
     Response Example:

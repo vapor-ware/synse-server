@@ -6,7 +6,6 @@ from setuptools import setup, find_packages
 
 import synse
 
-print(find_packages())
 
 setup(
     name=synse.__title__,

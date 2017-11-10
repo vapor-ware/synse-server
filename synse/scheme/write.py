@@ -14,8 +14,16 @@ class WriteResponse(SynseResponse):
         <TODO - WRITE SCHEME FOR RESPONSE>
 
     Response Example:
-        {
-        }
+        [
+          {
+            "context": {
+              "action": "blink",
+              "raw": ["steady"]
+            },
+            "timestamp": "2017-11-08 14:01:53",
+            "transaction": "b7jl0b2un4a154rn9u4g"
+          }
+        ]
 
     """
 

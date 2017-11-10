@@ -1,5 +1,4 @@
-"""
-
+"""Command handler for the `transaction` route.
 """
 
 import grpc

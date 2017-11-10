@@ -23,6 +23,12 @@ RUN pip3 install synse_plugin-*.tar.gz
 # the location where the bg processes will place their
 # unix sockets so the Synse app can communicate.
 RUN mkdir -p /synse/procs
+
+# install synse_server python package
+# TODO - since we are pretty much just using the package, what
+# if on build, we just pass in the tarball for synse_server.. then
+# we don't have to also include the source code which isn't actually
+# used (other than some of the configurations and runserver.py
 RUN python setup.py install
 
 ENTRYPOINT ["bin/synse.sh"]
