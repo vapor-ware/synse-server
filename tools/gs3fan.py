@@ -294,6 +294,7 @@ def _print_usage():
     print '\ttemp: gets temperature and humidity'
     print '\tambient: gets ambient temperature'
     print '\tair: gets CEC airflow'
+    print '\tair_status: gets CEC airflow status register.'
     print '\ttherm: gets all thermistors'
     print '\tpressure: gets all differential pressures'
     print '\tled [<state>[<color> <blink_state>]]: Read or write to the LED controller.'
@@ -308,6 +309,33 @@ def _read_airflow(ser):
     velocity_cfm = conversions.flow_mm_s_to_cfm(velocity)
     print 'Airflow velocity = {} CFM'.format(velocity_cfm)
 
+
+def _read_airflow_status(ser):
+    """Read the airflow status register."""
+    client = dkmodbus.dkmodbus(ser)
+    result = client.read_input_registers(2, 9, 1)
+    status = conversions.unpack_word(result)
+
+    print 'Airflow status = 0x{:02x}'.format(status)
+    if status:
+        # There is at least one error.
+        print 'Errors detected.'
+        if status & 0x20:  # Marked N/A in one doc.
+            print 'Toutput Control Error'
+        if status & 0x10:
+            print 'Air Flow Temperature Sensor Error'
+        if status & 0x08:
+            print 'Ambient Temperature Sensor Error'
+        if status & 0x04:  # Marked N/A in one doc.
+            print 'Voutput Control Error'
+        if status & 0x02:
+            print 'Flow Bead Control Error'
+
+        # Remainder are not used according to the datasheet.
+        # Will print Errors detected however.
+        return 1
+    else:
+        return 0
 
 def _read_all_fan(ser):
     """Get all registers from the fan."""
@@ -551,6 +579,8 @@ def main():
         _read_temperature_and_humidity(ser)
     elif sys.argv[1] == 'air':
         _read_airflow(ser)
+    elif sys.argv[1] == 'air_status':
+        return _read_airflow_status(ser)
     elif sys.argv[1] == 'test1':
         _test1(ser)
     elif sys.argv[1] == 'ambient':
@@ -564,8 +594,9 @@ def main():
 if __name__ == '__main__':
     try:
         logger.debug('start: argv {}'.format(sys.argv))
-        main()
-        logger.debug('end main')
+        rc = main()
+        logger.debug('end main {}'.format(rc))
+        sys.exit(rc)
     except Exception as e:
         logger.exception(e)
         _print_usage()
