@@ -14,4 +14,6 @@ RUN pip install -r test-requirements.txt
 
 WORKDIR /code
 
+COPY synse_plugin-*.tar.gz .
+
 CMD ["bin/run_tests.sh"]
