@@ -115,13 +115,13 @@ async def get_metainfo_cache():
     # and use the associated client to get the meta information provided by
     # that backend.
 
-    logger.debug('process: {}'.format(Plugin.manager.processes))
+    logger.debug('process: {}'.format(Plugin.manager.plugins))
 
-    for name, proc in get_plugins():
-        logger.debug('{} -- {}'.format(name, proc))
+    for name, plugin in get_plugins():
+        logger.debug('{} -- {}'.format(name, plugin))
 
         try:
-            for device in proc.client.metainfo():
+            for device in plugin.client.metainfo():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
                 metainfo[_id] = device
 
