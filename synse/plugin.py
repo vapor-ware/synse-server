@@ -97,5 +97,5 @@ def get_plugins():
     Yields:
         tuple: a tuple of plugin name and associated Plugin.
     """
-    for k, v in Plugin.manager.processes.items():
+    for k, v in Plugin.manager.plugins.items():
         yield k, v
