@@ -31,7 +31,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 import fcntl
 import logging
 import sys
-import threading
 import time
 from uuid import getnode as get_mac_addr
 

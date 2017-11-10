@@ -103,11 +103,12 @@ class Max116xxThermistor(I2CDevice):
                     response_data=reading
                 )
 
-            # if we get here, there was no sensor device found, so we must raise
+            # If we get here, there was no sensor device found, so we must raise.
             logger.error('No response for sensor reading for command: {}'.format(command.data))
             raise SynseException('No sensor reading returned from I2C.')
 
         except Exception:
+            logger.exception()
             raise SynseException('Error reading temperature sensor (device id {})'.format(
                 device_id)), None, sys.exc_info()[2]
 
@@ -136,6 +137,7 @@ class Max116xxThermistor(I2CDevice):
         logger.debug('indirect_sensor_read')
         data_file = self._get_bg_read_file('{0:04x}'.format(self.channel))
         data = Max11608Thermistor.read_sensor_data_file(data_file)
+        logger.debug('data: {}'.format(data))
         return {const.UOM_TEMPERATURE: data[0]}
 
     def _direct_sensor_read(self):

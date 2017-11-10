@@ -7,7 +7,13 @@
 """
 
 import errno
+import fcntl
+import logging
 import os
+import time
+
+
+logger = logging.getLogger(__name__)
 
 
 def mkdir(path):
@@ -40,6 +46,26 @@ def write_readings(path, readings):
         else:
             output.append(str(reading) + os.linesep)
 
-    # TODO: Lock around the write.
-    with open(path, 'w') as f:
-        f.writelines(output)
+    tries = 3  # Up to 3 tries.
+    for attempt in range(tries):
+        try:
+            with open(path, 'w') as f:
+                try:  # Write under exclusive file lock.
+                    fcntl.flock(f, fcntl.LOCK_EX)
+                    f.writelines(output)
+                    break  # Success.
+                finally:
+                    fcntl.flock(f, fcntl.LOCK_UN)
+
+        except Exception:
+            next_attempt = attempt + 1
+            if next_attempt < tries:
+                logger.exception(
+                    'Failed writing sensor file {}. Will retry.'.format(path))
+                time.sleep(.05)  # Wait 50 ms for the lock to be released.
+            else:
+                logger.exception(
+                    'No more retries writing readings {} to file: {}'.format(
+                        readings, path))
+                raise
+

@@ -116,12 +116,13 @@ class F660Airflow(RS485Device):
                     response_data=reading
                 )
 
-            # if we get here, there was no sensor device found, so we must raise
+            # If we get here, there was no sensor device found, so we must raise.
             logger.error(
                 'No response for sensor reading for command: {}'.format(command.data))
             raise SynseException('No sensor reading returned from RS485.')
 
         except Exception:
+            logger.exception()
             raise SynseException(
                 'Error reading F660 airflow sensor (device id: {})'.format(
                     device_id)), None, sys.exc_info()[2]

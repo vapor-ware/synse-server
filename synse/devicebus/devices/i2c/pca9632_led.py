@@ -151,13 +151,14 @@ class PCA9632Led(I2CDevice):
                     response_data=reading
                 )
 
-            # if we get here, there was no sensor device found, so we
-            # must raise
+            # If we get here, there was no sensor device found, so we
+            # must raise.
             logger.error('No response for LED status for command: {}'.format(
                 command.data))
             raise SynseException('No LED status returned from I2C.')
 
         except Exception:
+            logger.exception()
             raise SynseException(
                 # NOTE: Writes go through this code path. Always did.
                 'Error reading LED status (device id: {})'.format(
@@ -196,13 +197,14 @@ class PCA9632Led(I2CDevice):
                     response_data=reading
                 )
 
-            # if we get here, there was no sensor device found, so
-            # we must raise
+            # If we get here, there was no sensor device found, so we
+            # must raise.
             logger.error('No response for LED control for command: {}'.format(
                 command.data))
             raise SynseException('No LED control response from I2C.')
 
         except Exception:
+            logger.exception()
             raise SynseException(
                 'Error setting LED status (device id: {})'.format(
                     device_id)), None, sys.exc_info()[2]
@@ -345,8 +347,7 @@ class PCA9632Led(I2CDevice):
         write_data = state + os.linesep + color_str + os.linesep + blink_str + os.linesep
         logger.debug('LED _indirect_write() write_data: {}'.format(write_data))
 
-        with open(data_file, 'w') as f:
-            f.write(write_data)
+        PCA9632Led.write_device_data_file(data_file, write_data)
 
         self._cache_write(color, blink)
         return self._led_response(state, color, blink)
