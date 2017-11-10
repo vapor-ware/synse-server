@@ -4,7 +4,7 @@
 import grpc
 
 from synse import errors
-from synse.cache import get_transaction
+from synse.cache import get_transaction_plugin
 from synse.plugin import get_plugin
 from synse.scheme.transaction import TransactionResponse
 
@@ -16,7 +16,7 @@ async def check_transaction(transaction_id):
         transaction_id (str):
     """
 
-    plugin_name = await get_transaction(transaction_id)
+    plugin_name = await get_transaction_plugin(transaction_id)
     if not plugin_name:
         # TODO - in the future, what we could do is attempt sending the transaction
         #   request to *all* of the known plugins. this could be useful in the event

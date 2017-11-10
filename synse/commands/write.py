@@ -4,11 +4,10 @@
 import grpc
 
 from synse import errors
-from synse.cache import add_transaction, get_metainfo_cache
+from synse.cache import add_transaction, get_device_meta
 from synse.log import logger
 from synse.plugin import get_plugin
 from synse.scheme.write import WriteResponse
-from synse.utils import get_device_uid
 
 
 async def write(rack, board, device, data):
@@ -22,16 +21,7 @@ async def write(rack, board, device, data):
     """
 
     # lookup the known info for the specified device
-    # TODO - this can become a helper. used also in 'read' command.
-    _uid = await get_device_uid(rack, board, device)
-    metainfo = await get_metainfo_cache()
-    dev = metainfo.get(_uid)
-
-    if dev is None:
-        raise errors.SynseError(
-            '{} does not correspond with a known device.'.format(
-                '/'.join([rack, board, device]), errors.DEVICE_NOT_FOUND)
-        )
+    dev = await get_device_meta(rack, board, device)
 
     # get the plugin context for the device's specified protocol
     plugin = get_plugin(dev.protocol)
@@ -43,7 +33,7 @@ async def write(rack, board, device, data):
 
     # perform a gRPC write on the device's managing plugin
     try:
-        transaction = plugin.client.write(_uid, [data])
+        transaction = plugin.client.write(rack, board, device, [data])
     except grpc.RpcError as ex:
         raise errors.SynseError('Failed to issue a write request.', errors.FAILED_WRITE_COMMAND) from ex
 

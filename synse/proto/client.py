@@ -133,6 +133,10 @@ class SynseInternalClient(object):
         Args:
             rack (str): The rack to filter by.
             board (str): The board to filter by.
+
+        Returns:
+            list[MetainfoResponse]: All device meta-information provided by
+                the plugin.
         """
         # if the rack or board is not specified, pass it through as an
         # empty string.
