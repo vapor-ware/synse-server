@@ -115,7 +115,7 @@ async def get_metainfo_cache():
     # and use the associated client to get the meta information provided by
     # that backend.
 
-    logger.debug('process: {}'.format(Plugin.manager.plugins))
+    logger.debug('plugins: {}'.format(Plugin.manager.plugins))
 
     for name, plugin in get_plugins():
         logger.debug('{} -- {}'.format(name, plugin))
