@@ -38,10 +38,9 @@ async def scan_route(request, rack=None, board=None):
     param_force = request.raw_args.get('force')
     if param_force is not None:
         force = param_force.lower() == 'true'
+        logger.debug('forcing re-scan? {}'.format(force))
     else:
         force = False
-
-    logger.debug('SCAN -> force? {}'.format(force))
 
     response = await commands.scan(rack=rack, board=board, force=force)
     return response.to_json()

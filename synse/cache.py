@@ -6,7 +6,7 @@ import grpc
 
 from synse import errors, utils
 from synse.log import logger
-from synse.plugin import Plugin, get_plugins
+from synse.plugin import get_plugins
 
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
@@ -115,9 +115,13 @@ async def get_metainfo_cache():
     # and use the associated client to get the meta information provided by
     # that backend.
 
-    logger.debug('plugins: {}'.format(Plugin.manager.plugins))
+    plugins = get_plugins()
+    logger.debug('plugins to scan: {}'.format(plugins))
 
-    for name, plugin in get_plugins():
+    # track which plugins failed to provide metainfo for any reason.
+    failures = {}
+
+    for name, plugin in plugins:
         logger.debug('{} -- {}'.format(name, plugin))
 
         try:
@@ -125,11 +129,23 @@ async def get_metainfo_cache():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
                 metainfo[_id] = device
 
-        # FIXME - do we want to outright fail if we cant reach one of the
-        #   background processes, or continue on and resolve all that we
-        #   are able to? for now, failing hard since that is simplest.
+        # we do not want to fail the scan if a single plugin fails to provide
+        # meta-information.
+        #
+        # FIXME (etd): instead of just logging out the errors, we could either:
+        #   - update the response scheme to hold an 'errors' field which will alert
+        #     the user of these partial non-fatal errors.
+        #   - update the API to add a url to check the currently configured plugins
+        #     and their 'health'/'state'.
+        #   - both
         except grpc.RpcError as ex:
-            raise errors.SynseError('Failed to get metainfo for process "{}"'.format(name), errors.INTERNAL_API_FAILURE) from ex
+            failures[name] = ex
+            logger.warning('Failed to get metainfo for plugin: {}'.format(name))
+
+    # if we fail to read from all plugins (assuming there were any), then we
+    # can raise an error since it is likely something is mis-configured.
+    if plugins and len(plugins) == len(failures):
+        raise errors.SynseError('Failed to scan all plugins: {}'.format(failures), errors.INTERNAL_API_FAILURE)
 
     logger.debug('Got metainfo cache!')
     return metainfo
@@ -145,8 +161,6 @@ async def get_scan_cache():
     Returns:
         dict: A dictionary containing the scan command result.
     """
-    logger.debug('aiocache cache config:')
-    logger.debug(aiocache.caches._config)
     logger.debug('Getting scan metainfo cache for scancache')
     _metainfo = await get_metainfo_cache()
     logger.debug('Building scan cache.')
