@@ -47,6 +47,7 @@ coverage.xml
 .hypothesis/
 results/
 prof/
+*.log
 
 # Translations
 *.mo

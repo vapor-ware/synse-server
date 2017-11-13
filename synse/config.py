@@ -71,7 +71,7 @@ server_group.add('--port', env_var='SERVER_PORT', default=5000, type=int, help='
 server_group.add('--host', env_var='SERVER_HOST', default='0.0.0.0', type=str, help='the host to run the server on')
 
 
-options = None
+options = {}
 
 
 def load(opts=None):

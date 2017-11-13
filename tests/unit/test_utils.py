@@ -1,5 +1,4 @@
-"""
-
+"""Test the 'utils' synse module.
 """
 
 from synse import utils

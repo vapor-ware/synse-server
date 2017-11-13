@@ -1,5 +1,4 @@
-"""
-
+"""Test the 'version' synse module.
 """
 
 import synse
