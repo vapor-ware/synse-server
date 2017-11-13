@@ -1,12 +1,16 @@
-"""
-
+"""Error definitions for Synse Server.
 """
 
 from sanic.exceptions import ServerError
 
 
 class SynseError(ServerError):
-    """
+    """General error raised within Synse Server.
+
+    Everything that raises an exception within Synse Server should ultimately
+    propagate this (or a subclass of this) up to the route handler. There, it
+    will propagate up through Sanic handling and will result in a 500 error
+    response with JSON.
     """
 
     def __init__(self, message, error_id=None):

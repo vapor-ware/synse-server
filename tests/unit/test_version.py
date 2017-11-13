@@ -1,4 +1,4 @@
-"""Test the 'version' synse module.
+"""Test the 'synse.version' Synse Server module.
 """
 
 import synse

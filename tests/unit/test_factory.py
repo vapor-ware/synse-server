@@ -1,11 +1,11 @@
-"""Test the 'factory' synse module.
+"""Test the 'synse.factory' Synse Server module.
 """
 
 from synse import factory
 
 
 def test_make_app():
-    """
+    """Create a new instance of the Synse Server app.
     """
     app = factory.make_app()
 

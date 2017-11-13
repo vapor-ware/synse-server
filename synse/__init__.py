@@ -1,5 +1,4 @@
-"""
-
+"""Synse Server application.
 """
 
 __title__ = 'synse'

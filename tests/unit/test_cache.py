@@ -1,2 +1,2 @@
-"""Test the 'cache' synse module.
+"""Test the 'synse.cache' Synse Server module.
 """

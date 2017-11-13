@@ -1,5 +1,6 @@
-"""Tests for the 'test' endpoint.
+"""Test the 'synse.routes.base' Synse Server module's test route.
 """
+
 
 import pytest
 import ujson

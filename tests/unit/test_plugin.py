@@ -1,2 +1,2 @@
-"""Test the 'plugin' synse module.
+"""Test the 'synse.plugin' Synse Server module.
 """
