@@ -3,8 +3,7 @@
 
 from sanic.response import HTTPResponse
 
-from synse import response
-from synse import config
+from synse import config, response
 
 
 def test_json():

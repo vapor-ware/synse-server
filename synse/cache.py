@@ -5,6 +5,7 @@ import aiocache
 import grpc
 
 from synse import errors, utils
+from synse.config import AIOCACHE
 from synse.log import logger
 from synse.plugin import Plugin
 
@@ -17,6 +18,13 @@ NS_INFO = 'info'
 # FIXME -- the TTL here should probably be longer and configured
 # separately from the other ttls.
 transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
+
+
+def configure_cache():
+    """Set the configuration for the asynchronous cache used by Synse.
+    """
+    logger.debug('CONFIGURING CACHE: {}'.format(AIOCACHE))
+    aiocache.caches.set_config(AIOCACHE)
 
 
 async def clear_cache(namespace):
@@ -103,7 +111,7 @@ async def get_device_meta(rack, board, device):
     if dev is None:
         raise errors.SynseError(
             '{} does not correspond with a known device.'.format(
-                '/'.join([rack, board, device]), errors.DEVICE_NOT_FOUND)
+                '/'.join([rack, board, device])), errors.DEVICE_NOT_FOUND
         )
     return dev
 
@@ -156,7 +164,10 @@ async def get_metainfo_cache():
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugins and len(plugins) == len(failures):
-        raise errors.SynseError('Failed to scan all plugins: {}'.format(failures), errors.INTERNAL_API_FAILURE)
+        raise errors.SynseError(
+            'Failed to scan all plugins: {}'.format(failures),
+            errors.INTERNAL_API_FAILURE
+        )
 
     logger.debug('Got metainfo cache!')
     return metainfo

@@ -1,4 +1,4 @@
-""" Version information and formatting.
+"""Version information and formatting.
 """
 
 import sys

@@ -1,5 +1,4 @@
-"""
-
+"""Synse Server configurations and configuration helpers.
 """
 
 import sys
@@ -75,7 +74,7 @@ options = {}
 
 
 def load(opts=None):
-    """
+    """Load the Synse Server configuration from the parser.
 
     Args:
         opts (dict): a dictionary containing the configuration to read.

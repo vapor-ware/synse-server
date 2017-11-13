@@ -6,7 +6,6 @@ import logging
 import os
 
 import yaml
-
 from synse_plugin import api as synse_api
 
 logger = logging.getLogger(__name__)

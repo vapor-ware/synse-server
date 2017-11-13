@@ -72,12 +72,12 @@ class Plugin(object):
     manager = None
 
     def __init__(self, name, sock):
-        """ Constructor for the Plugin object.
+        """Constructor for the Plugin object.
 
         Args:
-            name (str): the name of the plugin. this is derived
+            name (str): The name of the plugin. This is derived
                 from the name of the socket.
-            sock (str): the path to the socket.
+            sock (str): The path to the socket.
         """
         if not os.path.exists(sock):
             raise ValueError('The given socket ({}) must exist.'.format(sock))
@@ -99,11 +99,11 @@ def get_plugin(name):
     """Get the model for the plugin with the given name.
 
     Args:
-        name (str): the name of the plugin.
+        name (str): The name of the plugin.
 
     Returns:
-        Plugin: the plugin model associated with the given name.
-        None: if the given name is not associated with a known plugin.
+        Plugin: The plugin model associated with the given name.
+        None: The given name is not associated with a known plugin.
     """
     return Plugin.manager.get(name)
 
@@ -112,7 +112,7 @@ def get_plugins():
     """Get all of the managed plugins.
 
     Yields:
-        tuple: a tuple of plugin name and associated Plugin.
+        tuple: A tuple of plugin name and associated Plugin.
     """
     for k, v in Plugin.manager.plugins.items():
         yield k, v

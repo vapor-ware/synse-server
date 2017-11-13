@@ -1,12 +1,10 @@
 """Test the 'synse.routes.base' Synse Server module's version route.
 """
 
-
 import pytest
 import ujson
 
-from synse import factory
-from synse import version
+from synse import factory, version
 
 
 @pytest.fixture()

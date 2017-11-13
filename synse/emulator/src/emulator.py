@@ -7,11 +7,10 @@ import time
 from concurrent import futures
 
 import grpc
+from synse_plugin import grpc as synse_grpc
 
 from synse.emulator.src import devices
 from synse.emulator.src.servicer import InternalApiServicer
-
-from synse_plugin import grpc as synse_grpc
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 

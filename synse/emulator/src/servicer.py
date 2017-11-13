@@ -6,11 +6,10 @@ import random
 from uuid import uuid4 as uuid
 
 import grpc
+from synse_plugin import api as synse_api
+from synse_plugin import grpc as synse_grpc
 
 from synse.emulator.src import devices
-
-from synse_plugin import grpc as synse_grpc
-from synse_plugin import api as synse_api
 
 STATUS_UNKNOWN = 0
 STATUS_PENDING = 1

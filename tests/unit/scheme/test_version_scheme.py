@@ -1,8 +1,8 @@
 """Test the 'synse.scheme.version' Synse Server module.
 """
 
-from synse.scheme.version import VersionResponse
 from synse import version
+from synse.scheme.version import VersionResponse
 
 
 def test_version_scheme():
