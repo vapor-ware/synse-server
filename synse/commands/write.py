@@ -7,6 +7,7 @@ from synse import errors
 from synse.cache import add_transaction, get_device_meta
 from synse.log import logger
 from synse.plugin import get_plugin
+from synse.proto.client import WriteData
 from synse.scheme.write import WriteResponse
 
 
@@ -17,7 +18,7 @@ async def write(rack, board, device, data):
         rack (str):
         board (str):
         device (str):
-        data ():
+        data (dict):
     """
 
     # lookup the known info for the specified device
@@ -31,9 +32,20 @@ async def write(rack, board, device, data):
                 dev.protocol), errors.PLUGIN_NOT_FOUND
         )
 
+    # the data comes in as the POSTed dictionary which includes an 'action'
+    # and/or 'raw' field. here, we convert it to the appropriate modeling for
+    # transport to the plugin.
+    action = data.get('action')
+    raw = data.get('raw')
+    if raw is not None:
+        # raw will be a string - we need to convert to bytes
+        raw = [str.encode(raw)]
+
+    wd = WriteData(action=action, raw=raw)
+
     # perform a gRPC write on the device's managing plugin
     try:
-        transaction = plugin.client.write(rack, board, device, [data])
+        transaction = plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
         raise errors.SynseError('Failed to issue a write request.', errors.FAILED_WRITE_COMMAND) from ex
 

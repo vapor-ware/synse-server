@@ -4,6 +4,8 @@
 from sanic import Blueprint
 
 from synse import commands
+from synse import errors
+from synse.log import logger
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
@@ -33,7 +35,10 @@ async def scan_route(request, rack=None, board=None):
             scan result to only return the scan information for the specified
             board on the specified rack.
     """
-    response = await commands.scan(rack=rack, board=board)
+    force = request.raw_args.get('force').lower() == 'true'
+    logger.debug('SCAN -> force? {}'.format(force))
+
+    response = await commands.scan(rack=rack, board=board, force=force)
     return response.to_json()
 
 
@@ -55,13 +60,21 @@ async def read_route(request, rack, board, device):
 async def write_route(request, rack, board, device):
     """Write data to a known device.
 
+    The data POSTed here should be JSON with an 'action' field  and 'raw'
+    field, if applicable. If no data is posted, the write will fail.
+
     Args:
         request:
         rack (str): The identifier of the rack which the device resides on.
         board (str): The identifier of the board which the device resides on.
         device (str): The identifier of the device to write to.
     """
-    data = request.body
+    # FIXME - probably want a try/except?
+    data = request.json
+    logger.debug('WRITE -> json: {}'.format(data))
+
+    if not any([x in data for x in ['action', 'raw']]):
+        raise errors.SynseError('Invalid data POSTed for write. Must contain "action" and/or "raw".')
 
     response = await commands.write(rack, board, device, data)
     return response.to_json()
