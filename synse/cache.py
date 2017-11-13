@@ -6,7 +6,7 @@ import grpc
 
 from synse import errors, utils
 from synse.log import logger
-from synse.plugin import get_plugins
+from synse.plugin import Plugin
 
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
@@ -115,13 +115,13 @@ async def get_metainfo_cache():
     # and use the associated client to get the meta information provided by
     # that backend.
 
-    plugins = get_plugins()
+    plugins = Plugin.manager.plugins
     logger.debug('plugins to scan: {}'.format(plugins))
 
     # track which plugins failed to provide metainfo for any reason.
     failures = {}
 
-    for name, plugin in plugins:
+    for name, plugin in plugins.items():
         logger.debug('{} -- {}'.format(name, plugin))
 
         try:
