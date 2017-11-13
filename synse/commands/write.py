@@ -45,16 +45,17 @@ async def write(rack, board, device, data):
 
     # perform a gRPC write on the device's managing plugin
     try:
-        transaction = plugin.client.write(rack, board, device, [wd])
+        t = plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
         raise errors.SynseError('Failed to issue a write request.', errors.FAILED_WRITE_COMMAND) from ex
 
     # now that we have the transaction info, we want to map it to the corresponding
     # process so any subsequent transaction check will know where to look.
-    ok = await add_transaction(transaction.id, plugin.name)
-    if not ok:
-        logger.error('Failed to add transaction {} to the cache.'.format(transaction.id))
+    for _id, _ in t.transactions.items():
+        ok = await add_transaction(_id, plugin.name)
+        if not ok:
+            logger.error('Failed to add transaction {} to the cache.'.format(_id))
 
     return WriteResponse(
-        transaction=transaction
+        transactions=t
     )

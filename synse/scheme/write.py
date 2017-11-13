@@ -27,12 +27,19 @@ class WriteResponse(SynseResponse):
 
     """
 
-    def __init__(self, transaction):
+    def __init__(self, transactions):
         """Constructor for the WriteResponse class.
 
         Args:
-            transaction ():
+            transactions ():
         """
-        self.data = {
-            'transaction_id': transaction.id
-        }
+        self.data = []
+
+        for _id, ctx in transactions.items():
+            self.data.append({
+                'context': {
+                    'action': ctx.action,
+                    'raw': ctx.raw
+                },
+                'transaction': _id
+            })

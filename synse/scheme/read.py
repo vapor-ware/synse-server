@@ -73,7 +73,6 @@ class ReadResponse(SynseResponse):
 
             logger.debug('device output: {}'.format(dev_output))
             for out in dev_output:
-                logger.debug('output: {}, reading: {}'.format(out.type, rt))
                 if out.type == rt:
                     symbol = out.unit.symbol
                     name = out.unit.name
