@@ -35,7 +35,12 @@ async def scan_route(request, rack=None, board=None):
             scan result to only return the scan information for the specified
             board on the specified rack.
     """
-    force = request.raw_args.get('force').lower() == 'true'
+    param_force = request.raw_args.get('force')
+    if param_force is not None:
+        force = param_force.lower() == 'true'
+    else:
+        force = False
+
     logger.debug('SCAN -> force? {}'.format(force))
 
     response = await commands.scan(rack=rack, board=board, force=force)
