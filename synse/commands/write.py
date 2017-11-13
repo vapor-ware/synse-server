@@ -57,5 +57,5 @@ async def write(rack, board, device, data):
             logger.error('Failed to add transaction {} to the cache.'.format(_id))
 
     return WriteResponse(
-        transactions=t
+        transactions=t.transactions
     )
