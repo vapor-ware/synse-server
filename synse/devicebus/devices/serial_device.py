@@ -26,8 +26,9 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import fcntl
 import logging
-import os
+import time
 from synse.devicebus.devices.base import DevicebusInterface
 
 logger = logging.getLogger(__name__)
@@ -54,14 +55,30 @@ class SerialDevice(DevicebusInterface):
         data types correct."""
         logger.debug('reading sensor data from: {}'.format(path))
 
-        # TODO - might need a lock around here?
-        try:
-            with open(path, 'r') as f:
-                data = f.read()
-        except Exception as e:
-            logger.exception(e)
-            raise
+        tries = 3  # Up to 3 tries.
+        for attempt in range(tries):
+            try:
+                with open(path, 'r') as f:
+                    try:  # Read under exclusive file lock.
+                        fcntl.flock(f, fcntl.LOCK_EX)
+                        data = f.read()
+                        break  # Have the data.
+                    finally:
+                        fcntl.flock(f, fcntl.LOCK_UN)
 
+            except Exception:
+                next_attempt = attempt + 1
+                if next_attempt < tries:
+                    logger.exception(
+                        'Failed reading sensor file {}. Will retry.'.format(
+                            path))
+                    time.sleep(.05)  # Wait 50 ms for the lock to be released.
+                else:
+                    logger.exception(
+                        'No more retries reading data file: {}'.format(path))
+                    raise
+
+        # There may be multiple data fields (lines) in the same file.
         data = data.split()
         for i, _ in enumerate(data):
             if data[i] == 'null':
@@ -73,3 +90,38 @@ class SerialDevice(DevicebusInterface):
                 except (TypeError, ValueError):
                     pass  # Ignore.
         return data
+
+    @staticmethod
+    def write_device_data_file(path, data):
+        """
+        Write data to a device data file. The file will have one data point
+        per line.
+        :param path: The path of the file to write.
+        :param data: The data to write. Multiple fields are separated by
+        os.linesep.
+        :return:
+        """
+        logger.debug('Writing sensor data {} to: {}'.format(data, path))
+        tries = 3  # Up to 3 tries.
+        for attempt in range(tries):
+            try:
+                with open(path, 'w') as f:
+                    try:  # Write under exclusive file lock.
+                        fcntl.flock(f, fcntl.LOCK_EX)
+                        f.write(data)
+                        break  # Success.
+                    finally:
+                        fcntl.flock(f, fcntl.LOCK_UN)
+
+            except Exception:
+                next_attempt = attempt + 1
+                if next_attempt < tries:
+                    logger.exception(
+                        'Failed writing sensor file {}. Will retry.'.format(
+                            path))
+                    time.sleep(.05)  # Wait 50 ms for the lock to be released.
+                else:
+                    logger.exception(
+                        'No more retries writing data {} to file: {}'.format(
+                            data, path))
+                    raise

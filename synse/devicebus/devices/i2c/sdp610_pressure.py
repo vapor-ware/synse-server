@@ -118,10 +118,11 @@ class SDP610Pressure(I2CDevice):
                 )
 
             # if we get here, there was no sensor device found, so we must raise
-            logger.error('No response for sensor reading for command: {}'.format(command.data))
+            logger.exception('No response for sensor reading for command: {}'.format(command.data))
             raise SynseException('No sensor reading returned from I2C.')
 
         except Exception:
+            logger.exception()
             raise SynseException('Error reading pressure sensor (device id: {})'.format(
                 device_id)), None, sys.exc_info()[2]
 

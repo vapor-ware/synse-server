@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 # define package-level constants for all http methods
-DEFAULT_TIMEOUT = 5
+DEFAULT_TIMEOUT = 5  # seconds
 
 GET = 'get'
 POST = 'post'
