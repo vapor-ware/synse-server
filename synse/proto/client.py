@@ -29,8 +29,8 @@ class WriteData(object):
         """Constructor for the WriteData object.
 
         Args:
-            action (str): the action string for the write.
-            raw (list[bytes]): a list of bytes that constitute the raw data
+            action (str): The action string for the write.
+            raw (list[bytes]): A list of bytes that constitute the raw data
                 that will be written by the write request.
         """
         self.action = action
@@ -40,7 +40,7 @@ class WriteData(object):
         """Convert the WriteData model into the gRPC model for WriteData.
 
         Returns:
-            synse_api.WriteData: the gRPC model of the WriteData object.
+            synse_api.WriteData: The gRPC model of the WriteData object.
         """
         return synse_api.WriteData(
             action=self.action if self.action is not None else '',
@@ -49,7 +49,7 @@ class WriteData(object):
 
 
 class SynseInternalClient(object):
-    """ The `SynseInternalClient` object is a convenience wrapper around a
+    """The `SynseInternalClient` object is a convenience wrapper around a
     grpc client used for communication between Synse and the background
     processes which are its data sources.
 
@@ -60,7 +60,7 @@ class SynseInternalClient(object):
     _client_stubs = {}
 
     def __init__(self, name):
-        """ Constructor for a `SynseInternalClient` instance.
+        """Constructor for a `SynseInternalClient` instance.
         """
         self.name = name
 
@@ -72,28 +72,28 @@ class SynseInternalClient(object):
         SynseInternalClient._client_stubs[self.name] = self
 
     def _channel(self):
-        """ Convenience method to create the client grpc channel. """
+        """Convenience method to create the client grpc channel."""
         return grpc.insecure_channel('unix:{}'.format(self.socket))
 
     def _socket(self):
-        """ Convenience method to create the client grpc socket path. """
+        """Convenience method to create the client grpc socket path."""
         return os.path.join(BG_SOCKS, self.name + '.sock')
 
     def _stub(self):
-        """ Convenience method to create the grpc stub. """
+        """Convenience method to create the grpc stub."""
         return synse_grpc.InternalApiStub(self.channel)
 
     @classmethod
     def get_client(cls, name):
-        """ Get a client instance for the given name.
+        """Get a client instance for the given name.
 
         Args:
-            name (str): the name of the client. this is also the name
+            name (str): The name of the client. This is also the name
                 given to the background process socket.
 
         Returns:
-            SynseInternalClient: the client instance associated with
-                that name. if a client does not exist for the given name,
+            SynseInternalClient: The client instance associated with
+                that name. If a client does not exist for the given name,
                 a new one will be created.
         """
         if name not in cls._client_stubs:
@@ -188,18 +188,18 @@ class SynseInternalClient(object):
 
 
 def get_client(name):
-    """ Get the internal client for the given process name.
+    """Get the internal client for the given process name.
 
     This is a convenience module-level wrapper around the
     `SynseInternalClient.get_client` method.
 
     Args:
-        name (str): the name of the client. this is also the name
+        name (str): The name of the client. This is also the name
             given to the background process socket.
 
     Returns:
-        SynseInternalClient: the client instance associated with
-            that name. if a client does not exist for the given name,
+        SynseInternalClient: The client instance associated with
+            that name. If a client does not exist for the given name,
             a new one will be created.
     """
     return SynseInternalClient.get_client(name)
