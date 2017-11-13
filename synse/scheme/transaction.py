@@ -31,14 +31,18 @@ class TransactionResponse(SynseResponse):
 
     """
 
-    def __init__(self, write_status):
+    def __init__(self, transaction, context, write_response):
         """Constructor for the TransactionResponse class.
 
         Args:
-            write_status ():
+            write_response ():
         """
         self.data = {
-            'timestamp': write_status.timestamp,
-            'status': putil.write_status_name(write_status.status),
-            'state': putil.write_state_name(write_status.state)
+            'id': transaction,
+            'context': context,
+            'state': putil.write_state_name(write_response.state),
+            'status': putil.write_status_name(write_response.status),
+            'created': write_response.created,
+            'updated': write_response.updated,
+            'message': write_response.message
         }

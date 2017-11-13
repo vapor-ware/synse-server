@@ -4,7 +4,7 @@
 import grpc
 
 from synse import errors
-from synse.cache import get_transaction_plugin
+from synse.cache import get_transaction
 from synse.plugin import get_plugin
 from synse.scheme.transaction import TransactionResponse
 
@@ -16,7 +16,10 @@ async def check_transaction(transaction_id):
         transaction_id (str):
     """
 
-    plugin_name = await get_transaction_plugin(transaction_id)
+    transaction = await get_transaction(transaction_id)
+    plugin_name = transaction.get('plugin')
+    context = transaction.get('context')
+
     if not plugin_name:
         # TODO - in the future, what we could do is attempt sending the transaction
         #   request to *all* of the known plugins. this could be useful in the event
@@ -35,8 +38,8 @@ async def check_transaction(transaction_id):
         )
 
     try:
-        status = plugin.client.check_transaction(transaction_id)
+        resp = plugin.client.check_transaction(transaction_id)
     except grpc.RpcError as ex:
         raise errors.SynseError('Failed to issue a transaction check request.', errors.FAILED_TRANSACTION_COMMAND) from ex
 
-    return TransactionResponse(status)
+    return TransactionResponse(transaction_id, context, resp)

@@ -40,33 +40,44 @@ async def clear_all_meta_caches():
         await clear_cache(ns)
 
 
-async def get_transaction_plugin(transaction_id):
-    """Get the name of the plugin from which the given transaction originated.
+async def get_transaction(transaction_id):
+    """Get the cached information relating to the given transaction.
+
+    The cached info should include the name of the plugin from which the given
+    transaction originated, and the context of the transaction.
 
     Args:
         transaction_id (str): The ID of the transaction.
 
     Returns:
-        str: The name of the plugin tracking the transaction.
+        dict: The information associated with a transaction.
     """
     return await transaction_cache.get(transaction_id)
 
 
-async def add_transaction(transaction_id, plugin_name):
+async def add_transaction(transaction_id, context, plugin_name):
     """Add a new transaction to the transactions cache.
 
     This cache tracks transactions and maps them to the plugin from which they
-    originated.
+    originated, as well as the context of the transaction.
 
     Args:
         transaction_id (str): The ID of the transaction.
+        context (dict): The action/raw data of the write transaction that
+            can be used to help identify the transaction.
         plugin_name (str): The name of the plugin to associate with the
             transaction.
 
     Returns:
         bool: True if successful; False otherwise.
     """
-    return await transaction_cache.set(transaction_id, plugin_name)
+    return await transaction_cache.set(
+        transaction_id,
+        {
+            'plugin': plugin_name,
+            'context': context
+        }
+    )
 
 
 async def get_device_meta(rack, board, device):

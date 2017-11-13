@@ -51,8 +51,12 @@ async def write(rack, board, device, data):
 
     # now that we have the transaction info, we want to map it to the corresponding
     # process so any subsequent transaction check will know where to look.
-    for _id, _ in t.transactions.items():
-        ok = await add_transaction(_id, plugin.name)
+    for _id, ctx in t.transactions.items():
+        context = {
+            'action': ctx.action,
+            'raw': ctx.raw
+        }
+        ok = await add_transaction(_id, context, plugin.name)
         if not ok:
             logger.error('Failed to add transaction {} to the cache.'.format(_id))
 
