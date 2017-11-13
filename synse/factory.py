@@ -6,7 +6,6 @@ from sanic import Sanic
 from synse.log import logger, setup_logger
 from synse.routes import aliases, base, core
 from synse.utils import (configure_cache, disable_favicon,
-                         register_background_plugins,
                          register_error_handling)
 
 
@@ -36,7 +35,5 @@ def make_app():
     register_error_handling(app)
 
     configure_cache()
-
-    setattr(app, 'register_background_plugins', register_background_plugins)
 
     return app
