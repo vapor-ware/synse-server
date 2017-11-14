@@ -58,9 +58,13 @@ START_TEST_CONTAINER =                                                 \
 # convenience method for running general tests. these tests do not
 # require any sense of "trust"
 define run_test
+    echo current_directory is: ${CURDIR}
 	make delete-containers
+    echo current_directory is: ${CURDIR}
 	$(call START_TEST_CONTAINER,synse/tests/_composefiles/x64/$(1).yml)
+    echo current_directory is: ${CURDIR}
 	docker-compose -f synse/tests/_composefiles/x64/$(1).yml kill
+    echo current_directory is: ${CURDIR}
 endef
 
 
