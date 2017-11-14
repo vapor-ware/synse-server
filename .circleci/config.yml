@@ -46,6 +46,8 @@ jobs:
       - run:
           name: Run tests
           command: |
+            echo $PWD
+            find .
             make test
       - run: # Get logs for all containers running synse.sh.
           name: synse log
