@@ -1,0 +1,40 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: vaporio/build-base:68a4171
+    working_directory: ~/code
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          reusable: true
+          exclusive: false
+          version: 17.06.0-ce
+
+      - restore_cache:
+          key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+
+      - run:
+          name: Unit Tests
+          command: |
+            make utest
+
+      - run:
+          name: Lint
+          command: |
+            make lint
+
+      - save_cache:
+          when: on_success
+          key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          paths:
+            - .tox
+
+      - store_artifacts:
+          path: /tmp/
+          destination: test-output
+
+      - store_test_results:
+          path: /tmp/test-results
