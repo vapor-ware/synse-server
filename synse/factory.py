@@ -51,7 +51,7 @@ def _disable_favicon(app):
         app: The Sanic application to add the route to.
     """
     @app.route('/favicon.ico')
-    def favicon(*_):
+    def favicon(*_):  # pylint: disable=unused-variable
         """Return empty response on favicon request."""
         return text('')
 
@@ -64,9 +64,8 @@ def _register_error_handling(app):
     """
 
     @app.exception(NotFound)
-    def err_404(request, exception):
-        """
-        """
+    def err_404(request, exception):  # pylint: disable=unused-variable,unused-argument
+        """Handler for a 404 error."""
         err = {
             'http_code': 404,
             'error_id': errors.URL_NOT_FOUND,
@@ -78,9 +77,8 @@ def _register_error_handling(app):
         return json(err, status=404)
 
     @app.exception(ServerError)
-    def err_500(request, exception):
-        """
-        """
+    def err_500(request, exception):  # pylint: disable=unused-variable,unused-argument
+        """Handler for a 500 error."""
         if hasattr(exception, 'error_id'):
             error_id = exception.error_id
         else:

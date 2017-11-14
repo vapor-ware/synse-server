@@ -1,5 +1,6 @@
 """The core routes that make up the Synse Server JSON API.
 """
+# pylint: disable=unused-argument
 
 from sanic import Blueprint
 
@@ -86,7 +87,9 @@ async def write_route(request, rack, board, device):
     logger.debug('WRITE -> json: {}'.format(data))
 
     if not any([x in data for x in ['action', 'raw']]):
-        raise errors.SynseError('Invalid data POSTed for write. Must contain "action" and/or "raw".')
+        raise errors.SynseError(
+            'Invalid data POSTed for write. Must contain "action" and/or "raw".'
+        )
 
     response = await commands.write(rack, board, device, data)
     return response.to_json()

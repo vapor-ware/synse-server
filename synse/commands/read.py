@@ -41,7 +41,9 @@ async def read(rack, board, device):
         read_data = [r for r in plugin.client.read(rack, board, device)]
     except grpc.RpcError as ex:
         logger.error('  |- (error): {}'.format(ex))
-        raise errors.SynseError('Failed to issue a read request.', errors.FAILED_READ_COMMAND) from ex
+        raise errors.SynseError(
+            'Failed to issue a read request.', errors.FAILED_READ_COMMAND
+        ) from ex
 
     logger.debug('  |- read results: {}'.format(read_data))
     return ReadResponse(

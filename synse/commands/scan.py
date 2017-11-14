@@ -7,7 +7,7 @@ from synse.plugin import Plugin, register_plugins
 from synse.scheme.scan import ScanResponse
 
 
-async def scan(rack=None, board=None, force=False):
+async def scan(rack=None, board=None, force=False):  # pylint: disable=unused-argument
     """The handler for the Synse Server "scan" API command.
 
     Args:

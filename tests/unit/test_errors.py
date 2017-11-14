@@ -7,8 +7,7 @@ from synse import errors
 
 
 def test_synse_error():
-    """Create a SynseError with no error id specified.
-    """
+    """Create a SynseError with no error id specified."""
     e = errors.SynseError('message')
 
     assert isinstance(e, exceptions.ServerError)
@@ -20,8 +19,7 @@ def test_synse_error():
 
 
 def test_synse_error2():
-    """Create a SynseError with an error id specified.
-    """
+    """Create a SynseError with an error id specified."""
     e = errors.SynseError('message', errors.DEVICE_NOT_FOUND)
 
     assert isinstance(e, exceptions.ServerError)

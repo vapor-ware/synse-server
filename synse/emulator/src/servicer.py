@@ -1,4 +1,4 @@
-"""
+"""Emulator gRPC handler.
 """
 
 import datetime
@@ -23,11 +23,11 @@ transactions = {}
 
 
 class InternalApiServicer(synse_grpc.InternalApiServicer):
-    """
+    """The gRPC API Servicer that will handle gRPC comms for the emulator.
     """
 
     def Read(self, request, context):
-        """
+        """Handle a 'read' request.
 
         Args:
             request ():
@@ -65,7 +65,7 @@ class InternalApiServicer(synse_grpc.InternalApiServicer):
             )
 
     def Write(self, request, context):
-        """
+        """Handle a 'write' request.
 
         Args:
             request ():
@@ -88,8 +88,8 @@ class InternalApiServicer(synse_grpc.InternalApiServicer):
         transactions[_id] = STATUS_PENDING
         return resp
 
-    def Metainfo(self, request, context):
-        """
+    def Metainfo(self, request, context):  # pylint: disable=unused-argument
+        """Handle a 'metainfo' request.
 
         Args:
             request ():
@@ -98,8 +98,8 @@ class InternalApiServicer(synse_grpc.InternalApiServicer):
         for device in devices.cache:
             yield device.to_metaresponse()
 
-    def TransactionCheck(self, request, context):
-        """
+    def TransactionCheck(self, request, context):  # pylint: disable=unused-argument
+        """Handle a 'transaction' request.
 
         Args:
             request ():

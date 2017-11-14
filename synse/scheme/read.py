@@ -56,7 +56,10 @@ class ReadResponse(SynseResponse):
         }
 
     def format_readings(self):
-        """
+        """Format the instance's readings to the Read response scheme.
+
+        Returns:
+            dict: A properly formatted Read response.
         """
         logger.debug('Making read response')
         formatted = {}

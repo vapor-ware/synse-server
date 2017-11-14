@@ -1,4 +1,4 @@
-""" Manage the configuration for the emulated devices.
+"""Manage the configuration for the emulated devices.
 """
 
 import datetime
@@ -18,7 +18,7 @@ cache = []
 
 
 def _load(path):
-    """ Load in the configuration(s) at the given path.
+    """Load in the configuration(s) at the given path.
     """
     data = []
 
@@ -32,19 +32,19 @@ def _load(path):
 
 
 def load_proto_cfg():
-    """ Load in the prototype configuration(s) for the emulator.
+    """Load in the prototype configuration(s) for the emulator.
     """
     return _load(os.path.join(_cfg_dir, 'proto'))
 
 
 def load_sensor_cfg():
-    """ Load in the sensor configuration(s) for the emulator.
+    """Load in the sensor configuration(s) for the emulator.
     """
     return _load(os.path.join(_cfg_dir, 'sensor'))
 
 
 def make_devices():
-    """ Create Device objects for all of the configured devices.
+    """Create Device objects for all of the configured devices.
     """
     proto_cfg = load_proto_cfg()
     sensor_cfg = load_sensor_cfg()
@@ -80,7 +80,7 @@ def make_devices():
 
 
 def find_device(uid):
-    """
+    """Find a device in the cache.
 
     Args:
         uid (str):
@@ -92,12 +92,12 @@ def find_device(uid):
 
 
 class Device(object):
-    """ Object which holds the information related to a single device.
-    """
+    """Object which holds the information related to a single device."""
 
     _writable_devices = ['emulated-fan', 'emulated-led']
 
     def __init__(self, proto, sensor):
+        """Constructor for the Device class"""
         self._proto_cfg = proto
         self._sensor_cfg = sensor
 
@@ -124,8 +124,7 @@ class Device(object):
         self.data = []
 
     def to_metaresponse(self):
-        """
-        """
+        """Convert the Device to a synse_api.MetainfoResponse object."""
         return synse_api.MetainfoResponse(
             timestamp=str(datetime.datetime.utcnow()),
             uid=self.uid,
@@ -141,10 +140,10 @@ class Device(object):
 
 
 class Output(object):
-    """
-    """
+    """Object which holds information for a device's reading output."""
 
     def __init__(self, output_cfg):
+        """Constructor for the Output class."""
         self._output_cfg = output_cfg
 
         self.type = output_cfg['type']
@@ -155,8 +154,7 @@ class Output(object):
         self.range = Range(output_cfg.get('range', {}))
 
     def to_metaoutput(self):
-        """
-        """
+        """Convert the Output to a synse_api.MetaOutput object."""
         return synse_api.MetaOutput(
             type=self.type,
             unit=self.unit.to_metaunit(),
@@ -166,16 +164,17 @@ class Output(object):
 
 
 class Unit(object):
-    """
-    """
+    """Object which holds the information for a device's reading unit."""
 
     def __init__(self, unit_cfg):
+        """Constructor for the Unit class."""
         self._unit_cfg = unit_cfg
 
         self.name = unit_cfg.get('name')
         self.symbol = unit_cfg.get('symbol')
 
     def to_metaunit(self):
+        """Convert the Unit to a synse_api.MetaOutputUnit object."""
         return synse_api.MetaOutputUnit(
             name=self.name,
             symbol=self.symbol
@@ -183,16 +182,17 @@ class Unit(object):
 
 
 class Range(object):
-    """
-    """
+    """Object which holds the information for a device's reading range."""
 
     def __init__(self, range_cfg):
+        """Constructor for the Range class."""
         self._range_cfg = range_cfg
 
         self.min = range_cfg.get('min')
         self.max = range_cfg.get('max')
 
     def to_metarange(self):
+        """Convert the Range to a synse_api.MetaOutputRange object."""
         return synse_api.MetaOutputRange(
             min=self.min,
             max=self.max
@@ -200,18 +200,20 @@ class Range(object):
 
 
 class Location(object):
-    """
-    """
+    """Object which holds the information for a device's location."""
 
     def __init__(self, rack, board, device):
+        """Constructor for the Location class."""
         self.rack = str(rack)
         self.board = str(board)
         self.device = str(device)
 
     def string(self):
+        """Return a string representation of the location."""
         return self.rack + self.board + self.device
 
     def to_metalocation(self):
+        """Convert the Location to a synse_api.MetaLocation object."""
         return synse_api.MetaLocation(
             rack=self.rack,
             board=self.board,

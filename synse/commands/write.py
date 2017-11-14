@@ -50,7 +50,9 @@ async def write(rack, board, device, data):
     try:
         t = plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
-        raise errors.SynseError('Failed to issue a write request.', errors.FAILED_WRITE_COMMAND) from ex
+        raise errors.SynseError(
+            'Failed to issue a write request.', errors.FAILED_WRITE_COMMAND
+        ) from ex
 
     # now that we have the transaction info, we want to map it to the corresponding
     # process so any subsequent transaction check will know where to look.

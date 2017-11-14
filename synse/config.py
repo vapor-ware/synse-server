@@ -1,5 +1,6 @@
 """Synse Server configurations and configuration helpers.
 """
+# pylint: disable=line-too-long
 
 import sys
 

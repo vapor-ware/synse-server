@@ -5,8 +5,7 @@ from synse import utils
 
 
 def test_composite():
-    """
-    """
+    """Test successfully composing various string combinations."""
     cases = {
         'r-b-d': ('r', 'b', 'd'),
         '0-1-2': ('0', '1', '2'),

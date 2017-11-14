@@ -5,8 +5,7 @@ from synse import factory
 
 
 def test_make_app():
-    """Create a new instance of the Synse Server app.
-    """
+    """Create a new instance of the Synse Server app."""
     app = factory.make_app()
 
     # check that the app we create has the expected blueprints registered

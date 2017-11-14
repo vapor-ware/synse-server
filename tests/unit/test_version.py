@@ -6,11 +6,10 @@ import synse.version
 
 
 def test_version():
-    """ Test that the version module returns the version correctly.
-    """
+    """Test that the version module returns the version correctly."""
     actual = synse.__version__
 
-    act_maj, act_min, act_mic = actual.split('.')
+    act_maj, act_min, _ = actual.split('.')
 
     assert synse.version.major == act_maj
     assert synse.version.minor == act_min

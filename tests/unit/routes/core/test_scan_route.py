@@ -1,19 +1,20 @@
 """Test the 'synse.routes.core' Synse Server module's scan route.
 """
+# pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
-
 from sanic.response import HTTPResponse
-from sanic.request import Request
+from tests import utils
 
 import synse.commands
 from synse import config
-from synse.scheme.base_response import SynseResponse
 from synse.routes.core import scan_route
+from synse.scheme.base_response import SynseResponse
 
 
 def mockreturn(rack, board, force):
+    """Mock method that will be used in monkeypatching the command."""
     r = SynseResponse()
     r.data = {'r': rack, 'b': board, 'forced': force}
     return r
@@ -21,6 +22,7 @@ def mockreturn(rack, board, force):
 
 @pytest.fixture()
 def mock_scan(monkeypatch):
+    """Fixture to monkeypatch the underlying Synse command."""
     mock = asynctest.CoroutineMock(synse.commands.scan, side_effect=mockreturn)
     monkeypatch.setattr(synse.commands, 'scan', mock)
     return mock_scan
@@ -28,20 +30,14 @@ def mock_scan(monkeypatch):
 
 @pytest.fixture()
 def no_pretty_json():
+    """Fixture to ensure basic JSON responses."""
     config.options['pretty_json'] = False
 
 
 @pytest.mark.asyncio
 async def test_synse_scan_route(mock_scan, no_pretty_json):
-    """
-    """
-    r = Request(
-        url_bytes=b'/synse/scan',
-        headers={},
-        version=None,
-        method=None,
-        transport=None
-    )
+    """Test a successful scan."""
+    r = utils.make_request('/synse/scan')
 
     result = await scan_route(r)
 
@@ -52,15 +48,8 @@ async def test_synse_scan_route(mock_scan, no_pretty_json):
 
 @pytest.mark.asyncio
 async def test_synse_scan_route_with_rack(mock_scan, no_pretty_json):
-    """
-    """
-    r = Request(
-        url_bytes=b'/synse/scan',
-        headers={},
-        version=None,
-        method=None,
-        transport=None
-    )
+    """Test performing a scan with a rack specified."""
+    r = utils.make_request('/synse/scan')
 
     result = await scan_route(r, 'rack-1')
 
@@ -71,15 +60,8 @@ async def test_synse_scan_route_with_rack(mock_scan, no_pretty_json):
 
 @pytest.mark.asyncio
 async def test_synse_scan_route_with_rack_and_board(mock_scan, no_pretty_json):
-    """
-    """
-    r = Request(
-        url_bytes=b'/synse/scan',
-        headers={},
-        version=None,
-        method=None,
-        transport=None
-    )
+    """Test performing a scan with a rack and board specified."""
+    r = utils.make_request('/synse/scan')
 
     result = await scan_route(r, 'rack-1', 'vec')
 
@@ -90,15 +72,8 @@ async def test_synse_scan_route_with_rack_and_board(mock_scan, no_pretty_json):
 
 @pytest.mark.asyncio
 async def test_synse_scan_route_forced(mock_scan, no_pretty_json):
-    """
-    """
-    r = Request(
-        url_bytes=b'/synse/scan?force=true',
-        headers={},
-        version=None,
-        method=None,
-        transport=None
-    )
+    """Test forcing a rescan successfully."""
+    r = utils.make_request('/synse/scan?force=true')
 
     result = await scan_route(r)
 
@@ -109,15 +84,8 @@ async def test_synse_scan_route_forced(mock_scan, no_pretty_json):
 
 @pytest.mark.asyncio
 async def test_synse_scan_route_forced_2(mock_scan, no_pretty_json):
-    """
-    """
-    r = Request(
-        url_bytes=b'/synse/scan?force=yes',
-        headers={},
-        version=None,
-        method=None,
-        transport=None
-    )
+    """Test forcing a rescan, but using an unrecognized value."""
+    r = utils.make_request('/synse/scan?force=yes')
 
     result = await scan_route(r)
 

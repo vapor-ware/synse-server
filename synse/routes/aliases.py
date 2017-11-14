@@ -1,9 +1,9 @@
 """The aliased routes that make up the Synse Server JSON API.
 """
+# pylint: disable=unused-argument
 
 from sanic import Blueprint
 
-from synse import commands
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)

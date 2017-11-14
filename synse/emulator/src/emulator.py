@@ -1,4 +1,4 @@
-"""
+"""A lightweight, generalized emulator for Synse Server.
 """
 
 import os
@@ -18,7 +18,7 @@ SOCKET = '/synse/procs/emulator.sock'
 
 
 def serve():
-    """ Initialize, configure, and run the GRPC server.
+    """Initialize, configure, and run the GRPC server.
     """
     # create the unix socket we will be communicating over
     try:

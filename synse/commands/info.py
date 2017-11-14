@@ -19,23 +19,22 @@ async def info(rack, board=None, device=None):
         InfoResponse: The "info" response scheme model.
     """
     if rack is None:
-        raise errors.SynseError('No rack specified when issuing info command.', errors.INVALID_ARGUMENTS)
+        raise errors.SynseError(
+            'No rack specified when issuing info command.', errors.INVALID_ARGUMENTS
+        )
 
     if board is not None:
         if device is not None:
             # we have rack, board, device
             logger.debug('info >> rack, board, device')
-            pass
 
         else:
             # we have rack, board
             logger.debug('info >> rack, board')
-            pass
 
     else:
         # we have rack
         logger.debug('info >> rack')
-        pass
 
     cache = await get_resource_info_cache()
     return InfoResponse(cache)
