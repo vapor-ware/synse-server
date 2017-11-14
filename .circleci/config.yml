@@ -31,8 +31,18 @@ jobs:
             curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
             chmod +x /usr/local/bin/docker-compose
       - run:
+          name: images 1
+          command: |
+            docker images
+            docker ps
+      - run:
           name: Docker Compose Build
           command: docker-compose -f compose/release.yml build
+      - run:
+          name: images 2
+          command: |
+            docker images
+            docker ps
       - run:
           name: Run tests
           command: |
