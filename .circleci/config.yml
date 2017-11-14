@@ -23,7 +23,7 @@ jobs:
            name: Docker Private Images (temporary) # This should be removed once images are public
            command: |
             docker login -u $DOCKER_USER -p $DOCKER_PS
-            docker pull vaporio/vapor-endpoint-base-x64:1.0
+#            docker pull vaporio/vapor-endpoint-base-x64:1.0
       - run:
           name: Install Docker compose
           command: |
