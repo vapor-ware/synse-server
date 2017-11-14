@@ -19,7 +19,7 @@ jobs:
       - run:
           name: Unit Tests
           command: |
-            make utest
+            bin/circleci_test.sh unit
 
       - run:
           name: Lint
