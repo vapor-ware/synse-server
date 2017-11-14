@@ -37,7 +37,11 @@ jobs:
           name: Run tests
           command: |
             make test
-      - run:
+      - run: # Get logs for all containers.
           name: synse log
-          command: docker logs $(docker ps -aq)
+          command: |
+            CONTAINER_IDS=$(docker ps -aq)
+            for CONTAINER in ${CONTAINER_IDS[@]}; do
+              docker logs ${CONTAINER}
+            done
           when: on_fail
