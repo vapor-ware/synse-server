@@ -35,9 +35,9 @@ jobs:
           command: |
             docker images
             docker ps
-      - run:
-          name: Docker Compose Build
-          command: docker-compose -f compose/release.yml build
+#      - run:
+#          name: Docker Compose Build
+#          command: docker-compose -f compose/release.yml build
       - run:
           name: images 2
           command: |
