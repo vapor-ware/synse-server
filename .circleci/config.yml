@@ -19,12 +19,12 @@ jobs:
       - run:
           name: Unit Tests
           command: |
-            bin/circleci_test.sh unit
+            bin/circleci.sh unit
 
       - run:
           name: Lint
           command: |
-            make lint
+            bin/circleci.sh lint
 
       - save_cache:
           when: on_success

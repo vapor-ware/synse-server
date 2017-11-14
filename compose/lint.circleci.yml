@@ -1,0 +1,15 @@
+version: "3"
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server:circleci
+    build:
+      context: ..
+      dockerfile: dockerfile/test.dockerfile
+    volumes:
+      - synse-server-source:/code
+    command: tox -e lint
+
+volumes:
+  synse-server-source:
+    external: true

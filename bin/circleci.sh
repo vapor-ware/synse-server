@@ -34,8 +34,8 @@ function main {
   load synse-server-source .
 
   # run the tests and capture the test results
-  run_test "$1_test.circleci.yml"
-  docker cp synse-server:/code/results/. /tmp/test-results
+  run_test "$1.circleci.yml"
+  docker cp synse-server:/code/results/. /tmp/test-results || true
 }
 
 
