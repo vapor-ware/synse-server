@@ -55,3 +55,9 @@ jobs:
               docker logs ${CONTAINER}
             done
           when: on_fail
+      - run:
+          name: images 3
+          command: |
+            docker images
+            docker ps
+          when: on_fail
