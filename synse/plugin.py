@@ -24,7 +24,7 @@ class PluginManager(object):
 
         Returns:
             Plugin: The Plugin instance with the matching name.
-            None: if the given name does not correspond to a managed
+            None: The given name does not correspond to a managed
                 Plugin instance.
         """
         return self.plugins.get(name)

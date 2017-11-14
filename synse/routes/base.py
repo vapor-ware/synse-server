@@ -13,7 +13,10 @@ async def test_route(request):
     """ Endpoint to test whether the service is up and reachable.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.test()
     return response.to_json()
@@ -24,7 +27,10 @@ async def version_route(request):
     """ Endpoint to get the API version of the service.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.version()
     return response.to_json()

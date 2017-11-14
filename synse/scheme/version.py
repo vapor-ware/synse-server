@@ -1,4 +1,4 @@
-"""Response scheme for the /version endpoint.
+"""Response scheme for the `version` endpoint.
 """
 
 from synse.scheme.base_response import SynseResponse

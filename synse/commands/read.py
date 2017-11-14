@@ -14,9 +14,12 @@ async def read(rack, board, device):
     """The handler for the Synse Server "read" API command.
 
     Args:
-        rack (str):
-        board (str):
-        device (str):
+        rack (str): The rack which the device resides on.
+        board (str): The board which the device resides on.
+        device (str): The device to read.
+
+    Returns:
+        ReadResponse: The "read" response scheme model.
     """
     logger.debug('>> READ cmd')
 

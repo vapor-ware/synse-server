@@ -1,4 +1,4 @@
-"""Response scheme for the /test endpoint.
+"""Response scheme for the `test` endpoint.
 """
 
 import datetime
@@ -40,6 +40,5 @@ class TestResponse(SynseResponse):
     }
 
     def __init__(self):
-        """Constructor for the TestResponse class.
-        """
+        """Constructor for the TestResponse class."""
         self.data['timestamp'] = str(datetime.datetime.utcnow())

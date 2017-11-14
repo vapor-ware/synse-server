@@ -10,10 +10,13 @@ from synse.scheme.transaction import TransactionResponse
 
 
 async def check_transaction(transaction_id):
-    """
+    """The handler for the Synse Server "transaction" API command.
 
     Args:
-        transaction_id (str):
+        transaction_id (str): The id of the transaction to check.
+
+    Returns:
+        TransactionResponse: The "transaction" response scheme model.
     """
 
     transaction = await get_transaction(transaction_id)

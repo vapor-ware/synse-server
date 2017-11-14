@@ -8,12 +8,15 @@ from synse.scheme.info import InfoResponse
 
 
 async def info(rack, board=None, device=None):
-    """
+    """The handler for the Synse Server "info" API command.
 
     Args:
-        rack (str):
-        board (str):
-        device (str):
+        rack (str): The rack to get information for.
+        board (str): The board to get information for.
+        device (str): The device to get information for.
+
+    Returns:
+        InfoResponse: The "info" response scheme model.
     """
     if rack is None:
         raise errors.SynseError('No rack specified when issuing info command.', errors.INVALID_ARGUMENTS)

@@ -12,13 +12,16 @@ from synse.scheme.write import WriteResponse
 
 
 async def write(rack, board, device, data):
-    """
+    """The handler for the Synse Server "write" API command.
 
     Args:
-        rack (str):
-        board (str):
-        device (str):
-        data (dict):
+        rack (str): The rack which the device resides on.
+        board (str): The board which the device resides on.
+        device (str): The device to write to.
+        data (dict): The data to write to the device.
+
+    Returns:
+        WriteResponse: The "write" response scheme model.
     """
 
     # lookup the known info for the specified device

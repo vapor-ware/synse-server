@@ -1,4 +1,4 @@
-"""Response scheme for the /transaction endpoint.
+"""Response scheme for the `transaction` endpoint.
 """
 
 from synse.proto import util as putil
@@ -35,6 +35,8 @@ class TransactionResponse(SynseResponse):
         """Constructor for the TransactionResponse class.
 
         Args:
+            transaction ():
+            context ():
             write_response ():
         """
         self.data = {

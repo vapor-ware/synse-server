@@ -8,12 +8,15 @@ from synse.scheme.scan import ScanResponse
 
 
 async def scan(rack=None, board=None, force=False):
-    """
+    """The handler for the Synse Server "scan" API command.
 
     Args:
-        rack (str):
-        board (str):
-        force (bool):
+        rack (str): The rack to filter the scan results by.
+        board (str): The board to filter the scan results by.
+        force (bool): Force a re-scan of the meta-information.
+
+    Returns:
+        ScanResponse: The "scan" response scheme model.
     """
     if force:
         await clear_all_meta_caches()

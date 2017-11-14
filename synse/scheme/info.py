@@ -1,4 +1,4 @@
-"""Response scheme for the /info endpoint.
+"""Response scheme for the `info` endpoint.
 """
 
 from synse.scheme.base_response import SynseResponse
@@ -70,6 +70,5 @@ class InfoResponse(SynseResponse):
     """
 
     def __init__(self, data):
-        """Constructor for the InfoResponse class.
-        """
+        """Constructor for the InfoResponse class."""
         self.data = data

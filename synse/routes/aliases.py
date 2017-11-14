@@ -17,10 +17,13 @@ async def led_route(request, rack, board, device):
     """ Endpoint to read/write LED device data.
 
     Args:
-        request:
-        rack (str):
-        board (str):
-        device (str):
+        request (sanic.request.Request): The incoming request.
+        rack (str): The rack which the led device resides on.
+        board (str): The board which the led device resides on.
+        device (str): The LED device.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     pass
 
@@ -30,10 +33,13 @@ async def fan_route(request, rack, board, device):
     """ Endpoint to read/write fan device data.
 
     Args:
-        request:
-        rack (str):
-        board (str):
-        device (str):
+        request (sanic.request.Request): The incoming request.
+        rack (str): The rack which the fan device resides on.
+        board (str): The board which the fan device resides on.
+        device (str): The fan device.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     pass
 
@@ -43,10 +49,13 @@ async def power_route(request, rack, board, device):
     """ Endpoint to read/write power device data.
 
     Args:
-        request:
-        rack (str):
-        board (str):
-        device (str):
+        request (sanic.request.Request): The incoming request.
+        rack (str): The rack which the power device resides on.
+        board (str): The board which the power device resides on.
+        device (str): The power device.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     pass
 
@@ -56,9 +65,12 @@ async def boot_target_route(request, rack, board, device):
     """ Endpoint to read/write boot target device data.
 
     Args:
-        request:
-        rack (str):
-        board (str):
-        device (str):
+        request (sanic.request.Request): The incoming request.
+        rack (str): The rack which the system resides on.
+        board (str): The board which the system resides on.
+        device (str): The system device.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     pass

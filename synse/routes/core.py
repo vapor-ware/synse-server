@@ -25,7 +25,7 @@ async def scan_route(request, rack=None, board=None):
     command (e.g. read, write) for a given device.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
         rack (str): The identifier of the rack to scan. If specified, this
             filters the complete scan result to only return the subset of
             scan information pertinent to the specific rack.
@@ -33,6 +33,9 @@ async def scan_route(request, rack=None, board=None):
             conjunction with a rack identifier, this filters the complete
             scan result to only return the scan information for the specified
             board on the specified rack.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     param_force = request.raw_args.get('force')
     if param_force is not None:
@@ -50,10 +53,13 @@ async def read_route(request, rack, board, device):
     """Read data from a known device.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
         rack (str): The identifier of the rack which the device resides on.
         board (str): The identifier of the board which the device resides on.
         device (str): The identifier of the device to read.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.read(rack, board, device)
     return response.to_json()
@@ -67,10 +73,13 @@ async def write_route(request, rack, board, device):
     field, if applicable. If no data is posted, the write will fail.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
         rack (str): The identifier of the rack which the device resides on.
         board (str): The identifier of the board which the device resides on.
         device (str): The identifier of the device to write to.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     # FIXME - probably want a try/except?
     data = request.json
@@ -88,8 +97,11 @@ async def transaction_route(request, transaction_id):
     """Check the status of a write transaction.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
         transaction_id (str): The ID of the transaction to check.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.check_transaction(transaction_id)
     return response.to_json()
@@ -102,10 +114,13 @@ async def info_route(request, rack, board=None, device=None):
     """Get any known information on the specified resource.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
         rack (str): The identifier for the rack to find info for.
         board (str): The identifier for the board to find info for.
         device (str): The identifier for the device to find info for.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.info(rack, board, device)
     return response.to_json()
@@ -116,7 +131,10 @@ async def config_route(request):
     """Get the current Synse Server configuration.
 
     Args:
-        request:
+        request (sanic.request.Request): The incoming request.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.config()
     return response.to_json()

@@ -21,8 +21,7 @@ transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
 
 
 def configure_cache():
-    """Set the configuration for the asynchronous cache used by Synse.
-    """
+    """Set the configuration for the asynchronous cache used by Synse."""
     logger.debug('CONFIGURING CACHE: {}'.format(AIOCACHE))
     aiocache.caches.set_config(AIOCACHE)
 

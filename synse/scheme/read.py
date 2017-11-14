@@ -1,4 +1,4 @@
-"""Response scheme for the /read endpoint.
+"""Response scheme for the `read` endpoint.
 """
 
 from synse.log import logger
@@ -43,8 +43,8 @@ class ReadResponse(SynseResponse):
         """Constructor for the ReadResponse class.
 
         Args:
-            device (): the device that is being read.
-            readings (list[]): a list of reading values returned from the
+            device (): The device that is being read.
+            readings (list[]): A list of reading values returned from the
                 background process.
         """
         self.device = device
