@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       - image: python
-    working_directory: /synse-server
+    working_directory: /synse-server-internal
     environment:
       - DOCKER_VERSION=17.05.0-ce
       - COMPOSE_VERSION=1.14.0
