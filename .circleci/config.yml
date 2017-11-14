@@ -39,6 +39,5 @@ jobs:
             make test
       - run:
           name: synse log
-          command: |
-          docker logs synse-x64
+          command: docker logs synse-x64
           when: on_fail
