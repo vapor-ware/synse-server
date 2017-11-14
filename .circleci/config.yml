@@ -19,6 +19,8 @@ jobs:
       - run:
           name: Unit Tests
           command: |
+            pwd
+            ls -al
             bin/circleci_test.sh unit
 
       - run:
