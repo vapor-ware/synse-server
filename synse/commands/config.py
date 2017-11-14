@@ -8,4 +8,4 @@ async def config():
     """
 
     """
-    return ConfigResponse('')
+    return ConfigResponse()

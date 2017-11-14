@@ -1,6 +1,7 @@
 """Response scheme for the /config endpoint.
 """
 
+from synse import config
 from synse.scheme.base_response import SynseResponse
 
 
@@ -19,7 +20,7 @@ class ConfigResponse(SynseResponse):
 
     """
 
-    def __init__(self, data):
+    def __init__(self):
         """Constructor for the ConfigResponse class.
         """
-        self.data = data
+        self.data = {k: v for k, v in config.options.items() if not k.startswith('_')}
