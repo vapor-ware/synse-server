@@ -41,31 +41,31 @@ build:
 
 # This gets the exit code for a docker container named test-container
 # that has exited. No evaluation is done, it just hands out the exit code.
-#TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
-#						 awk '{print $1}' | \
-#						 xargs docker inspect --format='{{ .State.ExitCode }}')
+TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
+						 awk '{print $1}' | \
+						 xargs docker inspect --format='{{ .State.ExitCode }}')
 
 # This starts the test container with the yml file given at $(1), waits for the
 # test container to exit, then gets the container exit code and exits make if
 # the exit code is non-zero.
-#START_TEST_CONTAINER =                                                 \
-#	docker-compose --verbose -f $(1) up --build test-container-x64 ;             \
-#	if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ] ;                \
-#		then exit $(value TEST_CONTAINER_EXIT_CODE) ;                  \
-#	fi
+START_TEST_CONTAINER =                                                 \
+	docker-compose --verbose -f $(1) up --build test-container-x64 ;             \
+	if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ] ;                \
+		then exit $(value TEST_CONTAINER_EXIT_CODE) ;                  \
+	fi
 
 
 # convenience method for running general tests. these tests do not
 # require any sense of "trust"
-#define run_test
-#    echo current_directory is: ${CURDIR}
-#	make delete-containers
-#    echo current_directory is: ${CURDIR}
-#	$(call START_TEST_CONTAINER,synse/tests/_composefiles/x64/$(1).yml)
-#    echo current_directory is: ${CURDIR}
-#	docker-compose -f synse/tests/_composefiles/x64/$(1).yml kill
-#    echo current_directory is: ${CURDIR}
-#endef
+define run_test
+    echo current_directory is: ${CURDIR}
+	make delete-containers
+    echo current_directory is: ${CURDIR}
+	$(call START_TEST_CONTAINER,synse/tests/_composefiles/x64/$(1).yml)
+    echo current_directory is: ${CURDIR}
+	docker-compose -f synse/tests/_composefiles/x64/$(1).yml kill
+    echo current_directory is: ${CURDIR}
+endef
 
 
 # -----------------------------------------------
