@@ -24,7 +24,7 @@ TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
 # test container to exit, then gets the container exit code and exits make if
 # the exit code is non-zero.
 START_TEST_CONTAINER =                                                 \
-    docker-compose -f $(1) up --build test-container-x64 ;             \
+    docker-compose --verbose -f $(1) up --build test-container-x64 ;             \
     if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ]; then            \
         docker-compose -f $(1) kill ;                                  \
         exit $(value TEST_CONTAINER_EXIT_CODE) ;                       \
@@ -104,6 +104,7 @@ endef
 # ....................
 
 test-plc-endpoints-x64:
+    echo --- STARTING PLC ENDPOINTS ---
 	$(call run_test,test-plc-endpoints)
 
 test-plc-bad-scan-x64:
