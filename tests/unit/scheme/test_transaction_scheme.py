@@ -1,9 +1,9 @@
 """Test the 'synse.scheme.transaction' Synse Server module.
 """
 
-from synse.scheme.transaction import TransactionResponse
-
 from synse_plugin import api
+
+from synse.scheme.transaction import TransactionResponse
 
 
 def test_transaction_scheme():

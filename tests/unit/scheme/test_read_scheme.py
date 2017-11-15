@@ -1,9 +1,9 @@
 """Test the 'synse.scheme.read' Synse Server module.
 """
 
-from synse.scheme.read import ReadResponse
-
 from synse_plugin import api
+
+from synse.scheme.read import ReadResponse
 
 
 def make_metainfo_response():

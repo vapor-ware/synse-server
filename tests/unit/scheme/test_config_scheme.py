@@ -1,5 +1,6 @@
 """Test the 'synse.scheme.config' Synse Server module.
 """
+# pylint: disable=redefined-outer-name,unused-argument
 
 import pytest
 
@@ -9,11 +10,13 @@ from synse.scheme.config import ConfigResponse
 
 @pytest.fixture()
 def set_config():
+    """Fixture to set the global Synse Server config to some test values."""
     config.options = {'debug': False, 'pretty_json': True, 'some_key': 1}
 
 
 @pytest.fixture()
 def set_config_hidden():
+    """Fixture to set the global Synse Server config to some test values, with one hidden."""
     config.options = {'debug': False, 'pretty_json': True, '_some_key': 1}
 
 

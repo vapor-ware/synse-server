@@ -2,10 +2,9 @@
 """
 
 import pytest
+from synse_plugin import api
 
 from synse.proto import util
-
-from synse_plugin import api
 
 
 def test_write_status_name():

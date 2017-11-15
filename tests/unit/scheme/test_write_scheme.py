@@ -1,9 +1,9 @@
 """Test the 'synse.scheme.write' Synse Server module.
 """
 
-from synse.scheme.write import WriteResponse
-
 from synse_plugin import api
+
+from synse.scheme.write import WriteResponse
 
 
 def test_write_scheme():
