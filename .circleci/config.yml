@@ -47,6 +47,8 @@ jobs:
           name: Run tests
           command: |
             echo PWD IS: $PWD
+            echo finding config:
+            ls -la /synse-server-internal/synse/tests/data/plc_override_config.json
             find .
             make test
       - run: # Get logs for all containers running synse.sh.
