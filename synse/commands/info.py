@@ -23,18 +23,72 @@ async def info(rack, board=None, device=None):
             'No rack specified when issuing info command.', errors.INVALID_ARGUMENTS
         )
 
+    cache = await get_resource_info_cache()
+    r, b, d = get_resources(cache, rack, board, device)
+
     if board is not None:
         if device is not None:
             # we have rack, board, device
             logger.debug('info >> rack, board, device')
+            response = d
 
         else:
             # we have rack, board
             logger.debug('info >> rack, board')
+            response = b
+            response['devices'] = b['devices'].keys()
+            response['location'] = {
+                'rack': r['rack']
+            }
 
     else:
         # we have rack
         logger.debug('info >> rack')
+        response = r
+        response['boards'] = r['boards'].keys()
 
-    cache = await get_resource_info_cache()
-    return InfoResponse(cache)
+    return InfoResponse(response)
+
+
+def get_resources(cache, rack=None, board=None, device=None):
+    """Get the entries for the specified resources out of the resource info
+    cache.
+
+    If a given resource (rack, board, device) is provided as None, it will not
+    be looked up and that resource will have None as its return value.
+
+    If any of the specified resources can not be found in the cache, an error
+    is raised.
+
+    Args:
+        cache (dict): The resource info cache.
+        rack (str): The identifier for the rack to get info for.
+        board (str): The identifier for the board to get info for.
+        device (str): The identifier for the device to get info for.
+
+    Returns:
+        tuple: A 3-tuple with the corresponding rack, board, and device
+            entry.
+
+    Raises:
+        errors.SynseError: Any of the specified resources were not found in
+            the resource info cache.
+    """
+    r, b, d = None, None, None
+
+    if rack is not None:
+        r = cache.get(rack)
+        if not r:
+            raise errors.SynseError('Unable to find rack "{}" in info cache.'.format(rack))
+
+    if board is not None:
+        b = r['boards'].get(board)
+        if not b:
+            raise errors.SynseError('Unable to find board "{}" in info cache.'.format(board))
+
+    if device is not None:
+        d = b['devices'].get(device)
+        if not d:
+            raise errors.SynseError('Unable to find device "{}" in info cache.'.format(device))
+
+    return r, b, d

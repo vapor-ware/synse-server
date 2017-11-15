@@ -317,13 +317,34 @@ def build_resource_info_cache(metainfo):
     Args:
         metainfo (dict):
     """
-    info_cache = {'info': []}
+    info_cache = {}
 
     for source in metainfo.values():
+
         rack = source.location.rack
         board = source.location.board
-        device = source.location.device
+        device = source.uid
 
-        info_cache['info'].append({'r': rack, 'b': board, 'd': device})
+        if rack in info_cache:
+            rdata = info_cache[rack]
+            if board in rdata['boards']:
+                bdata = rdata[board]
+                if device not in bdata['devices']:
+                    bdata['devices'][device] = source
+            else:
+                rdata['boards'][board] = {
+                    'board': board,
+                    'devices': {device: source}
+                }
+        else:
+            info_cache[rack] = {
+                'rack': rack,
+                'boards': {
+                    board: {
+                        'board': board,
+                        'devices': {device: source}
+                    }
+                }
+            }
 
     return info_cache
