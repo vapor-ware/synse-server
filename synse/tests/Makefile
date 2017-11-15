@@ -25,7 +25,7 @@ TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
 # the exit code is non-zero.
 START_TEST_CONTAINER =                                                 \
     docker-compose --verbose -f $(1) up --build test-container-x64 ;             \
-    echo finding config: ; \
+    echo finding config2: ; \
     docker exec x64_synse-test-container_1 /bin/ls -la /synse/override/config.json ; \
     if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ]; then            \
         docker-compose -f $(1) kill ;                                  \
