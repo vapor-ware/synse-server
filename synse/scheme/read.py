@@ -43,9 +43,9 @@ class ReadResponse(SynseResponse):
         """Constructor for the ReadResponse class.
 
         Args:
-            device (): The device that is being read.
-            readings (list[]): A list of reading values returned from the
-                background process.
+            device (MetainfoResponse): The device that is being read.
+            readings (list[ReadResponse]): A list of reading values returned
+                from the plugin.
         """
         self.device = device
         self.readings = readings
@@ -75,17 +75,28 @@ class ReadResponse(SynseResponse):
             precision = None
 
             logger.debug('device output: {}'.format(dev_output))
+            found = False
             for out in dev_output:
                 if out.type == rt:
                     symbol = out.unit.symbol
                     name = out.unit.name
                     precision = out.precision
+
+                    found = True
                     break
+
+            # if the reading type does not match the supported types, we will not
+            # return it, and instead will just just skip over it.
+            if not found:
+                logger.warning(
+                    'Found unexpected reading type "{}" for device {}'.format(rt, self.device)
+                )
+                continue
 
             logger.debug('  Precision: {}'.format(precision))
             value = reading.value
             if precision:
-                value = round(float(value), precision)
+                value = str(round(float(value), precision))
 
             formatted[rt] = {
                 'value': value,
