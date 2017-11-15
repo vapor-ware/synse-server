@@ -35,17 +35,19 @@ async def info(rack, board=None, device=None):
         else:
             # we have rack, board
             logger.debug('info >> rack, board')
-            response = b
-            response['devices'] = b['devices'].keys()
-            response['location'] = {
-                'rack': r['rack']
+            response = {
+                'board': b['board'],
+                'location': {'rack', r['rack']},
+                'devices': b['devices'].keys()
             }
 
     else:
         # we have rack
         logger.debug('info >> rack')
-        response = r
-        response['boards'] = r['boards'].keys()
+        response = {
+            'rack': r['rack'],
+            'boards': r['boards'].keys()
+        }
 
     return InfoResponse(response)
 

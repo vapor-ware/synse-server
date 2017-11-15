@@ -8,6 +8,7 @@ from synse import errors, utils
 from synse.config import AIOCACHE
 from synse.log import logger
 from synse.plugin import Plugin
+from synse.proto import util as putil
 
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
@@ -321,6 +322,8 @@ def build_resource_info_cache(metainfo):
 
     for source in metainfo.values():
 
+        src = putil.metainfo_to_dict(source)
+
         rack = source.location.rack
         board = source.location.board
         device = source.uid
@@ -328,13 +331,13 @@ def build_resource_info_cache(metainfo):
         if rack in info_cache:
             rdata = info_cache[rack]
             if board in rdata['boards']:
-                bdata = rdata[board]
+                bdata = rdata['boards'][board]
                 if device not in bdata['devices']:
-                    bdata['devices'][device] = source
+                    bdata['devices'][device] = src
             else:
                 rdata['boards'][board] = {
                     'board': board,
-                    'devices': {device: source}
+                    'devices': {device: src}
                 }
         else:
             info_cache[rack] = {
@@ -342,7 +345,7 @@ def build_resource_info_cache(metainfo):
                 'boards': {
                     board: {
                         'board': board,
-                        'devices': {device: source}
+                        'devices': {device: src}
                     }
                 }
             }
