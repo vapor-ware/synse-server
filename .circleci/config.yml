@@ -46,7 +46,7 @@ jobs:
       - run:
           name: Run tests
           command: |
-            echo $PWD
+            echo PWD IS: $PWD
             find .
             make test
       - run: # Get logs for all containers running synse.sh.
@@ -54,6 +54,7 @@ jobs:
           command: |
             CONTAINER_IDS=$(docker ps -a --no-trunc | grep synse.sh | cut -d' ' -f1)
             for CONTAINER in ${CONTAINER_IDS[@]}; do
+              echo --- Container logs ---
               docker logs ${CONTAINER}
             done
           when: on_fail
