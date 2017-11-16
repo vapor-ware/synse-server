@@ -59,7 +59,7 @@ def make_bgsocks():
 
 
 @pytest.fixture()
-def cleanup():
+def cleanup(remove_tmp_dir):
     """Fixture to reset the PluginManager state between tests."""
     yield
     plugin.Plugin.manager.plugins = {}
