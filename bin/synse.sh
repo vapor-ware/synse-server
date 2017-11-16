@@ -78,7 +78,7 @@ function -v {
 #   start the background process emulator using the emulator
 #   configurations found in /synse/synse/emulator/config
 function enable-emulator {
-    python /synse/synse/emulator/src/emulator.py &
+    cd synse/emulator ; ./emulator 1>&2 &
 
     # FIXME - this sleep is just added in for safety to make sure that
     # the emulator, if started, has enough time to start up and create

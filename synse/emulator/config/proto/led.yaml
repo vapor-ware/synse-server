@@ -1,0 +1,12 @@
+version: 1.0
+type: led
+model: emul8-led
+manufacturer: Vapor IO
+protocol: emulator
+output:
+  - type: state
+    data_type: string
+  - type: color
+    data_type: string
+  - type: blink
+    data_type: string

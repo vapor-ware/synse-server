@@ -1,2 +1,6 @@
 name: emulator
-version: 1.0.0
+version: 0.0.1
+debug: true
+
+settings:
+  loop_delay: 1000 # run the loop on a 1s delay

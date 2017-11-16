@@ -1,0 +1,14 @@
+version: 1.0
+type: fan
+model: emul8-fan
+manufacturer: Vapor IO
+protocol: emulator
+output:
+  - type: fan_speed
+    unit:
+      name: revolutions per minute
+      symbol: RPM
+    precision: 1
+    range:
+      min: 0
+      max: 1000

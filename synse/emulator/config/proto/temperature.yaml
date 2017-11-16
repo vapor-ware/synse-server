@@ -1,0 +1,14 @@
+version: 1.0
+type: temperature
+model: emul8-temp
+manufacturer: Vapor IO
+protocol: emulator
+output:
+  - type: temperature
+    unit:
+      name: degrees celsius
+      symbol: C
+    precision: 2
+    range:
+      min: 0
+      max: 100
