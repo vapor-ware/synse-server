@@ -1,5 +1,4 @@
-"""Test the 'synse.utils' Synse Server module.
-"""
+"""Test the 'synse.utils' Synse Server module."""
 
 from synse import utils
 

@@ -1,5 +1,4 @@
-"""Test the 'synse.routes.core' Synse Server module's config route.
-"""
+"""Test the 'synse.routes.core' Synse Server module's config route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
@@ -36,6 +35,7 @@ def no_pretty_json():
 @pytest.mark.asyncio
 async def test_synse_config_route(mock_config, no_pretty_json):
     """Test successfully getting the config."""
+
     result = await config_route(None)
 
     assert isinstance(result, HTTPResponse)

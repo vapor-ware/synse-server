@@ -1,5 +1,4 @@
-"""Test the 'synse.proto.util' Synse Server module.
-"""
+"""Test the 'synse.proto.util' Synse Server module."""
 
 import pytest
 from synse_plugin import api

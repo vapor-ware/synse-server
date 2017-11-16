@@ -1,5 +1,4 @@
-"""Test the 'synse.factory' Synse Server module.
-"""
+"""Test the 'synse.factory' Synse Server module."""
 
 from synse import factory
 

@@ -1,5 +1,4 @@
-"""Test the 'synse.scheme.config' Synse Server module.
-"""
+"""Test the 'synse.scheme.config' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import pytest
@@ -21,8 +20,8 @@ def set_config_hidden():
 
 
 def test_config_scheme(set_config):
-    """Test that the config scheme matches the expected.
-    """
+    """Test that the config scheme matches the expected."""
+
     response_scheme = ConfigResponse()
 
     # the config response just gives back the synse server config
@@ -35,8 +34,8 @@ def test_config_scheme(set_config):
 
 
 def test_config_scheme_hidden_value(set_config_hidden):
-    """Test that the config scheme matches the expected when a value is marked as hidden.
-    """
+    """Test that the config scheme matches the expected when a value is marked as hidden."""
+
     response_scheme = ConfigResponse()
 
     # the config response just gives back the synse server config

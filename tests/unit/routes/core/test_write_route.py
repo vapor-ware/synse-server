@@ -1,5 +1,4 @@
-"""Test the 'synse.routes.core' Synse Server module's write route.
-"""
+"""Test the 'synse.routes.core' Synse Server module's write route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
@@ -39,6 +38,7 @@ def no_pretty_json():
 @pytest.mark.asyncio
 async def test_synse_write_route(mock_write, no_pretty_json):
     """Test a successful write."""
+
     data = {
         'action': 'color',
         'raw': [b'00ff55']
@@ -57,6 +57,7 @@ async def test_synse_write_route(mock_write, no_pretty_json):
 @pytest.mark.asyncio
 async def test_synse_write_route_bad_json(mock_write, no_pretty_json):
     """Write when invalid JSON is posted."""
+
     data = '{{/.'
 
     r = utils.make_request('/synse/write')
@@ -69,6 +70,7 @@ async def test_synse_write_route_bad_json(mock_write, no_pretty_json):
 @pytest.mark.asyncio
 async def test_synse_write_route_invalid_json(mock_write, no_pretty_json):
     """Write when 'raw' and 'action' are not in the given request body."""
+
     data = {
         'key1': 'color',
         'key2': [b'00ff55']
@@ -83,6 +85,7 @@ async def test_synse_write_route_invalid_json(mock_write, no_pretty_json):
 @pytest.mark.asyncio
 async def test_synse_write_route_partial_json_ok_1(mock_write, no_pretty_json):
     """Write when the 'action' key is present but the 'raw' field is missing."""
+
     data = {
         'action': 'color',
         'key2': [b'00ff55']
@@ -101,6 +104,7 @@ async def test_synse_write_route_partial_json_ok_1(mock_write, no_pretty_json):
 @pytest.mark.asyncio
 async def test_synse_write_route_partial_json_ok_2(mock_write, no_pretty_json):
     """Write when the 'raw' key is present but the 'action' field is missing."""
+
     data = {
         'key1': 'color',
         'raw': [b'00ff55']

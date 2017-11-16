@@ -1,5 +1,4 @@
-"""Test the 'synse.commands.config' Synse Server module.
-"""
+"""Test the 'synse.commands.config' Synse Server module."""
 
 import pytest
 

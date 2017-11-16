@@ -51,7 +51,7 @@ async def info(rack, board=None, device=None):
     return InfoResponse(response)
 
 
-def get_resources(cache, rack=None, board=None, device=None):
+def get_resources(info_cache, rack=None, board=None, device=None):
     """Get the entries for the specified resources out of the resource info
     cache.
 
@@ -62,7 +62,7 @@ def get_resources(cache, rack=None, board=None, device=None):
     is raised.
 
     Args:
-        cache (dict): The resource info cache.
+        info_cache (dict): The resource info cache.
         rack (str): The identifier for the rack to get info for.
         board (str): The identifier for the board to get info for.
         device (str): The identifier for the device to get info for.
@@ -78,18 +78,24 @@ def get_resources(cache, rack=None, board=None, device=None):
     r, b, d = None, None, None
 
     if rack is not None:
-        r = cache.get(rack)
+        r = info_cache.get(rack)
         if not r:
-            raise errors.SynseError('Unable to find rack "{}" in info cache: {}.'.format(rack, cache))
+            raise errors.SynseError(
+                'Unable to find rack "{}" in info cache.'.format(rack)
+            )
 
     if board is not None:
         b = r['boards'].get(board)
         if not b:
-            raise errors.SynseError('Unable to find board "{}" in info cache.'.format(board))
+            raise errors.SynseError(
+                'Unable to find board "{}" in info cache.'.format(board)
+            )
 
     if device is not None:
         d = b['devices'].get(device)
         if not d:
-            raise errors.SynseError('Unable to find device "{}" in info cache.'.format(device))
+            raise errors.SynseError(
+                'Unable to find device "{}" in info cache.'.format(device)
+            )
 
     return r, b, d

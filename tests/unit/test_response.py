@@ -1,5 +1,4 @@
-"""Test the 'synse.response' Synse Server module.
-"""
+"""Test the 'synse.response' Synse Server module."""
 
 from sanic.response import HTTPResponse
 

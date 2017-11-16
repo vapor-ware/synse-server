@@ -1,5 +1,4 @@
-"""Test the 'synse.routes.base' Synse Server module's version route.
-"""
+"""Test the 'synse.routes.base' Synse Server module's version route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import pytest

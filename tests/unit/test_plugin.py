@@ -1,14 +1,13 @@
-"""Test the 'synse.plugin' Synse Server module.
-"""
+"""Test the 'synse.plugin' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument
 
 import os
-import socket
 import shutil
+import socket
 
 import pytest
 
-from synse import const
-from synse import plugin
+from synse import const, plugin
 
 
 @pytest.fixture()
@@ -40,7 +39,7 @@ def mock_plugin():
             raise
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope='module')
 def remove_tmp_dir():
     """Fixture to remove any test data."""
     if os.path.isdir('tmp'):
@@ -49,6 +48,7 @@ def remove_tmp_dir():
 
 @pytest.fixture()
 def make_bgsocks():
+    """Fixture to create and remove the BG_SOCKS directory for testing."""
     if not os.path.isdir(const.BG_SOCKS):
         os.makedirs(const.BG_SOCKS)
 

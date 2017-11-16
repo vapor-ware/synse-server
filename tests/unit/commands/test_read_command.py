@@ -1,5 +1,5 @@
-"""Test the 'synse.commands.read' Synse Server module.
-"""
+"""Test the 'synse.commands.read' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument
 
 import os
 import shutil
@@ -8,10 +8,10 @@ import asynctest
 import pytest
 from synse_plugin import api
 
-from synse import errors, plugin
 import synse.cache
-from synse.proto.client import SynseInternalClient
+from synse import errors, plugin
 from synse.commands.read import read
+from synse.proto.client import SynseInternalClient
 from synse.scheme.read import ReadResponse
 
 

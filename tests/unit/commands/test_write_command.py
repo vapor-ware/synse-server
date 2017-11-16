@@ -1,5 +1,5 @@
-"""Test the 'synse.commands.write' Synse Server module.
-"""
+"""Test the 'synse.commands.write' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
 import shutil
@@ -8,16 +8,16 @@ import asynctest
 import pytest
 from synse_plugin import api
 
-from synse import errors, plugin
 import synse.cache
-from synse.proto.client import SynseInternalClient
+from synse import errors, plugin
 from synse.commands.write import write
+from synse.proto.client import SynseInternalClient
 from synse.scheme.write import WriteResponse
 
 
 @pytest.fixture(scope='module')
 def setup():
-    """Fixture to setup/teardown the module tests"""
+    """Fixture to setup/teardown the module tests."""
 
     # create a temp directory for test data
     if not os.path.isdir('tmp'):

@@ -1,5 +1,4 @@
-"""Test the 'synse.scheme.read' Synse Server module.
-"""
+"""Test the 'synse.scheme.read' Synse Server module."""
 
 from synse_plugin import api
 
@@ -39,8 +38,8 @@ def make_metainfo_response():
 
 
 def test_read_scheme():
-    """Test that the read scheme matches the expected.
-    """
+    """Test that the read scheme matches the expected."""
+
     dev = make_metainfo_response()
 
     rr = api.ReadResponse(

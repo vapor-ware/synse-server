@@ -1,5 +1,4 @@
-"""Test the 'synse.scheme.transaction' Synse Server module.
-"""
+"""Test the 'synse.scheme.transaction' Synse Server module."""
 
 from synse_plugin import api
 
@@ -7,8 +6,8 @@ from synse.scheme.transaction import TransactionResponse
 
 
 def test_transaction_scheme():
-    """Test that the transaction scheme matches the expected.
-    """
+    """Test that the transaction scheme matches the expected."""
+
     tid = '123456'
     ctx = {
         'action': 'test',

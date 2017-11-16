@@ -1,5 +1,4 @@
-"""Test the 'synse.scheme.write' Synse Server module.
-"""
+"""Test the 'synse.scheme.write' Synse Server module."""
 
 from synse_plugin import api
 
@@ -7,8 +6,8 @@ from synse.scheme.write import WriteResponse
 
 
 def test_write_scheme():
-    """Check that the write scheme matches the expected.
-    """
+    """Check that the write scheme matches the expected."""
+
     wd1 = api.WriteData(raw=[b'test'], action='test1')
     wd2 = api.WriteData(raw=[b'test'], action='test2')
     wd3 = api.WriteData(raw=[b'test'], action='test3')

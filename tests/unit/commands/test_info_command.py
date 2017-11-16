@@ -1,12 +1,12 @@
-"""Test the 'synse.commands.info' Synse Server module.
-"""
+"""Test the 'synse.commands.info' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
 
-from synse import errors
 import synse.cache
-from synse.commands.info import info, get_resources
+from synse import errors
+from synse.commands.info import get_resources, info
 from synse.scheme.info import InfoResponse
 
 

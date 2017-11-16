@@ -1,12 +1,11 @@
-"""Test the 'synse.scheme.info' Synse Server module.
-"""
+"""Test the 'synse.scheme.info' Synse Server module."""
 
 from synse.scheme.info import InfoResponse
 
 
 def test_info_scheme():
-    """Test that the info scheme matches the expected.
-    """
+    """Test that the info scheme matches the expected."""
+
     data = {
         'rack': 'rack-1',
         'boards': [

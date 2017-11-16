@@ -1,12 +1,11 @@
-"""Test the 'synse.scheme.scan' Synse Server module.
-"""
+"""Test the 'synse.scheme.scan' Synse Server module."""
 
 from synse.scheme.scan import ScanResponse
 
 
 def test_scan_scheme():
-    """Test that the scan scheme matches the expected.
-    """
+    """Test that the scan scheme matches the expected."""
+
     data = {
         'rack': 'rack-1',
         'boards': [

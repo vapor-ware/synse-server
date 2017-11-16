@@ -1,5 +1,4 @@
-"""Test the 'synse.errors' Synse Server module.
-"""
+"""Test the 'synse.errors' Synse Server module."""
 
 from sanic import exceptions
 

@@ -1,5 +1,5 @@
-"""Test the 'synse.commands.scan' Synse Server module.
-"""
+"""Test the 'synse.commands.scan' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
