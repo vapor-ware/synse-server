@@ -1,8 +1,7 @@
 """Command handler for the `info` route.
 """
 
-from synse import errors
-from synse.cache import get_resource_info_cache
+from synse import cache, errors
 from synse.log import logger
 from synse.scheme.info import InfoResponse
 
@@ -23,8 +22,8 @@ async def info(rack, board=None, device=None):
             'No rack specified when issuing info command.', errors.INVALID_ARGUMENTS
         )
 
-    cache = await get_resource_info_cache()
-    r, b, d = get_resources(cache, rack, board, device)
+    _cache = await cache.get_resource_info_cache()
+    r, b, d = get_resources(_cache, rack, board, device)
 
     if board is not None:
         if device is not None:
@@ -37,8 +36,8 @@ async def info(rack, board=None, device=None):
             logger.debug('info >> rack, board')
             response = {
                 'board': b['board'],
-                'location': {'rack', r['rack']},
-                'devices': b['devices'].keys()
+                'location': {'rack': r['rack']},
+                'devices': list(b['devices'].keys())
             }
 
     else:
@@ -46,7 +45,7 @@ async def info(rack, board=None, device=None):
         logger.debug('info >> rack')
         response = {
             'rack': r['rack'],
-            'boards': r['boards'].keys()
+            'boards': list(r['boards'].keys())
         }
 
     return InfoResponse(response)
@@ -81,7 +80,7 @@ def get_resources(cache, rack=None, board=None, device=None):
     if rack is not None:
         r = cache.get(rack)
         if not r:
-            raise errors.SynseError('Unable to find rack "{}" in info cache.'.format(rack))
+            raise errors.SynseError('Unable to find rack "{}" in info cache: {}.'.format(rack, cache))
 
     if board is not None:
         b = r['boards'].get(board)

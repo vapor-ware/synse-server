@@ -124,6 +124,16 @@ async def get_metainfo_cache():
     If the cache does not exist or has surpassed its TTL, it will be
     refreshed.
 
+    The metainfo cache is a map where the key is the device id composite
+    and the value is the MetainfoResponse associated with that device.
+    For example:
+        {
+          "rack1-vec-1249ab12f2ed" : <MetainfoResponse>
+        }
+
+    For the fields of the MetainfoResponse, see the gRPC proto spec:
+    https://github.com/vapor-ware/synse-server-grpc/blob/master/synse.proto
+
     Returns:
         dict: The metainfo dictionary in which the key is the device id
             and the value is the data associated with that device.
@@ -180,6 +190,32 @@ async def get_scan_cache():
     If the scan result cache does not exist or the TTL has expired, the cache
     will be refreshed.
 
+    An example of the scan cache structure:
+        {
+          'racks': [
+            {
+              'rack_id': 'rack-1',
+              'boards': [
+                {
+                  'board_id': 'vec',
+                  'devices': [
+                    {
+                      'device_id': '1e93da83dd383757474f539314446c3d',
+                      'device_info': 'Rack Temperature Spare',
+                      'device_type': 'temperature'
+                    },
+                    {
+                      'device_id': '18185208cbc0e5a4700badd6e39bb12d',
+                      'device_info': 'Rack Temperature Middle Rear',
+                      'device_type': 'temperature'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+
     Returns:
         dict: A dictionary containing the scan command result.
     """
@@ -196,6 +232,49 @@ async def get_resource_info_cache():
 
     If the resource info cache does not exist or the TTL has expired, the
     cache will be refreshed.
+
+    An example of the info cache structure:
+        {
+          'rack-1': {
+            'rack': 'rack-1',
+            'boards': {
+              'vec': {
+                'board': 'vec',
+                'devices': {
+                  '1e93da83dd383757474f539314446c3d': {
+                    'timestamp': '2017-11-16 09:16:16.578927204 -0500 EST m=+36.995086134',
+                    'uid': '1e93da83dd383757474f539314446c3d',
+                    'type': 'temperature',
+                    'model': 'MAX11610',
+                    'manufacturer': 'Maxim Integrated',
+                    'protocol': 'i2c',
+                    'info': 'Rack Temperature Spare',
+                    'comment': '',
+                    'location': {
+                      'rack': 'rack-1',
+                      'board': 'vec'
+                    },
+                    'output': [
+                      {
+                        'type': 'temperature',
+                        'data_type': 'float',
+                        'precision': 2,
+                        'unit': {
+                          'name': 'degrees celsius',
+                          'symbol': 'C'
+                        },
+                        'range': {
+                          'min': 0,
+                          'max': 100
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
 
     Returns:
         dict:

@@ -3,10 +3,8 @@
 
 import grpc
 
-from synse import errors
-from synse.cache import get_device_meta
+from synse import cache, errors, plugin
 from synse.log import logger
-from synse.plugin import get_plugin
 from synse.scheme import ReadResponse
 
 
@@ -24,13 +22,13 @@ async def read(rack, board, device):
     logger.debug('>> READ cmd')
 
     # lookup the known info for the specified device
-    dev = await get_device_meta(rack, board, device)
+    dev = await cache.get_device_meta(rack, board, device)
     logger.debug('  |- got device: {}'.format(dev))
 
     # get the plugin context for the device's specified protocol
-    plugin = get_plugin(dev.protocol)
-    logger.debug('  |- got plugin: {}'.format(plugin))
-    if not plugin:
+    _plugin = plugin.get_plugin(dev.protocol)
+    logger.debug('  |- got plugin: {}'.format(_plugin))
+    if not _plugin:
         raise errors.SynseError(
             'Unable to find plugin named "{}" to read.'.format(
                 dev.protocol), errors.PLUGIN_NOT_FOUND
@@ -38,7 +36,7 @@ async def read(rack, board, device):
 
     # perform a gRPC read on the device's managing plugin
     try:
-        read_data = [r for r in plugin.client.read(rack, board, device)]
+        read_data = [r for r in _plugin.client.read(rack, board, device)]
     except grpc.RpcError as ex:
         logger.error('  |- (error): {}'.format(ex))
         raise errors.SynseError(

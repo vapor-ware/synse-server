@@ -3,9 +3,7 @@
 
 import grpc
 
-from synse import errors
-from synse.cache import get_transaction
-from synse.plugin import get_plugin
+from synse import cache, errors, plugin
 from synse.scheme.transaction import TransactionResponse
 
 
@@ -19,7 +17,7 @@ async def check_transaction(transaction_id):
         TransactionResponse: The "transaction" response scheme model.
     """
 
-    transaction = await get_transaction(transaction_id)
+    transaction = await cache.get_transaction(transaction_id)
     plugin_name = transaction.get('plugin')
     context = transaction.get('context')
 
@@ -35,15 +33,15 @@ async def check_transaction(transaction_id):
             'Unable to determine process for the given transaction.', errors.TRANSACTION_NOT_FOUND
         )
 
-    plugin = get_plugin(plugin_name)
-    if not plugin:
+    _plugin = plugin.get_plugin(plugin_name)
+    if not _plugin:
         raise errors.SynseError(
             'Unable to find plugin named "{}" to read.'.format(
                 plugin_name), errors.PLUGIN_NOT_FOUND
         )
 
     try:
-        resp = plugin.client.check_transaction(transaction_id)
+        resp = _plugin.client.check_transaction(transaction_id)
     except grpc.RpcError as ex:
         raise errors.SynseError(
             'Failed to issue a transaction check request.', errors.FAILED_TRANSACTION_COMMAND
