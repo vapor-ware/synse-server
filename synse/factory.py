@@ -57,10 +57,10 @@ def _disable_favicon(app):
 
 
 def _register_error_handling(app):
-    """
+    """Register the 404 and 500 error JSON responses for Synse Server.
 
     Args:
-        app ():
+        app (sanic.Sanic): The Sanic application to add the handling to.
     """
 
     @app.exception(NotFound)

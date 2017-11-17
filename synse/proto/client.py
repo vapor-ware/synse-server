@@ -33,18 +33,18 @@ class WriteData(object):
             raw (list[bytes]): A list of bytes that constitute the raw data
                 that will be written by the write request.
         """
-        self.action = action
-        self.raw = raw
+        self.action = action if action is not None else ''
+        self.raw = raw if raw is not None else []
 
     def to_grpc(self):
         """Convert the WriteData model into the gRPC model for WriteData.
 
         Returns:
-            synse_api.WriteData: The gRPC model of the WriteData object.
+            synse_plugin.api.WriteData: The gRPC model of the WriteData object.
         """
         return synse_api.WriteData(
-            action=self.action if self.action is not None else '',
-            raw=self.raw if self.raw is not None else []
+            action=self.action,
+            raw=self.raw
         )
 
 
@@ -114,6 +114,10 @@ class SynseInternalClient(object):
             rack (str): The rack which the device resides on.
             board (str): The board which the device resides on.
             device (str): The identifier for the device to read.
+
+        Returns:
+            list[synse_plugin.api.ReadResponse]: The reading responses for the
+                specified device, if it exists.
         """
         req = synse_api.ReadRequest(
             device=device,
@@ -135,8 +139,8 @@ class SynseInternalClient(object):
             board (str): The board to filter by.
 
         Returns:
-            list[MetainfoResponse]: All device meta-information provided by
-                the plugin.
+            list[synse_plugin.api.MetainfoResponse]: All device meta-information
+                provided by the plugin.
         """
         # if the rack or board is not specified, pass it through as an
         # empty string.
@@ -162,6 +166,10 @@ class SynseInternalClient(object):
             board (str): The board which the device resides on.
             device (str): The identifier for the device to write to.
             data (list[WriteData]): The data to write to the device.
+
+        Returns:
+            synse_plugin.api.Transactions: The transactions that can be used
+                to track the given write request(s).
         """
         req = synse_api.WriteRequest(
             device=device,
@@ -178,6 +186,10 @@ class SynseInternalClient(object):
 
         Args:
             transaction_id (str): The ID of the transaction to check.
+
+        Returns:
+            synse_plugin.api.WriteResponse: The WriteResponse detailing the
+                status and state of the given write transaction.
         """
         req = synse_api.TransactionId(
             id=transaction_id

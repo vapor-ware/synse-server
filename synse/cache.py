@@ -154,6 +154,8 @@ async def get_metainfo_cache():
         logger.debug('{} -- {}'.format(name, plugin))
 
         try:
+            print('Client Metainfo')
+            print(plugin.client.metainfo)
             for device in plugin.client.metainfo():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
                 metainfo[_id] = device
@@ -277,21 +279,24 @@ async def get_resource_info_cache():
         }
 
     Returns:
-        dict:
+        dict: A dictionary containing the info command result.
     """
     _metainfo = await get_metainfo_cache()
     info_cache = build_resource_info_cache(_metainfo)
     return info_cache
 
 
-# FIXME - I think this should move to the 'commands.scan' module?
-#   or maybe not? just trying to keep command specific things isolated
-#   to those specific commands.
 def build_scan_cache(metainfo):
-    """
+    """Build the scan cache.
+
+    This builds the scan cache, adhering to the Scan response scheme,
+    using the contents of the meta-info cache.
 
     Args:
-        metainfo (dict):
+        metainfo (dict): The meta-info cache dictionary.
+
+    Returns:
+        dict: The constructed scan cache.
     """
 
     scan_cache = {'racks': []}
@@ -318,12 +323,6 @@ def build_scan_cache(metainfo):
     for source in metainfo.values():
         rack = source.location.rack
         board = source.location.board
-
-        # FIXME: before, this was source.location.device -- need to spend some
-        # more time thinking about/designing out the world of IDs in our system.
-        # does the device id belong in the location? is there (or should there be)
-        # a difference between the internal UID and the id shown to the user?
-        # probably more questions surrounding this, but that's a start.
         device = source.uid
 
         # the given rack does not yet exist in our scan cache.
@@ -384,18 +383,23 @@ def build_scan_cache(metainfo):
                 })
 
     for ref in _tracked.values():
-        ref['rack']['boards'] = ref['boards'].values()
+        ref['rack']['boards'] = list(ref['boards'].values())
         scan_cache['racks'].append(ref['rack'])
 
     return scan_cache
 
 
-# TODO - what should this even be?
 def build_resource_info_cache(metainfo):
-    """
+    """Build the resource info cache.
+
+    This builds the info cache, adhering to the Info response scheme,
+    using the contents of the meta-info cache.
 
     Args:
-        metainfo (dict):
+        metainfo (dict): The meta-info cache dictionary.
+
+    Returns:
+        dict: The constructed info cache.
     """
     info_cache = {}
 
