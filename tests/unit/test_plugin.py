@@ -195,11 +195,6 @@ def test_get_plugins2(mock_plugin, cleanup):
     assert name == p.name == 'test-plug'
     assert p.sock == 'tmp/test-plug'
 
-    name, p = next(plugin.get_plugins())
-    print('NAME P')
-    print(name)
-    print(p)
-
 
 def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
     """Register plugins when the plugin path doesn't exist."""

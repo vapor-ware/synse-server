@@ -1,10 +1,11 @@
 """Test the 'synse.commands.transaction' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
 import shutil
 
 import asynctest
+import grpc
 import pytest
 from synse_plugin import api
 
@@ -55,6 +56,11 @@ def mockchecktransaction(self, transaction_id):
     )
 
 
+def mockchecktransactionfail(self, transaction_id):
+    """Mock method to monkeypatch the client check_transaction method to fail."""
+    raise grpc.RpcError()
+
+
 @pytest.fixture()
 def mock_get_transaction(monkeypatch):
     """Fixture to monkeypatch the cache transaction lookup."""
@@ -68,6 +74,13 @@ def mock_client_transaction(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method."""
     monkeypatch.setattr(SynseInternalClient, 'check_transaction', mockchecktransaction)
     return mock_client_transaction
+
+
+@pytest.fixture()
+def mock_client_transaction_fail(monkeypatch):
+    """Fixture to monkeypatch the grpc client's transaction method to fail."""
+    monkeypatch.setattr(SynseInternalClient, 'check_transaction', mockchecktransactionfail)
+    return mock_client_transaction_fail
 
 
 @pytest.fixture()
@@ -109,7 +122,7 @@ async def test_transaction_command_no_plugin(mock_get_transaction):
 
 
 @pytest.mark.asyncio
-async def test_transaction_command_grpc_err(mock_get_transaction, make_plugin):
+async def test_transaction_command_grpc_err(mock_get_transaction, mock_client_transaction_fail, make_plugin):
     """Get a TransactionResponse when the plugin exists but cant communicate with it."""
 
     # FIXME - it would be nice to use pytest.raises, but it seems like it isn't

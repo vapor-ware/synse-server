@@ -1,4 +1,5 @@
 """Test the 'synse.cache' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument
 
 import os
 import shutil
@@ -11,8 +12,8 @@ from synse_plugin import api
 
 from synse import cache, config, const, errors, plugin
 
-
 # -- Helper Methods ---
+
 
 def make_metainfo_response(rack, board, device):
     """Helper method to make a new MetainfoResponse object."""
@@ -45,8 +46,8 @@ def make_metainfo_response(rack, board, device):
         ]
     )
 
-
 # --- Mock Methods ---
+
 
 def mock_get_metainfo_cache():
     """Mock method for get_metainfo_cache - returns a single device."""
@@ -66,8 +67,8 @@ def mock_client_metainfo_fail(rack=None, board=None):
     """Mock method for the gRPC client's metainfo method that is intended to fail."""
     raise grpc.RpcError()
 
-
 # --- Test Fixtures ---
+
 
 @pytest.fixture()
 def patch_metainfo(monkeypatch):
@@ -109,8 +110,8 @@ def plugin_context():
     if os.path.isdir(const.BG_SOCKS):
         shutil.rmtree(const.BG_SOCKS)
 
-
 # --- Test Cases ---
+
 
 def test_configure_cache():
     """Configure the aiocache namespace."""

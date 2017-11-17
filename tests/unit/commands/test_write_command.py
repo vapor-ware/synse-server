@@ -5,6 +5,7 @@ import os
 import shutil
 
 import asynctest
+import grpc
 import pytest
 from synse_plugin import api
 
@@ -81,6 +82,11 @@ def mockwrite(self, rack, board, device, data):
     )
 
 
+def mockwritefail(self, rack, board, device, data):
+    """Mock method to monkeypatch the client write method to fail."""
+    raise grpc.RpcError()
+
+
 @pytest.fixture()
 def mock_get_device_meta(monkeypatch):
     """Fixture to monkeypatch the cache device meta lookup."""
@@ -102,6 +108,13 @@ def mock_client_write(monkeypatch):
     """Fixture to monkeypatch the grpc client's write method."""
     monkeypatch.setattr(SynseInternalClient, 'write', mockwrite)
     return mock_client_write
+
+
+@pytest.fixture()
+def mock_client_write_fail(monkeypatch):
+    """Fixture to monkeypatch the grpc client's write method to fail."""
+    monkeypatch.setattr(SynseInternalClient, 'write', mockwritefail)
+    return mock_client_write_fail
 
 
 @pytest.fixture()
@@ -145,7 +158,7 @@ async def test_write_command_no_plugin(mock_get_device_meta):
 
 
 @pytest.mark.asyncio
-async def test_write_command_grpc_err(mock_get_device_meta, make_plugin):
+async def test_write_command_grpc_err(mock_get_device_meta, mock_client_write_fail, make_plugin):
     """Get a WriteResponse when the plugin exists but cant communicate with it."""
 
     # FIXME - it would be nice to use pytest.raises, but it seems like it isn't

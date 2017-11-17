@@ -1,4 +1,5 @@
 """Test the 'synse.proto.client' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument
 
 import grpc
 import pytest
@@ -8,8 +9,8 @@ from synse_plugin import grpc as synse_grpc
 from synse import const
 from synse.proto import client
 
-
 # --- Mock Methods ---
+
 
 def mock_read(req):
     """Mock the internal read call."""
@@ -77,16 +78,16 @@ def mock_transaction(req):
         state=0,
     )
 
-
 # --- Test Fixtures ---
+
 
 @pytest.fixture()
 def clear_state():
     """Fixture to clear out the state of the client manager between tests."""
     client.SynseInternalClient._client_stubs = {}
 
+# --- Test Cases ---
 
-# --- Test Functions ---
 
 def test_write_data(clear_state):
     """Test initializing WriteData instances."""

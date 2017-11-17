@@ -154,8 +154,6 @@ async def get_metainfo_cache():
         logger.debug('{} -- {}'.format(name, plugin))
 
         try:
-            print('Client Metainfo')
-            print(plugin.client.metainfo)
             for device in plugin.client.metainfo():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
                 metainfo[_id] = device

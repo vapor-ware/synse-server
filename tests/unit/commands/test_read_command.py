@@ -5,6 +5,7 @@ import os
 import shutil
 
 import asynctest
+import grpc
 import pytest
 from synse_plugin import api
 
@@ -73,6 +74,11 @@ def mockread(self, rack, board, device):
     )]
 
 
+def mockreadfail(self, rack, board, device):
+    """Mock method to monkeypatch the client read method to fail."""
+    raise grpc.RpcError()
+
+
 @pytest.fixture()
 def mock_get_device_meta(monkeypatch):
     """Fixture to monkeypatch the cache device meta lookup."""
@@ -86,6 +92,13 @@ def mock_client_read(monkeypatch):
     """Fixture to monkeypatch the grpc client's read method."""
     monkeypatch.setattr(SynseInternalClient, 'read', mockread)
     return mock_client_read
+
+
+@pytest.fixture()
+def mock_client_read_fail(monkeypatch):
+    """Fixture to monkeypatch the grpc client's read method to fail."""
+    monkeypatch.setattr(SynseInternalClient, 'read', mockreadfail)
+    return mock_client_read_fail
 
 
 @pytest.fixture()
@@ -127,7 +140,7 @@ async def test_read_command_no_plugin(mock_get_device_meta):
 
 
 @pytest.mark.asyncio
-async def test_read_command_grpc_err(mock_get_device_meta, make_plugin):
+async def test_read_command_grpc_err(mock_get_device_meta, mock_client_read_fail, make_plugin):
     """Get a ReadResponse when the plugin exists but cant communicate with it."""
 
     # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
