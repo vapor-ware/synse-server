@@ -349,7 +349,7 @@ class GS32010Fan(RS485Device):
         data_file = self._get_bg_write_file(str(self.unit), '{0:04x}'.format(self.register_base))
         logger.debug('data_file: {}, speed_rpm: {}'.format(data_file, speed_rpm))
 
-        GS32010Fan.write_device_data_file(data_file, speed_rpm)
+        GS32010Fan.write_device_data_file(data_file, str(speed_rpm))
 
     def _read_indirect(self):
         """Indirect read of the fan controller.
