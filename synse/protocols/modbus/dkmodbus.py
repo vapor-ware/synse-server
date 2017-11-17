@@ -105,6 +105,22 @@ class dkmodbus(object):
                     time.sleep(.1)
         return 0
 
+    def write_single_register(self, slave_address, register, data):
+        """
+        Write a single register over modbus.
+        :param slave_address: The slave address of the device to write, In
+        synse this is unfortunately called device_unit.
+        :param register: The register to write.
+        :param data: The data to write in bytes (two bytes).
+        :return: 0 on success.
+        """
+        slave_address_bytes = struct.pack('>B', slave_address)
+        modbus_function_code = dkmodbus._WRITE_SINGLE_REGISTER
+        register_bytes = struct.pack('>H', register)
+        packet = slave_address_bytes + modbus_function_code + register_bytes + \
+            + data
+        return self._send_receive_packet(packet)
+
     def write_multiple_registers(
             self, slave_address, register, register_count, byte_count, data):
         """Write multiple registers over modbus.
@@ -114,6 +130,7 @@ class dkmodbus(object):
         :param register_count: The number of registers to write.
         :param byte_count: The number of bytes to write. 1, 2, 4, or 8.
         :param data: The data to write in bytes.
+        :return: 0 on success.
         """
         slave_address_bytes = struct.pack('>B', slave_address)
         modbus_function_code = dkmodbus._WRITE_MULTIPLE_REGISTERS
@@ -266,7 +283,6 @@ class dkmodbus(object):
         logger.debug('bytes_returned: {}'.format(bytes_returned))
 
         function_code = cec_rx_packet[1]
-        # TODO: Double check the '\x04' (_READ_INPUT_REGISTER) in the next PR.
         if function_code == dkmodbus._READ_HOLDING_REGISTERS \
                 or function_code == dkmodbus._READ_INPUT_REGISTER:
             logger.debug('returning read data')
