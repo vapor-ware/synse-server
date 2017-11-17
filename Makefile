@@ -33,7 +33,19 @@ build:
 		-t vaporio/synse-server-internal:$(PKG_VER) \
 		-t vaporio/synse-server-internal:$(GIT_VER) .
 
+# Build and push an image for testing in Phoenix.
+phoenix:
+	docker rmi vaporio/synse-server-internal:phoenix-3.7 || true
+	# docker build -f Dockerfile.x64
+	docker build -f dockerfile/release.dockerfile \
+		-t vaporio/synse-server-internal:latest \
+		-t vaporio/synse-server-internal:$(PKG_VER) \
+		-t vaporio/synse-server-internal:$(GIT_VER) \
+		-t vaporio/synse-server-internal:phoenix-3.7 .
+	docker push vaporio/synse-server-internal:phoenix-3.7
 
+# Shortcut for Phoenix.
+px: phoenix
 
 # -----------------------------------------------
 #  Variables / functions.

@@ -170,6 +170,7 @@ class GS32010Fan(RS485Device):
             Response: a Response object corresponding to the incoming Command
                 object, containing the data from the fan response.
         """
+        logger.debug('GS3 fan command.')
         # get the command data out from the incoming command
         device_id = command.data[_s_.DEVICE_ID]
 
@@ -177,7 +178,9 @@ class GS32010Fan(RS485Device):
         if command.data[_s_.FAN_SPEED] == 'max':
             return self._max_route(command)
 
+        logger.debug('Fan speed string: {}.'.format(command.data[_s_.FAN_SPEED]))
         fan_speed = int(command.data[_s_.FAN_SPEED])
+        logger.debug('Fan speed int: {}.'.format(fan_speed))
 
         # FIXME: override because main_blueprint doesn't distinguish between
         # 'fan_speed' and 'vapor_fan'
@@ -311,6 +314,7 @@ class GS32010Fan(RS485Device):
                 # Production
                 # Write speed.
                 if action == 'set_speed' and speed_rpm is not None:
+                    logger.debug('Fan speed write: {}'.format(speed_rpm))
                     if self.from_background:
                         self._write_indirect(speed_rpm)
                         return {const.UOM_VAPOR_FAN: speed_rpm}
@@ -342,6 +346,7 @@ class GS32010Fan(RS485Device):
         :param speed_rpm: The speed to set in rpm."""
         # If we are not the vec leader we need to redirect this call to the leader.
         # The Synse configuration is supposed to be the same for all vecs in the chamber.
+        logger.debug('_write_indirect({})'.format(speed_rpm))
         if not RS485Device.is_vec_leader():
             RS485Device.redirect_call_to_vec_leader(request.url)
             return
@@ -349,7 +354,7 @@ class GS32010Fan(RS485Device):
         data_file = self._get_bg_write_file(str(self.unit), '{0:04x}'.format(self.register_base))
         logger.debug('data_file: {}, speed_rpm: {}'.format(data_file, speed_rpm))
 
-        GS32010Fan.write_device_data_file(data_file, speed_rpm)
+        GS32010Fan.write_device_data_file(data_file, str(speed_rpm))  # File write wants a string
 
     def _read_indirect(self):
         """Indirect read of the fan controller.

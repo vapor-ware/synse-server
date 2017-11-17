@@ -136,7 +136,7 @@ def test_routine():
     """ Test routine to verify the endpoint is running and ok, without
     relying on any backend layer.
     """
-    return make_json_response({'status': 'ok'})
+    return make_json_response({'status': 'ok', 'branch': 'PX 3.7'})
 
 
 @app.route(const.endpoint_prefix + 'version', methods=['GET', 'POST'])
