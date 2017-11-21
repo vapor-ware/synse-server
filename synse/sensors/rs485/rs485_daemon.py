@@ -94,6 +94,34 @@ def _create_modbus_client(serial_device, device):
     return dkmodbus.dkmodbus(ser)
 
 
+def _get_ebmpapst_rpm(serial_device, device):
+    """Production only rpm reads from Ebm Papst fan (vapor_fan).
+    :param serial_device: The serial device name.
+    :param device: The device to read.
+    :returns: Integer rpm."""
+    client = _create_modbus_client(serial_device, device)
+    raise NotImplementedError('Need to get the correct register readings.')
+    result = client.read_holding_registers(int(device['device_unit']), 0x2107, 1)
+    return conversions.unpack_word(result)
+
+
+def _get_ebmpapst_direction(serial_device, device):
+    """Production only direction reads from Ebm Papst fan (vapor_fan).
+    :param serial_device: The serial device name.
+    :param device: The device to read.
+    :returns: String forward or reverse."""
+    client = _create_modbus_client(serial_device, device)
+    raise NotImplementedError('Need to get the correct register readings.')
+    result = client.read_holding_registers(int(device['device_unit']), 0x91C, 1)
+    direction = conversions.unpack_word(result)
+    if direction == 0:
+        return 'forward'
+    elif direction == 1:
+        return 'reverse'
+    else:
+        raise ValueError('Unknown direction {}'.format(direction))
+
+
 def _get_gs32010_rpm(serial_device, device):
     """Production only rpm reads from gs3_2010_fan (vapor_fan).
     :param serial_device: The serial device name.
@@ -278,6 +306,20 @@ def _read_f660_airflow(rack_id, serial_device, device):
     path = RS485_FILE_PATH.format(
         rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
     common.write_reading(path, airflow)
+
+
+def _read_ebmpapst_fan_speed(rack_id, serial_device, device):
+    """Read the fan speed from the bus. Write it to the sensor file.
+    :param rack_id: The rack_id from the Synse configuration.
+    :param serial_device: The serial device name.
+    :param device: The device to read.
+    """
+    rpm = _get_ebmpapst_rpm(serial_device, device)
+    direction = _get_ebmpapst_direction(serial_device, device)
+
+    path = RS485_FILE_PATH.format(
+        rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
+    common.write_readings(path, [rpm, direction])
 
 
 def _read_gs32010_fan_speed(rack_id, serial_device, device):
