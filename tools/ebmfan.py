@@ -276,7 +276,9 @@ def _get(ser):
     elif sys.argv[2] == 'all':
         _read_all_fan(ser)
     elif sys.argv[2] == 'register':
-        modbus_common.read_fan_register(ser, int(sys.argv[3], 16))
+        modbus_common.read_holding_register(ser, int(sys.argv[3], 16))
+    elif sys.argv[2] == 'input':
+        modbus_common.read_holding_register(ser, int(sys.argv[3], 16))
     else:
         raise ValueError('Unexpected args')
 
@@ -321,7 +323,8 @@ def _print_usage():
     print '\tget options:'
     print '\t\t <none>: speed in RPM.'
     print '\t\t all: registers.'
-    print '\t\t register: get fan register in the form of 0x91c'
+    print '\t\t register: get fan holding register in the form of 0x91c'
+    print '\t\t input: get fan input register in the form of 0x91c'
     print '\tset options:'
     print '\t\t <integer> set speed in RPM. Setting a speed under 10% of the max is not recommended.'
     print '\t\t register: set fan register in the form of 0x91c {data}'

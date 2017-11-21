@@ -277,7 +277,7 @@ def _get(ser):
     elif sys.argv[2] == 'all':
         _read_all_fan(ser)
     elif sys.argv[2] == 'register':
-        modbus_common.read_fan_register(ser, int(sys.argv[3], 16))
+        modbus_common.read_holding_register(ser, int(sys.argv[3], 16))
     else:
         raise ValueError('Unexpected args')
 
