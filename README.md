@@ -1,3 +1,5 @@
+<img src="https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png" width=25% align=right>
+
 # Synse Server 2.0 *DEV*
 
 NOTE: this is the development branch for synse-server v2.0. the architecture here
@@ -10,121 +12,62 @@ of a headache, but once that is done and synse server v2.0 is live, then we will
 longer have to maintain a public and private repo for synse server and life will be 
 much simpler.
 
+## Overview
+
+Synse Server provides an API for monitoring and control of data center and IT
+equipment, including reading sensors and server power control - via. numerous
+backend protocols such as IPMI, Redfish, SNMP, I2C, RS485, and PLC. The API is
+easy to integrate into third-party monitoring, management and orchestration
+providers. It provides a simple, curl-able interface for common and custom
+devops tasks.
+
+The [CLI](cli) makes it even easier to see what's going on with your physical
+hardware. You can use it to do any kind of scripting required for your use cases.
 
 
-## TODO:
-below is a list of things that still needs to be done. it is not exhaustive, but 
-provides a decent overview of what areas still need work. this will be updated as
-progress is made/as new items are needed.
+If you're looking for an integration, check out [synse-prometheus](prometheus).
+You'll be able to put together complete monitoring and dashboard solution from
+the instructions there.
+
+Additional documentation may be found on the [Docs][docs] site.
 
 
-__api/server__
-- [ ] finalize synse 2.0 JSON api
-    - [ ] what commands will be supported?
-    - [ ] what is the command behavior?
-- [ ] support for commands (depending on the finalized JSON api)
-    - [ ] HEALTH
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] INFO
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] LOCATION
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] READ
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] SCAN
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] TEST
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] TRANSACTION
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] VERSION
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] WRITE
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-    - [ ] GROUP
-        - [ ] determine response scheme
-        - [ ] determine response data
-        - [ ] add command handling / route
-        - [ ] support all permutations (rack/board/device)
-- [ ] add JSON error responses
-- [ ] add internal error codes for error responses (easier for error id and debug)
-- [ ] use vapor-ware/synse-server-grpc to get python client for GRPC
-    - [ ] use the python code generated via that repo
-    - [ ] install the python package on build (requires synse-server-grpc to be public)
+## Building
+The Synse Server 2.0 Docker image can be built using the make target
+```
+make build
+```
+
+## Testing
+Synse Server 2.0 contains both unit and integration tests. Both suites of tests
+can be run with the make target
+```
+make test
+```
+
+or they can be run individually.
+```
+# unit tests
+make utest
+
+# integration tests
+make itest
+```
 
 
-__configuration__
-- [ ] finalize configuration scheme design
-- [ ] design out configuration story (important - config was confusing w/ v1.X)
-- [ ] add in configuration handling/parsing
+## Linting
+Synse Server 2.0 source code can be linted using the make target
+```
+make lint
+```
 
 
-__plugins__
-- [ ] write emulator plugin (using SDK?)
-    - [ ] read
-    - [ ] write
-    - [ ] metainfo
-    - [ ] transaction check
-- [ ] port existing backends to plugins
-    - [ ] plc
-    - [ ] ipmi
-    - [ ] rs485
-    - [ ] i2c
-    - [ ] snmp
-    - [ ] redfish
+## License
+Synse is released under GPLv2 - see [LICENSE](license) for more information.
 
 
-__documentation__
-- [ ] add comments to emulator configuration
-- [ ] add README describing the emulator and how it works
-- [ ] fill out all python docstrings
-- [ ] write out documentation (readthedocs)
-- [ ] write out all READMEs
-
-
-__testing__
-- [ ] unit tests for everything
-- [ ] add in code coverage/other reporting
-- [ ] integration testing
-- [ ] test synse server w/ and w/o NGINX in front of it
-- [ ] set up circleci testing
-- [ ] run performance tests against it on a VEC
-
-
-__misc__
-- [ ] finish designing out the notion of "deterministic rack/board/device ids"
-- [ ] write docker files / compose files for
-    - [ ] production (release)
-    - [ ] development (dev)
-    - [ ] testing
-    - [ ] linting
-- [ ] try to optimize dockerfile(s) 
-- [ ] cleaning / organization
-- [ ] linting
+[cli]: https://github.com/vapor-ware/synse-cli
+[docs]: http://opendcre.com
+[license]: https://github.com/vapor-ware/synse-server/blob/master/LICENSE
+[pkg-cloud]: https://packagecloud.io/VaporIO/synse/install
+[prometheus]: https://github.com/vapor-ware/synse-prometheus
