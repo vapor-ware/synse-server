@@ -92,18 +92,17 @@ class EbmPapstFan(RS485Device):
         self.min_nonzero_rpm = None
         # if self.hardware_type == 'production':
         if self.from_background:
+            # On a follower this is initialized lazily.
             if RS485Device.is_vec_leader():
                 self._initialize_min_max_rpm()
-        else:
-            self._initialize_min_max_rpm()
 
         logger.debug('EbmPapstFan self: {}'.format(dir(self)))
 
     def _initialize_min_max_rpm(self):
         client = self.create_modbus_client()
         # Maximum rpm supported by the fan motor.
-        # TODO:
-        self.max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
+        # TODO: Verify register is correct.
+        self.max_rpm = modbus_common.get_fan_max_rpm_ebm(client.serial_device)
         # Minimum rpm setting allowed. For now this is 10% of the max. This is
         # due to minimal back EMF at low rpms.
         self.min_nonzero_rpm = self.max_rpm / 10
@@ -122,7 +121,8 @@ class EbmPapstFan(RS485Device):
         # The minimum non-zero fan speed will be 10% of this.
         # Allows auto fan to get the minimum fan speed setting without hunt and peck.
         # We could doc this route, for now it's not to limit support requirements.
-        # TODO:
+        # TODO: This is common code among the Fan Controllers.
+        # Need a FanController super class.
         if not RS485Device.is_vec_leader():
             if self.min_nonzero_rpm is None or self.max_rpm is None:
                 response = RS485Device.redirect_call_to_vec_leader(request.url)

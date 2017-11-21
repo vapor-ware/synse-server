@@ -69,14 +69,22 @@ FAN_HOLDING_REGISTERS = {
     0xD116: 'Starting Modulation Level',
     0xD117: 'Max Permissible Modulation Level',  # TODO: Check this out.
     0xD118: 'Min Permissible Modulation Level',  # TODO: Check this out.
+    # TODO:
+    # Pretty sure we want 1110 decimal, 0x456 (rpm) here.
     0xD119: 'Maximum Speed',  # TODO: Check this out.
+    # TODO:
+    # Pretty sure we want 1110 decimal, 0x456 (rpm) here.
     0xD11A: 'Maximum Permissible Speed',  # TODO: Check this out.
 
+    # TODO: Should look at this more.
     0xD11F: 'Ramp-Up Time',
 
+    # TODO: Should look at this more.
     0xD120: 'Ramp-Down Time',
 
-    0xD128: 'Speed Limit',  # TODO: Check this out.
+    # TODO:
+    # Pretty sure we want 1110 decimal, 0x456 (rpm) here.
+    0xD128: 'Speed Limit',
 
     0xD12A: 'Input char. curve point 1 X-coordinate (par. 1)',
     0xD12B: 'Input char. curve point 1 Y-coordinate (par. 1)',
@@ -103,12 +111,18 @@ FAN_HOLDING_REGISTERS = {
     0xD142: 'Char. curve output 0..10 V point 2 X',
     0xD143: 'Char. curve output 0..10 V point 2 Y',
 
+    # TODO:
+    # We want this set to 0xFA00, which is the same as max rpm by formula.
     0xD145: 'Run Monitoring Speed Limit',
 
-    0xD147: 'Sensor Acutal Value Source',
+    0xD147: 'Sensor Actual Value Source',
     0xD148: 'Switch for Rotating Direction Source',
-    0xD149: 'Communication Speed',  # TODO: Baud Rate probably
-    0xD14A: 'Parity Configuration',  # TODO: Need this
+
+    # TODO: Baud Rate. Should default to 19200.
+    0xD149: 'Communication Speed',
+
+    # TODO: Parity. Should default to even which is what we want.
+    0xD14A: 'Parity Configuration',
 
     0xD14D: 'Motor temperature power derating start',
     0xD14E: 'Motor temperature power derating end',
@@ -123,9 +137,21 @@ FAN_HOLDING_REGISTERS = {
     0xD158: 'Configuration I/O 1',
     0xD159: 'Configuration I/O 2',
     0xD15A: 'Configuration I/O 3',
+
+    # TODO: This should be 0x2, set direction maintained.
     0xD15B: 'Rotating Direction Fail-Safe Mode',
+
+    # TODO:
+    # Looks like this should be 1, Failsafe function set value specified by
+    # parameter set value for failsafe function.
     0xD15C: 'Fail-Safe Set Value Source',
+
+    # TODO:
+    # This should be 0xFFFF to run the fan full speed on failure.
     0xD15D: 'Set Value Fail-Safe Speed',
+
+    # TODO:
+    # This should be 0xA to run the fan at the failsafe speed after one minute.
     0xD15E: 'Time Lag Fail-Safe Speed',
     0xD15F: 'Cable Break Detection Voltage',
 
@@ -221,16 +247,6 @@ FAN_INPUT_REGISTERS = {
     0xD003: 'Bus Controller Software Version',
     0xD004: 'Commutation Controller Software Name',
     0xD005: 'Commutation Controller Software Version',
-    # 0xD006: '',
-    # 0xD007: '',
-    # 0xD008: '',
-    # 0xD009: '',
-    # 0xD00a: '',
-    # 0xD00b: '',
-    # 0xD00c: '',
-    # 0xD00d: '',
-    # 0xD00e: '',
-    # 0xD00f: '',
 
     0xD010: 'Actual Speed',
     0xD011: 'Motor Status',
@@ -247,26 +263,23 @@ FAN_INPUT_REGISTERS = {
     0xD01c: 'Enable / Disable Input State',
     0xD01d: 'Current Parameter Set',
     0xD01e: 'Current Controller Function',
-    # 0xD01f: '',
 
-    # 0xD020: '',
     0xD021: 'Current Power',
-    # 0xD022: '',
+
     0xD023: 'Sensor Actual Value 1',
     0xD024: 'Sensor Actual Value 2',
-    # 0xD025: '',
-    # 0xD026: '',
+
     0xD027: 'Current Power W',
     0xD028: 'Current Set Value Source',
     0xD029: 'Energy Consumption Power',
     0xD02a: 'Energy Consumption Power',
-    # 0xD02b: '',
-    # 0xD02c: '',
-    # 0xD02d: '',
-    # 0xD02e: '',
-    # 0xD02f: '',
-
 }
+
+
+def _factory_defaults(ser):
+    """Restore factory defaults for all parameters in the data area
+    (D100..D17F)."""
+    _write_fan_register(ser, 0xD005, 0x01)
 
 
 def _get(ser):
@@ -314,7 +327,7 @@ def _read_all_fan(ser):
 
 def _read_rpm(ser):
     client = dkmodbus.dkmodbus(ser)
-    result = client.read_holding_registers(1, 0x2107, 1)  # TODO: Need the correct register(s) here.
+    result = client.read_holding_registers(1, 0xD010, 1)  # TODO: Need to verigy the correct register(s).
     return conversions.unpack_word(result)
 
 
@@ -328,13 +341,6 @@ def _print_usage():
     print '\tset options:'
     print '\t\t <integer> set speed in RPM. Setting a speed under 10% of the max is not recommended.'
     print '\t\t register: set fan register in the form of 0x91c {data}'
-    # print '\ttemp: gets temperature and humidity'
-    # print '\tambient: gets ambient temperature'
-    # print '\tair: gets CEC airflow'
-    # print '\tair_status: gets CEC airflow status register.'
-    # print '\ttherm: gets all thermistors'
-    # print '\tpressure: gets all differential pressures'
-    # print '\tled [<state>[<color> <blink_state>]]: Read or write to the LED controller.'
 
 
 def _set(ser):
@@ -393,35 +399,13 @@ def _write_fan_register(ser, register, data):
 
 
 def main():
-    # if sys.argv[1] == 'reset' and sys.argv[2] == 'usb':
-    #     return _reset_usb()  # Do this without trying to open the serial port. We may not be able to open it.
-    #
-    # # i2c stuff is first to avoid the serial (don't need it).
-    # if sys.argv[1] == 'therm':
-    #     _read_thermistors()
-    #     return 0
-    # elif sys.argv[1] == 'pressure':
-    #     _read_differential_pressures()
-    #     return 0
-    # elif sys.argv[1] == 'led':
-    #     _led()
-    #     return 0
-
     ser = serial.Serial("/dev/ttyUSB3", baudrate=19200, parity='E', timeout=0.15)
     if sys.argv[1] == 'get':
         _get(ser)
     elif sys.argv[1] == 'set':
         _set(ser)
-    # elif sys.argv[1] == 'temp':
-    #     _read_temperature_and_humidity(ser)
-    # elif sys.argv[1] == 'air':
-    #     _read_airflow(ser)
-    # elif sys.argv[1] == 'air_status':
-    #     return _read_airflow_status(ser)
-    # elif sys.argv[1] == 'test1':
-    #     _test1(ser)
-    # elif sys.argv[1] == 'ambient':
-    #     _read_temperature_ambient(ser)
+    elif sys.argv[1] == 'factory':
+        _factory_defaults(ser)
     else:
         _print_usage()
         return 1

@@ -103,10 +103,12 @@ class GS32010Fan(RS485Device):
         self.min_nonzero_rpm = None
         if self.hardware_type == 'production':
             if self.from_background:
+                # On a follower this is initialized lazily.
                 if RS485Device.is_vec_leader():
                     self._initialize_min_max_rpm()
-            else:
-                self._initialize_min_max_rpm()
+
+            # else:
+            #     self._initialize_min_max_rpm()
 
         logger.debug('GS32010Fan self: {}'.format(dir(self)))
 

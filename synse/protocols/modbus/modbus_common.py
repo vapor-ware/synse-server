@@ -21,6 +21,43 @@ def get_fan_frequency_gs3(ser):
     return read_holding_register(ser, 0x0002)
 
 
+def get_ebmpapst_rpm(serial_device, device):
+    """Production only rpm reads from Ebm Papst fan (vapor_fan).
+    :param serial_device: The serial device name.
+    :param device: The device to read.
+    :returns: Integer rpm."""
+    raise NotImplementedError('Need to get the correct register readings.')
+    # client = _create_modbus_client(serial_device, device)
+    # result = client.read_input_registers(
+    #     int(device['device_unit']),  # Slave address
+    #     0xD010,                      # Register
+    #     1)                           # Register count
+    # # TODO: May be a conversion here? Unclear.
+    # return conversions.unpack_word(result)
+
+
+def get_ebmpapst_direction(serial_device, device):
+    """Production only direction reads from Ebm Papst fan (vapor_fan).
+    :param serial_device: The serial device name.
+    :param device: The device to read.
+    :returns: String forward or reverse."""
+    raise NotImplementedError('Need to get the correct register readings.')
+    # client = _create_modbus_client(serial_device, device)
+    # result = client.read_input_registers(
+    #     int(device['device_unit']),  # Slave address
+    #     0xD010,                      # Register
+    #     1)                           # Register count
+    # direction = conversions.unpack_word(result)
+    # if direction == 0:
+    #     # TODO: This is counter-clockwise.
+    #     return 'forward'
+    # elif direction == 1:
+    #     # TODO: This is clockwise.
+    #     return 'reverse'
+    # else:
+    #     raise ValueError('Unknown direction {}'.format(direction))
+
+
 def get_fan_rpm_to_hz_gs3(ser, max_rpm):
     """Get the conversion from rpm to hertz. The operator sets the fan speed in
     rpm. The fan controller sets the fan speed in hertz.
@@ -30,6 +67,14 @@ def get_fan_rpm_to_hz_gs3(ser, max_rpm):
     """
     base_frequency = get_fan_frequency_gs3(ser)
     return float(base_frequency) / float(max_rpm)
+
+
+def get_fan_max_rpm_ebm(ser):
+    """Get the maximum rpm of the fan motor through the ebm fan controller.
+    :param ser: Serial connection to the ebm fan controller.
+    :returns: The base maximum rpm of the fan motor.
+    """
+    return read_holding_register(ser, 0xD119)
 
 
 def get_fan_max_rpm_gs3(ser):

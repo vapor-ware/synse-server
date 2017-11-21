@@ -94,32 +94,41 @@ def _create_modbus_client(serial_device, device):
     return dkmodbus.dkmodbus(ser)
 
 
-def _get_ebmpapst_rpm(serial_device, device):
-    """Production only rpm reads from Ebm Papst fan (vapor_fan).
-    :param serial_device: The serial device name.
-    :param device: The device to read.
-    :returns: Integer rpm."""
-    client = _create_modbus_client(serial_device, device)
-    raise NotImplementedError('Need to get the correct register readings.')
-    result = client.read_holding_registers(int(device['device_unit']), 0x2107, 1)
-    return conversions.unpack_word(result)
-
-
-def _get_ebmpapst_direction(serial_device, device):
-    """Production only direction reads from Ebm Papst fan (vapor_fan).
-    :param serial_device: The serial device name.
-    :param device: The device to read.
-    :returns: String forward or reverse."""
-    client = _create_modbus_client(serial_device, device)
-    raise NotImplementedError('Need to get the correct register readings.')
-    result = client.read_holding_registers(int(device['device_unit']), 0x91C, 1)
-    direction = conversions.unpack_word(result)
-    if direction == 0:
-        return 'forward'
-    elif direction == 1:
-        return 'reverse'
-    else:
-        raise ValueError('Unknown direction {}'.format(direction))
+# def _get_ebmpapst_rpm(serial_device, device):
+#     """Production only rpm reads from Ebm Papst fan (vapor_fan).
+#     :param serial_device: The serial device name.
+#     :param device: The device to read.
+#     :returns: Integer rpm."""
+#     raise NotImplementedError('Need to get the correct register readings.')
+#     # client = _create_modbus_client(serial_device, device)
+#     # result = client.read_input_registers(
+#     #     int(device['device_unit']),  # Slave address
+#     #     0xD010,                      # Register
+#     #     1)                           # Register count
+#     # # TODO: May be a conversion here? Unclear.
+#     # return conversions.unpack_word(result)
+#
+#
+# def _get_ebmpapst_direction(serial_device, device):
+#     """Production only direction reads from Ebm Papst fan (vapor_fan).
+#     :param serial_device: The serial device name.
+#     :param device: The device to read.
+#     :returns: String forward or reverse."""
+#     raise NotImplementedError('Need to get the correct register readings.')
+#     # client = _create_modbus_client(serial_device, device)
+#     # result = client.read_input_registers(
+#     #     int(device['device_unit']),  # Slave address
+#     #     0x91C,                       # Register
+#     #     1)                           # Register count
+#     # direction = conversions.unpack_word(result)
+#     # if direction == 0:
+#     #     # TODO: This is counter-clockwise.
+#     #     return 'forward'
+#     # elif direction == 1:
+#     #     # TODO: This is clockwise.
+#     #     return 'reverse'
+#     # else:
+#     #     raise ValueError('Unknown direction {}'.format(direction))
 
 
 def _get_gs32010_rpm(serial_device, device):
@@ -282,7 +291,9 @@ def _read_device_by_model(rack_id, serial_device, device):
     :param device: The device to read."""
     try:
         device_model = device.get('device_model')
-        if device_model == 'gs3-2010':
+        if device_model == 'ebm-papst':
+            _read_ebmpapst_fan_speed(rack_id, serial_device, device)
+        elif device_model == 'gs3-2010':
             _read_gs32010_fan_speed(rack_id, serial_device, device)
         elif device_model == 'sht31':
             _read_sht31_humidity(rack_id, serial_device, device)
@@ -314,8 +325,8 @@ def _read_ebmpapst_fan_speed(rack_id, serial_device, device):
     :param serial_device: The serial device name.
     :param device: The device to read.
     """
-    rpm = _get_ebmpapst_rpm(serial_device, device)
-    direction = _get_ebmpapst_direction(serial_device, device)
+    rpm = modbus_common.get_ebmpapst_rpm(serial_device, device)
+    direction = modbus_common.get_ebmpapst_direction(serial_device, device)
 
     path = RS485_FILE_PATH.format(
         rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
@@ -356,6 +367,7 @@ def _set_fan_rpm(serial_device, device, rpm_setting):
     :param device: The vapor_fan device. Example: class GS32010Fan
     :param rpm_setting: The fan speed setting in RPM.
     :returns: The modbus write result."""
+    # TODO: Mutliple fan controllers now.
     client = _create_modbus_client(serial_device, device)
     if rpm_setting == 0:  # Turn the fan off.
         result = client.write_multiple_registers(
