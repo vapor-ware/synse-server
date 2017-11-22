@@ -260,6 +260,7 @@ class EbmPapstFan(RS485Device):
         """
         with self._lock:
             if action == 'set_speed' and speed_rpm is not None:
+                # Write speed.
                 logger.debug('Fan speed write: {}'.format(speed_rpm))
                 if self.from_background:
                     self._write_indirect(speed_rpm)
@@ -368,28 +369,31 @@ class EbmPapstFan(RS485Device):
         """Set fan speed to the given RPM.
         :param rpm_setting: The user supplied rpm setting.
         returns: The modbus write result."""
-        # TODO:
+        raise NotImplementedError('Need to get the correct register readings.')
+        # TODO: Implement
 
         client = self.create_modbus_client()
 
-        if rpm_setting == 0:  # Turn the fan off.
-            result = client.write_multiple_registers(
-                1,  # Slave address. TODO: Slave address should come from the config.
-                0x91B,  # Register to write to.
-                1,  # Number of registers to write to.
-                2,  # Number of bytes to write.
-                '\x00\x00')  # Data to write.
+        print 'Setting fan speed.'
 
-        else:  # Turn the fan on at the desired RPM.
-            rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(client.serial_device, self.max_rpm)
-            hz = rpm_setting * rpm_to_hz
-            packed_hz = conversions.fan_gs3_packed_hz(hz)
+        # TODO: Need Serial: max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
+        print 'max_rpm: {}'.format(max_rpm)
+        print 'rpm_setting: {}'.format(rpm_setting)
 
-            result = client.write_multiple_registers(
-                1,  # Slave address.
-                0x91A,  # Register to write to.
-                2,  # Number of registers to write to.
-                4,  # Number of bytes to write.
-                packed_hz + '\x00\x01')  # Frequency setting in Hz / data # 01 is on, # 00 is off.
+        percentage_setting = float(rpm_setting) / float(max_rpm)
+        print 'percentage_setting: {}'.format(percentage_setting)
+        fan_setting = int(percentage_setting * float(0xFFFF))
+        print 'fan_setting: {}'.format(fan_setting)
+
+        fan_setting = struct.pack('>H', fan_setting)
+
+        result = client.write_multiple_registers(
+            1,  # Slave address.
+            0xD001,  # Register to write to.
+            1,  # Number of registers to write to.
+            2,  # Number of bytes to write.
+            fan_setting)  # Data to write.
+
+        # TODO: We may need a reset here which is _really_ odd.
 
         return result

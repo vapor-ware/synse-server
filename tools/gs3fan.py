@@ -471,9 +471,11 @@ def _test1(ser):
                       600, 500, 400, 300, 200, 100, 0]
     registers = [0x2100, 0x2101, 0x2102, 0x2103, 0x2104, 0x2105, 0x2106, 0x2107,
                  0x2108, 0x2109, 0x210a, 0x210b, 0x210c, 0x210d]
+    max_rpm = modbus_common.get_fan_max_rpm_gs3(ser)
+
     for speed_setting in speed_settings:
         print 'Setting fan speed to {} rpm'.format(speed_setting)
-        write(ser, speed_setting)
+        write(ser, max_rpm, speed_setting)
         time.sleep(10)  # May take a bit to slow down (it coasts AFAIK).
         print 'Fan speed in rpm: {}'.format(_read_rpm(ser))
 

@@ -367,28 +367,29 @@ def write(ser, max_rpm, rpm_setting):
     :param rpm_setting: The user supplied rpm setting.
     returns: The modbus write result."""
 
+    print 'Setting fan speed.'
     client = dkmodbus.dkmodbus(ser)
+    print 'max_rpm: {}'.format(max_rpm)
+    print 'rpm_setting: {}'.format(rpm_setting)
 
-    if rpm_setting == 0:    # Turn the fan off.
-        result = client.write_multiple_registers(
-            1,      # Slave address.
-            0x91B,  # Register to write to.
-            1,      # Number of registers to write to.
-            2,      # Number of bytes to write.
-            '\x00\x00')      # Data to write.
+    percentage_setting = float(rpm_setting) / float(max_rpm)
+    print 'percentage_setting: {}'.format(percentage_setting)
+    fan_setting = int(percentage_setting * float(0xFFFF))
+    print 'fan_setting: {}'.format(fan_setting)
 
-    else:           # Turn the fan on at the desired RPM.
-        rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(ser, max_rpm)
-        hz = rpm_setting * rpm_to_hz
-        logger.debug('Set rpm to {}, Hz to {}'.format(rpm_setting, hz))
-        packed_hz = conversions.fan_gs3_packed_hz(hz)
+    fan_setting = struct.pack('>H', fan_setting)
 
-        result = client.write_multiple_registers(
-            1,      # Slave address.
-            0x91A,  # Register to write to.
-            2,      # Number of registers to write to.
-            4,      # Number of bytes to write.
-            packed_hz + '\x00\x01')  # Frequency setting in Hz / data # 01 is on, # 00 is off.
+    raise NotImplementedError('Need to get the correct register readings.')
+    # TODO: Implement
+    
+    result = client.write_multiple_registers(
+        1,  # Slave address.
+        0xD001,  # Register to write to.
+        1,  # Number of registers to write to.
+        2,  # Number of bytes to write.
+        fan_setting)  # Data to write.
+
+    # TODO: We may need a reset here which is _really_ odd.
 
     return result
 

@@ -74,6 +74,7 @@ def get_fan_max_rpm_ebm(ser):
     :param ser: Serial connection to the ebm fan controller.
     :returns: The base maximum rpm of the fan motor.
     """
+    # TODO: Verify register is correct.
     return read_holding_register(ser, 0xD119)
 
 
@@ -85,6 +86,8 @@ def get_fan_max_rpm_gs3(ser):
     return read_holding_register(ser, 0x0004)
 
 
+# TODO: Hardcoded slave address here which is not good.
+# TODO: Also true for parity and timeout.
 def read_holding_register(ser, register):
     """Read a holding register from the fan controller.
     :param ser: Serial connection to the fan controller.
@@ -98,6 +101,8 @@ def read_holding_register(ser, register):
     return result
 
 
+# TODO: Hardcoded slave address here which is not good.
+# TODO: Also true for parity and timeout.
 def read_input_register(ser, register):
     """Read an input register from the fan controller.
     :param ser: Serial connection to the fan controller.
