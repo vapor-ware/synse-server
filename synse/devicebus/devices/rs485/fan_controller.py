@@ -92,9 +92,11 @@ class FanController(RS485Device):
         # otherwise lazy initialization.
         if self.hardware_type == 'production':
             if self.from_background:
+                # On a follower this is initialized lazily.
                 if FanController.is_vec_leader():
                     self._initialize_min_max_rpm()
             else:
+                # Always initialize.
                 self._initialize_min_max_rpm()
 
     # Interface that must be implemented in sub classes.
@@ -153,7 +155,6 @@ class FanController(RS485Device):
 
         # Handle the max route here.
         if command.data[_s_.FAN_SPEED] == 'max':
-            # return self._max_route(command)
             return self._max_route(command)
 
         fan_speed = int(command.data[_s_.FAN_SPEED])

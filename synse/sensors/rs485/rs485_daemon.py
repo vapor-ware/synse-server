@@ -252,7 +252,9 @@ def _read_device_by_model(rack_id, serial_device, device):
     :param device: The device to read."""
     try:
         device_model = device.get('device_model')
-        if device_model == 'gs3-2010':
+        if device_model == 'ebm-papst':
+            _read_ebmpapst_fan_speed(rack_id, serial_device, device)
+        elif device_model == 'gs3-2010':
             _read_gs32010_fan_speed(rack_id, serial_device, device)
         elif device_model == 'sht31':
             _read_sht31_humidity(rack_id, serial_device, device)
@@ -263,6 +265,20 @@ def _read_device_by_model(rack_id, serial_device, device):
 
     except:
         logger.exception('rs485_daemon read exception')
+
+
+def _read_ebmpapst_fan_speed(rack_id, serial_device, device):
+    """Read the fan speed from the bus. Write it to the sensor file.
+    :param rack_id: The rack_id from the Synse configuration.
+    :param serial_device: The serial device name.
+    :param device: The device to read.
+    """
+    rpm = modbus_common.get_ebmpapst_rpm(serial_device, device)
+    direction = modbus_common.get_ebmpapst_direction(serial_device, device)
+
+    path = RS485_FILE_PATH.format(
+        rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
+    common.write_readings(path, [rpm, direction])
 
 
 def _read_f660_airflow(rack_id, serial_device, device):
@@ -313,10 +329,23 @@ def _set_fan_rpm(serial_device, device, rpm_setting):
     :param rpm_setting: The fan speed setting in RPM.
     :returns: The modbus write result."""
     client = _create_modbus_client(serial_device, device)
-    max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device, int(device['device_unit']))
-    return modbus_common.set_fan_rpm_gs3(
-        client.serial_device, int(device['device_unit']),
-        rpm_setting, max_rpm)
+    fan_model = device['device_model']
+
+    if fan_model == 'ebm-papst':
+        max_rpm = modbus_common.get_fan_max_rpm_ebmpapst(
+            client.serial_device, int(device['device_unit']))
+        return modbus_common.set_fan_rpm_ebmpapst(
+            client.serial_device, int(device['device_unit']),
+            rpm_setting, max_rpm)
+
+    elif fan_model == 'gs3-2010':
+        max_rpm = modbus_common.get_fan_max_rpm_gs3(
+            client.serial_device, int(device['device_unit']))
+        return modbus_common.set_fan_rpm_gs3(
+            client.serial_device, int(device['device_unit']),
+            rpm_setting, max_rpm)
+
+    raise ValueError('Unknown fan model: {}.'.format(fan_model))
 
 
 def _sensor_loop(rs485_config, fan_info):
