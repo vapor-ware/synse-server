@@ -134,8 +134,9 @@ class RS485Device(SerialDevice):
                     # we still need to initialize a subclassed device interface, we
                     # match the configured 'device_model' with the '_instance_name' of
                     # all subclasses to determine the correct subclass at runtime.
+                    subclasses = cls.get_all_subclasses()
                     device_model = {
-                        klass._instance_name: klass for klass in cls.__subclasses__()
+                        klass._instance_name: klass for klass in subclasses
                     }.get(rs485_device['device_model'].lower())
 
                     if device_model:
@@ -151,7 +152,7 @@ class RS485Device(SerialDevice):
                         device_cache[device_instance.device_uuid] = device_instance
                         single_board_devices[device_instance.board_id] = device_instance
                     else:
-                        logger.warning(
+                        logger.error(
                             'Unsupported device model ({}) found. Skipping registration.'.format(
                                 rs485_device['device_model'])
                         )

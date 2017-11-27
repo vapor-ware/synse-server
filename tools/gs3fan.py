@@ -30,6 +30,9 @@ logging.basicConfig()
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)  # Set to DEBUG for detailed packet traces.
 
+# Default Modbus slave address for the fan controller.
+FAN_SLAVE_ADDRESS = 1
+
 # Fan controller registers. Key is the register address. Value is the description.
 FAN_CONTROLLER_REGISTERS = {
 
@@ -277,7 +280,7 @@ def _get(ser):
     elif sys.argv[2] == 'all':
         _read_all_fan(ser)
     elif sys.argv[2] == 'register':
-        modbus_common.read_fan_register(ser, int(sys.argv[3], 16))
+        modbus_common.read_holding_register(ser, FAN_SLAVE_ADDRESS, int(sys.argv[3], 16))
     else:
         raise ValueError('Unexpected args')
 
@@ -373,9 +376,7 @@ def _read_differential_pressures():
 
 
 def _read_rpm(ser):
-    client = dkmodbus.dkmodbus(ser)
-    result = client.read_holding_registers(1, 0x2107, 1)
-    return conversions.unpack_word(result)
+    return modbus_common.get_fan_rpm_gs3(ser, FAN_SLAVE_ADDRESS)
 
 
 def _read_temperature_ambient(ser):
@@ -446,7 +447,7 @@ def _set(ser):
         _write_fan_register(ser, int(sys.argv[3], 16), struct.pack('>H', int(sys.argv[4], 16)))
     else:
         speed_rpm = int(sys.argv[2])
-        max_rpm = modbus_common.get_fan_max_rpm_gs3(ser)
+        max_rpm = modbus_common.get_fan_max_rpm_gs3(ser, FAN_SLAVE_ADDRESS)
         if speed_rpm < 0 or speed_rpm > max_rpm:
             raise ValueError("Speed setting {} must be between 0 (off) and {}.".format(
                 speed_rpm, max_rpm))
@@ -497,31 +498,8 @@ def write(ser, max_rpm, rpm_setting):
     :param max_rpm: The maximum rpm of the fan motor.
     :param rpm_setting: The user supplied rpm setting.
     returns: The modbus write result."""
-
-    client = dkmodbus.dkmodbus(ser)
-
-    if rpm_setting == 0:    # Turn the fan off.
-        result = client.write_multiple_registers(
-            1,      # Slave address.
-            0x91B,  # Register to write to.
-            1,      # Number of registers to write to.
-            2,      # Number of bytes to write.
-            '\x00\x00')      # Data to write.
-
-    else:           # Turn the fan on at the desired RPM.
-        rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(ser, max_rpm)
-        hz = rpm_setting * rpm_to_hz
-        logger.debug('Set rpm to {}, Hz to {}'.format(rpm_setting, hz))
-        packed_hz = conversions.fan_gs3_packed_hz(hz)
-
-        result = client.write_multiple_registers(
-            1,      # Slave address.
-            0x91A,  # Register to write to.
-            2,      # Number of registers to write to.
-            4,      # Number of bytes to write.
-            packed_hz + '\x00\x01')  # Frequency setting in Hz / data # 01 is on, # 00 is off.
-
-    return result
+    return modbus_common.set_fan_rpm_gs3(
+        ser, FAN_SLAVE_ADDRESS, rpm_setting, max_rpm)
 
 
 def _write_fan_register(ser, register, data):

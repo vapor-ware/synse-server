@@ -11,6 +11,8 @@
      RS485 sensor.
 """
 
+# pylint: disable=bare-except
+
 import json
 import logging
 import os
@@ -27,8 +29,10 @@ from synse.vapor_common.vapor_logging import setup_logging
 
 # Base path to write the sensor data to.
 BASE_FILE_PATH = '/synse/sensors/'
-RS485_DIR_PATH = BASE_FILE_PATH + 'rs485/{}/{}/{}/{}'  # rack_id, device_model, device_unit, base_address
-RS485_FILE_PATH = RS485_DIR_PATH + '/{}'  # rack_id, device_model, device_unit, base_address, {read | write}
+# rack_id, device_model, device_unit, base_address
+RS485_DIR_PATH = BASE_FILE_PATH + 'rs485/{}/{}/{}/{}'
+# rack_id, device_model, device_unit, base_address, {read | write}
+RS485_FILE_PATH = RS485_DIR_PATH + '/{}'
 
 READ = 'read'
 WRITE = 'write'
@@ -47,7 +51,8 @@ class FanInfo(object):
             for device in devices:
                 if device['device_type'] == 'vapor_fan':
                     path = RS485_FILE_PATH.format(
-                       rack['rack_id'], device['device_model'], device['device_unit'], device['base_address'], WRITE)
+                        rack['rack_id'], device['device_model'],
+                        device['device_unit'], device['base_address'], WRITE)
 
                     self.serial_device = rack['device_name']    # For serial connection to the fan.
                     self.device = device                        # Device config for the fan.
@@ -69,7 +74,8 @@ def _create_device_directories(rs485_config):
         for device in devices:
             logger.debug('device: {}'.format(device))
             path = RS485_DIR_PATH.format(
-                rack['rack_id'], device['device_model'], device['device_unit'], device['base_address'])
+                rack['rack_id'], device['device_model'],
+                device['device_unit'], device['base_address'])
             logger.debug('Creating directory: {}'.format(path))
             common.mkdir(path)
 
@@ -100,8 +106,7 @@ def _get_gs32010_rpm(serial_device, device):
     :param device: The device to read.
     :returns: Integer rpm."""
     client = _create_modbus_client(serial_device, device)
-    result = client.read_holding_registers(int(device['device_unit']), 0x2107, 1)
-    return conversions.unpack_word(result)
+    return modbus_common.get_fan_rpm_gs3(client.serial_device, int(device['device_unit']))
 
 
 def _get_gs32010_direction(serial_device, device):
@@ -110,14 +115,8 @@ def _get_gs32010_direction(serial_device, device):
     :param device: The device to read.
     :returns: String forward or reverse."""
     client = _create_modbus_client(serial_device, device)
-    result = client.read_holding_registers(int(device['device_unit']), 0x91C, 1)
-    direction = conversions.unpack_word(result)
-    if direction == 0:
-        return 'forward'
-    elif direction == 1:
-        return 'reverse'
-    else:
-        raise ValueError('Unknown direction {}'.format(direction))
+    return modbus_common.get_fan_direction_gs3(
+        client.serial_device, int(device['device_unit']))
 
 
 def _get_rs485_config():
@@ -160,7 +159,6 @@ def _handle_fan_speed_write(fan_info):
             os.remove(fan_info.path)
     except:
         logger.exception('Error writing fan speed.')
-    pass
 
 
 def _is_vec_leader_crate_stack():
@@ -315,28 +313,10 @@ def _set_fan_rpm(serial_device, device, rpm_setting):
     :param rpm_setting: The fan speed setting in RPM.
     :returns: The modbus write result."""
     client = _create_modbus_client(serial_device, device)
-    if rpm_setting == 0:  # Turn the fan off.
-        result = client.write_multiple_registers(
-            int(device['device_unit']),  # Slave address.
-            0x91B,  # Register to write to.
-            1,  # Number of registers to write to.
-            2,  # Number of bytes to write.
-            '\x00\x00')  # Data to write.
-
-    else:  # Turn the fan on at the desired RPM.
-        max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device)
-        rpm_to_hz = modbus_common.get_fan_rpm_to_hz_gs3(client.serial_device, max_rpm)
-        hz = rpm_setting * rpm_to_hz
-        packed_hz = conversions.fan_gs3_packed_hz(hz)
-
-        result = client.write_multiple_registers(
-            int(device['device_unit']),  # Slave address.
-            0x91A,  # Register to write to.
-            2,  # Number of registers to write to.
-            4,  # Number of bytes to write.
-            packed_hz + '\x00\x01')  # Frequency setting in Hz / data # 01 is on, # 00 is off.
-
-    return result
+    max_rpm = modbus_common.get_fan_max_rpm_gs3(client.serial_device, int(device['device_unit']))
+    return modbus_common.set_fan_rpm_gs3(
+        client.serial_device, int(device['device_unit']),
+        rpm_setting, max_rpm)
 
 
 def _sensor_loop(rs485_config, fan_info):
@@ -363,7 +343,9 @@ def _sensor_loop(rs485_config, fan_info):
                 _read_device_by_model(rack['rack_id'], serial_device, device)
         # END: Metrics around the reads here.
 
-        time.sleep(1)  # TODO: tuning. Allows time for other tools (gs3fan) to get in direct reads/writes.
+        # TODO: tuning. Allows time for other tools (gs3fan) to get in direct
+        # reads/writes.
+        time.sleep(1)
 
 
 def _wait_until_leader():
@@ -378,6 +360,7 @@ def _wait_until_leader():
 
 
 def main():
+    """Main entry point."""
     try:
         setup_logging(default_path='/synse/configs/logging/synse.json')
         logger.info('Starting rs485_daemon')
@@ -394,7 +377,8 @@ def main():
         # TODO: from_background should be at the same level as racks. (once per config file)
         # Daemons and straight bus reads from a web client will collide.
         # Also - these daemons only work on production hardware.
-        # Turning on background reads for i2c without rs485 and vice versa will not cause bus collisions.
+        # Turning on background reads for i2c without rs485 and vice versa will
+        # not cause bus collisions.
         # They are separate buses.
         from_background = False
         for rack in rs485_config['racks']:
@@ -418,6 +402,7 @@ def main():
 
     except:
         logger.exception('Fatal exception in rs485_daemon.')
+
 
 if __name__ == '__main__':
     main()
