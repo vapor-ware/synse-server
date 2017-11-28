@@ -26,14 +26,14 @@ You should have received a copy of the GNU General Public License
 along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import json
 import logging
-import os
-import string
-from urlparse import urlparse
 
+import json
 import lockfile
+import os
 import serial
+import string
+import requests
 
 from synse import constants as const
 from synse.devicebus.constants import CommandId as cid
@@ -43,6 +43,7 @@ from synse.errors import SynseException
 from synse.protocols.modbus import dkmodbus
 from synse.vapor_common import http
 from synse.version import __api_version__, __version__
+from urlparse import urlparse
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,9 @@ class RS485Device(SerialDevice):
         self.method = kwargs.get('method', 'rtu')
 
         self._lock = lockfile.LockFile(self.serial_lock)
+
+        # the device is read from a background process
+        self.from_background = kwargs.get('from_background', False)
 
         # Common RS-485 commands.
         self._command_map = {
@@ -122,12 +126,17 @@ class RS485Device(SerialDevice):
                     rs485_device['device_name'] = rack['device_name']
                     rs485_device['lockfile'] = rack['lockfile']
 
+                    # check whether the device is controlled by a background process
+                    # or if directly by the synse app.
+                    rs485_device['from_background'] = rack.get('from_background', False)
+
                     # since we are unable to import subclasses (circular import), but
                     # we still need to initialize a subclassed device interface, we
                     # match the configured 'device_model' with the '_instance_name' of
                     # all subclasses to determine the correct subclass at runtime.
+                    subclasses = cls.get_all_subclasses()
                     device_model = {
-                        klass._instance_name: klass for klass in cls.__subclasses__()
+                        klass._instance_name: klass for klass in subclasses
                     }.get(rs485_device['device_model'].lower())
 
                     if device_model:
@@ -143,7 +152,7 @@ class RS485Device(SerialDevice):
                         device_cache[device_instance.device_uuid] = device_instance
                         single_board_devices[device_instance.board_id] = device_instance
                     else:
-                        logger.warning(
+                        logger.error(
                             'Unsupported device model ({}) found. Skipping registration.'.format(
                                 rs485_device['device_model'])
                         )
@@ -215,14 +224,10 @@ class RS485Device(SerialDevice):
         )
 
     def create_modbus_client(self):
-        """ Production hardware only wrapper for creating the serial device that
+        """Production hardware only wrapper for creating the serial device that
          we use to speak modbus to the CEC (Central Exhaust Chamber) board.
-
          This will not work for the emulator.
-
-         Returns:
-             The dkmodbus client.
-        """
+         :returns: The dkmodbus client."""
         # Test that the usb device is there. If not, reset the usb.
         if not os.path.exists(self.device_name):
             dkmodbus.dkmodbus.reset_usb([1, 2])
@@ -232,15 +237,10 @@ class RS485Device(SerialDevice):
         return dkmodbus.dkmodbus(ser)
 
     def _set_hardware_type(self, hardware_type):
-        """ Known hardware types are emulator and production. Check that the
+        """Known hardware types are emulator and production. Check that the
         parameter is known and set self.hardware_type.
-
-        Args:
-            hardware_type: The hardware_type the caller would like to set.
-
-        Raises:
-            SynseException: The given hardware_type is not known.
-        """
+        :param hardware_type: The hardware_type the caller would like to set.
+        :raises SynseException: The given hardware_type is not known."""
         known = ['emulator', 'production']
         if hardware_type not in known:
             raise SynseException(
@@ -248,46 +248,96 @@ class RS485Device(SerialDevice):
         self.hardware_type = hardware_type
 
     @staticmethod
-    def is_vec_leader():
-        """ Return true if this VEC is the leader, else false.
-
-        Returns:
-            True if this VEC is the leader, else False.
-        """
+    def _is_vec_leader_crate_stack():
+        """Return true if this VEC is the leader, else False.
+        :returns: True if this VEC is the leader, else False."""
         with open('/crate/mount/.state-file') as f:
             data = json.load(f)
             if data['VAPOR_VEC_LEADER'] == data['VAPOR_VEC_IP']:
-                logger.debug('is_vec_leader: True')
+                logger.debug('is_vec_leader_crate_stack: True')
                 return True
-        logger.debug('is_vec_leader: False')
+            logger.debug('is_vec_leader_crate_stack: False')
         return False
 
     @staticmethod
-    def _get_vec_leader():
-        """ Return the VEC leader IP address.
+    def _is_vec_leader_k8_stack():
+        """Return true if this VEC is the leader, else False.
+        :returns: True if this VEC is the leader, else False."""
+        leader = RS485Device._get_vec_leader_k8_stack()
+        if leader is not None:
+            self = os.environ['POD_IP']
+            logger.debug('leader is: {}'.format(leader))
+            logger.debug('self is: {}'.format(self))
+            return self == leader
 
-        Returns:
-            The VEC leader IP address.
-        """
+        return False
+
+    @staticmethod
+    def is_vec_leader():
+        """Return true if this VEC is the leader, else False.
+        :returns: True if this VEC is the leader, else False."""
+        # Try the new stack first, then fall back to the old stack.
+        is_leader = RS485Device._is_vec_leader_k8_stack()
+        if is_leader:
+            return is_leader
+        is_leader = RS485Device._is_vec_leader_crate_stack()
+        return is_leader
+
+    @staticmethod
+    def _get_vec_leader_crate_stack():
+        """Get the VEC leader when using the k8 stack. (old stack)
+        :returns: The VEC leader IP address."""
         with open('/crate/mount/.state-file') as f:
             data = json.load(f)
-            return data['VAPOR_VEC_LEADER']
+            leader = data['VAPOR_VEC_LEADER']
+            logger.debug('leader: {}'.format(leader))
+            return leader
+
+    @staticmethod
+    def _get_vec_leader_k8_stack():
+        """Get the VEC leader when using the k8 stack. (new stack)
+        :returns: The VEC leader IP address."""
+        try:
+            r = requests.get('http://elector-headless:2288/status')
+            logger.debug('request for vec leader: {}'.format(r))
+            leader = None
+            if r.ok:
+                data = r.json()
+                logger.debug('data: {}'.format(data))
+                for k, v in data['members'].iteritems():
+                    if v == 'leader':
+                        leader = k
+                        break
+            else:
+                logger.error('Could not determine the leader for k8 stack: {}'.format(r))
+                return None
+        except requests.exceptions.ConnectionError:
+            logger.info('Unable to get vec leader from the k8 stack. Will try with the crate stack.')
+            return None
+
+        logger.debug('leader: {}'.format(leader))
+        return leader
+
+    @staticmethod
+    def _get_vec_leader():
+        """Return the VEC leader IP address.
+        :returns: The VEC leader IP address."""
+        # Try the new stack first, then fall back to the old stack.
+        leader = RS485Device._get_vec_leader_k8_stack()
+        if leader is not None:
+            return leader
+        return RS485Device._get_vec_leader_crate_stack()
 
     @staticmethod
     def redirect_call_to_vec_leader(local_url):
-        """ All VECs in the chamber have a connection to the same VEC USB board.
+        """All VECs in the chamber have a connection to the same VEC USB board.
         We need to provide a sense of bus ownership (one VEC that owns the bus)
         in order to avoid bus collisions. We designate the VEC leader as the
         owner. Therefore when web requests come in on VEC that is not the
         leader, we redirect them to the leader.
-
-        Args:
-            local_url: The web request url on the local VEC.
-
-        Returns:
-            The json response of the same url redirected to the VEC
-            leader.
-        """
+        :param local_url: The web request url on the local VEC.
+        :returns: The json response of the same url redirected to the VEC
+        leader."""
         vec_leader_ip = RS485Device._get_vec_leader()
         parse = urlparse(local_url)
         hostname = parse.hostname
