@@ -200,13 +200,13 @@ sudo python ebmfan.py set register D15C 1
 #    # TODO:
 #    # This should be 0xFA00 (64000d) to run the fan full speed on failure.
 #    0xD15D: 'Set Value Fail-Safe Speed',
-sudo python ebmfan.py set register D15C FA00
+sudo python ebmfan.py set register D15D FA00
 
 #
 #    # TODO:
 #    # This should be 0x258 to run the fan at the failsafe speed after one minute.
 #    0xD15E: 'Time Lag Fail-Safe Speed',
-sudo python ebmfan.py set register D15C 258
+sudo python ebmfan.py set register D15E 258
 
 #    # Looks like we don't need this. Not setting by analog input.
 #    0xD15F: 'Cable Break Detection Voltage',
@@ -225,11 +225,11 @@ sudo python ebmfan.py set register D15C 258
 #    # Check default. 0 is inactive, 1 is parameter.
 #    # TODO: Should likely be 1, "Parameter Enable / Disable.
 #    0xD16A: 'Switch for Enable / Disable Source',
-sudo python ebmfan.py set register D15A 1
+sudo python ebmfan.py set register D16A 1
 
 #    # TODO: Should likely be 1, Enable.
 #    0xD16B: 'Stored Enable / Disable',
-sudo python ebmfan.py set register D15B 1
+sudo python ebmfan.py set register D16B 1
 
 #    # Needs to be 0, Parameter Set Value Source.
 #    0xD16C: 'Switch for Set Value Source',
