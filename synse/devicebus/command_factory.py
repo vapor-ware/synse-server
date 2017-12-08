@@ -181,6 +181,17 @@ class CommandFactory(object):
         """
         return Command(CommandId.LED, data, self._get_next_sequence())
 
+    def get_lock_command(self, data):
+        """ Generate a Lock Command.
+
+        Args:
+            data (dict): any key-value data that makes up the command context.
+
+        Returns:
+            Command: the generated command for Lock.
+        """
+        return Command(CommandId.LOCK, data, self._get_next_sequence())
+
     def get_fan_command(self, data):
         """ Generate a Fan Command.
 
