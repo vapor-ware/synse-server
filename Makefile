@@ -76,3 +76,7 @@ itest:
 	    --abort-on-container-exit \
 	    --exit-code-from synse-test
 
+
+.PHONY: cover
+cover: utest
+	open ./results/cov-html/index.html

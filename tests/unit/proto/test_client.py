@@ -123,7 +123,7 @@ def test_write_data_to_grpc(clear_state):
 def test_get_client_exists(clear_state):
     """Get a client when the client exists."""
 
-    c = client.SynseInternalClient('test-cli')
+    c = client.SynseInternalClient('test-cli', 'localhost:5000', 'tcp')
     assert len(client.SynseInternalClient._client_stubs) == 1
 
     test_cli = client.get_client('test-cli')
@@ -138,24 +138,32 @@ def test_get_client_does_not_exist(clear_state):
 
     client.get_client('test-cli')
 
-    assert len(client.SynseInternalClient._client_stubs) == 1
+    assert len(client.SynseInternalClient._client_stubs) == 0
 
 
 def test_client_init(clear_state):
     """Verify the client initializes as expected."""
 
-    c = client.SynseInternalClient('test-cli')
+    c = client.SynseInternalClient('test-cli', 'test-cli.sock', 'unix')
 
     assert c.name == 'test-cli'
-    assert c.socket == '{}/test-cli.sock'.format(const.BG_SOCKS)
+    assert c.addr == 'test-cli.sock'
+    assert c.mode == 'unix'
     assert isinstance(c.channel, grpc.Channel)
     assert isinstance(c.stub, synse_grpc.InternalApiStub)
+
+
+def test_client_init_bad_mode(clear_state):
+    """Verify the client fails to initialize when a bad mode is provided."""
+
+    with pytest.raises(ValueError):
+        client.SynseInternalClient('test-cli', 'test-cli.sock', 'foo')
 
 
 def test_client_read(clear_state):
     """Test reading via the client."""
 
-    c = client.SynseInternalClient('test')
+    c = client.SynseInternalClient('test', 'test.sock', 'unix')
     c.stub.Read = mock_read
 
     resp = c.read('rack-1', 'vec', '12345')
@@ -168,7 +176,7 @@ def test_client_read(clear_state):
 def test_client_write(clear_state):
     """Test writing via the client."""
 
-    c = client.SynseInternalClient('test')
+    c = client.SynseInternalClient('test', 'test.sock', 'unix')
     c.stub.Write = mock_write
 
     resp = c.write('rack-1', 'vec', '12345', [client.WriteData()])
@@ -179,7 +187,7 @@ def test_client_write(clear_state):
 def test_client_metainfo(clear_state):
     """Test getting metainfo via the client."""
 
-    c = client.SynseInternalClient('test')
+    c = client.SynseInternalClient('test', 'test.sock', 'unix')
     c.stub.Metainfo = mock_metainfo
 
     resp = c.metainfo()
@@ -192,7 +200,7 @@ def test_client_metainfo(clear_state):
 def test_client_transaction(clear_state):
     """Test checking a transaction via the client."""
 
-    c = client.SynseInternalClient('test')
+    c = client.SynseInternalClient('test', 'test.sock', 'unix')
     c.stub.TransactionCheck = mock_transaction
 
     resp = c.check_transaction('abcdef')
