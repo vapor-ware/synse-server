@@ -266,7 +266,7 @@ async def test_get_metainfo_cache_ok(plugin_context, clear_caches):
     """Get the metainfo cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'tmp/foo')
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
     p.client.metainfo = mock_client_metainfo
 
     meta = await cache.get_metainfo_cache()
@@ -280,7 +280,7 @@ async def test_get_metainfo_cache_total_failure(plugin_context, clear_caches):
     """Get the metainfo cache when all plugins fail to respond."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'tmp/foo')
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
     p.client.metainfo = mock_client_metainfo_fail  # override to induce failure
 
     try:
@@ -294,10 +294,10 @@ async def test_get_metainfo_cache_partial_failure(plugin_context, clear_caches):
     """Get the metainfo cache when some plugins fail to respond."""
 
     # create & register new plugins
-    p = plugin.Plugin('bar', 'tmp/bar')
+    p = plugin.Plugin('bar', 'tmp/bar', 'unix')
     p.client.metainfo = mock_client_metainfo
 
-    p = plugin.Plugin('foo', 'tmp/foo')
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
     p.client.metainfo = mock_client_metainfo_fail  # override to induce failure
 
     meta = await cache.get_metainfo_cache()

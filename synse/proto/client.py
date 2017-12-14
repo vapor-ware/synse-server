@@ -59,12 +59,13 @@ class SynseInternalClient(object):
 
     _client_stubs = {}
 
-    def __init__(self, name):
+    def __init__(self, name, address, mode):
         """Constructor for a `SynseInternalClient` instance.
         """
         self.name = name
+        self.addr = address
+        self.mode = mode
 
-        self.socket = self._socket()
         self.channel = self._channel()
         self.stub = self._stub()
 
@@ -73,11 +74,14 @@ class SynseInternalClient(object):
 
     def _channel(self):
         """Convenience method to create the client grpc channel."""
-        return grpc.insecure_channel('unix:{}'.format(self.socket))
+        if self.mode == 'unix':
+            target = 'unix:{}'.format(os.path.join(BG_SOCKS, self.name + '.sock'))
+        elif self.mode == 'tcp':
+            target = self.addr
+        else:
+            raise ValueError('Invalid mode: {}'.format(self.mode))
 
-    def _socket(self):
-        """Convenience method to create the client grpc socket path."""
-        return os.path.join(BG_SOCKS, self.name + '.sock')
+        return grpc.insecure_channel(target)
 
     def _stub(self):
         """Convenience method to create the grpc stub."""
@@ -93,18 +97,33 @@ class SynseInternalClient(object):
 
         Returns:
             SynseInternalClient: The client instance associated with
-                that name. If a client does not exist for the given name,
-                a new one will be created.
+                the given name.
+            None: The given name has no associated client.
         """
-        if name not in cls._client_stubs:
-            SynseInternalClient(name)
+        return cls._client_stubs.get(name)
+
+    @classmethod
+    def register(cls, name, addr, mode):
+        """Register a new client instance.
+
+        Args:
+            name (str): The name of the plugin for the client.
+            addr (str): The address the plugin will communicate over.
+            mode (str): The communication mode of the plugin (either
+                'tcp' or 'unix').
+
+        Returns:
+            SynseInternalClient: The newly registered client instance.
+        """
+        SynseInternalClient(name, addr, mode)
         cli = cls._client_stubs[name]
 
-        logger.debug('Getting Client:')
-        logger.debug('  name: {}'.format(cli.name))
-        logger.debug('  socket: {}'.format(cli.socket))
+        logger.debug('Registered Client:')
+        logger.debug('  name:    {}'.format(cli.name))
+        logger.debug('  mode:    {}'.format(cli.mode))
+        logger.debug('  address: {}'.format(cli.addr))
         logger.debug('  channel: {}'.format(cli.channel))
-        logger.debug('  stub: {}'.format(cli.stub))
+        logger.debug('  stub:    {}'.format(cli.stub))
         return cli
 
     def read(self, rack, board, device):
@@ -215,3 +234,23 @@ def get_client(name):
             a new one will be created.
     """
     return SynseInternalClient.get_client(name)
+
+
+def register_client(name, addr, mode):
+    """Register a new internal client for a plugin.
+
+    Args:
+        name (str): The name of the plugin.
+        addr (str): The address which the plugin communicates over.
+        mode (str): The communication mode of the plugin (either
+            'unix' or 'tcp').
+
+    Returns:
+        SynseInternalClient: The client instance associated with the
+            name given. If a client does not exist for the given name,
+            a new one will be created.
+    """
+    cli = SynseInternalClient.get_client(name)
+    if cli is None:
+        cli = SynseInternalClient.register(name, addr, mode)
+    return cli

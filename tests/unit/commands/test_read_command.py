@@ -107,7 +107,7 @@ def make_plugin(setup):
 
     # make a dummy plugin for the tests to use
     if 'foo' not in plugin.Plugin.manager.plugins:
-        plugin.Plugin('foo', 'tmp/foo')
+        plugin.Plugin('foo', 'tmp/foo', 'unix')
 
     yield
 

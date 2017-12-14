@@ -6,7 +6,7 @@ import stat
 
 from synse.const import BG_SOCKS
 from synse.log import logger
-from synse.proto.client import get_client
+from synse.proto.client import register_client
 
 
 class PluginManager(object):
@@ -64,6 +64,17 @@ class PluginManager(object):
         else:
             del self.plugins[name]
 
+    def purge(self, names):
+        """Remove all of the specified tracked Plugins.
+
+        Args:
+            names (list[str]): The names of the Plugins to remove.
+        """
+        for name in names:
+            if name in self.plugins:
+                del self.plugins[name]
+        logger.debug('PluginManager purged: {}'.format(names))
+
 
 class Plugin(object):
     """Class which holds the relevant information for a configured
@@ -71,25 +82,41 @@ class Plugin(object):
     """
     manager = None
 
-    def __init__(self, name, sock):
+    def __init__(self, name, address, mode):
         """Constructor for the Plugin object.
 
         Args:
             name (str): The name of the plugin. This is derived
                 from the name of the socket.
-            sock (str): The path to the socket.
+            mode (str): The communication mode of the plugin. Currently,
+                only 'tcp' and 'unix' are supported.
+            address (str): The address of the plugin. The value for the
+                address is dependent on the communication mode of the
+                plugin.
         """
-        if not os.path.exists(sock):
-            raise ValueError('The given socket ({}) must exist.'.format(sock))
-        self.sock = sock
         self.name = name
-        self.client = get_client(name)
+        self.mode = mode
+        self.addr = address
+
+        self._validate_mode()
+        self.client = register_client(name, address, mode)
 
         # register this instance with the manager.
         self.manager.add(self)
 
     def __str__(self):
-        return '<Plugin: {} {}>'.format(self.name, self.sock)
+        return '<Plugin ({}): {} {}>'.format(self.mode, self.name, self.addr)
+
+    def _validate_mode(self):
+        """Validate the plugin mode."""
+        if self.mode not in ['tcp', 'unix']:
+            raise ValueError(
+                'The given mode must be "tcp" or "unix" but was {}'.format(self.mode)
+            )
+
+        if self.mode == 'unix':
+            if not os.path.exists(self.addr):
+                raise ValueError('The given unix socket ({}) must exist.'.format(self.addr))
 
 
 Plugin.manager = PluginManager()
@@ -119,24 +146,48 @@ def get_plugins():
 
 
 def register_plugins():
-    """Find the sockets for the configured plugins.
+    """Register all of the configured plugins.
+
+    Plugins can either use a unix socket for communication or TCP. Unix
+    socket based plugins will be detected from the presence of the socket
+    file in a well-known directory. TCP based plugins will need to be made
+    known to Synse Server by environment variables.
 
     Upon initialization, the Plugin instances are automatically registered
     with the PluginManager.
     """
-    logger.debug('Registering background plugins')
+    unix = register_unix_plugins()
+    tcp = register_tcp_plugins()
+
+    diff = set(Plugin.manager.plugins) - set(unix + tcp)
+
+    # now that we have found all current plugins, we will want to clear out
+    # any old plugins which may no longer be present.
+    logger.debug('Plugins to be removed from manager: {}'.format(diff))
+    Plugin.manager.purge(diff)
+
+    logger.debug('done registering plugins')
+
+
+def register_unix_plugins():
+    """Register the plugins that use a unix socket for communication.
+
+    Returns:
+        list[str]: The names of all plugins that were registered.
+    """
+    logger.debug('Registering plugins (unix)')
     if not os.path.exists(BG_SOCKS):
         raise ValueError(
-            '{} does not exist - cannot get background plugin '
+            '{} does not exist - unable to get unix plugin '
             'sockets.'.format(BG_SOCKS)
         )
 
-    logger.debug('sock dir exists')
+    logger.debug('socket dir exists')
 
     manager = Plugin.manager
 
-    # track the names of all plugins that were found.
-    found = []
+    # track the names of all plugins that are registered.
+    registered = []
 
     for item in os.listdir(BG_SOCKS):
         logger.debug('  {}'.format(item))
@@ -144,24 +195,54 @@ def register_plugins():
         name, _ = os.path.splitext(item)
 
         if stat.S_ISSOCK(os.stat(fqn).st_mode):
-            found.append(name)
+            registered.append(name)
 
             # we have a plugin socket. if it already exists, there is nothing
             # to do; it is already registered. if it does not exist, we will
             # need to register it.
             if manager.get(name) is None:
                 # a new plugin gets added to the manager on initialization.
-                plugin = Plugin(name=name, sock=fqn)
-                logger.debug('Found plugin: {}'.format(plugin))
+                plugin = Plugin(name=name, address=fqn, mode='unix')
+                logger.debug('Created new plugin (unix): {}'.format(plugin))
+            else:
+                logger.info('plugin "{}" already exists - will not re-register (unix)'.format(name))
 
         else:
-            logger.debug('not a socket.. {}'.format(fqn))
+            logger.debug('file is not a socket.. {}'.format(fqn))
 
-    # now that we have found all current plugins, we will want to clear out
-    # any old plugins which may no longer be present.
-    diff = set(manager.plugins) - set(found)
-    logger.debug('Plugins to be removed from manager: {}'.format(diff))
-    for old in diff:
-        manager.remove(old)
+    return list(set(registered))
 
-    logger.debug('done registering')
+
+def register_tcp_plugins():
+    """Register the plugins that use TCP for communication.
+
+    Return:
+        list[str]: The names of all plugins that were registered.
+    """
+    logger.debug('Registering plugins (tcp)')
+
+    configured = {k: v for k, v in os.environ.items() if k.startswith('SYNSE_PLUGIN_')}
+    if not configured:
+        logger.debug('found no plugins configured for tcp')
+        return []
+
+    manager = Plugin.manager
+
+    # track the names of all plugins that are registered.
+    registered = []
+
+    # the name of the plugin is found after the SYNSE_PLUGIN_ portion of the
+    # env key. we will need to extract it and then format it uniformly. plugin
+    # names will be lower cased and underscores will be converted to dashes.
+    for k, v in configured.items():
+        name = k.split('SYNSE_PLUGIN_')[1].lower().replace('_', '-')
+
+        registered.append(name)
+        if manager.get(name) is None:
+            # a new plugin gets added to the manager on initialization.
+            plugin = Plugin(name=name, address=v, mode='tcp')
+            logger.debug('Created new plugin (tcp): {}'.format(plugin))
+        else:
+            logger.info('plugin "{}" already exists - will not re-register (tcp)'.format(name))
+
+    return list(set(registered))
