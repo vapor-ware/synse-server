@@ -70,7 +70,7 @@ def cleanup(remove_tmp_dir):
 def clear_environ():
     """Remove test data put in environment variables."""
     yield
-    for k, v in os.environ.items():
+    for k, _ in os.environ.items():
         if k.startswith('SYNSE_PLUGIN_'):
             del os.environ[k]
 

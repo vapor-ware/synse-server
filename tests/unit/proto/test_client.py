@@ -6,7 +6,6 @@ import pytest
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
-from synse import const
 from synse.proto import client
 
 # --- Mock Methods ---

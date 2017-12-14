@@ -15,7 +15,7 @@ much simpler.
 ## Overview
 
 Synse Server provides an API for monitoring and control of data center and IT
-equipment, including reading sensors and server power control - via. numerous
+equipment, including reading sensors and server power control - via numerous
 backend protocols such as IPMI, Redfish, SNMP, I2C, RS485, and PLC. The API is
 easy to integrate into third-party monitoring, management and orchestration
 providers. It provides a simple, curl-able interface for common and custom
