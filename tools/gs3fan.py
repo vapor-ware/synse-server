@@ -285,8 +285,46 @@ def _get(ser):
         raise ValueError('Unexpected args')
 
 
+def _lock():
+    """
+    Handle lock operations.
+    """
+    action = sys.argv[2]
+    lock_number = int(sys.argv[3])
+
+    if action == 'status':
+        # print 'Momentary unlocking lock {}'.format(lock_number)
+        status = i2c_common.lock_status(lock_number)
+        print 'els and mls status: 0x{:02x}'.format(status)
+        if status == 0:
+            print 'ELS and MLS Active - Door Handle Not Secured.'
+        elif status == 1:
+            print 'ELS Active - Door Electrically Unlocked.'
+        elif status == 2:
+            print 'MLS Active - Door Unlocked by Key.'
+        elif status == 3:
+            print 'Door Lock Secure.'
+        else:
+            print 'Unknown lock status {}.'.format(status)
+            return 1
+        return status
+
+    elif action == 'lock':
+        print 'Locking lock {}'.format(lock_number)
+        return i2c_common.lock_lock(lock_number)
+    elif action == 'unlock':
+        print 'Unlocking lock {}'.format(lock_number)
+        return i2c_common.lock_unlock(lock_number)
+    elif action == 'munlock':
+        print 'Momentary unlock lock {}'.format(lock_number)
+        return i2c_common.lock_momentary_unlock(lock_number)
+    else:
+        print 'Unknown action {}.'.format(action)
+        return 1
+
+
 def _print_usage():
-    print 'sudo -HE env PATH=$PATH ./gs3fan.py {get|set|temp|ambient|air|therm|pressure} [options]'
+    print 'sudo -HE env PATH=$PATH ./gs3fan.py {get|set|temp|ambient|air|therm|pressure|led|lock} [options]'
     print '\tget options:'
     print '\t\t <none>: speed in RPM.'
     print '\t\t all: registers.'
@@ -301,6 +339,7 @@ def _print_usage():
     print '\ttherm: gets all thermistors'
     print '\tpressure: gets all differential pressures'
     print '\tled [<state>[<color> <blink_state>]]: Read or write to the LED controller.'
+    print '\tlock {status|lock|unlock|munlock} {lock_number}: Read or write to the door locks.'
 
 
 def _read_airflow(ser):
@@ -339,6 +378,7 @@ def _read_airflow_status(ser):
         return 1
     else:
         return 0
+
 
 def _read_all_fan(ser):
     """Get all registers from the fan."""
@@ -472,9 +512,11 @@ def _test1(ser):
                       600, 500, 400, 300, 200, 100, 0]
     registers = [0x2100, 0x2101, 0x2102, 0x2103, 0x2104, 0x2105, 0x2106, 0x2107,
                  0x2108, 0x2109, 0x210a, 0x210b, 0x210c, 0x210d]
+
+    max_rpm = modbus_common.get_fan_max_rpm_gs3(ser, FAN_SLAVE_ADDRESS)
     for speed_setting in speed_settings:
         print 'Setting fan speed to {} rpm'.format(speed_setting)
-        write(ser, speed_setting)
+        write(ser, max_rpm, speed_setting)
         time.sleep(10)  # May take a bit to slow down (it coasts AFAIK).
         print 'Fan speed in rpm: {}'.format(_read_rpm(ser))
 
@@ -546,6 +588,9 @@ def main():
         return 0
     elif sys.argv[1] == 'led':
         _led()
+        return 0
+    elif sys.argv[1] == 'lock':
+        _lock()
         return 0
 
     ser = serial.Serial("/dev/ttyUSB3", baudrate=19200, parity='E', timeout=0.15)
