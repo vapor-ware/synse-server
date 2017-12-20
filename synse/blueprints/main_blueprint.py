@@ -585,6 +585,56 @@ def led_control(rack_id, board_id, device_id, led_state=None, led_color=None, bl
     return make_json_response(response.get_response_data())
 
 
+@core.route(url('/lock/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
+@core.route(url('/lock/<rack_id>/<board_id>/<device_id>/<action>'), methods=['GET'])
+def lock_control(rack_id, board_id, device_id, action=None):
+    """ Control or get the status of a lock.
+        Control operations:
+            lock
+            unlock
+            momentary_unlock
+    Args:
+        rack_id (str): the rack id of the lock.
+        board_id (str): the board id of the lock.
+        device_id (str): the device id of the lock.
+        action (str): The action to take on a lock.
+            Valid actions are None, status, lock, unlock, momentary_unlock.
+            None is the same as status.
+    Returns:
+        For status requests:
+            0 - Electrically unlocked and mechanically unlocked.
+            1 - Electrically unlocked and mechanically locked.
+            2 - Electrically locked and mechanically unlocked.
+            3 - Electrically locked and mechanically locked.
+    Raises:
+        Returns a 500 error if the lock command fails.
+    """
+    board_id, device_id = check_valid_board_and_device(board_id, device_id)
+
+    # Validate action.
+    if not (
+            action is None or
+            action == 'status' or
+            action == 'lock' or
+            action == 'unlock' or
+            action == 'momentary_unlock'):
+        raise SynseException('Invalid action provided for lock control.')
+
+    cmd = current_app.config['CMD_FACTORY'].get_lock_command({
+        _s_.BOARD_ID: board_id,
+        _s_.DEVICE_ID: device_id,
+        _s_.DEVICE_TYPE: get_device_type_code(const.DEVICE_LOCK),
+        _s_.DEVICE_TYPE_STRING: const.DEVICE_LOCK,
+        _s_.RACK_ID: rack_id,
+        _s_.ACTION: action,
+    })
+
+    device = get_device_instance(board_id)
+    response = device.handle(cmd)
+
+    return make_json_response(response.get_response_data())
+
+
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>'), methods=['GET'])
 @core.route(url('/fan/<rack_id>/<board_id>/<device_id>/<fan_speed>'), methods=['GET'])
 def fan_control(rack_id, board_id, device_id, fan_speed=None):
