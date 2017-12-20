@@ -44,6 +44,7 @@ class CommandId(object):
     FAN = 0x0c
     HOST_INFO = 0x0d
     RETRY = 0x0e
+    LOCK = 0x0f
 
     @classmethod
     def get_command_name(cls, command_id):
@@ -69,5 +70,6 @@ class CommandId(object):
             cls.LED: 'LED',
             cls.FAN: 'Fan',
             cls.HOST_INFO: 'Host Info',
-            cls.RETRY: 'Retry'
+            cls.RETRY: 'Retry',
+            cls.LOCK: 'Lock',
         }.get(command_id, 'Unknown Command')
