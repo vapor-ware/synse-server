@@ -13,12 +13,12 @@ easy to integrate into third-party monitoring, management and orchestration
 providers. It provides a simple, curl-able interface for common and custom
 devops tasks.
 
-The [CLI](cli) makes it even easier to see what's going on with your physical
+The [CLI](https://github.com/vapor-ware/synse-cli) makes it even easier to see what's going on with your physical
 hardware. You can use it to do any kind of scripting required for your use cases.
 
-The Synse Server API can be consumed via GraphQL with [synse-graphql](grapql). 
+The Synse Server API can be consumed via GraphQL with [synse-graphql](https://github.com/vapor-ware/synse-graphql). 
 
-If you're looking for an integration, check out [synse-prometheus](prometheus).
+If you're looking for an integration, check out [synse-prometheus](https://github.com/vapor-ware/synse-prometheus).
 You'll be able to put together complete monitoring and dashboard solution from
 the instructions there.
 
