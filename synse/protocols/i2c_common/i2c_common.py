@@ -820,6 +820,17 @@ def lock_unlock(lock_number):
     _close_i2c(vec_b)
 
 
+def validate_lock_write_action(action):
+    """
+    Validate a lock action string for writes. Valid actions are lock, unlock,
+    and momentary_unlock.
+    :param action: The string to validate.
+    :raises ValueError: Invalid action for a lock write.
+    """
+    if action not in ['lock', 'unlock', 'momentary_unlock']:
+        raise ValueError('Invalid action provided for lock control.')
+
+
 def _close_i2c(vec):
     """Close the i2c port on the VEC USB."""
     vec.Close()
@@ -1182,15 +1193,15 @@ PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. 
 PCA9632_AUTO_INCR = chr(0x80)   # Enables Auto-Increment, Mode register 1.
 
 # register map
-PCA9632_MODE1 = chr(0x00)   # Mode register 1
-PCA9632_MODE2 = chr(0x01)   # Mode register 2
-PCA9632_PWM0 = chr(0x02)    # brightness control LED0
-PCA9632_PWM1 = chr(0x03)    # brightness control LED1
-PCA9632_PWM2 = chr(0x04)    # brightness control LED2
-PCA9632_PWM3 = chr(0x05)    # brightness control LED3 (Unused if I understand correctly.)
-PCA9632_GRPPWM = chr(0x06)  # group duty cycle control
-PCA9632_GRPFREQ = chr(0x07) # group frequency
-PCA9632_LEDOUT = chr(0x08)  # LED output state
+PCA9632_MODE1 = chr(0x00)    # Mode register 1
+PCA9632_MODE2 = chr(0x01)    # Mode register 2
+PCA9632_PWM0 = chr(0x02)     # brightness control LED0
+PCA9632_PWM1 = chr(0x03)     # brightness control LED1
+PCA9632_PWM2 = chr(0x04)     # brightness control LED2
+PCA9632_PWM3 = chr(0x05)     # brightness control LED3 (Unused if I understand correctly.)
+PCA9632_GRPPWM = chr(0x06)   # group duty cycle control
+PCA9632_GRPFREQ = chr(0x07)  # group frequency
+PCA9632_LEDOUT = chr(0x08)   # LED output state
 
 
 def read_led():
