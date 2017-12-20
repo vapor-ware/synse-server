@@ -182,18 +182,20 @@ class RCI3525Lock(I2CDevice):
             # Validate device to ensure device id and type are ok.
             self._get_device_by_id(device_id, device_type_string)
 
-            reading = {}  # Sets do not return a reading, just a status code.
             if action is None or action == 'status':
                 reading = self._read_sensor()
 
             elif action == 'lock':
                 i2c_common.lock_lock(self.lock_number)
+                reading = self._return_lock_status(action)
 
             elif action == 'unlock':
                 i2c_common.lock_unlock(self.lock_number)
+                reading = self._return_lock_status(action)
 
             elif action == 'momentary_unlock':
                 i2c_common.lock_momentary_unlock(self.lock_number)
+                reading = self._return_lock_status(action)
 
             else:
                 raise SynseException('Invalid action provided for lock control.')
@@ -207,3 +209,25 @@ class RCI3525Lock(I2CDevice):
             logger.exception('Error reading lock. Raising SynseException.')
             raise SynseException('Error reading lock (device id: {})'.format(
                 device_id)), None, sys.exc_info()[2]
+
+    def _return_lock_status(self, action):
+        """Get the lock status that we return on lock, unlock, and
+        momentary_unlock calls.
+        :param action: Action string from the caller URL.
+        :return: The lock status that we return on lock, unlock, and
+        momentary_unlock calls."""
+        # Make the call to get the current status. Electrical status is bit 1
+        # and mechanical status is bit 0.
+        reading = self._read_sensor()
+
+        # Update the electrical status based on the action parameter from the
+        # caller.
+        if action == 'lock':
+            # Set bit 1 to denote electrically locked.
+            reading['lock_status'] = reading['lock_status'] | 0x2
+        elif action == 'unlock' or action == 'momentary_unlock':
+            # Clear bit 1 to denote electrically unlocked.
+            reading['lock_status'] = reading['lock_status'] & 0xFD
+        else:
+            raise SynseException('Invalid action provided for lock control.')
+        return reading
