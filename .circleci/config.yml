@@ -5,8 +5,8 @@ jobs:
       - image: python
     working_directory: /synse-server
     environment:
-      - DOCKER_VERSION=17.05.0-ce
-      - COMPOSE_VERSION=1.14.0
+      - DOCKER_VERSION=17.09.1-ce
+      - COMPOSE_VERSION=1.18.0
     steps:
       - checkout
 
@@ -19,11 +19,6 @@ jobs:
             curl -L -o /tmp/docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
             tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
             mv /tmp/docker/* /usr/bin
-      - run:
-           name: Docker Private Images (temporary) # This should be removed once images are public
-           command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PS
-            docker pull vaporio/vapor-endpoint-base-x64:3.0
       - run:
           name: Install Docker compose
           command: |
