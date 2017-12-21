@@ -16,7 +16,7 @@ jobs:
           name: Install Docker Client
           command: |
             set -x
-            curl -L -o /tmp/docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}.tgz
+            curl -L -o /tmp/docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
             tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
             mv /tmp/docker/* /usr/bin
       - run:
