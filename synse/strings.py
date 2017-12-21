@@ -72,6 +72,8 @@ LED_STEADY = intern('steady')
 # FAN
 FAN_SPEED = intern('fan_speed')
 
+# LOCK
+ACTION = intern('action')
 
 # ERRORS
 ERR_BOARD_ID_NOT_REGISTERED = 'Board ID ({}) not registered with any known device bus.'
