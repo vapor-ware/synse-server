@@ -30,10 +30,17 @@ DIFFERENTIAL_PRESSURE_MODELS = ['sdp-610']
 # List of all I2C LED Controller models.
 LED_CONTROLLER_MODELS = ['pca-9632']
 
+# List of all I2c lock models.
+LOCK_MODELS = ['rci-3525']
+
 # Base path to write the sensor data to.
 BASE_FILE_PATH = '/synse/sensors/'
 I2C_DIR_PATH = BASE_FILE_PATH + 'i2c/{}/{}/{}'  # rack_id, device_model, channel
 I2C_FILE_PATH = I2C_DIR_PATH + '/{}'  # rack_id, device_model, channel, {read | write}
+
+# Paths for locks are slightly different since the configuration takes a number and not a string.
+I2C_DIR_PATH_LOCK = BASE_FILE_PATH + 'i2c/{}/{}/{:04x}'  # rack_id, device_model, lock_number
+I2C_FILE_PATH_LOCK = I2C_DIR_PATH_LOCK + '/{}'  # rack_id, device_model, lock_number, {read | write}
 
 READ = 'read'
 WRITE = 'write'
@@ -51,7 +58,7 @@ class LedInfo(object):
             for device in devices:
                 if device['device_type'] == 'vapor_led':
                     path = I2C_FILE_PATH.format(
-                       rack['rack_id'], device['device_model'], device['channel'], WRITE)
+                        rack['rack_id'], device['device_model'], device['channel'], WRITE)
 
                     self.device = device                        # Device config for the LED controller.
                     self.path = path                            # Write file path for the LED controller.
@@ -61,6 +68,49 @@ class LedInfo(object):
                     return  # Success
 
         raise ValueError('No vapor_led in i2c configuration.')
+
+
+class DeviceAndPath(object):
+    """Contains the synse device and path to write to for that device."""
+    def __init__(self, device, path):
+        """Initialize the DeviceAndPath.
+        :param device: The device component from the Synse I2C configuration.
+        :param path: The write path for the device."""
+        self.device = device
+        self.path = path
+
+
+class LockInfo(object):
+    """Contains information we need for writes. There is one LockInfo for
+    the daemon (all locks)."""
+    def __init__(self, i2c_config):
+        """Initialize the LockInfo from the config information."""
+        # Dictionary of all locks. Key is lock_number. Value is DeviceAndPath.
+        self.locks = {}
+
+        for rack in i2c_config['racks']:
+            devices = rack['devices']
+            for device in devices:
+                if device['device_type'] == 'lock':
+                    path = I2C_FILE_PATH_LOCK.format(
+                        rack['rack_id'], device['device_model'], device['lock_number'], WRITE)
+
+                    lock_number = device['lock_number']
+                    if lock_number in self.locks:
+                        raise ValueError(
+                            'Invalid i2c configuration. Multiple locks with '
+                            'lock_number {}.'.format(lock_number))
+
+                    if not 1 <= lock_number <= 12:
+                        raise ValueError(
+                            'Invalid i2c configuration. lock_number {} is not '
+                            'in range (1-12).'.format(lock_number))
+
+                    device_path = DeviceAndPath(device, path)
+                    logger.debug('adding LockInfo: self.device        {}'.format(device_path.device))
+                    logger.debug('adding LockInfo: self.path          {}'.format(device_path.path))
+
+                    self.locks[lock_number] = device_path
 
 
 def _bulk_read_differential_pressure(differential_pressures, channels):
@@ -140,7 +190,7 @@ def _configure_differential_pressures(channels):
                     raise ValueError(
                         'Failed to configure differential pressure sensor on '
                         'channel {}.'.format(channel))
-            except:
+            except:  # pylint: disable=bare-except
                 logger.exception(
                     'Error configuring differential pressure sensor on '
                     'rack {}, channel {}.'.format(rack_id, channel))
@@ -154,6 +204,18 @@ def _create_device_directories(devices):
         for device in devs:
             # TODO: Swap rack_id and device_model order?
             path = I2C_DIR_PATH.format(rack_id, device['device_model'], device['channel'])
+            common.mkdir(path)
+
+
+def _create_lock_directories(devices):
+    """Create directories for sensor files for lock devices.
+    These are using the lock_number rather than the channel.
+    :param devices: Dictionary of rack_id, devices from the Synse i2c
+    config."""
+    for rack_id, devs in devices.iteritems():
+        for device in devs:
+            # TODO: Swap rack_id and device_model order?
+            path = I2C_DIR_PATH_LOCK.format(rack_id, device['device_model'], device['lock_number'])
             common.mkdir(path)
 
 
@@ -220,7 +282,7 @@ def _get_i2c_config():
 
 def _handle_led_write(led_info):
     """If there is a pending write to the LED controller, write the change to the
-    fan.
+    LED controller.
     :param led_info: All information we need to write out the led data to the
     bus. This may come in as None if not initialized."""
     if led_info is None:
@@ -253,9 +315,49 @@ def _handle_led_write(led_info):
                         state, color, blink))
                 i2c_common.write_led(state=state, blink_state=blink, color=color)
             os.remove(led_info.path)
-    except:
-        logger.exception('Error writing fan speed.')
-    pass
+    except:  # pylint: disable=bare-except
+        logger.exception('Error writing LED state.')
+
+
+def _handle_lock_write(lock_info):
+    """
+    If there is a pending write to a lock, write the change to the lock.
+    :param lock_info: All information we need to write out the lock data to the bus.
+    :return:
+    """
+    # For each possible lock write file:
+    # Does a write file exist?
+    # If so, try to write to the lock.
+    for lock_number, device_path in lock_info.locks.iteritems():
+        action = None
+        try:
+            # Key is lock number, device_path is the device configuration and write path for the lock.
+            if os.path.isfile(device_path.path):
+                logger.debug('_handle_lock_write writing lock, path {}'.format(device_path.path))
+                # Read the file. It will contain a string for the action to take on the lock.
+                # Write the data to the lock. Delete the file on success.
+                with open(device_path.path, 'r') as f:
+                    action = f.read()
+                    logger.debug('writing lock, file data: {}'.format(action))
+
+                    try:
+                        i2c_common.validate_lock_write_action(action)
+                    except ValueError:
+                        logger.error('Invalid lock write data {}, discarding'.format(action))
+                        os.remove(device_path.path)
+
+                    if action == 'lock':
+                        i2c_common.lock_lock(lock_number)
+                    elif action == 'unlock':
+                        i2c_common.lock_unlock(lock_number)
+                    elif action == 'momentary_unlock':
+                        i2c_common.lock_momentary_unlock(lock_number)
+
+                    os.remove(device_path.path)
+        except:  # pylint: disable=bare-except
+            logger.exception(
+                'Error writing lock state. lock_number: {}, action {}'.format(
+                    lock_number, action))
 
 
 def _read_led_controllers(led_controllers):
@@ -275,13 +377,36 @@ def _read_led_controllers(led_controllers):
                     rack_id, controller['device_model'], controller['channel'], READ)
                 common.write_readings(
                     path, [state, color, blink])
-    except:
+    except:  # pylint: disable=bare-except
         logger.exception('Error reading led controllers.')
+
+
+def _read_locks(locks):
+    """Read from the locks and write the results to files.
+    :param locks: Dictionary of rack_id, device from the Synse i2c
+    config. Locks are the device section of the config."""
+    try:
+        logger.debug('_read_locks() locks: {}'.format(locks))
+        for rack_id, rack_locks in locks.iteritems():
+            for lock in rack_locks:
+                lock_number = lock['lock_number']
+                lock_status = i2c_common.lock_status(lock_number)
+
+                logger.debug(
+                    '_read_locks() lock_number: {}, status: {}'.format(
+                        lock_number, lock_status))
+
+                # Get the file path.
+                path = I2C_FILE_PATH_LOCK.format(
+                    rack_id, lock['device_model'], lock_number, READ)
+                common.write_reading(path, lock_status)
+    except:  # pylint: disable=bare-except
+        logger.exception('Error reading locks.')
 
 
 def _sensor_loop(thermistors, thermistor_model, thermistor_channels,
                  differential_pressures, differential_pressure_channels,
-                 led_controllers, led_info):
+                 led_controllers, led_info, locks, lock_info):
     """Read / Write sensors. Write readings to files. Send writes from files.
     :param thermistors: Dictionary of rack_id, device from the Synse i2c
     config. Thermistors are the device section of the config.
@@ -296,11 +421,15 @@ def _sensor_loop(thermistors, thermistor_model, thermistor_channels,
     differential pressure sensor channels per rack.
     :param led_controllers: Dictionary of rack_id, device from the Synse
     i2c config. LED controllers are the device section of the config.
-    :param led_info: Everything we need to send a write to the Led Controller."""
+    :param led_info: Everything we need to send a write to the Led Controller.
+    :param locks: Dictionary of rack_id, device from the Synse
+    i2c config. locks are the device section of the config.
+    :param lock_info: Everything we need to send a write to any of the locks."""
     # Make directories for the sensor files.
     _create_device_directories(thermistors)
     _create_device_directories(differential_pressures)
     _create_device_directories(led_controllers)
+    _create_lock_directories(locks)
 
     # Wait for synse to register all devices. Synse needs to do that since
     # there is no guarantee that the background processes are being used.
@@ -314,13 +443,15 @@ def _sensor_loop(thermistors, thermistor_model, thermistor_channels,
     while True:
         try:
             _handle_led_write(led_info)
+            _handle_lock_write(lock_info)
 
             # TODO: Metrics around the reads here.
             _bulk_read_thermistors(thermistors, thermistor_model, thermistor_channels)
             _bulk_read_differential_pressure(differential_pressures, differential_pressure_channels)
             _read_led_controllers(led_controllers)
+            _read_locks(locks)
             # END: Metrics around the reads here.
-        except:
+        except:  # pylint: disable=bare-except
             logger.exception('i2c_daemon _sensor_loop() exception')
         time.sleep(1)  # TODO: tuning.
 
@@ -383,12 +514,13 @@ def main():
 
         differential_pressures = _get_devices_by_models(i2c_config, DIFFERENTIAL_PRESSURE_MODELS)
         led_controllers = _get_devices_by_models(i2c_config, LED_CONTROLLER_MODELS)
+        locks = _get_devices_by_models(i2c_config, LOCK_MODELS)
 
         # Get the channels for the thermistors and differential pressure sensors.
         thermistor_channels = _get_device_channels(thermistors)
         differential_pressure_channels = _get_device_channels(differential_pressures)
         _configure_differential_pressures(differential_pressure_channels)
-        # We are not using the channel from the sysne configuration for the LED Controller.
+        # We are not using the channel from the synse configuration for the LED Controller.
 
         # Setup information for LED Controller writes.
         led_info = None
@@ -397,12 +529,15 @@ def main():
         except ValueError:
             logger.exception('No led controller.')
 
+        # Setup information for lock writes.
+        lock_info = LockInfo(i2c_config)
+
         # Read sensors in a loop.
         _sensor_loop(
             thermistors, thermistor_model, thermistor_channels,
-            differential_pressures,  differential_pressure_channels,
-            led_controllers, led_info)
-    except:
+            differential_pressures, differential_pressure_channels,
+            led_controllers, led_info, locks, lock_info)
+    except:  # pylint: disable=bare-except
         logger.exception('Fatal exception in i2c_daemon.')
 
 

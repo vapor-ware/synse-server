@@ -113,7 +113,7 @@ class RCI3525Lock(I2CDevice):
             raise SynseException('No sensor reading returned from I2C.')
 
         except Exception:
-            logger.exception()
+            logger.exception('Error reading lock')
             raise SynseException('Error reading lock (device id: {})'.format(
                 device_id)), None, sys.exc_info()[2]
 
@@ -139,11 +139,9 @@ class RCI3525Lock(I2CDevice):
             dict: the thermistor reading value.
         """
         logger.debug('indirect_sensor_read')
-        raise NotImplementedError('Indirect sensors reads are coming in the future.')
-        # Code below will either be used or deleted for indirect sensor reads.
-        # data_file = self._get_bg_read_file('{0:04x}'.format(self.lock_number))
-        # data = RCI3525Lock.read_sensor_data_file(data_file)
-        # return {'lock_status': data[0]}
+        data_file = self._get_bg_read_file('{0:04x}'.format(self.lock_number))
+        data = RCI3525Lock.read_sensor_data_file(data_file)
+        return {'lock_status': int(data[0])}
 
     def _direct_sensor_read(self):
         """ Internal method for reading data off of the device.
@@ -178,37 +176,26 @@ class RCI3525Lock(I2CDevice):
         device_type_string = command.data[_s_.DEVICE_TYPE_STRING]
         action = command.data[_s_.ACTION]
 
-        try:
-            # Validate device to ensure device id and type are ok.
-            self._get_device_by_id(device_id, device_type_string)
+        with self._lock:
+            try:
+                # Validate device to ensure device id and type are ok.
+                self._get_device_by_id(device_id, device_type_string)
 
-            if action is None or action == 'status':
-                reading = self._read_sensor()
+                if action is None or action == 'status':
+                    reading = self._read_sensor()
 
-            elif action == 'lock':
-                i2c_common.lock_lock(self.lock_number)
-                reading = self._return_lock_status(action)
+                else:
+                    reading = self._write_sensor(action)
 
-            elif action == 'unlock':
-                i2c_common.lock_unlock(self.lock_number)
-                reading = self._return_lock_status(action)
+                return Response(
+                    command=command,
+                    response_data=reading,
+                )
 
-            elif action == 'momentary_unlock':
-                i2c_common.lock_momentary_unlock(self.lock_number)
-                reading = self._return_lock_status(action)
-
-            else:
-                raise SynseException('Invalid action provided for lock control.')
-
-            return Response(
-                command=command,
-                response_data=reading,
-            )
-
-        except Exception:
-            logger.exception('Error reading lock. Raising SynseException.')
-            raise SynseException('Error reading lock (device id: {})'.format(
-                device_id)), None, sys.exc_info()[2]
+            except Exception:
+                logger.exception('Error reading lock. Raising SynseException.')
+                raise SynseException('Error reading lock (device id: {})'.format(
+                    device_id)), None, sys.exc_info()[2]
 
     def _return_lock_status(self, action):
         """Get the lock status that we return on lock, unlock, and
@@ -230,4 +217,54 @@ class RCI3525Lock(I2CDevice):
             reading['lock_status'] = reading['lock_status'] & 0xFD
         else:
             raise SynseException('Invalid action provided for lock control.')
+        return reading
+
+    def _write_sensor(self, action):
+        """Write to the lock either directly or indirectly.
+        :param action: One of the following: lock, unlock, momentary_unlock.
+        :returns: The resultant status of the lock on success.
+        """
+        if self.from_background:
+            return self._indirect_write(action)
+        return self.direct_write(action)
+
+    def direct_write(self, action):
+        """
+        Write to the sensor directly.
+        :param action: The action to take on the lock, one of: lock, unlock,
+        momentary_unlock.
+        :return: The resultant state of the lock on success.
+        """
+        if action == 'lock':
+            i2c_common.lock_lock(self.lock_number)
+            reading = self._return_lock_status(action)
+
+        elif action == 'unlock':
+            i2c_common.lock_unlock(self.lock_number)
+            reading = self._return_lock_status(action)
+
+        elif action == 'momentary_unlock':
+            i2c_common.lock_momentary_unlock(self.lock_number)
+            reading = self._return_lock_status(action)
+
+        else:
+            raise SynseException('Invalid action provided for lock control.')
+
+        return reading
+
+    def _indirect_write(self, action):
+        """
+        Write to the sensor indirectly.
+        :param action: The action to take on the lock, one of: lock, unlock,
+        momentary_unlock.
+        :return: The resultant state of the lock on success.
+        """
+        logger.debug('_indirect_write')
+        i2c_common.validate_lock_write_action(action)
+
+        data_file = self._get_bg_write_file('{:04x}'.format(self.lock_number))
+        RCI3525Lock.write_device_data_file(data_file, action)
+
+        reading = self._return_lock_status(action)
+        logger.debug('_indirect_write success')
         return reading
