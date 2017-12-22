@@ -122,7 +122,7 @@ class F660Airflow(RS485Device):
             raise SynseException('No sensor reading returned from RS485.')
 
         except Exception:
-            logger.exception()
+            logger.exception('Error reading F660 airflow sensor')
             raise SynseException(
                 'Error reading F660 airflow sensor (device id: {})'.format(
                     device_id)), None, sys.exc_info()[2]

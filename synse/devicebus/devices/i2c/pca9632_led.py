@@ -158,7 +158,7 @@ class PCA9632Led(I2CDevice):
             raise SynseException('No LED status returned from I2C.')
 
         except Exception:
-            logger.exception()
+            logger.exception('Error reading LED status')
             raise SynseException(
                 # NOTE: Writes go through this code path. Always did.
                 'Error reading LED status (device id: {})'.format(
@@ -204,7 +204,7 @@ class PCA9632Led(I2CDevice):
             raise SynseException('No LED control response from I2C.')
 
         except Exception:
-            logger.exception()
+            logger.exception('Error setting LED status')
             raise SynseException(
                 'Error setting LED status (device id: {})'.format(
                     device_id)), None, sys.exc_info()[2]

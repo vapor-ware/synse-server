@@ -122,7 +122,7 @@ class SDP610Pressure(I2CDevice):
             raise SynseException('No sensor reading returned from I2C.')
 
         except Exception:
-            logger.exception()
+            logger.exception('Error reading pressure sensor')
             raise SynseException('Error reading pressure sensor (device id: {})'.format(
                 device_id)), None, sys.exc_info()[2]
 

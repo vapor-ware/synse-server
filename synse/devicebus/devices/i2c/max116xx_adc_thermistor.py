@@ -108,7 +108,7 @@ class Max116xxThermistor(I2CDevice):
             raise SynseException('No sensor reading returned from I2C.')
 
         except Exception:
-            logger.exception()
+            logger.exception('Error reading temperature sensor')
             raise SynseException('Error reading temperature sensor (device id {})'.format(
                 device_id)), None, sys.exc_info()[2]
 
