@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Synse Ebm-Papst Fan Control RS485 Device.
+""" Synse ECblue Fan Control RS485 Device.
 
     \\//
      \/apor IO
@@ -31,39 +31,40 @@ from synse.protocols.modbus import modbus_common  # nopep8
 logger = logging.getLogger(__name__)
 
 
-class EbmPapstFan(FanController):
-    """ Device subclass for Ebm-Papst fan controller using RS485 communications.
+class ECblueFan(FanController):
+    """ Device subclass for ECblue fan controller using RS485 communications.
     """
-    _instance_name = 'ebm-papst'
+    _instance_name = 'ecblue'
 
     def __init__(self, **kwargs):
-        super(EbmPapstFan, self).__init__(**kwargs)
+        super(ECblueFan, self).__init__(**kwargs)
 
-        logger.debug('EbmPapstFan kwargs: {}'.format(kwargs))
+        logger.debug('ECblueFan kwargs: {}'.format(kwargs))
 
         if self.hardware_type == 'emulator':
-            raise NotImplementedError('No emulator for EbmPapstFan.')
+            raise NotImplementedError('No emulator for ECblueFan.')
 
-        logger.debug('EbmPapstFan self: {}'.format(dir(self)))
+        logger.debug('ECblueFan self: {}'.format(dir(self)))
 
     def _get_direction(self):
-        """Production only direction reads from ebm_papst_fan (vapor_fan).
+        """Production only direction reads from ecblue_fan (vapor_fan).
         :returns: String forward or reverse."""
         client = self.create_modbus_client()
-        return modbus_common.get_fan_direction_ebmpapst(
+        return modbus_common.get_fan_direction_ecblue(
             client.serial_device, self.slave_address)
 
     def _get_rpm(self):
-        """Production only rpm reads from ebm_papst_fan (vapor_fan).
+        """Production only rpm reads from ecblue_fan (vapor_fan).
         :returns: Integer rpm."""
         client = self.create_modbus_client()
-        return modbus_common.get_fan_rpm_ebmpapst(
+        return modbus_common.get_fan_rpm_ecblue(
             client.serial_device, self.slave_address)
 
     def _initialize_min_max_rpm(self):
+        """Initialize the max and min supported fan rpm settings."""
         client = self.create_modbus_client()
         # Maximum rpm supported by the fan motor.
-        self.max_rpm = modbus_common.get_fan_max_rpm_ebmpapst(
+        self.max_rpm = modbus_common.get_fan_max_rpm_ecblue(
             client.serial_device, self.slave_address)
         # Minimum rpm setting allowed. For now this is 10% of the max. This is
         # due to minimal back EMF at low rpms.
@@ -74,6 +75,6 @@ class EbmPapstFan(FanController):
         :param rpm_setting: The user supplied rpm setting.
         returns: The modbus write result."""
         client = self.create_modbus_client()
-        return modbus_common.set_fan_rpm_ebmpapst(
+        return modbus_common.set_fan_rpm_ecblue(
             client.serial_device, self.slave_address,
             rpm_setting, self.max_rpm)

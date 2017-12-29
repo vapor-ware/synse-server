@@ -27,7 +27,10 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 # pylint: skip-file
 
+# We need to import these classes in order to initialize them so that
+# get_all_subclasses() finds them. Without them, device registration will fail.
 from synse.devicebus.devices.rs485.f660_airflow import F660Airflow
 from synse.devicebus.devices.rs485.gs3_2010_fan_controller import GS32010Fan
 from synse.devicebus.devices.rs485.rs485_device import RS485Device
 from synse.devicebus.devices.rs485.sht31_humidity import SHT31Humidity
+from synse.devicebus.devices.rs485.ecblue_fan_controller import ECblueFan
