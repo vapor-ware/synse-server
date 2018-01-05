@@ -62,6 +62,11 @@ class dkmodbus(object):
     _READ_FIFO_QUEUE = '\x18'
     _READ_DEVICE_IDENTIFICATION = '\x28'
 
+    # For modbus responses, the first bit may be high in some but not all
+    # implementations.
+    _READ_HOLDING_REGISTERS_RESPONSE = '\x83'
+    _READ_INPUT_REGISTER_RESPONSE = '\x84'
+
     # region public
 
     def __init__(self, serial_device):
@@ -306,14 +311,16 @@ class dkmodbus(object):
         logger.debug('bytes_returned: {}'.format(bytes_returned))
 
         function_code = cec_rx_packet[1]
-        # TODO: Double check the '\x04' (_READ_INPUT_REGISTER) in the next PR.
-        if function_code == dkmodbus._READ_HOLDING_REGISTERS \
-                or function_code == dkmodbus._READ_INPUT_REGISTER:
+        if function_code == dkmodbus._WRITE_MULTIPLE_REGISTERS \
+                or dkmodbus._READ_HOLDING_REGISTERS \
+                or function_code == dkmodbus._READ_INPUT_REGISTER \
+                or function_code == dkmodbus._READ_HOLDING_REGISTERS_RESPONSE \
+                or function_code == dkmodbus._READ_INPUT_REGISTER_RESPONSE:
             logger.debug('returning read data')
             result = cec_rx_packet[3:3 + bytes_returned]
             logger.debug('result: {}'.format(hexlify(result)))
             return result
-        logger.debug('just returning 0')
-        return 0
+        raise ValueError('Unexpected function code: {}'.format(
+            hexlify(function_code)))
 
         # endregion

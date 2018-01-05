@@ -27,6 +27,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 # pylint: skip-file
 
+# We need to import these classes in order to initialize them so that
+# get_all_subclasses() finds them. Without them, device registration will fail.
 from synse.devicebus.devices.i2c.i2c_device import I2CDevice
 from synse.devicebus.devices.i2c.max116xx_adc_thermistor import (Max11608Thermistor,
                                                                  Max11610Thermistor)
