@@ -63,7 +63,7 @@ make lint
 
 
 ## License
-Synse is released under GPLv2 - see [LICENSE](license) for more information.
+Synse is released under GPLv2 - see LICENSE for more information.
 
 
 [cli]: https://github.com/vapor-ware/synse-cli
