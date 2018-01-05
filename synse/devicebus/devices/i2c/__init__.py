@@ -27,7 +27,8 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 # pylint: skip-file
 
-# We need to import these classes in order to initialize them so that get_all_subclasses() finds them.
+# We need to import these classes in order to initialize them so that
+# get_all_subclasses() finds them. Without them, device registration will fail.
 from synse.devicebus.devices.i2c.i2c_device import I2CDevice
 from synse.devicebus.devices.i2c.pca9632_led import PCA9632Led
 from synse.devicebus.devices.i2c.sdp610_pressure import SDP610Pressure

@@ -252,8 +252,8 @@ def _read_device_by_model(rack_id, serial_device, device):
     :param device: The device to read."""
     try:
         device_model = device.get('device_model')
-        if device_model == 'ebm-papst':
-            _read_ebmpapst_fan_speed(rack_id, serial_device, device)
+        if device_model == 'ecblue':
+            _read_ecblue_fan_speed(rack_id, serial_device, device)
         elif device_model == 'gs3-2010':
             _read_gs32010_fan_speed(rack_id, serial_device, device)
         elif device_model == 'sht31':
@@ -267,14 +267,17 @@ def _read_device_by_model(rack_id, serial_device, device):
         logger.exception('rs485_daemon read exception')
 
 
-def _read_ebmpapst_fan_speed(rack_id, serial_device, device):
+def _read_ecblue_fan_speed(rack_id, serial_device, device):
     """Read the fan speed from the bus. Write it to the sensor file.
     :param rack_id: The rack_id from the Synse configuration.
     :param serial_device: The serial device name.
     :param device: The device to read.
     """
-    rpm = modbus_common.get_ebmpapst_rpm(serial_device, device)
-    direction = modbus_common.get_ebmpapst_direction(serial_device, device)
+    client = _create_modbus_client(serial_device, device)
+    rpm = modbus_common.get_fan_rpm_ecblue(
+        client.serial_device, int(device['device_unit']))
+    direction = modbus_common.get_fan_direction_ecblue(
+        client.serial_device, int(device['device_unit']))
 
     path = RS485_FILE_PATH.format(
         rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
@@ -331,10 +334,10 @@ def _set_fan_rpm(serial_device, device, rpm_setting):
     client = _create_modbus_client(serial_device, device)
     fan_model = device['device_model']
 
-    if fan_model == 'ebm-papst':
-        max_rpm = modbus_common.get_fan_max_rpm_ebmpapst(
+    if fan_model == 'ecblue':
+        max_rpm = modbus_common.get_fan_max_rpm_ecblue(
             client.serial_device, int(device['device_unit']))
-        return modbus_common.set_fan_rpm_ebmpapst(
+        return modbus_common.set_fan_rpm_ecblue(
             client.serial_device, int(device['device_unit']),
             rpm_setting, max_rpm)
 
