@@ -1,55 +1,56 @@
 hash,author,message,status,porter,remote commit,notes
-590d02c,MatthewHink,Re-add crate stack vec leader code as fallback.,open,,,
-7800f2d,MatthewHink,Rename existing thermistor device file.,open,,,
-5f65eec,MatthewHink,Support max 11610 thermistor. Testing.,open,,,
-cdcbeda,MatthewHink,Merge pull request #240 from vapor-ware/mhink-old-stack,open,,,
-5ea78f4,MatthewHink,Import subclasses so get_all_subclasses finds them.,open,,,
-7310e6d,MatthewHink,Merge pull request #241 from vapor-ware/mhink-therm,open,,,
-3cdd544,MatthewHink,Add max-11610 thermistors. Get Austin setup.,open,,,
-e04c13a,MatthewHink,Merge pull request #243 from vapor-ware/mhink-austin-crush,open,,,
-ada37ba,MatthewHink,board_id should be in hex.,open,,,
-ee2b1bb,Tim,Unfuck a little of what the move fucked,open,,,
-0ea1ba6,MatthewHink,Merge pull request #244 from vapor-ware/mhink-hex,open,,,
-b52bbec,MatthewHink,Support multiple fan motors.,open,,,
-d9a89e7,MatthewHink,Merge pull request #246 from vapor-ware/mhink-fan-pr,open,,,
-ff45677,MatthewHink,Bump up PLC timeouts. Add sleeps to allow emulators to confi,open,,,
-5017ba4,MatthewHink,Merge pull request #247 from vapor-ware/mhink-plc-tests,open,,,
-c3d1d96,MatthewHink,synse-server-internal image.,open,,,
-ee6db49,MatthewHink,Merge pull request #249 from vapor-ware/mhink-image,open,,,
-4340e0c,MatthewHink,Do not fail synse startup on device registration failure.,open,,,
-8f66fcf,MatthewHink,Merge pull request #253 from vapor-ware/mhink-device-fail,open,,,
-8bae68a,MatthewHink,Airflow status register reads.,open,,,
-1f2895e,MatthewHink,I2c daemon. Configure pressure sensors.,open,,,
-a16c3a1,MatthewHink,Merge pull request #257 from vapor-ware/mhink-dp-config,open,,,
-0bd3889,MatthewHink,Issue 258. Fix potential bus collision on startup.,open,,,
-377e227,MatthewHink,Merge pull request #259 from vapor-ware/mhink-collision-crus,open,,,
-6720569,MatthewHink,Demo leds and thermistors.,open,,,
-5a6cd40,MatthewHink,Merge pull request #260 from vapor-ware/mhink-led-therm-crus,open,,,
-4764a44,MatthewHink,Get fan_sensors route working w/o dp sensors configured or b,open,,,
-2d71fc3,MatthewHink,Merge pull request #261 from vapor-ware/mhink-no-pressure-cr,open,,,
-739b834,MatthewHink,Merge pull request #256 from vapor-ware/mhink-air-status,open,,,
-0153cea,MatthewHink,Remove version sentinel.,open,,,
-453b521,MatthewHink,Merge pull request #262 from vapor-ware/mhink-no-version,open,,,
-1be4139,MatthewHink,Locking around the readers and writers.,open,,,
-0d15de3,MatthewHink,Merge pull request #263 from vapor-ware/mhink-locks2,open,,,
-7cd7d1f,MatthewHink,Write fan speed as string.,open,,,
-6d693de,MatthewHink,Merge pull request #264 from vapor-ware/mhink-fan-write,open,,,
-9745e2a,MatthewHink,Base fan controller class. Common modbus functionality.,open,,,
-e52aa71,MatthewHink,Merge pull request #265 from vapor-ware/mhink-fan-controller,open,,,
+590d02c,MatthewHink,Re-add crate stack vec leader code as fallback.,unnecessary,MatthewHink,,Git blame shows edd30ed8 in synse-server. The code is there but the hash looks like it is from a later commit.
+7800f2d,MatthewHink,Rename existing thermistor device file.,completed,MatthewHink,7d8ec60,File exists since these commits.
+5f65eec,MatthewHink,Support max 11610 thermistor. Testing.,completed,MatthewHink,7d8ec60,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec."
+cdcbeda,MatthewHink,Merge pull request #240 from vapor-ware/mhink-old-stack,unnecessary,MatthewHink,,Vec leader code is in both repos. Likely 7d8ec60 on synse-server.
+5ea78f4,MatthewHink,Import subclasses so get_all_subclasses finds them.,completed,MatthewHink,7d8ec60,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4."
+7310e6d,MatthewHink,Merge pull request #241 from vapor-ware/mhink-therm,completed,MatthewHink,4bf140d,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4, 7310e6d, ada37ba."
+3cdd544,MatthewHink,Add max-11610 thermistors. Get Austin setup.,completed,MatthewHink,4bf140d,
+e04c13a,MatthewHink,Merge pull request #243 from vapor-ware/mhink-austin-crush,unnecessary,MatthewHink,,This is all synse-server-internal code.
+ada37ba,MatthewHink,board_id should be in hex.,completed,MatthewHink,4bf140d,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d."
+ee2b1bb,Tim,Unfuck a little of what the move fucked,unnecessary,MatthewHink,,synse-server-internal only.
+0ea1ba6,MatthewHink,Merge pull request #244 from vapor-ware/mhink-hex,completed,MatthewHink,4bf140d,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4, 7310e6d, ada37ba, 0ea1ba6."
+b52bbec,MatthewHink,Support multiple fan motors.,completed,MatthewHink,b3e417f,b3e417f
+d9a89e7,MatthewHink,Merge pull request #246 from vapor-ware/mhink-fan-pr,completed,MatthewHink,b3e417f,
+ff45677,MatthewHink,Bump up PLC timeouts. Add sleeps to allow emulators to confi,completed,MatthewHink,6fe34d2,
+5017ba4,MatthewHink,Merge pull request #247 from vapor-ware/mhink-plc-tests,completed,MatthewHink,6fe34d2,
+c3d1d96,MatthewHink,synse-server-internal image.,unnecessary,MatthewHink,,internal only code
+ee6db49,MatthewHink,Merge pull request #249 from vapor-ware/mhink-image,unnecessary,MatthewHink,,internal only code
+4340e0c,MatthewHink,Do not fail synse startup on device registration failure.,completed,MatthewHink,a57e63b,
+8f66fcf,MatthewHink,Merge pull request #253 from vapor-ware/mhink-device-fail,completed,MatthewHink,9561a01,
+8bae68a,MatthewHink,Airflow status register reads.,unnecessary,MatthewHink,,internal only code
+1f2895e,MatthewHink,I2c daemon. Configure pressure sensors.,unnecessary,MatthewHink,,internal only code
+a16c3a1,MatthewHink,Merge pull request #257 from vapor-ware/mhink-dp-config,unnecessary,MatthewHink,,internal only code
+0bd3889,MatthewHink,Issue 258. Fix potential bus collision on startup.,unnecessary,MatthewHink,,internal only code
+377e227,MatthewHink,Merge pull request #259 from vapor-ware/mhink-collision-crus,unnecessary,MatthewHink,,internal only code
+6720569,MatthewHink,Demo leds and thermistors.,unnecessary,MatthewHink,,LED demo is internal only code
+5a6cd40,MatthewHink,Merge pull request #260 from vapor-ware/mhink-led-therm-crus,unnecessary,MatthewHink,,LED demo is internal only code
+4764a44,MatthewHink,Get fan_sensors route working w/o dp sensors configured or b,completed,MatthewHink,7861236,
+2d71fc3,MatthewHink,Merge pull request #261 from vapor-ware/mhink-no-pressure-cr,completed,MatthewHink,c0567f1,
+739b834,MatthewHink,Merge pull request #256 from vapor-ware/mhink-air-status,unnecessary,MatthewHink,,internal only code
+0153cea,MatthewHink,Remove version sentinel.,open,MatthewHink,,*** Needs to be ported. ***
+453b521,MatthewHink,Merge pull request #262 from vapor-ware/mhink-no-version,open,MatthewHink,,*** Needs to be ported. Same as 0153cea. ***
+1be4139,MatthewHink,Locking around the readers and writers.,unnecessary,MatthewHink,,daemons are internal only code
+0d15de3,MatthewHink,Merge pull request #263 from vapor-ware/mhink-locks2,unnecessary,MatthewHink,,daemons are internal only code
+7cd7d1f,MatthewHink,Write fan speed as string.,unnecessary,MatthewHink,,daemons are internal only code
+6d693de,MatthewHink,Merge pull request #264 from vapor-ware/mhink-fan-write,unnecessary,MatthewHink,,daemons are internal only code
+9745e2a,MatthewHink,Base fan controller class. Common modbus functionality.,completed,MatthewHink,edd30ed,
+e52aa71,MatthewHink,Merge pull request #265 from vapor-ware/mhink-fan-controller,completed,MatthewHink,b3a9f28,
 8f09ce4,MatthewHink,Support for EBM Papst fan controller.,open,,,
 20181cf,MatthewHink,Merge pull request #266 from vapor-ware/mhink-new-fan-crush,open,,,
-7d8ec82,MatthewHink,I2c / command line code for door locks.,open,,,
-2dbdd78,MatthewHink,Merge pull request #269 from vapor-ware/mhink-lock3,open,,,
-491dd78,MatthewHink,Add routes for RCI 3525 door locks.,open,,,
-8e36f70,MatthewHink,Merge pull request #271 from vapor-ware/mhink-lock-routes-cr,open,,,
-632e666,MatthewHink,Return lock status on set operations.,open,,,
-460117b,MatthewHink,Merge pull request #274 from vapor-ware/mhink-lock-status,open,,,
-e1bd169,MatthewHink,Lock support for i2c daemon.,open,,,
-24ebf49,MatthewHink,Merge pull request #276 from vapor-ware/mhink-lock-daemon-cr,open,,,
-b6b719a,MatthewHink,Do not completely bomb in an exception handler.,open,,,
-6dce9e4,MatthewHink,Merge pull request #277 from vapor-ware/mhink-sins-of-the-pa,open,,,
+7d8ec82,MatthewHink,I2c / command line code for door locks.,completed,MatthewHink,5b1e4a5,
+2dbdd78,MatthewHink,Merge pull request #269 from vapor-ware/mhink-lock3,completed,MatthewHink,6835572,
+491dd78,MatthewHink,Add routes for RCI 3525 door locks.,completed,MatthewHink,dcce540,
+8e36f70,MatthewHink,Merge pull request #271 from vapor-ware/mhink-lock-routes-cr,completed,MatthewHink,daccd60,
+632e666,MatthewHink,Return lock status on set operations.,completed,MatthewHink,dcce540,"synse-server-internal commits 491dd78, 8e36f70, 632e666, 460117b correspond to synse-server commits 460117b, daccd60"
+460117b,MatthewHink,Merge pull request #274 from vapor-ware/mhink-lock-status,completed,MatthewHink,dcce540,"synse-server-internal commits 491dd78, 8e36f70, 632e666, 460117b correspond to synse-server commits 460117b, daccd60"
+e1bd169,MatthewHink,Lock support for i2c daemon.,unnecessary,MatthewHink,,daemons are internal only code
+24ebf49,MatthewHink,Merge pull request #276 from vapor-ware/mhink-lock-daemon-cr,unnecessary,MatthewHink,,daemons are internal only code
+b6b719a,MatthewHink,Do not completely bomb in an exception handler.,completed,MatthewHink,8641fa9,
+6dce9e4,MatthewHink,Merge pull request #277 from vapor-ware/mhink-sins-of-the-pa,completed,MatthewHink,1747970,
 b0254b5,Erick Daniszewski,update ci to build and push image,open,,,
 a600e74,Erick Daniszewski,Merge pull request #278 from vapor-ware/ci-push,open,,,
-91d0b6a,MatthewHink,ECblue fan controller.,open,,,
-e9cf2a4,MatthewHink,Merge pull request #280 from vapor-ware/mhink-ecblue-cleanup,open,,,
-3682acb,MatthewHink,Tool for tracking synse-server and synse-server-internal com,open,,,
+91d0b6a,MatthewHink,ECblue fan controller.,completed,MatthewHink,77e0ce9,
+e9cf2a4,MatthewHink,Merge pull request #280 from vapor-ware/mhink-ecblue-cleanup,completed,MatthewHink,f4f6fa1,
+3cf51f1,MatthewHink,Tool for tracking synse-server and synse-server-internal com,unnecessary,MatthewHink,,internal only tool
+e743174,MatthewHink,Merge pull request #286 from vapor-ware/mhink-synseport-crus,unnecessary,MatthewHink,,internal only tool
