@@ -229,7 +229,8 @@ def _mark(config, args):
     # files, so ensure the remote commit exists prior to updating anything.
     # If the remote commit does not exist, this find will raise and nothing
     # shall be updated.
-    if args.status != 'u' and args.status != 'unnecessary':
+    if args.status != 'u' and args.status != 'unnecessary' \
+            and args.status != 'o' and args.status != 'open':
         data_file_remote = _get_other_repo_data_file(args.git_repo)
 
         # Find the remote line to update.

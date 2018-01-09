@@ -57,7 +57,6 @@ class DataFileLine(object):
         Update the porter field in DataFileLine line.
         :param porter: The data to update porter to.
         """
-        logger.info('self.porter: [{}], porter: [{}]'.format(self.porter, porter))
         if self.porter:
             if self.porter != porter:
                 logger.warn('Overwriting exiting porter {} with {}.'.format(
