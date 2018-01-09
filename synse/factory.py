@@ -7,9 +7,9 @@ from sanic import Sanic
 from sanic.exceptions import NotFound, ServerError
 from sanic.response import text
 
-from synse import errors
+from synse import config, errors
 from synse.cache import configure_cache
-from synse.log import logger, setup_logger
+from synse.log import setup_logger
 from synse.response import json
 from synse.routes import aliases, base, core
 
@@ -23,13 +23,10 @@ def make_app():
         Sanic: A Sanic application setup and configured to serve
             Synse Server routes.
     """
-    app = Sanic(__name__)
+    app = Sanic(__name__, log_config=config.LOGGING)
     app.config.LOGO = None
 
     setup_logger()
-
-    # make sure our logger is enabled
-    logger.disabled = False
 
     # register the blueprints
     app.blueprint(aliases.bp)

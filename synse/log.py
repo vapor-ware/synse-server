@@ -2,16 +2,18 @@
 """
 
 import logging
-import logging.config
 
-from synse.config import LOGGING
+from synse import config
 
 logger = logging.getLogger('synse')
 
 
-def setup_logger():
+def setup_logger(level=logging.INFO):
     """Configure the Synse Server logger.
+
+    Args:
+        level (int): The logging level to set the 'synse' logger to.
     """
-    logging.config.dictConfig(LOGGING)
-    logger.setLevel(logging.DEBUG)
-    logger.disabled = False
+    if config.options.get('debug'):
+        level = logging.DEBUG
+    logger.setLevel(level)

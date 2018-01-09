@@ -6,41 +6,57 @@ import sys
 
 import configargparse
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
+LOGGING = dict(
+    version=1,
+    disable_existing_loggers=False,
 
-    'formatters': {
+    formatters={
         'standard': {
             'format': '%(asctime)s - (%(name)s)[%(levelname)s] %(module)s:%(lineno)s: %(message)s',
-            'datefmt': '%Y-%m-%d %H:%M:%S'
+            'datefmt': '[%Y-%m-%d %H:%M:%S %z]',
+            'class': 'logging.Formatter'
         }
     },
-    'handlers': {
-        'debug': {
+    handlers={
+        'access': {
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
-            'level': 'DEBUG',
-            'stream': sys.stderr
+            'stream': sys.stdout
         },
         'error': {
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
-            'level': 'ERROR',
             'stream': sys.stderr
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+            'stream': sys.stdout
         }
     },
-    'loggers': {
+    loggers={
+        'root': {
+            'level': 'INFO',
+            'handlers': ['console']
+        },
+        'sanic.error': {
+            'level': 'INFO',
+            'handlers': ['error'],
+            'propagate': True,
+            'qualname': 'sanic.error'
+        },
+        'sanic.access': {
+            'level': 'INFO',
+            'handlers': ['access'],
+            'propagate': True,
+            'qualname': 'sanic.access'
+        },
         'synse': {
-            'level': 'DEBUG',
-            'handlers': ['debug', 'error']
+            'level': 'INFO',
+            'handlers': ['access']
         }
-    },
-    'root': {
-        'propagate': False,
-        'handlers': ['error']
     }
-}
+)
 
 
 AIOCACHE = {

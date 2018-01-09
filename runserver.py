@@ -14,5 +14,4 @@ if __name__ == '__main__':
     app.run(
         host=config.options.get('host'),
         port=config.options.get('port'),
-        log_config=config.LOGGING
     )
