@@ -41,3 +41,5 @@ b8f221d,Tim,Always use lates,open,,,
 1747970,MatthewHink,Merge pull request #25 from vapor-ware/mhink-dumb-dumb-dumb,completed,MatthewHink,6dce9e4,
 77e0ce9,MatthewHink,ECblue fan controller.,completed,MatthewHink,91d0b6a,
 f4f6fa1,MatthewHink,Merge pull request #26 from vapor-ware/mhink-ecblue,completed,MatthewHink,e9cf2a4,
+96bc677,MatthewHink,Remove version sentinel.,completed,MatthewHink,5816e2e,synse-server-internal commits 0153cea 453b521 5816e2e d6e06dc correspond to synse-server commits 96bc677 b0f9df9.
+b0f9df9,MatthewHink,Merge pull request #27 from vapor-ware/mhink-version-sentine,completed,MatthewHink,d6e06dc,synse-server-internal commits 0153cea 453b521 5816e2e d6e06dc correspond to synse-server commits 96bc677 b0f9df9.

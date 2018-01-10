@@ -28,16 +28,16 @@ a16c3a1,MatthewHink,Merge pull request #257 from vapor-ware/mhink-dp-config,unne
 4764a44,MatthewHink,Get fan_sensors route working w/o dp sensors configured or b,completed,MatthewHink,7861236,
 2d71fc3,MatthewHink,Merge pull request #261 from vapor-ware/mhink-no-pressure-cr,completed,MatthewHink,c0567f1,
 739b834,MatthewHink,Merge pull request #256 from vapor-ware/mhink-air-status,unnecessary,MatthewHink,,internal only code
-0153cea,MatthewHink,Remove version sentinel.,open,MatthewHink,,*** Needs to be ported. ***
-453b521,MatthewHink,Merge pull request #262 from vapor-ware/mhink-no-version,open,MatthewHink,,*** Needs to be ported. Same as 0153cea. ***
+0153cea,MatthewHink,Remove version sentinel.,completed,MatthewHink,96bc677,synse-server-internal commits 0153cea 453b521 5816e2e d6e06dc correspond to synse-server commits 96bc677 b0f9df9.
+453b521,MatthewHink,Merge pull request #262 from vapor-ware/mhink-no-version,completed,MatthewHink,96bc677,synse-server-internal commits 0153cea 453b521 5816e2e d6e06dc correspond to synse-server commits 96bc677 b0f9df9.
 1be4139,MatthewHink,Locking around the readers and writers.,unnecessary,MatthewHink,,daemons are internal only code
 0d15de3,MatthewHink,Merge pull request #263 from vapor-ware/mhink-locks2,unnecessary,MatthewHink,,daemons are internal only code
 7cd7d1f,MatthewHink,Write fan speed as string.,unnecessary,MatthewHink,,daemons are internal only code
 6d693de,MatthewHink,Merge pull request #264 from vapor-ware/mhink-fan-write,unnecessary,MatthewHink,,daemons are internal only code
 9745e2a,MatthewHink,Base fan controller class. Common modbus functionality.,completed,MatthewHink,edd30ed,
 e52aa71,MatthewHink,Merge pull request #265 from vapor-ware/mhink-fan-controller,completed,MatthewHink,b3a9f28,
-8f09ce4,MatthewHink,Support for EBM Papst fan controller.,open,,,
-20181cf,MatthewHink,Merge pull request #266 from vapor-ware/mhink-new-fan-crush,open,,,
+8f09ce4,MatthewHink,Support for EBM Papst fan controller.,unnecessary,MatthewHink,,Not needed. We switched to a different fan controller with commit 91d0b6a. ported as 77e0ce9
+20181cf,MatthewHink,Merge pull request #266 from vapor-ware/mhink-new-fan-crush,unnecessary,MatthewHink,,Not needed. We switched to a different fan controller with commit 91d0b6a. ported as 77e0ce9
 7d8ec82,MatthewHink,I2c / command line code for door locks.,completed,MatthewHink,5b1e4a5,
 2dbdd78,MatthewHink,Merge pull request #269 from vapor-ware/mhink-lock3,completed,MatthewHink,6835572,
 491dd78,MatthewHink,Add routes for RCI 3525 door locks.,completed,MatthewHink,dcce540,
@@ -48,9 +48,15 @@ e1bd169,MatthewHink,Lock support for i2c daemon.,unnecessary,MatthewHink,,daemon
 24ebf49,MatthewHink,Merge pull request #276 from vapor-ware/mhink-lock-daemon-cr,unnecessary,MatthewHink,,daemons are internal only code
 b6b719a,MatthewHink,Do not completely bomb in an exception handler.,completed,MatthewHink,8641fa9,
 6dce9e4,MatthewHink,Merge pull request #277 from vapor-ware/mhink-sins-of-the-pa,completed,MatthewHink,1747970,
-b0254b5,Erick Daniszewski,update ci to build and push image,open,,,
-a600e74,Erick Daniszewski,Merge pull request #278 from vapor-ware/ci-push,open,,,
+b0254b5,Erick Daniszewski,update ci to build and push image,unnecessary,MatthewHink,,internal only commit. synse-server already builds and pushes the image.
+a600e74,Erick Daniszewski,Merge pull request #278 from vapor-ware/ci-push,unnecessary,MatthewHink,,internal only commit. synse-server already builds and pushes the image.
 91d0b6a,MatthewHink,ECblue fan controller.,completed,MatthewHink,77e0ce9,
 e9cf2a4,MatthewHink,Merge pull request #280 from vapor-ware/mhink-ecblue-cleanup,completed,MatthewHink,f4f6fa1,
 3cf51f1,MatthewHink,Tool for tracking synse-server and synse-server-internal com,unnecessary,MatthewHink,,internal only tool
 e743174,MatthewHink,Merge pull request #286 from vapor-ware/mhink-synseport-crus,unnecessary,MatthewHink,,internal only tool
+3842aaf,MatthewHink,Updating tracking commit data.,unnecessary,MatthewHink,,internal only commit
+c9286a3,MatthewHink,Merge pull request #291 from vapor-ware/mhink-ports,unnecessary,MatthewHink,,internal only commit
+0acccc9,MatthewHink,Next pass through synse/internal commits.,unnecessary,MatthewHink,,internal only commit
+7c3b696,MatthewHink,Merge pull request #292 from vapor-ware/mhink-ports2,unnecessary,MatthewHink,,internal only commit
+5816e2e,MatthewHink,Remove version sentinel.,completed,MatthewHink,96bc677,synse-server-internal commits 0153cea 453b521 5816e2e d6e06dc correspond to synse-server commits 96bc677 b0f9df9.
+d6e06dc,MatthewHink,Merge pull request #293 from vapor-ware/mhink-remove-version,completed,MatthewHink,b0f9df9,synse-server-internal commits 0153cea 453b521 5816e2e d6e06dc correspond to synse-server commits 96bc677 b0f9df9.
