@@ -5,15 +5,15 @@ hash,author,message,status,porter,remote commit,notes
 cdcbeda,MatthewHink,Merge pull request #240 from vapor-ware/mhink-old-stack,unnecessary,MatthewHink,,Vec leader code is in both repos. Likely 7d8ec60 on synse-server.
 5ea78f4,MatthewHink,Import subclasses so get_all_subclasses finds them.,completed,MatthewHink,7d8ec60,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4."
 7310e6d,MatthewHink,Merge pull request #241 from vapor-ware/mhink-therm,completed,MatthewHink,4bf140d,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4, 7310e6d, ada37ba."
-3cdd544,MatthewHink,Add max-11610 thermistors. Get Austin setup.,completed,MatthewHink,4bf140d,
+3cdd544,MatthewHink,Add max-11610 thermistors. Get Austin setup.,completed,MatthewHink,4bf140d,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d, ada37ba, 0ea1ba6."
 e04c13a,MatthewHink,Merge pull request #243 from vapor-ware/mhink-austin-crush,unnecessary,MatthewHink,,This is all synse-server-internal code.
-ada37ba,MatthewHink,board_id should be in hex.,completed,MatthewHink,4bf140d,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d."
+ada37ba,MatthewHink,board_id should be in hex.,completed,MatthewHink,4bf140d,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d, ada37ba, 0ea1ba6."
 ee2b1bb,Tim,Unfuck a little of what the move fucked,unnecessary,MatthewHink,,synse-server-internal only.
-0ea1ba6,MatthewHink,Merge pull request #244 from vapor-ware/mhink-hex,completed,MatthewHink,4bf140d,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4, 7310e6d, ada37ba, 0ea1ba6."
+0ea1ba6,MatthewHink,Merge pull request #244 from vapor-ware/mhink-hex,completed,MatthewHink,1d7e61a,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d, ada37ba, 0ea1ba6.."
 b52bbec,MatthewHink,Support multiple fan motors.,completed,MatthewHink,b3e417f,b3e417f
-d9a89e7,MatthewHink,Merge pull request #246 from vapor-ware/mhink-fan-pr,completed,MatthewHink,b3e417f,
+d9a89e7,MatthewHink,Merge pull request #246 from vapor-ware/mhink-fan-pr,completed,MatthewHink,f0ab45c,b3e417f
 ff45677,MatthewHink,Bump up PLC timeouts. Add sleeps to allow emulators to confi,completed,MatthewHink,6fe34d2,
-5017ba4,MatthewHink,Merge pull request #247 from vapor-ware/mhink-plc-tests,completed,MatthewHink,6fe34d2,
+5017ba4,MatthewHink,Merge pull request #247 from vapor-ware/mhink-plc-tests,completed,MatthewHink,368a8f8,
 c3d1d96,MatthewHink,synse-server-internal image.,unnecessary,MatthewHink,,internal only code
 ee6db49,MatthewHink,Merge pull request #249 from vapor-ware/mhink-image,unnecessary,MatthewHink,,internal only code
 4340e0c,MatthewHink,Do not fail synse startup on device registration failure.,completed,MatthewHink,a57e63b,

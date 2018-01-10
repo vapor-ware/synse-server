@@ -1,27 +1,27 @@
 hash,author,message,status,porter,remote commit,notes
-b5f4df6,Erick Daniszewski,Initial commit,open,,,
-7d8ec60,Erick Daniszewski,synse 1.4 open sourcing,completed,MatthewHink,7310e6d,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4, 7310e6d."
-ea639ba,Erick Daniszewski,Merge pull request #1 from vapor-ware/synse,open,,,
-f6d3429,Erick Daniszewski,Update README.md,open,,,
-8e282b2,Tim,Fix CircleCI badge,open,,,
-0dbcf17,Erick Daniszewski,add readthedocs badge,open,,,
-329dedf,Erick Daniszewski,fix typos in docs,open,,,
-4bf140d,MatthewHink,Port 3cdd5441. Add max-11610 thermistors. Get Austin setup.,completed,MatthewHink,b52bbec,"7d8ec60 is a big rollup sysne-server commit. Contains internal commits 7800f2d, 5f65eec, 5ea78f4, 7310e6d, ada37ba, 0ea1ba6, b52bbec."
-c5e03ea,Erick Daniszewski,update the notice file  remove requirements no longer used.,open,,,
-1d7e61a,MatthewHink,Merge pull request #7 from vapor-ware/mhink-austin-port-crus,open,,,
+b5f4df6,Erick Daniszewski,Initial commit,unnecessary,MatthewHink,,Tiny readme commit.
+7d8ec60,Erick Daniszewski,synse 1.4 open sourcing,unnecessary,MatthewHink,7310e6d,Initial monster commit. We will never get through this.
+ea639ba,Erick Daniszewski,Merge pull request #1 from vapor-ware/synse,unnecessary,MatthewHink,,Initial monster commit. We will never get through this.
+f6d3429,Erick Daniszewski,Update README.md,open,MatthewHink,,Still need to port this.
+8e282b2,Tim,Fix CircleCI badge,open,MatthewHink,,Still need to port this.
+0dbcf17,Erick Daniszewski,add readthedocs badge,open,MatthewHink,,Still need to port this.
+329dedf,Erick Daniszewski,fix typos in docs,open,MatthewHink,,Still need to port this.
+4bf140d,MatthewHink,Port 3cdd5441. Add max-11610 thermistors. Get Austin setup.,completed,MatthewHink,0ea1ba6,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d, ada37ba, 0ea1ba6."
+c5e03ea,Erick Daniszewski,update the notice file  remove requirements no longer used.,open,MatthewHink,,Still need to port this.
+1d7e61a,MatthewHink,Merge pull request #7 from vapor-ware/mhink-austin-port-crus,completed,MatthewHink,0ea1ba6,"synse-server 4bf140d includes synse-server-internal commits 3cdd544, 7310e6d, ada37ba, 0ea1ba6.."
 b3e417f,MatthewHink,Support multiple fan motors. Port of b52bbec5.,completed,MatthewHink,d9a89e7,b3e417f
-f0ab45c,MatthewHink,Merge pull request #10 from vapor-ware/mhink-fan,open,,,
-4878078,MatthewHink,Remove indirect reads from i2c devices.,open,,,
+f0ab45c,MatthewHink,Merge pull request #10 from vapor-ware/mhink-fan,completed,MatthewHink,d9a89e7,b3e417f
+4878078,MatthewHink,Remove indirect reads from i2c devices.,unnecessary,MatthewHink,,remove internal only code
 6fe34d2,MatthewHink,Bump up PLC timeouts. Add sleeps to allow emulators to confi,completed,MatthewHink,5017ba4,
-368a8f8,MatthewHink,Merge pull request #12 from vapor-ware/mhink-plc-tests,open,,,
-4d5f8a4,MatthewHink,Merge branch 'master' into mhink-no-indirect-i2c,open,,,
-fd94419,MatthewHink,Merge pull request #13 from vapor-ware/mhink-no-indirect-i2c,open,,,
-af0ea6f,MatthewHink,Remove fan sensors code.,open,,,
-8403d15,MatthewHink,Merge pull request #14 from vapor-ware/mhink-fan-sensors,open,,,
-7f604a4,MatthewHink,Remove indirect reads from rs485 devices.,open,,,
-02e4e6d,MatthewHink,Merge pull request #15 from vapor-ware/mhink-no-indirect-rs4,open,,,
-a6ea7fc,Erick Daniszewski,Merge branch 'master' of https://github.com/vapor-ware/synse,open,,,
-aa43a66,Erick Daniszewski,Merge pull request #9 from vapor-ware/notice-updates,open,,,
+368a8f8,MatthewHink,Merge pull request #12 from vapor-ware/mhink-plc-tests,completed,MatthewHink,5017ba4,
+4d5f8a4,MatthewHink,Merge branch 'master' into mhink-no-indirect-i2c,unnecessary,MatthewHink,,remove internal only code
+fd94419,MatthewHink,Merge pull request #13 from vapor-ware/mhink-no-indirect-i2c,unnecessary,MatthewHink,,remove internal only code
+af0ea6f,MatthewHink,Remove fan sensors code.,unnecessary,MatthewHink,,remove internal only code
+8403d15,MatthewHink,Merge pull request #14 from vapor-ware/mhink-fan-sensors,unnecessary,MatthewHink,,remove internal only code
+7f604a4,MatthewHink,Remove indirect reads from rs485 devices.,unnecessary,MatthewHink,,remove internal only code
+02e4e6d,MatthewHink,Merge pull request #15 from vapor-ware/mhink-no-indirect-rs4,unnecessary,MatthewHink,,remove internal only code
+a6ea7fc,Erick Daniszewski,Merge branch 'master' of https://github.com/vapor-ware/synse,unnecessary,MatthewHink,,This commit is a rollup of other commits.
+aa43a66,Erick Daniszewski,Merge pull request #9 from vapor-ware/notice-updates,open,MatthewHink,,Still need to port this.
 a57e63b,MatthewHink,Do not fail synse startup on device registration failure.,completed,MatthewHink,4340e0c,
 9561a01,MatthewHink,Merge pull request #16 from vapor-ware/mhink-device-fail,completed,MatthewHink,8f66fcf,
 7861236,MatthewHink,Reading a broken DP sensor returns no reading.,completed,MatthewHink,4764a44,
