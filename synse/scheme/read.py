@@ -61,7 +61,7 @@ class ReadResponse(SynseResponse):
         Returns:
             dict: A properly formatted Read response.
         """
-        logger.debug('Making read response')
+        logger.debug(gettext('Making read response'))
         formatted = {}
 
         dev_output = self.device.output
@@ -74,7 +74,7 @@ class ReadResponse(SynseResponse):
             name = ''
             precision = None
 
-            logger.debug('device output: {}'.format(dev_output))
+            logger.debug(gettext('device output: {}').format(dev_output))
             found = False
             for out in dev_output:
                 if out.type == rt:
@@ -89,11 +89,12 @@ class ReadResponse(SynseResponse):
             # return it, and instead will just just skip over it.
             if not found:
                 logger.warning(
-                    'Found unexpected reading type "{}" for device {}'.format(rt, self.device)
+                    gettext('Found unexpected reading type "{}" for device {}')
+                    .format(rt, self.device)
                 )
                 continue
 
-            logger.debug('  Precision: {}'.format(precision))
+            logger.debug(gettext('  Precision: {}').format(precision))
             value = reading.value
             if precision:
                 value = str(round(float(value), precision))

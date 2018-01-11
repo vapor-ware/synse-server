@@ -39,7 +39,7 @@ async def led_route(request, rack, board, device):
         if param_state:
             if param_state not in (const.LED_ON, const.LED_OFF):
                 raise errors.SynseError(
-                    'Invalid state: {}'.format(param_state),
+                    gettext('Invalid state: {}').format(param_state),
                     errors.INVALID_ARGUMENTS
                 )
 
@@ -51,7 +51,7 @@ async def led_route(request, rack, board, device):
         if param_blink:
             if param_blink not in (const.LED_BLINK, const.LED_STEADY):
                 raise errors.SynseError(
-                    'Invalid blink state: {}'.format(param_blink),
+                    gettext('Invalid blink state: {}').format(param_blink),
                     errors.INVALID_ARGUMENTS
                 )
 
@@ -147,7 +147,7 @@ async def power_route(request, rack, board, device):
     if param_state is not None:
         if param_state not in (const.PWR_ON, const.PWR_OFF, const.PWR_CYCLE):
             raise errors.SynseError(
-                'Invalid power state: {}'.format(param_state),
+                gettext('Invalid power state: {}').format(param_state),
                 errors.INVALID_ARGUMENTS
             )
 
@@ -189,7 +189,7 @@ async def boot_target_route(request, rack, board, device):
     if param_target is not None:
         if param_target not in (const.BT_PXE, const.BT_HDD):
             raise errors.SynseError(
-                'Invalid boot target: {}'.format(param_target),
+                gettext('Invalid boot target: {}').format(param_target),
                 errors.INVALID_ARGUMENTS
             )
 

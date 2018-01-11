@@ -49,10 +49,6 @@ results/
 prof/
 *.log
 
-# Translations
-*.mo
-*.pot
-
 # Flask stuff:
 instance/
 .webassets-cache

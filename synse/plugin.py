@@ -38,14 +38,14 @@ class PluginManager(object):
         """
         if not isinstance(plugin, Plugin):
             raise ValueError(
-                'Only Plugin instances can be added to the manager.'
+                gettext('Only Plugin instances can be added to the manager.')
             )
 
         name = plugin.name
         if name in self.plugins:
             raise ValueError(
-                'The given Plugin ("{}") already exists in the managed '
-                'dictionary.'.format(name)
+                gettext('The given Plugin ("{}") already exists in the managed dictionary.')
+                .format(name)
             )
 
         self.plugins[name] = plugin
@@ -60,7 +60,10 @@ class PluginManager(object):
             name (str): The name of the Plugin to remove.
         """
         if name not in self.plugins:
-            logger.debug('"{}" is not known to PluginManager - will not remove.'.format(name))
+            logger.debug(
+                gettext('"{}" is not known to PluginManager - will not remove.')
+                .format(name)
+            )
         else:
             del self.plugins[name]
 
@@ -73,7 +76,7 @@ class PluginManager(object):
         for name in names:
             if name in self.plugins:
                 del self.plugins[name]
-        logger.debug('PluginManager purged: {}'.format(names))
+        logger.debug(gettext('PluginManager purged: {}').format(names))
 
 
 class Plugin(object):
@@ -111,12 +114,14 @@ class Plugin(object):
         """Validate the plugin mode."""
         if self.mode not in ['tcp', 'unix']:
             raise ValueError(
-                'The given mode must be "tcp" or "unix" but was {}'.format(self.mode)
+                gettext('The given mode must be "tcp" or "unix" but was {}').format(self.mode)
             )
 
         if self.mode == 'unix':
             if not os.path.exists(self.addr):
-                raise ValueError('The given unix socket ({}) must exist.'.format(self.addr))
+                raise ValueError(
+                    gettext('The given unix socket ({}) must exist.').format(self.addr)
+                )
 
 
 Plugin.manager = PluginManager()
@@ -163,10 +168,10 @@ def register_plugins():
 
     # now that we have found all current plugins, we will want to clear out
     # any old plugins which may no longer be present.
-    logger.debug('Plugins to be removed from manager: {}'.format(diff))
+    logger.debug(gettext('Plugins to be removed from manager: {}').format(diff))
     Plugin.manager.purge(diff)
 
-    logger.debug('done registering plugins')
+    logger.debug(gettext('done registering plugins'))
 
 
 def register_unix_plugins():
@@ -175,14 +180,14 @@ def register_unix_plugins():
     Returns:
         list[str]: The names of all plugins that were registered.
     """
-    logger.debug('Registering plugins (unix)')
+    logger.debug(gettext('Registering plugins (unix)'))
     if not os.path.exists(BG_SOCKS):
         raise ValueError(
-            '{} does not exist - unable to get unix plugin '
-            'sockets.'.format(BG_SOCKS)
+            gettext('{} does not exist - unable to get unix plugin sockets.')
+            .format(BG_SOCKS)
         )
 
-    logger.debug('socket dir exists')
+    logger.debug(gettext('socket dir exists'))
 
     manager = Plugin.manager
 
@@ -203,12 +208,14 @@ def register_unix_plugins():
             if manager.get(name) is None:
                 # a new plugin gets added to the manager on initialization.
                 plugin = Plugin(name=name, address=fqn, mode='unix')
-                logger.debug('Created new plugin (unix): {}'.format(plugin))
+                logger.debug(gettext('Created new plugin (unix): {}').format(plugin))
             else:
-                logger.info('plugin "{}" already exists - will not re-register (unix)'.format(name))
+                logger.info(
+                    gettext('plugin "{}" already exists - will not re-register (unix)').format(name)
+                )
 
         else:
-            logger.debug('file is not a socket.. {}'.format(fqn))
+            logger.debug(gettext('file is not a socket.. {}').format(fqn))
 
     return list(set(registered))
 
@@ -219,11 +226,11 @@ def register_tcp_plugins():
     Return:
         list[str]: The names of all plugins that were registered.
     """
-    logger.debug('Registering plugins (tcp)')
+    logger.debug(gettext('Registering plugins (tcp)'))
 
     configured = {k: v for k, v in os.environ.items() if k.startswith('SYNSE_PLUGIN_')}
     if not configured:
-        logger.debug('found no plugins configured for tcp')
+        logger.debug(gettext('found no plugins configured for tcp'))
         return []
 
     manager = Plugin.manager
@@ -241,8 +248,10 @@ def register_tcp_plugins():
         if manager.get(name) is None:
             # a new plugin gets added to the manager on initialization.
             plugin = Plugin(name=name, address=v, mode='tcp')
-            logger.debug('Created new plugin (tcp): {}'.format(plugin))
+            logger.debug(gettext('Created new plugin (tcp): {}').format(plugin))
         else:
-            logger.info('plugin "{}" already exists - will not re-register (tcp)'.format(name))
+            logger.info(
+                gettext('plugin "{}" already exists - will not re-register (tcp)').format(name)
+            )
 
     return list(set(registered))

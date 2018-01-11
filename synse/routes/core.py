@@ -41,7 +41,7 @@ async def scan_route(request, rack=None, board=None):
     param_force = request.raw_args.get('force')
     if param_force is not None:
         force = param_force.lower() == 'true'
-        logger.debug('forcing re-scan? {}'.format(force))
+        logger.debug(gettext('forcing re-scan? {}').format(force))
     else:
         force = False
 
@@ -84,11 +84,11 @@ async def write_route(request, rack, board, device):
     """
     # FIXME - probably want a try/except?
     data = request.json
-    logger.debug('WRITE -> json: {}'.format(data))
+    logger.debug(gettext('WRITE -> json: {}').format(data))
 
     if not any([x in data for x in ['action', 'raw']]):
         raise errors.SynseError(
-            'Invalid data POSTed for write. Must contain "action" and/or "raw".'
+            gettext('Invalid data POSTed for write. Must contain "action" and/or "raw".')
         )
 
     response = await commands.write(rack, board, device, data)

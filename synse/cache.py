@@ -23,7 +23,7 @@ transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
 
 def configure_cache():
     """Set the configuration for the asynchronous cache used by Synse."""
-    logger.debug('CONFIGURING CACHE: {}'.format(AIOCACHE))
+    logger.debug(gettext('CONFIGURING CACHE: {}').format(AIOCACHE))
     aiocache.caches.set_config(AIOCACHE)
 
 
@@ -110,7 +110,7 @@ async def get_device_meta(rack, board, device):
 
     if dev is None:
         raise errors.SynseError(
-            '{} does not correspond with a known device.'.format(
+            gettext('{} does not correspond with a known device.').format(
                 '/'.join([rack, board, device])), errors.DEVICE_NOT_FOUND
         )
     return dev
@@ -145,7 +145,7 @@ async def get_metainfo_cache():
     # that backend.
 
     plugins = Plugin.manager.plugins
-    logger.debug('plugins to scan: {}'.format(plugins))
+    logger.debug(gettext('plugins to scan: {}').format(plugins))
 
     # track which plugins failed to provide metainfo for any reason.
     failures = {}
@@ -169,17 +169,17 @@ async def get_metainfo_cache():
         #   - both
         except grpc.RpcError as ex:
             failures[name] = ex
-            logger.warning('Failed to get metainfo for plugin: {}'.format(name))
+            logger.warning(gettext('Failed to get metainfo for plugin: {}').format(name))
 
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugins and len(plugins) == len(failures):
         raise errors.SynseError(
-            'Failed to scan all plugins: {}'.format(failures),
+            gettext('Failed to scan all plugins: {}').format(failures),
             errors.INTERNAL_API_FAILURE
         )
 
-    logger.debug('Got metainfo cache!')
+    logger.debug(gettext('Got metainfo cache!'))
     return metainfo
 
 
@@ -219,9 +219,9 @@ async def get_scan_cache():
     Returns:
         dict: A dictionary containing the scan command result.
     """
-    logger.debug('Getting scan metainfo cache for scancache')
+    logger.debug(gettext('Getting scan metainfo cache for scancache'))
     _metainfo = await get_metainfo_cache()
-    logger.debug('Building scan cache.')
+    logger.debug(gettext('Building scan cache.'))
     scan_cache = build_scan_cache(_metainfo)
     return scan_cache
 

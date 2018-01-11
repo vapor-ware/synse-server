@@ -19,18 +19,18 @@ async def read(rack, board, device):
     Returns:
         ReadResponse: The "read" response scheme model.
     """
-    logger.debug('>> READ cmd')
+    logger.debug(gettext('>> READ cmd'))
 
     # lookup the known info for the specified device
     dev = await cache.get_device_meta(rack, board, device)
-    logger.debug('  |- got device: {}'.format(dev))
+    logger.debug(gettext('  |- got device: {}').format(dev))
 
     # get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(dev.protocol)
-    logger.debug('  |- got plugin: {}'.format(_plugin))
+    logger.debug(gettext('  |- got plugin: {}').format(_plugin))
     if not _plugin:
         raise errors.SynseError(
-            'Unable to find plugin named "{}" to read.'.format(
+            gettext('Unable to find plugin named "{}" to read.').format(
                 dev.protocol), errors.PLUGIN_NOT_FOUND
         )
 
@@ -38,12 +38,12 @@ async def read(rack, board, device):
     try:
         read_data = [r for r in _plugin.client.read(rack, board, device)]
     except grpc.RpcError as ex:
-        logger.error('  |- (error): {}'.format(ex))
+        logger.error(gettext('  |- (error): {}').format(ex))
         raise errors.SynseError(
-            'Failed to issue a read request.', errors.FAILED_READ_COMMAND
+            gettext('Failed to issue a read request.'), errors.FAILED_READ_COMMAND
         ) from ex
 
-    logger.debug('  |- read results: {}'.format(read_data))
+    logger.debug(gettext('  |- read results: {}').format(read_data))
     return ReadResponse(
         device=dev,
         readings=read_data

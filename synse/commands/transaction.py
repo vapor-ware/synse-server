@@ -30,13 +30,14 @@ async def check_transaction(transaction_id):
         #   alternatively, we could think about having an internal api command to
         #   essentially dump the active transactions so that we can rebuild the cache.
         raise errors.SynseError(
-            'Unable to determine process for the given transaction.', errors.TRANSACTION_NOT_FOUND
+            gettext('Unable to determine process for the given transaction.'),
+            errors.TRANSACTION_NOT_FOUND
         )
 
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
         raise errors.SynseError(
-            'Unable to find plugin named "{}" to read.'.format(
+            gettext('Unable to find plugin named "{}" to read.').format(
                 plugin_name), errors.PLUGIN_NOT_FOUND
         )
 
@@ -44,7 +45,8 @@ async def check_transaction(transaction_id):
         resp = _plugin.client.check_transaction(transaction_id)
     except grpc.RpcError as ex:
         raise errors.SynseError(
-            'Failed to issue a transaction check request.', errors.FAILED_TRANSACTION_COMMAND
+            gettext('Failed to issue a transaction check request.'),
+            errors.FAILED_TRANSACTION_COMMAND
         ) from ex
 
     return TransactionResponse(transaction_id, context, resp)

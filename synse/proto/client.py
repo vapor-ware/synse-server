@@ -79,7 +79,7 @@ class SynseInternalClient(object):
         elif self.mode == 'tcp':
             target = self.addr
         else:
-            raise ValueError('Invalid mode: {}'.format(self.mode))
+            raise ValueError(gettext('Invalid mode: {}').format(self.mode))
 
         return grpc.insecure_channel(target)
 
@@ -118,12 +118,12 @@ class SynseInternalClient(object):
         SynseInternalClient(name, addr, mode)
         cli = cls._client_stubs[name]
 
-        logger.debug('Registered Client:')
+        logger.debug(gettext('Registered Client:'))
         logger.debug('  name:    {}'.format(cli.name))
-        logger.debug('  mode:    {}'.format(cli.mode))
-        logger.debug('  address: {}'.format(cli.addr))
-        logger.debug('  channel: {}'.format(cli.channel))
-        logger.debug('  stub:    {}'.format(cli.stub))
+        logger.debug(gettext('  mode:    {}').format(cli.mode))
+        logger.debug(gettext('  address: {}').format(cli.addr))
+        logger.debug(gettext('  channel: {}').format(cli.channel))
+        logger.debug(gettext('  stub:    {}').format(cli.stub))
         return cli
 
     def read(self, rack, board, device):

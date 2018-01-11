@@ -86,6 +86,7 @@ server_group = parser.add_argument_group('server', 'options for configuring the 
 server_group.add('--port', env_var='SERVER_PORT', default=5000, type=int, help='port to listen on')
 server_group.add('--host', env_var='SERVER_HOST', default='0.0.0.0', type=str, help='the host to run the server on')
 
+parser.add('--locale', env_var='SYNSE_LANG', default='en_US', type=str, choices=['en_US'], help='Locale code for Synse logs and errors.')
 
 options = {}
 

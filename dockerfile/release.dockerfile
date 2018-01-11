@@ -3,6 +3,9 @@ MAINTAINER Vapor IO <vapor@vapor.io>
 
 ENV LANG en_US.utf8
 
+# SYNSE_LANG determines the language to be used in logs and errors.
+ENV SYNSE_LANG en_US
+
 COPY ./requirements.txt requirements.txt
 
 RUN set -e -x \

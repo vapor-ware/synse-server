@@ -29,7 +29,7 @@ async def write(rack, board, device, data):
     _plugin = plugin.get_plugin(dev.protocol)
     if not _plugin:
         raise errors.SynseError(
-            'Unable to find plugin named "{}" to write to.'.format(
+            gettext('Unable to find plugin named "{}" to write to.').format(
                 dev.protocol), errors.PLUGIN_NOT_FOUND
         )
 
@@ -49,7 +49,7 @@ async def write(rack, board, device, data):
         t = _plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
         raise errors.SynseError(
-            'Failed to issue a write request.', errors.FAILED_WRITE_COMMAND
+            gettext('Failed to issue a write request.'), errors.FAILED_WRITE_COMMAND
         ) from ex
 
     # now that we have the transaction info, we want to map it to the corresponding
@@ -61,7 +61,7 @@ async def write(rack, board, device, data):
         }
         ok = await cache.add_transaction(_id, context, _plugin.name)
         if not ok:
-            logger.error('Failed to add transaction {} to the cache.'.format(_id))
+            logger.error(gettext('Failed to add transaction {} to the cache.').format(_id))
 
     return WriteResponse(
         transactions=t.transactions

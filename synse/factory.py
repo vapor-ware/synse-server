@@ -2,6 +2,7 @@
 """
 
 import datetime
+import gettext
 
 from sanic import Sanic
 from sanic.exceptions import NotFound, ServerError
@@ -9,7 +10,7 @@ from sanic.response import text
 
 from synse import config, errors
 from synse.cache import configure_cache
-from synse.log import setup_logger
+from synse.log import logger, setup_logger
 from synse.response import json
 from synse.routes import aliases, base, core
 
@@ -27,6 +28,7 @@ def make_app():
     app.config.LOGO = None
 
     setup_logger()
+    _setup_local()
 
     # register the blueprints
     app.blueprint(aliases.bp)
@@ -39,6 +41,19 @@ def make_app():
     configure_cache()
 
     return app
+
+
+def _setup_local():
+    """Create and install gettext translator.
+
+    Args:
+        domain: String representation of language to use. i.e. en_US
+    """
+    domain = config.options.get('locale')
+    trans = gettext.translation(domain, 'locale', fallback=True)
+    trans.install('gettext')
+    if trans.__class__ == gettext.NullTranslations:
+        logger.warning('Domain {} not supported, defaulting to en_US'.format(domain))
 
 
 def _disable_favicon(app):

@@ -26,9 +26,10 @@ async def scan(rack=None, board=None, force=False):
     # this allows us to pick up any dynamically added plugins and clear out
     # any plugins that were removed.
     if len(plugin.Plugin.manager.plugins) == 0 or force:
+        logger.debug(gettext('Re-registering plugins.'))
         plugin.register_plugins()
 
-    logger.debug('Running "scan" command.')
+    logger.debug(gettext('Running "scan" command.'))
     cache_data = await cache.get_scan_cache()
 
     if rack is not None:
@@ -38,7 +39,8 @@ async def scan(rack=None, board=None, force=False):
                 break
         else:
             raise errors.SynseError(
-                'Rack "{}" not found in scan results.'.format(rack), errors.RACK_NOT_FOUND
+                gettext('Rack "{}" not found in scan results.').format(rack),
+                errors.RACK_NOT_FOUND
             )
 
         if board is not None:
@@ -48,10 +50,11 @@ async def scan(rack=None, board=None, force=False):
                     break
             else:
                 raise errors.SynseError(
-                    'Board "{}" not found in scan results.'.format(board), errors.BOARD_NOT_FOUND
+                    gettext('Board "{}" not found in scan results.').format(board),
+                    errors.BOARD_NOT_FOUND
                 )
 
-    logger.debug('Making "scan" response.')
+    logger.debug(gettext('Making "scan" response.'))
     return ScanResponse(
         data=cache_data
     )
