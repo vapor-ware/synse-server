@@ -260,6 +260,8 @@ def _read_device_by_model(rack_id, serial_device, device):
             _read_sht31_humidity(rack_id, serial_device, device)
         elif device_model == 'f660':
             _read_f660_airflow(rack_id, serial_device, device)
+        elif device_model == 'max-11608-ambient':
+            _read_max11608_ambient(rack_id, serial_device, device)
         else:
             logger.error('Unsupported device model: {}'.format(device_model))
 
@@ -290,11 +292,26 @@ def _read_f660_airflow(rack_id, serial_device, device):
     :param serial_device: The serial device name.
     :param device: The device to read."""
     client = _create_modbus_client(serial_device, device)
-    result = client.read_input_registers(int(device['device_unit']), int(device['base_address']), 1)
+    result = client.read_input_registers(
+        int(device['device_unit']), int(device['base_address'], 16), 1)
     airflow = conversions.airflow_f660(result)
     path = RS485_FILE_PATH.format(
         rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
     common.write_reading(path, airflow)
+
+
+def _read_max11608_ambient(rack_id, serial_device, device):
+    """Read the airflow from the bus. Write it to the sensor file.
+    :param rack_id: The rack_id from the Synse configuration.
+    :param serial_device: The serial device name.
+    :param device: The device to read."""
+    client = _create_modbus_client(serial_device, device)
+    result = client.read_input_registers(
+        int(device['device_unit']), int(device['base_address'], 16), 1)
+    temperature = conversions.thermistor_max11608_adc_49(result)
+    path = RS485_FILE_PATH.format(
+        rack_id, device['device_model'], device['device_unit'], device['base_address'], READ)
+    common.write_reading(path, temperature)
 
 
 def _read_gs32010_fan_speed(rack_id, serial_device, device):
@@ -317,7 +334,8 @@ def _read_sht31_humidity(rack_id, serial_device, device):
     :param serial_device: The serial device name.
     :param device: The device to read."""
     client = _create_modbus_client(serial_device, device)
-    result = client.read_input_registers(int(device['device_unit']), int(device['base_address']), 2)
+    result = client.read_input_registers(
+        int(device['device_unit']), int(device['base_address'], 16), 2)
     temperature = conversions.temperature_sht31(result)
     humidity = conversions.humidity_sht31(result)
     path = RS485_FILE_PATH.format(

@@ -34,3 +34,4 @@ from synse.devicebus.devices.rs485.gs3_2010_fan_controller import GS32010Fan
 from synse.devicebus.devices.rs485.rs485_device import RS485Device
 from synse.devicebus.devices.rs485.sht31_humidity import SHT31Humidity
 from synse.devicebus.devices.rs485.ecblue_fan_controller import ECblueFan
+from synse.devicebus.devices.rs485.max11608_adc_ambient import Max11608ThermistorAmbient

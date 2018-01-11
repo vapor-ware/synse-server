@@ -13,12 +13,15 @@ import logging
 import struct
 import time
 
+from binascii import hexlify
+
 # before we import the synse protocol packages, we want to make sure it
 # is reachable on the pythonpath
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from synse.protocols.modbus import dkmodbus  # nopep8
 from synse.protocols.modbus import modbus_common  # nopep8
+from synse.protocols.conversions import conversions  # nopep8
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -193,20 +196,38 @@ def _read_rpm(ser):
     return modbus_common.get_fan_rpm_ecblue(ser, FAN_SLAVE_ADDRESS)
 
 
+def _read_temperature_ambient(ser):
+    """Read the ambient temperature. This is different than the gs3fan.py
+    _read_temperature_ambient. In this case we are reading a new sensor from
+    the same CEC board. The gs3fan version was a separate CEC board for
+    testing in Phoenix. Currently (2017/01/10) this feature is available
+    in Edens and not the other sites (Austin, Chicago (Wrigley), Phoenix).
+    """
+    client = dkmodbus.dkmodbus(ser)
+    # 2 is slave address. 15 is the register to read. 1 is register count.
+    result = client.read_input_registers(2, 15, 1)
+
+    logger.debug('result {}'.format(hexlify(result)))
+    temperature_raw = int(hexlify(result[0:2]), 16)
+    logger.debug('temperature_raw {}'.format(temperature_raw))
+    temperature = conversions.thermistor_max11608_adc_49(result)
+    print "Temperature = %0.2f C" % temperature
+
+
 def _print_usage():
     """
     Basic usage tips.
     """
-    print 'sudo -HE env PATH=$PATH ./ecbluefan.py {get|set|factory} [options]'
+    print 'sudo -HE env PATH=$PATH ./ecbluefan.py {get|set|ambient} [options]'
     print '\tget options:'
     print '\t\t <none>: speed in RPM.'
     print '\t\t all: registers.'
     print '\t\t register: get fan holding register in the form of 0x91c'
     print '\t\t input: get fan input register in the form of 0x91c'
+    print '\tambient: gets ambient temperature'
     print '\tset options:'
     print '\t\t <integer> set speed in RPM. Setting speed under 10% of the max is not recommended.'
     print '\t\t register: set fan register in the form of 0x91c {data}'
-    print '\tfactory: Restore factory defaults.'
 
 
 def _set(ser):
@@ -258,6 +279,8 @@ def main():
         _get(ser)
     elif sys.argv[1] == 'set':
         _set(ser)
+    elif sys.argv[1] == 'ambient':
+        _read_temperature_ambient(ser)
     else:
         _print_usage()
         return 1

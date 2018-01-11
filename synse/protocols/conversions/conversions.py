@@ -159,25 +159,16 @@ def temperature_sht31_int(reading):
     return ((reading / 65535.0) * 175) - 45
 
 
-def thermistor_max11608_adc(reading):
-    """Convert the raw two byte reading from the max11608-adc thermistor to
-    degrees Celsius.
-    :param reading: The two byte reading from the max11608-adc thermistor.
-    :returns: The temperature reading in degrees Celsius or None if no thermistor
-    is present."""
-    raw = unpack_word(reading)
-    if raw == 0xFFFF:
-        # All f means no thermistor plugged in.
-        return None
-
-    # These are used for converting raw thermistor readings to Celsius.
-    # Values used for slope intercept equation for temperature linear fit
-    # temperature = slope(ADC_VALUE - X1) + Y1
-    # From spreadsheet Brian Elect Thermistor Plot MAX11608.xlxs
-    slope = [-0.07031, -0.076, -0.10448, -0.15476, -0.23077, -0.35135, -0.55556]
-    x1 = [656, 399, 259, 171, 116, 77, 58]
-    y1 = [18, 38, 53, 67, 80, 94, 105]
-
+def _calculate_linear_fit_temperature(raw, slope, x1, y1):
+    """
+    Calculate the linear fit temperature given the raw reading, slope, x and y
+    on the graph.
+    :param raw: The raw temperature reading from the A/D converter. (int)
+    :param slope: The linear approximation slope. (int array)
+    :param x1: x range for the slope approximation. (int array)
+    :param y1: y for the slope approximation. (int array)
+    :return: The temperature reading. (int)
+    """
     # Convert to 10 bit decimal.
     raw &= 0x3FF
 
@@ -208,6 +199,48 @@ def thermistor_max11608_adc(reading):
         temperature = 105.0
 
     return temperature
+
+
+def thermistor_max11608_adc(reading):
+    """Convert the raw two byte reading from the max11608-adc thermistor to
+    degrees Celsius.
+    :param reading: The two byte reading from the max11608-adc thermistor.
+    :returns: The temperature reading in degrees Celsius or None if no thermistor
+    is present."""
+    raw = unpack_word(reading)
+    if raw == 0xFFFF:
+        # All f means no thermistor plugged in.
+        return None
+
+    # These are used for converting raw thermistor readings to Celsius.
+    # Values used for slope intercept equation for temperature linear fit
+    # temperature = slope(ADC_VALUE - X1) + Y1
+    # From spreadsheet Brian Elect Thermistor Plot MAX11608.xlxs
+    slope = [-0.07031, -0.076, -0.10448, -0.15476, -0.23077, -0.35135, -0.55556]
+    x1 = [656, 399, 259, 171, 116, 77, 58]
+    y1 = [18, 38, 53, 67, 80, 94, 105]
+
+    return _calculate_linear_fit_temperature(raw, slope, x1, y1)
+
+
+def thermistor_max11608_adc_49(reading):
+    """Convert the raw two byte reading from the max11608-adc thermistor to
+    degrees Celsius. Use this function for 4.9 volts.
+    :param reading: The two byte reading from the max11608-adc thermistor.
+    :returns: The temperature reading in degrees Celsius or None if no thermistor
+    is present."""
+    raw = unpack_word(reading)
+    if raw == 0xFFFF:
+        # All f means no thermistor plugged in.
+        return None
+
+    # These are used for converting raw thermistor readings to Celsius.
+    # From spreadsheet Sun Thermistor Plot MAX11608.xlxs with V of 4.9V
+    slope = [-0.072, -0.07677, -0.10646, -0.15385, -0.24242, -0.37143, -0.5]
+    x1 = [644, 390, 253, 165, 113, 76, 55]
+    y1 = [18, 38, 53, 67, 80, 94, 105]
+
+    return _calculate_linear_fit_temperature(raw, slope, x1, y1)
 
 
 def thermistor_max11610_adc(reading):
@@ -229,36 +262,7 @@ def thermistor_max11610_adc(reading):
     x1 = [631, 382, 248, 161, 111, 74, 54]
     y1 = [18, 38, 53, 67, 80, 94, 105]
 
-    # Convert to 10 bit decimal.
-    raw &= 0x3FF
-
-    # Calculate the Linear Fit temperature
-    if raw >= x1[0]:
-        # Region 7
-        temperature = slope[0] * (raw - x1[0]) + y1[0]
-    elif x1[1] <= raw <= x1[0] - 1:
-        # Region 6
-        temperature = slope[1] * (raw - x1[1]) + y1[1]
-    elif x1[2] <= raw <= x1[1] - 1:
-        # Region 5
-        temperature = slope[2] * (raw - x1[2]) + y1[2]
-    elif x1[3] <= raw <= x1[2] - 1:
-        # Region 4
-        temperature = slope[3] * (raw - x1[3]) + y1[3]
-    elif x1[4] <= raw <= x1[3] - 1:
-        # Region 3
-        temperature = slope[4] * (raw - x1[4]) + y1[4]
-    elif x1[5] <= raw <= x1[4] - 1:
-        # Region 2
-        temperature = slope[5] * (raw - x1[5]) + y1[5]
-    elif x1[6] <= raw <= x1[5] - 1:
-        # Region 1
-        temperature = slope[6] * (raw - x1[6]) + y1[6]
-    else:
-        # Hit max temperature of the thermistor
-        temperature = 105.0
-
-    return temperature
+    return _calculate_linear_fit_temperature(raw, slope, x1, y1)
 
 
 def unpack_byte(reading):
