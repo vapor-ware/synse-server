@@ -87,12 +87,17 @@ MLS12 = 0x80
 
 # GPIO expander addresses and registers
 # Lock rev 1 hardware settings
-WRITE_23017 = '\x40'
-READ_23017 = '\x41'
+# WRITE_23017 = '\x40'
+# READ_23017 = '\x41'
 
 # Lock rev 2 hardware.
+# GPIO Chip addresses (resides on card edge and Octolock)
+# Note since the cardedge and octolock are on separate buses no need to worry about same addresses
 WRITE_23008 = '\x40'
 READ_23008 = '\x41'
+WRITE_23017 = '\x42'
+READ_23017 = '\x43'
+
 IODIRA_23017 = '\x00'
 IODIRB_23017 = '\x01'
 GPIOA_23017 = '\x12'
@@ -103,9 +108,14 @@ IODIR_23008 = '\x00'
 GPIO_23008 = '\x09'
 OLAT_23008 = '\x0A'
 
-# I2C switch
-WRITE_9546A = '\xE2'
-READ_9546A = '\xE3'
+# I2C switch. Octolock is on channel 3.
+WRITE_9546A = '\xE2'  # TODO: Same as PCA9546_WRITE_ADDRESS
+READ_9546A = '\xE3'   # TODO: Same as PCA9546_READ_ADDRESS
+
+# Latch Register values for CardEdge and Octolock
+LATCHA_CE = '\x24'
+LATCHB_CE = '\x09'
+LATCH_OCTO = '\xFF'
 
 
 def _get_lock_parameters(vec_a, vec_b, lock_number):
@@ -719,51 +729,53 @@ def lock_status(lock_number):
     vec_b = _open_i2c_lock(IFACE_B)
 
     # Make sure reset line is held high on MCP23017 in order to use it
-    vec_a.PinHigh(GPIOL1)
-    time.sleep(0.005)
-
-    # Rev1 board:
-    vec_b.Start()
-    vec_b.Write(WRITE_23017 + GPIOA_23017)
-    vec_b.Stop()
-    vec_b.Start()
-    vec_b.Write(READ_23017)
-    vec_b.SendNacks()
-
-    status = vec_b.Read(1)
-    vec_b.Stop()
-    vec_b.SendAcks()
-
-    status = ord(status)
-    logger.debug('read status: 0x{:02x}'.format(status))
-    status = (status >> 5) & 0x03
-    logger.debug('shifted status: 0x{:02x}'.format(status))
+    # vec_a.PinHigh(GPIOL1)
+    # time.sleep(0.005)
+    #
+    # # Rev1 board:
+    # vec_b.Start()
+    # vec_b.Write(WRITE_23017 + GPIOA_23017)
+    # vec_b.Stop()
+    # vec_b.Start()
+    # vec_b.Write(READ_23017)
+    # vec_b.SendNacks()
+    #
+    # status = vec_b.Read(1)
+    # vec_b.Stop()
+    # vec_b.SendAcks()
+    #
+    # status = ord(status)
+    # logger.debug('read status: 0x{:02x}'.format(status))
+    # status = (status >> 5) & 0x03
+    # logger.debug('shifted status: 0x{:02x}'.format(status))
 
     # Below is for the rev2 board which we don't have yet.
-    # els = _check_els(vec_a, vec_b)
-    # logger.debug('lock_status els: 0x{:02x}'.format(els))
-    #
-    # mls = _check_mls(vec_a, vec_b)
-    # logger.debug('lock_status mls: 0x{:02x}'.format(mls))
-    #
-    # # combine MLS and ELS into a 2 bit number
-    # # Bit 0 = ELS
-    # # Bit 1 = MLS
-    # # ELS can be shifted down by lock number - 1
-    # els >>= (lock_number - 1)
-    #
-    # # MLS is a little more tricky, lock one has to shifted up by 1
-    # # Lock 2 gets no shift
-    # # Lock > 2 gets shifted down by lock number - 2
-    # if lock_number == 1:
-    #     mls <<= 1
-    # elif lock_number > 2:
-    #     els >>= (lock_number - 2)
-    #
-    # # mask out the other bit and combine into status pointer
-    # els &= 0x0001
-    # mls &= 0x0002
-    # status = els & mls
+
+    # Below is for the rev2 board.
+    els = _check_els(vec_a, vec_b)
+    logger.debug('lock_status els: 0x{:02x}'.format(els))
+
+    mls = _check_mls(vec_a, vec_b)
+    logger.debug('lock_status mls: 0x{:02x}'.format(mls))
+
+    # combine MLS and ELS into a 2 bit number
+    # Bit 0 = ELS
+    # Bit 1 = MLS
+    # ELS can be shifted down by lock number - 1
+    els >>= (lock_number - 1)
+
+    # MLS is a little more tricky, lock one has to shifted up by 1
+    # Lock 2 gets no shift
+    # Lock > 2 gets shifted down by lock number - 2
+    if lock_number == 1:
+        mls <<= 1
+    elif lock_number > 2:
+        els >>= (lock_number - 2)
+
+    # mask out the other bit and combine into status pointer
+    els &= 0x0001
+    mls &= 0x0002
+    status = els & mls
 
     _close_i2c(vec_a)
     _close_i2c(vec_b)
