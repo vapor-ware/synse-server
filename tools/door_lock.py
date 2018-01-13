@@ -9,6 +9,12 @@ import sys
 from mpsse import *
 from binascii import hexlify
 import time
+import logging
+
+logging.basicConfig()
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)  # Set to DEBUG for detailed packet traces.
+
 
 ####################### NOTES ON HOW DOOR LOCK(S) WORK ###############################
 # 1) The door locks are controlled by a I2C GPIO chip (MCP23017 and MCP23008), the MCP23008 is only on the octolock board
@@ -744,9 +750,23 @@ def main():
         else:
             print "\r\nInvalid Selection!"
 
+    return 0
+
+
+def _print_usage():
+    print 'TODO: implement _print_usage()'
+
 
 if __name__ == '__main__':
-    main()
+    try:
+        logger.debug('start: argv {}'.format(sys.argv))
+        rc = main()
+        logger.debug('end main {}'.format(rc))
+        sys.exit(rc)
+    except Exception as e:
+        logger.exception(e)
+        _print_usage()
+        sys.exit(1)
 
 # gpio.Start()
 # pio.Write("\x40")

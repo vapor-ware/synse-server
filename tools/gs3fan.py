@@ -623,3 +623,4 @@ if __name__ == '__main__':
     except Exception as e:
         logger.exception(e)
         _print_usage()
+        sys.exit(1)
