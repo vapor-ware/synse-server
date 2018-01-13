@@ -646,96 +646,101 @@ def MomUnLock(lock):
 
     Lock(lock)
 
+def main():
 
-# Port A I2C for PCA9546A and gpio reset lines
-vec = MPSSE()
-vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
+    # Port A I2C for PCA9546A and gpio reset lines
+    vec = MPSSE()
+    vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
 
-# Port B I2C for debug leds (don't need the io expander for the DPS sensors)
-gpio = MPSSE()
-gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
+    # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
+    gpio = MPSSE()
+    gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
 
-# Set RESET line on PCA9546A to high to activate switch
-vec.PinHigh(GPIOL0)
+    # Set RESET line on PCA9546A to high to activate switch
+    vec.PinHigh(GPIOL0)
 
-# Make sure reset line is held high on MCP23017 in order to use it
-vec.PinHigh(GPIOL2)
+    # Make sure reset line is held high on MCP23017 in order to use it
+    vec.PinHigh(GPIOL2)
 
-time.sleep(0.005)
-# Since the control line has a pull up resistor we want to only set it low to active and use the
-# pull up to make it inactive.  To do this we need to use the IO direction register in the actual
-# setting of low and high (pull line low or leave in high impeadance which uses the pull up resistor)
+    time.sleep(0.005)
+    # Since the control line has a pull up resistor we want to only set it low to active and use the
+    # pull up to make it inactive.  To do this we need to use the IO direction register in the actual
+    # setting of low and high (pull line low or leave in high impeadance which uses the pull up resistor)
 
-# In order to use the IO direction register we must set associated latch register to 1 so when the IO direction is
-# set to an output it will cause the IO pin connected to the control line to go high
+    # In order to use the IO direction register we must set associated latch register to 1 so when the IO direction is
+    # set to an output it will cause the IO pin connected to the control line to go high
 
-# Set Port A and B latches on CE
-gpio.Start()
-gpio.Write(WRITE_23017 + OLATA_23017 + LATCHA_CE)
-gpio.Stop()
+    # Set Port A and B latches on CE
+    gpio.Start()
+    gpio.Write(WRITE_23017 + OLATA_23017 + LATCHA_CE)
+    gpio.Stop()
 
-# Set Port B latches
-gpio.Start()
-gpio.Write(WRITE_23017 + OLATB_23017 + LATCHB_CE)
-gpio.Stop()
+    # Set Port B latches
+    gpio.Start()
+    gpio.Write(WRITE_23017 + OLATB_23017 + LATCHB_CE)
+    gpio.Stop()
 
-# Set Port A latches on expansion
-# need to set the PCA9546A to channel 3 first
-vec.Start()
-vec.Write(channel_3)
-vec.Stop()
+    # Set Port A latches on expansion
+    # need to set the PCA9546A to channel 3 first
+    vec.Start()
+    vec.Write(channel_3)
+    vec.Stop()
 
-vec.Start()
-vec.Write(WRITE_23017 + OLATA_23017 + LATCH_OCTO)
-vec.Stop()
+    vec.Start()
+    vec.Write(WRITE_23017 + OLATA_23017 + LATCH_OCTO)
+    vec.Stop()
 
-while 1:
-    print "\r\n***** CEC Modbus Test *****"
-    print "1 - Read Lock Status"
-    print "2 - Lock Door"
-    print "3 - Unlock Door"
-    print "4 - Momentary Unlock"
-    print "\r\nE - Exit Script"
+    while 1:
+        print "\r\n***** CEC Modbus Test *****"
+        print "1 - Read Lock Status"
+        print "2 - Lock Door"
+        print "3 - Unlock Door"
+        print "4 - Momentary Unlock"
+        print "\r\nE - Exit Script"
 
-    selection = raw_input("\r\nEnter Selection: ")
+        selection = raw_input("\r\nEnter Selection: ")
 
-    if selection == '1':
-        number = raw_input("\r\nEnter Door Number 1-12: ")
-        door = int(number)
+        if selection == '1':
+            number = raw_input("\r\nEnter Door Number 1-12: ")
+            door = int(number)
 
-        status = LockStatus(door)
-        print 'ELS and MLS Status Value: 0x%0.2X\n' % status
-        if status == 3:
-            print "Door Lock Secure"
-        elif status == 2:
-            print "MLS Active - Door Unlocked by Key"
-        elif status == 1:
-            print "ELS Active - Door Electrically Unlocked"
-        elif status == 0:
-            print "ELS and MLS Active - Door Handle Not Secured"
+            status = LockStatus(door)
+            print 'ELS and MLS Status Value: 0x%0.2X\n' % status
+            if status == 3:
+                print "Door Lock Secure"
+            elif status == 2:
+                print "MLS Active - Door Unlocked by Key. TODO: Believe this means Electrically Unlocked."
+            elif status == 1:
+                print "ELS Active - Door Electrically Unlocked. TODO: Believe this means Mechanically Unlocked."
+            elif status == 0:
+                print "ELS and MLS Active - Door Handle Not Secured"
 
-    elif selection == '2':
-        number = raw_input("\r\nEnter Door Number 1-12: ")
-        door = int(number)
-        Lock(door)
+        elif selection == '2':
+            number = raw_input("\r\nEnter Door Number 1-12: ")
+            door = int(number)
+            Lock(door)
 
-    elif selection == '3':
-        number = raw_input("\r\nEnter Door Number 1-12: ")
-        door = int(number)
-        UnLock(door)
+        elif selection == '3':
+            number = raw_input("\r\nEnter Door Number 1-12: ")
+            door = int(number)
+            UnLock(door)
 
-    elif selection == '4':
-        number = raw_input("\r\nEnter Door Number 1-12: ")
-        door = int(number)
-        MomUnLock(door)
+        elif selection == '4':
+            number = raw_input("\r\nEnter Door Number 1-12: ")
+            door = int(number)
+            MomUnLock(door)
 
-    elif selection == 'e' or selection == 'E':
-        #  close serial port and I2C port
-        vec.Close()
-        gpio.Close()
-        sys.exit()
-    else:
-        print "\r\nInvalid Selection!"
+        elif selection == 'e' or selection == 'E':
+            #  close serial port and I2C port
+            vec.Close()
+            gpio.Close()
+            sys.exit()
+        else:
+            print "\r\nInvalid Selection!"
+
+
+if __name__ == '__main__':
+    main()
 
 # gpio.Start()
 # pio.Write("\x40")
