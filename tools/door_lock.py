@@ -266,7 +266,10 @@ def CheckELS():
 
     els = els | bit;
 
-    return (els & 0xFF)
+    els &= 0xFF
+    print 'Returned els: {}'.format(els)
+    # return (els & 0xFF)
+    return els
 
 
 def CheckMLS():
@@ -351,7 +354,10 @@ def CheckMLS():
 
     mls = mls | bit
 
-    return (mls & 0xFF)
+    mls &= 0xFF
+    print 'Returned mls: {}'.format(mls)
+    # return (mls & 0xFF)
+    return mls
 
 
 def Lock(lock):
