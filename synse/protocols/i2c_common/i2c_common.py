@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 PCA9546_WRITE_ADDRESS = '\xE2'
 PCA9546_READ_ADDRESS = '\xE3'
 
+# Construct I2C switch channel 3
+# TODO: CHANNEL3 and function.
+channel_3 = PCA9546_WRITE_ADDRESS + "\x08"
+
 # The number of times we read a differential pressure sensor in order to handle
 # the turbulence that causes single reads to vary wildly.
 DIFFERENTIAL_PRESSURE_READ_COUNT = 25
@@ -437,21 +441,66 @@ def lock_momentary_unlock(lock_number):
     _close_i2c(vec_b)
 
 
-def _open_i2c_lock(interface):
-    """
-    Open and initialize the port in the FT4232H for i2c lock operations.
-    :param interface: The port index of the FT4232H. IFACE_A or IFACE_B.
-    :return: Handle to i2c interface for the port.
-    """
+# def _open_i2c_lock(interface):
+#     """
+#     Open and initialize the port in the FT4232H for i2c lock operations.
+#     :param interface: The port index of the FT4232H. IFACE_A or IFACE_B.
+#     :return: Handle to i2c interface for the port.
+#     """
+#     vec = MPSSE()
+#     vec.Open(
+#         0x0403,  # VID
+#         0x6011,  # PID
+#         I2C,     # mode
+#         ONE_HUNDRED_KHZ,  # Clock frequency
+#         MSB,  # endianess. I2C is always MSB.
+#         interface)  # interface
+#     return vec
+
+def _open_i2c_lock2():
+    # Port A I2C for PCA9546A and gpio reset lines
     vec = MPSSE()
-    vec.Open(
-        0x0403,  # VID
-        0x6011,  # PID
-        I2C,     # mode
-        ONE_HUNDRED_KHZ,  # Clock frequency
-        MSB,  # endianess. I2C is always MSB.
-        interface)  # interface
-    return vec
+    vec.Open(0x0403,0x6011,I2C,ONE_HUNDRED_KHZ,MSB,IFACE_A)
+
+    # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
+    gpio = MPSSE()
+    gpio.Open(0x0403,0x6011,I2C,ONE_HUNDRED_KHZ,MSB,IFACE_B)
+
+    # Set RESET line on PCA9546A to high to activate switch
+    vec.PinHigh(GPIOL0)
+
+    # Make sure reset line is held high on MCP23017 in order to use it
+    vec.PinHigh(GPIOL2)
+
+    time.sleep(0.005)
+    # Since the control line has a pull up resistor we want to only set it low to active and use the
+    # pull up to make it inactive.  To do this we need to use the IO direction register in the actual
+    # setting of low and high (pull line low or leave in high impeadance which uses the pull up resistor)
+
+    # In order to use the IO direction register we must set associated latch register to 1 so when the IO direction is
+    # set to an output it will cause the IO pin connected to the control line to go high
+
+    # Set Port A and B latches on CE
+    gpio.Start()
+    gpio.Write(WRITE_23017 + OLATA_23017 + LATCHA_CE)
+    gpio.Stop()
+
+    # Set Port B latches
+    gpio.Start()
+    gpio.Write(WRITE_23017 + OLATB_23017 + LATCHB_CE)
+    gpio.Stop()
+
+    # Set Port A latches on expansion
+    # need to set the PCA9546A to channel 3 first
+    vec.Start()
+    vec.Write(channel_3)
+    vec.Stop()
+
+    vec.Start()
+    vec.Write(WRITE_23017 + OLATA_23017 + LATCH_OCTO)
+    vec.Stop()
+
+    return vec, gpio
 
 
 # This is for the rev 2 board which we don't have yet. (12/19/17)
@@ -737,6 +786,182 @@ def _check_mls(vec_a, vec_b):
     return mls
 
 
+# def CheckELS():
+def _check_els2(vec, gpio):
+    # Point to the Port B I/O register on CE
+    gpio.Start()
+    gpio.Write(WRITE_23017 + GPIOB_23017)
+    gpio.Stop()
+
+    # read out register
+    gpio.Start()
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_b = gpio.Read(1)
+    gpio.Stop()
+    gpio.SendAcks()
+
+    # convert io_b into an interger for use
+    io_b = ord(io_b)
+
+    # shift down ELS1 to bit 0
+    bit = (io_b & ELS1) >> 4;
+
+    # store in els
+    els = bit
+
+    # ELS2 is already at bit location 1
+    bit = (io_b & ELS2);
+
+    # store in els
+    els = els | bit;
+
+    # Point to Port A I/O register
+    gpio.Start()
+    gpio.Write(WRITE_23017 + GPIOA_23017)
+    gpio.Stop()
+
+    # Read out regiser
+    gpio.Start()
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_a = gpio.Read(1)
+    gpio.Stop()
+    gpio.SendAcks()
+
+    # Convert io_a into interger for use
+    io_a = ord(io_a)
+
+    # shift up ELS3 to bit 3
+    bit = (io_a & ELS3) << 1;
+
+    # store in els
+    els = els | bit;
+
+    # shit down ELS4 to bit location 4
+    bit = (io_a & ELS4) >> 1;
+
+    # store in els
+    els = els | bit;
+
+    # now read out ELS 5 -12 from the expansion board
+    # need to set the switch to channel 3 first on the PCA9546A
+    vec.Start()
+    vec.Write(channel_3)
+    vec.Stop()
+
+    # All the ELS lines are connected to the MCP23017 B port
+    # read out the GPIO B register
+    vec.Start()
+    vec.Write(WRITE_23017 + GPIOB_23017)
+    vec.Stop()
+
+    # Read out Port B
+    vec.Start()
+    vec.Write(READ_23017)
+    vec.SendNacks()
+    io_b = vec.Read(1)
+    vec.Stop()
+    vec.SendAcks()
+
+    # convert io_b into an interger for use
+    io_b = ord(io_b)
+
+    # Shift the entire byte up by 4 so to pack it
+    # with locks 1 - 4
+    bit = (io_b << 4);
+
+    els = els | bit;
+
+    return (els & 0xFF)
+
+
+# def CheckMLS():
+def _check_mls2(vec, gpio):
+    # Point to the Port B I/O register on CE
+    gpio.Start()
+    gpio.Write(WRITE_23017 + GPIOB_23017)
+    gpio.Stop()
+
+    # read out register
+    gpio.Start()
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_b = gpio.Read(1)
+    gpio.Stop()
+    gpio.SendAcks()
+
+    # convert io_b into an interger for use
+    io_b = ord(io_b)
+
+    # shitf down MLS1 to bit 0
+    bit = (io_b & MLS1) >> 5;
+
+    # store in MLS
+    mls = bit;
+
+    # shift down MLS2 to bit 1
+    bit = (io_b & MLS2) >> 1;
+
+    # store in MLS
+    mls = mls | bit;
+
+    # Point to Port A I/O register
+    gpio.Start()
+    gpio.Write(WRITE_23017 + GPIOA_23017)
+    gpio.Stop()
+
+    # Read out regiser
+    gpio.Start()
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_a = gpio.Read(1)
+    gpio.Stop()
+    gpio.SendAcks()
+
+    # Convert io_a into interger for use
+    io_a = ord(io_a)
+
+    # shift up MLS3 to bit 2
+    bit = (io_a & MLS3) << 2;
+
+    # store in MLS
+    mls = mls | bit;
+
+    # MLS4 is alreay in bit 3 so no need to shift
+    mls = mls | (io_a & MLS4);
+
+    # now read out MLS 5-12 from the expansion board
+    # need to set the PCA9546A to channel 3 first
+    vec.Start()
+    vec.Write(channel_3)
+    vec.Stop()
+
+    # All the MLS lines are connected to the MCP23008
+    vec.Start()
+    vec.Write(WRITE_23008 + GPIO_23008)
+    vec.Stop()
+
+    # Read out the port
+    vec.Start()
+    vec.Write(READ_23008)
+    vec.SendNacks()
+    io = vec.Read(1)
+    vec.Stop()
+    vec.SendAcks()
+
+    # convert io into an interger for use
+    io = ord(io)
+
+    # Shift the entire byte up by 4 so to pack it
+    # with locks 1 - 4
+    bit = (io << 4)
+
+    mls = mls | bit
+
+    return (mls & 0xFF)
+
+
 def lock_status(lock_number):
     """
     Get the status of a lock.
@@ -757,8 +982,10 @@ def lock_status(lock_number):
     if not 1 <= lock_number <= 12:
         raise ValueError('lock_number {} must be between 1 and 12.')
 
-    vec_a = _open_i2c_lock(IFACE_A)
-    vec_b = _open_i2c_lock(IFACE_B)
+    # vec_a = _open_i2c_lock(IFACE_A)
+    # vec_b = _open_i2c_lock(IFACE_B)
+
+    vec, gpio = _open_i2c_lock2()
 
     # Make sure reset line is held high on MCP23017 in order to use it
     # vec_a.PinHigh(GPIOL1)
@@ -784,10 +1011,12 @@ def lock_status(lock_number):
     # Below is for the rev2 board which we don't have yet.
 
     # Below is for the rev2 board.
-    els = _check_els(vec_a, vec_b)
+    # els = _check_els(vec_a, vec_b)
+    els = _check_els2(vec, gpio)
     logger.debug('lock_status els: 0x{:02x}'.format(els))
 
-    mls = _check_mls(vec_a, vec_b)
+    # mls = _check_mls(vec_a, vec_b)
+    mls = _check_mls2(vec, gpio)
     logger.debug('lock_status mls: 0x{:02x}'.format(mls))
 
     # combine MLS and ELS into a 2 bit number
@@ -809,8 +1038,9 @@ def lock_status(lock_number):
     mls &= 0x0002
     status = els & mls
 
-    _close_i2c(vec_a)
-    _close_i2c(vec_b)
+    # TODO:
+    # _close_i2c(vec_a)
+    # _close_i2c(vec_b)
     return status
 
 
