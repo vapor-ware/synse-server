@@ -646,14 +646,20 @@ def MomUnLock(lock):
 
     Lock(lock)
 
+
+# GLOBALS
+vec = MPSSE()
+gpio = MPSSE()
+
+
 def main():
 
     # Port A I2C for PCA9546A and gpio reset lines
-    vec = MPSSE()
+    # vec = MPSSE()
     vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
 
     # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
-    gpio = MPSSE()
+    # gpio = MPSSE()
     gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
 
     # Set RESET line on PCA9546A to high to activate switch
