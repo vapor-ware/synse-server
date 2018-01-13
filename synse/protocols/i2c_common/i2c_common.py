@@ -10,11 +10,11 @@
 """
 
 # pylint: disable=import-error
-from mpsse import (ACK, GPIOL0, GPIOL1, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
-                   ONE_HUNDRED_KHZ)
+from mpsse import (ACK, GPIOL0, GPIOL1, GPIOL2, I2C, IFACE_A, IFACE_B, MPSSE,
+                   MSB, ONE_HUNDRED_KHZ)
 
 from binascii import hexlify
-from mpsse import *
+# from mpsse import *
 from ..conversions import conversions
 import copy
 import datetime
@@ -306,9 +306,41 @@ def _open_vec_i2c():
     vec.PinHigh(GPIOL0)
     time.sleep(0.001)
 
-    # Read channel of PCA9546A
+    # Make sure reset line is held high on MCP23017 in order to use it
+    vec.PinHigh(GPIOL2)
+
+    time.sleep(0.005)
+    # Since the control line has a pull up resistor we want to only set it low to active and use the
+    # pull up to make it inactive.  To do this we need to use the IO direction register in the actual
+    # setting of low and high (pull line low or leave in high impedance which uses the pull up resistor)
+
+    # In order to use the IO direction register we must set associated latch register to 1 so when the IO direction is
+    # set to an output it will cause the IO pin connected to the control line to go high
+
+    # Set Port A and B latches on CE
+    gpio.Start()
+    gpio.Write(WRITE_23017 + OLATA_23017 + LATCHA_CE)
+    gpio.Stop()
+
+    # Set Port B latches
+    gpio.Start()
+    gpio.Write(WRITE_23017 + OLATB_23017 + LATCHB_CE)
+    gpio.Stop()
+
+    # Set Port A latches on expansion
+    # need to set the PCA9546A to channel 3 first
+    # vec.Start()
+    # vec.Write(channel_3)
+    # vec.Stop()
+    _set_channel3(vec)
+
     vec.Start()
-    vec.Write(PCA9546_READ_ADDRESS)
+    vec.Write(WRITE_23017 + OLATA_23017 + LATCH_OCTO)
+    vec.Stop()
+
+    # # Read channel of PCA9546A
+    # vec.Start()
+    # vec.Write(PCA9546_READ_ADDRESS)
 
     return vec, gpio
 
