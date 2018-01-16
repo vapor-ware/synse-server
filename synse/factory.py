@@ -46,14 +46,13 @@ def make_app():
 def _setup_local():
     """Create and install gettext translator.
 
-    Args:
-        domain: String representation of language to use. i.e. en_US
+    Takes no arguments, but requires locale value to be set to a string in config.options.
     """
-    domain = config.options.get('locale')
-    trans = gettext.translation(domain, 'locale', fallback=True)
+    language = config.options.get('locale')
+    trans = gettext.translation('synse', 'locale', languages=[language], fallback=True)
     trans.install('gettext')
     if trans.__class__ == gettext.NullTranslations:
-        logger.warning('Domain {} not supported, defaulting to en_US'.format(domain))
+        logger.warning('Language {} not supported, defaulting to en_US'.format(language))
 
 
 def _disable_favicon(app):

@@ -4,12 +4,13 @@
 import pytest
 import ujson
 
-from synse import factory
+from synse import config, factory
 
 
 @pytest.fixture()
 def app():
     """Fixture to get a Synse Server application instance."""
+    config.options['locale'] = 'en_US'
     yield factory.make_app()
 
 
