@@ -61,7 +61,19 @@ async def led_route(request, rack, board, device):
             })
 
         if param_color:
-            # TODO - validate that given color is valid hex
+            try:
+                if not 0x000000 <= int(param_color, 16) <= 0xFFFFFF:
+                    raise errors.SynseError(
+                        gettext('Invalid color value (must be between 0 and 0xFFFFFF): {}')
+                        .format(param_color),
+                        errors.INVALID_ARGUMENTS
+                        )
+            except ValueError as val_err:
+                raise errors.SynseError(
+                    gettext('Invalid color value (must be valid hexadecimal string): {}')
+                    .format(param_color),
+                    errors.INVALID_ARGUMENTS
+                    ) from val_err
             data.append({
                 'action': 'color',
                 'raw': param_color

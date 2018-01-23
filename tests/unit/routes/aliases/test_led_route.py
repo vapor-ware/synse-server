@@ -96,7 +96,6 @@ async def test_synse_led_write_invalid_2(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip  # FIXME - need hex validation for this test.
 async def test_synse_led_write_invalid_3(mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
@@ -120,6 +119,32 @@ async def test_synse_led_write_invalid_4(mock_write, no_pretty_json):
     except errors.SynseError as e:
         assert e.error_id == errors.INVALID_ARGUMENTS
         assert 'bar' in e.args[0]
+
+
+@pytest.mark.asyncio
+async def test_synse_led_write_invalid_5(mock_write, no_pretty_json):
+    """Test writing LED state with an invalid state specified."""
+
+    r = utils.make_request('/synse/led?color=1000000')
+
+    try:
+        await led_route(r, 'rack-1', 'vec', '123456')
+    except errors.SynseError as e:
+        assert e.error_id == errors.INVALID_ARGUMENTS
+        assert '1000000' in e.args[0]
+
+
+@pytest.mark.asyncio
+async def test_synse_led_write_invalid_6(mock_write, no_pretty_json):
+    """Test writing LED state with an invalid state specified."""
+
+    r = utils.make_request('/synse/led?color=-FF')
+
+    try:
+        await led_route(r, 'rack-1', 'vec', '123456')
+    except errors.SynseError as e:
+        assert e.error_id == errors.INVALID_ARGUMENTS
+        assert '-FF' in e.args[0]
 
 
 @pytest.mark.asyncio
