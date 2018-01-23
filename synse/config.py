@@ -15,12 +15,23 @@ LOGGING = dict(
             'format': '%(asctime)s - (%(name)s)[%(levelname)s] %(module)s:%(lineno)s: %(message)s',
             'datefmt': '[%Y-%m-%d %H:%M:%S %z]',
             'class': 'logging.Formatter'
+        },
+        'sanic_access': {
+            'format': '%(asctime)s - (%(name)s)[%(levelname)s] %(module)s:%(lineno)s: ' +
+                      '"%(request)s %(message)s %(status)d %(byte)d"',
+            'datefmt': '[%Y-%m-%d %H:%M:%S %z]',
+            'class': 'logging.Formatter'
         }
     },
     handlers={
         'access': {
             'class': 'logging.StreamHandler',
             'formatter': 'standard',
+            'stream': sys.stdout
+        },
+        'sanic_access': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'sanic_access',
             'stream': sys.stdout
         },
         'error': {
@@ -47,7 +58,7 @@ LOGGING = dict(
         },
         'sanic.access': {
             'level': 'INFO',
-            'handlers': ['access'],
+            'handlers': ['sanic_access'],
             'propagate': True,
             'qualname': 'sanic.access'
         },
