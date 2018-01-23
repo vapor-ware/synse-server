@@ -11,20 +11,20 @@ write arbitrary fan registers.
 
 import sys
 import os
-import serial
 import logging
 from binascii import hexlify
 import struct
 import time
+import serial
 
 # before we import the synse protocol packages, we want to make sure it
 # is reachable on the pythonpath
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from synse.protocols.modbus import dkmodbus  # nopep8
-from synse.protocols.modbus import modbus_common  # nopep8
-from synse.protocols.conversions import conversions  # nopep8
-from synse.protocols.i2c_common import i2c_common  # nopep8
+from synse.protocols.modbus import dkmodbus  # nopep8 pylint: disable=wrong-import-position
+from synse.protocols.modbus import modbus_common  # nopep8 pylint: disable=wrong-import-position
+from synse.protocols.conversions import conversions  # nopep8 pylint: disable=wrong-import-position
+from synse.protocols.i2c_common import i2c_common  # nopep8 pylint: disable=wrong-import-position
 
 logging.basicConfig()
 logger = logging.getLogger()
@@ -293,15 +293,14 @@ def _lock():
     lock_number = int(sys.argv[3])
 
     if action == 'status':
-        # print 'Momentary unlocking lock {}'.format(lock_number)
         status = i2c_common.lock_status(lock_number)
         print 'els and mls status: 0x{:02x}'.format(status)
         if status == 0:
             print 'ELS and MLS Active - Door Handle Not Secured.'
         elif status == 1:
-            print 'ELS Active - Door Electrically Unlocked.'
+            print 'MLS Active - Door Unlocked by Key'
         elif status == 2:
-            print 'MLS Active - Door Unlocked by Key.'
+            print 'ELS Active - Door Electrically Unlocked'
         elif status == 3:
             print 'Door Lock Secure.'
         else:
@@ -324,13 +323,16 @@ def _lock():
 
 
 def _print_usage():
-    print 'sudo -HE env PATH=$PATH ./gs3fan.py {get|set|temp|ambient|air|therm|pressure|led|lock} [options]'
+    """Usage help."""
+    print 'sudo -HE env PATH=$PATH ./gs3fan.py ' \
+          '{get|set|temp|ambient|air|therm|pressure|led|lock} [options]'
     print '\tget options:'
     print '\t\t <none>: speed in RPM.'
     print '\t\t all: registers.'
     print '\t\t register: get fan register in the form of 0x91c'
     print '\tset options:'
-    print '\t\t <integer> set speed in RPM. Setting a speed under 10% of the max is not recommended.'
+    print '\t\t <integer> set speed in RPM. ' \
+          'Setting a speed under 10% of the max is not recommended.'
     print '\t\t register: set fan register in the form of 0x91c {data}'
     print '\ttemp: gets temperature and humidity'
     print '\tambient: gets ambient temperature'
@@ -343,6 +345,10 @@ def _print_usage():
 
 
 def _read_airflow(ser):
+    """
+    Read the airflow sensor on the RS485 bus.
+    :param ser: Serial connection to the RS485 bus.
+    """
     client = dkmodbus.dkmodbus(ser)
     result = client.read_input_registers(2, 8, 1)
     logger.debug('result {}'.format(hexlify(result)))
@@ -397,6 +403,9 @@ def _read_all_fan(ser):
 
 
 def _read_differential_pressures():
+    """
+    Read the three differential pressure sensors on the I2C bus.
+    """
     # Configure for 9 bit resolution.
     if i2c_common.configure_differential_pressure(1) != 0:
         print 'Failed to configure 9 bit resolution for differential pressure sensor on channel 1.'
@@ -416,10 +425,18 @@ def _read_differential_pressures():
 
 
 def _read_rpm(ser):
+    """
+    Read rpm from the gs3 fan controller.
+    :param ser: Serial connection to the RS485 bus.
+    """
     return modbus_common.get_fan_rpm_gs3(ser, FAN_SLAVE_ADDRESS)
 
 
 def _read_temperature_ambient(ser):
+    """
+    Read from the ambient temperature sensor.
+    :param ser: Serial connection to the RS485 bus.
+    """
     # Slave address is 3. Register is 0 for temp, 1 for humidity.
 
     client = dkmodbus.dkmodbus(ser)
@@ -437,6 +454,10 @@ def _read_temperature_ambient(ser):
 
 
 def _read_temperature_and_humidity(ser):
+    """
+    Read from the humidity sensor which also stores temperature.
+    :param ser: Serial connection to the RS485 bus.
+    """
     # Slave address is 2. Register is 0 for temp, 1 for humidity.
 
     client = dkmodbus.dkmodbus(ser)
@@ -545,22 +566,39 @@ def write(ser, max_rpm, rpm_setting):
 
 
 def _write_fan_register(ser, register, data):
+    """
+    Write to a gs3 fan register.
+    :param ser: Serial connection to the RS485 bus.
+    :param register: The register to write to.
+    :param data: The data to write to the register.
+    """
     client = dkmodbus.dkmodbus(ser)
     client.write_multiple_registers(1, register, 1, 2, data)
 
 
 def _read_led():
+    """
+    Read state, color, and blink state on an LED.
+    """
     print '_read_led'
     state, color, blink = i2c_common.read_led()
     print 'state {}, RGB color 0x{}, blink {}'.format(state, color, blink)
 
 
 def _write_led(state, color=None, blink_state=None):
+    """
+    Write operation to an LED.
+    :param state: on or off (string)
+    :param color: Three byte RGB color.
+    :param blink_state: blink or steady. (string)
+    :return:
+    """
     print '_write_led'
     i2c_common.write_led(state, color, blink_state)
 
 
 def _led():
+    """Led command."""
     if len(sys.argv) == 2:
         _read_led()
     elif len(sys.argv) == 3:
@@ -576,8 +614,11 @@ def _led():
 
 
 def main():
+    """Main entry point."""
     if sys.argv[1] == 'reset' and sys.argv[2] == 'usb':
-        return _reset_usb()  # Do this without trying to open the serial port. We may not be able to open it.
+        # Do this without trying to open the serial port.
+        # We may not be able to open it.
+        return _reset_usb()
 
     # i2c stuff is first to avoid the serial (don't need it).
     if sys.argv[1] == 'therm':

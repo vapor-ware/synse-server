@@ -128,10 +128,8 @@ def read_holding_register(ser, slave_address, register):
     """
     client = dkmodbus.dkmodbus(ser)
     register_data = client.read_holding_registers(slave_address, register, 1)
-    logger.debug('register_data: {}, type(register_data): {}'.format(
-        register_data, type(register_data)))
     result = unpack_register_data(register_data)
-    logger.debug('read_holding_register result: 0x{:x} {}d'.format(result, result))
+    logger.debug('read_holding_register result: {}, type: {}'.format(result, type(result)))
     return result
 
 

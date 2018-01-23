@@ -60,8 +60,8 @@ class LedInfo(object):
                     path = I2C_FILE_PATH.format(
                         rack['rack_id'], device['device_model'], device['channel'], WRITE)
 
-                    self.device = device                        # Device config for the LED controller.
-                    self.path = path                            # Write file path for the LED controller.
+                    self.device = device  # Device config for LED controller.
+                    self.path = path      # Write file path for LED controller.
 
                     logger.debug('LedInfo: self.device        {}'.format(self.device))
                     logger.debug('LedInfo: self.path          {}'.format(self.path))
@@ -107,8 +107,12 @@ class LockInfo(object):
                             'in range (1-12).'.format(lock_number))
 
                     device_path = DeviceAndPath(device, path)
-                    logger.debug('adding LockInfo: self.device        {}'.format(device_path.device))
-                    logger.debug('adding LockInfo: self.path          {}'.format(device_path.path))
+                    logger.debug(
+                        'adding LockInfo: self.device        {}'.format(
+                            device_path.device))
+                    logger.debug(
+                        'adding LockInfo: self.path          {}'.format(
+                            device_path.path))
 
                     self.locks[lock_number] = device_path
 
@@ -121,10 +125,10 @@ def _bulk_read_differential_pressure(differential_pressures, channels):
     :param channels: A list of rack id keys and sorted differential
     pressure sensor channels per rack."""
     try:
-        for rack_id, channels in channels.iteritems():
+        for rack_id, the_channels in channels.iteritems():
 
             # Perform the read and the math for turbulence.
-            channel_count = len(channels)
+            channel_count = len(the_channels)
             if channel_count > 0:
                 readings = i2c_common.read_differential_pressures(channel_count)
 
@@ -142,7 +146,7 @@ def _bulk_read_differential_pressure(differential_pressures, channels):
                             path = I2C_FILE_PATH.format(
                                 rack_id, dp['device_model'], dp['channel'], READ)
                             common.write_reading(path, reading)
-    except:
+    except:  # pylint: disable=bare-except
         logger.exception('Error reading differential pressure sensors.')
 
 
@@ -155,10 +159,10 @@ def _bulk_read_thermistors(thermistors, thermistor_model, channels):
     :param channels: A list of rack id keys and sorted thermistor
     channels per rack."""
     try:
-        for rack_id, channels in channels.iteritems():
+        for rack_id, the_channels in channels.iteritems():
             # Read the thermistors.
-            if len(channels) > 0:
-                max_channel = channels[-1]  # channels is sorted low to high.
+            if len(the_channels) > 0:
+                max_channel = the_channels[-1]  # channels is sorted low to high.
                 readings = i2c_common.read_thermistors(max_channel + 1, thermistor_model)
                 logger.debug('thermistor readings: {}'.format(readings))
 
@@ -173,7 +177,7 @@ def _bulk_read_thermistors(thermistors, thermistor_model, channels):
                             path = I2C_FILE_PATH.format(
                                 rack_id, thermistor['device_model'], thermistor['channel'], READ)
                             common.write_reading(path, reading)
-    except:
+    except:  # pylint: disable=bare-except
         logger.exception('Error reading thermistors.')
 
 
@@ -181,8 +185,8 @@ def _configure_differential_pressures(channels):
     """Configure differential pressure sensors for 9 bit resolution."""
     logger.info(
         'Configuring differential pressure channels {}.'.format(channels))
-    for rack_id, channels in channels.iteritems():
-        for channel in channels:
+    for rack_id, the_channels in channels.iteritems():
+        for channel in the_channels:
             try:
                 if i2c_common.configure_differential_pressure(channel) != 0:
                     # TODO: We may want to run the remainder of the tests, but for now
@@ -331,7 +335,8 @@ def _handle_lock_write(lock_info):
     for lock_number, device_path in lock_info.locks.iteritems():
         action = None
         try:
-            # Key is lock number, device_path is the device configuration and write path for the lock.
+            # Key is lock number, device_path is the device configuration and
+            # write path for the lock.
             if os.path.isfile(device_path.path):
                 logger.debug('_handle_lock_write writing lock, path {}'.format(device_path.path))
                 # Read the file. It will contain a string for the action to take on the lock.
@@ -371,7 +376,10 @@ def _read_led_controllers(led_controllers):
             for controller in controllers:
                 state, color, blink = i2c_common.read_led()
 
-                logger.debug('_read_led_controllers() state: {}, color: {}, blink: {}'.format(state, color, blink))
+                logger.debug(
+                    '_read_led_controllers() '
+                    'state: {}, color: {}, blink: {}'.format(
+                        state, color, blink))
                 # Get the file path.
                 path = I2C_FILE_PATH.format(
                     rack_id, controller['device_model'], controller['channel'], READ)
@@ -495,7 +503,8 @@ def main():
         # TODO: from_background should be at the same level as racks. (once per config file)
         # Daemons and straight bus reads from a web client will collide.
         # Also - these daemons only work on production hardware.
-        # Turning on background reads for i2c without rs485 and vice versa will not cause bus collisions.
+        # Turning on background reads for i2c without rs485 and vice versa will
+        # not cause bus collisions.
         # They are separate buses.
         from_background = False
         for rack in i2c_config['racks']:
