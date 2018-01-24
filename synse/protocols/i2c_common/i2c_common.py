@@ -24,15 +24,16 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
 # pylint: disable=import-error,line-too-long
 
+
+from binascii import hexlify
 import copy
 import datetime
 import logging
 import struct
 import time
-from binascii import hexlify
 
-from mpsse import (ACK, GPIOL0, GPIOL1, I2C, IFACE_A, IFACE_B, MPSSE, MSB,
-                   ONE_HUNDRED_KHZ)
+from mpsse import (ACK, GPIOL0, GPIOL2, I2C, IFACE_A, IFACE_B, MPSSE,
+                   MSB, ONE_HUNDRED_KHZ)
 
 from synse.protocols.conversions import conversions
 from synse.stats import stats
@@ -43,6 +44,9 @@ logger = logging.getLogger(__name__)
 # PCA9546A is a four channel I2C / SMBus switch.
 PCA9546_WRITE_ADDRESS = '\xE2'
 PCA9546_READ_ADDRESS = '\xE3'
+
+# Construct I2C switch channel 3
+CHANNEL3 = PCA9546_WRITE_ADDRESS + '\x08'
 
 # The number of times we read a differential pressure sensor in order to handle
 # the turbulence that causes single reads to vary wildly.
@@ -100,11 +104,9 @@ MLS11 = 0x40
 MLS12 = 0x80
 
 # GPIO expander addresses and registers
-# Lock rev 1 hardware settings
-WRITE_23017 = '\x40'
-READ_23017 = '\x41'
-
 # Lock rev 2 hardware.
+WRITE_23017 = '\x42'
+READ_23017 = '\x43'
 WRITE_23008 = '\x40'
 READ_23008 = '\x41'
 IODIRA_23017 = '\x00'
@@ -122,199 +124,152 @@ WRITE_9546A = '\xE2'
 READ_9546A = '\xE3'
 
 
-def _get_lock_parameters(vec_a, vec_b, lock_number):
+# Latch Register values for CardEdge and Octolock
+LATCHA_CE = '\x24'
+LATCHB_CE = '\x09'
+LATCH_OCTO = '\xFF'
+
+
+# vec and gpio handles are opened once. We do not explicitly close them
+# since we need to hold the reset line in order to unlock a lock.
+# The underlying code does not appear to clean up the HID port when close is
+# not explicitly called which in this case is good.
+class VecHandles(object):
+    """This class exposes handles to the HID responsible for I2C communication
+    in the chamber."""
+    class __VecHandles(object):
+        """Internal class to facilitate opening the HID interface for I2c
+        communication."""
+        def __init__(self):
+            logger.debug('Initializing __VecHandles')
+            self.vec = MPSSE()
+            logger.debug('opening vec')
+            self.vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
+
+            # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
+            self.gpio = MPSSE()
+            logger.debug('opening gpio')
+            self.gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
+
+            # Set RESET line on PCA9546A to high to activate switch
+            logger.debug('GPIOL0 high')
+            self.vec.PinHigh(GPIOL0)
+
+            # Make sure reset line is held high on MCP23017 in order to use it
+            logger.debug('GPIOL2 high')
+            self.vec.PinHigh(GPIOL2)
+
+            time.sleep(0.005)
+            # Since the control line has a pull up resistor we want to only set it low to
+            # active and use the pull up to make it inactive. To do this we need to use
+            # the IO direction register in the actual setting of low and high (pull line
+            # low or leave in high impedance which uses the pull up resistor)
+
+            # In order to use the IO direction register we must set associated latch
+            # register to 1 so when the IO direction is set to an output it will cause the
+            # IO pin connected to the control line to go high
+
+            # Set Port A and B latches on CE (card edge).
+            self.gpio.Start()
+            logger.debug('writing: {}'.format(hexlify(WRITE_23017 + OLATA_23017 + LATCHA_CE)))
+            self.gpio.Write(WRITE_23017 + OLATA_23017 + LATCHA_CE)
+            self.gpio.Stop()
+
+            # Set Port B latches.
+            self.gpio.Start()
+            logger.debug('writing: {}'.format(hexlify(WRITE_23017 + OLATB_23017 + LATCHB_CE)))
+            self.gpio.Write(WRITE_23017 + OLATB_23017 + LATCHB_CE)
+            self.gpio.Stop()
+
+            # Set Port A latches on expansion.
+            # Need to set the PCA9546A to channel 3 first.
+            self.vec.Start()
+            logger.debug('writing: {}'.format(hexlify(CHANNEL3)))
+            self.vec.Write(CHANNEL3)
+            self.vec.Stop()
+
+            self.vec.Start()
+            logger.debug('writing: {}'.format(hexlify(WRITE_23017 + OLATA_23017 + LATCH_OCTO)))
+            self.vec.Write(WRITE_23017 + OLATA_23017 + LATCH_OCTO)
+            self.vec.Stop()
+
+            logger.debug('vec and gpio initialized')
+
+    instance = None
+
+    def __init__(self):
+        """Initializes the instance if it does not exist."""
+        if not VecHandles.instance:
+            VecHandles.instance = VecHandles.__VecHandles()
+
+
+def _get_lock_parameters(lock_number, is_lock):
     """
     Gets the lock parameters to send out given the devices and the lock index.
-    :param vec_a: Open handle to FT4232H IFACE_A.
-    :param vec_b: Open handle to FT4232H IFACE_B.
     :param lock_number: Index of the lock to operate on (1-12).
-    :return: mask, latch, vec
+    :param is_lock: True for lock, False for unlock.
+    :return: mask, direction register.
     :raises ValueError: Invalid parameter.
     """
-    if vec_a is None:
-        raise ValueError('vec_a is None')
-    if vec_b is None:
-        raise ValueError('vec_b is None')
 
-    # Assign control bit position according to lock number and GPIO addresses
-    # Since the associated latch bit needs set, OR with latch to set.
+    # Assign the correct direction register and mask associated with the door lock number
     if lock_number == 1:
-        # rev 1
-        mask = 0x80
-        latch = IODIRA_23017
-        vec = vec_b
+        mask = LOCK_CONTROL1
+        dir_reg = IODIRB_23017
 
-        # rev 2
-        # mask = CONTROL1
-        # latch = OLATB_23017
-        # vec = device_b
-
-    # Rev1 only has one lock, so the rest are for rev2.
     elif lock_number == 2:
         mask = LOCK_CONTROL2
-        latch = OLATB_23017
-        vec = vec_b
+        dir_reg = IODIRB_23017
 
     elif lock_number == 3:
         mask = LOCK_CONTROL3
-        latch = OLATA_23017
-        vec = vec_b
+        dir_reg = IODIRA_23017
 
     elif lock_number == 4:
         mask = LOCK_CONTROL4
-        latch = OLATA_23017
-        vec = vec_b
+        dir_reg = IODIRA_23017
 
     elif lock_number == 5:
         mask = LOCK_CONTROL5
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 6:
         mask = LOCK_CONTROL6
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 7:
         mask = LOCK_CONTROL7
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 8:
         mask = LOCK_CONTROL8
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 9:
         mask = LOCK_CONTROL9
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 10:
         mask = LOCK_CONTROL10
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 11:
         mask = LOCK_CONTROL11
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     elif lock_number == 12:
         mask = LOCK_CONTROL12
-        latch = OLATA_23017
-        vec = vec_a
+        dir_reg = IODIRA_23017
 
     else:
-        raise ValueError('Invalid lock index {}. 1-12 are supported.'.format(lock_number))
+        raise ValueError('Invalid lock number {}. 1-12 are supported.'.format(lock_number))
 
-    logger.debug('mask: {:02x}, latch: {}, vec: {}'.format(mask, hexlify(latch), vec))
-    return mask, latch, vec
+    # Invert the mask on unlock.
+    if not is_lock:
+        mask = ~mask
 
-
-def _read_latch(vec, latch):
-    """
-    Reads the latch register so as not to disturb and prior lock settings.
-    :param vec: The open handle to the FT4232H interface.
-    :param latch: the latch to read.
-    :return: The latch reading as an int.
-    """
-    # First read out the associated latch register so as not to
-    # disturb any prior lock settings
-    logger.debug('reading latch: 0x{}'.format(hexlify(latch)))
-    to_send = WRITE_23017
-    to_send += latch
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-
-    vec.Start()
-    vec.Write(to_send)
-    if vec.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec.Stop()
-
-    vec.Start()
-    to_send = READ_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-    vec.Write(to_send)
-    if vec.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec.SendNacks()
-    reading = vec.Read(1)
-    vec.Stop()
-    vec.SendAcks()
-
-    logger.debug('Read latch 0x{}: 0x{}'.format(hexlify(latch), hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
-    return reading
-
-
-def _set_channel3(vec):
-    """
-    Set the PCA9546A switch to channel three.
-    :param vec: The port (interface) on the switch.
-    """
-    logger.debug('Setting switch to channel 3.')
-    to_send = WRITE_9546A
-    to_send += '\x08'  # Channel 3
-
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-
-    vec.Start()
-    vec.Write(to_send)
-    if vec.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec.Stop()
-    logger.debug('Set switch to channel 3.')
-
-
-def _write_latch(vec, latch, data):
-    """
-    Write data to a latch on a device.
-    :param vec: The open handle to the FT4232H interface.
-    :param latch: the latch to read.
-    :param data: The data to write.
-    :return:
-    """
-    logger.debug('_write_latch start. latch 0x{}. data 0x{}'.format(
-        hexlify(latch), format(hexlify(data))))
-    to_send = WRITE_23017
-    to_send += latch
-    to_send += data
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-
-    vec.Start()
-    vec.Write(to_send)
-    vec.Stop()
-    logger.debug('_write_latch end')
-
-
-def _open_vec_i2c():
-    """Open the i2c port on the VEC USB for i2c operations."""
-    # Port A I2C for PCA9546A
-    vec = MPSSE()
-    vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
-
-    # Port B I2C for debug leds (don't need the io expander for the DPS sensors)
-    gpio = MPSSE()
-    gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
-
-    # Set RESET line on PCA9546A to high to activate switch
-    vec.PinHigh(GPIOL0)
-    time.sleep(0.001)
-
-    # Read channel of PCA9546A
-    vec.Start()
-    vec.Write(PCA9546_READ_ADDRESS)
-
-    return vec, gpio
+    logger.debug('mask: {:02x}, dir_reg: {}.'.format(mask, hexlify(dir_reg)))
+    return mask, dir_reg
 
 
 def lock_lock(lock_number):
@@ -323,390 +278,312 @@ def lock_lock(lock_number):
     :param lock_number: The index of the lock to lock.
     """
     logger.debug('Locking lock {}'.format(lock_number))
-    vec_a = _open_i2c_lock(IFACE_A)
-    vec_b = _open_i2c_lock(IFACE_B)
 
-    # Make sure reset line is held high on MCP23017 in order to use it
-    vec_a.PinHigh(GPIOL1)
-    time.sleep(0.005)
+    # Get the mask and direction register. Get the vec and gpio handles.
+    mask, dir_reg = _get_lock_parameters(lock_number, True)
+    vec = VecHandles().instance.vec
+    gpio = VecHandles().instance.gpio
 
-    # Get the mask, latch, and vec to operate on.
-    mask, latch, vec = _get_lock_parameters(vec_a, vec_b, lock_number)
+    # First read out the direction register of the desired direction register
+    # of the MCP23017 (either CE or Octolock) as not to disturb
+    # any of the other bits when the control line is set or cleared
+    # if locks 1 - 4 then on card edge the remaining on octolock
+    if lock_number < 5:
+        gpio.Start()
+        gpio.Write(WRITE_23017 + dir_reg)
+        gpio.Stop()
+        gpio.Start()
+        gpio.Write(READ_23017)
+        gpio.SendNacks()
+        direction = gpio.Read(1)
+        gpio.Stop()
+        gpio.SendAcks()
 
-    # All the addresses and handles are assigned above based on the lock number.
-    # Locks 1-4 are on the backplane and 5-12 are on the expansion which is
-    # shared on channel 3 of the PCA9546A the buffered I2C shared with the led
-    # controller and thermistors. At this point the only thing to do different
-    # between the BP and expansion is set the channel on the PCA9546A to access
-    # locks 5 - 12.
-    if lock_number >= 5:
-        _set_channel3(vec_a)
+        # convert direction to int
+        direction_int = ord(direction)
 
-    # First read out the associated latch register so as not to
-    # disturb any prior lock settings
-    reading = _read_latch(vec, latch)
+        # This will set the IO bit connected to the Control line back to an
+        # input which will pull the line low and lock the door
+        direction_int = direction_int | mask
 
-    # Lock
-    _write_latch(vec, latch, chr(reading | mask))
+        # now write that value into IO Direction
+        gpio.Start()
+        gpio.Write(WRITE_23017 + dir_reg + chr(direction_int))
+        gpio.Stop()
 
-    # ALL THE REMAINING LINES IN THIS FUNCTION ARE FOR DEBUG PURPOSES AND CAN BE REMOVED,
-    # READ OUT THE IO DIRECTION REGISTER TO VERIFY CONTENTS.
-    # We should get 0xFF. Leaving this code in until we get the rev 2 board.
-    logger.debug('reading register')
-    vec.Start()
-    vec.Write(WRITE_23017 + IODIRA_23017)
-    vec.Stop()
-    vec.Start()
-    vec.Write(READ_23017)
-    vec.SendNacks()
-    direction = vec.Read(1)
-    vec.Stop()
-    vec.SendAcks()
-    print 'MCP23017 IO Direction Port A Register: 0x%0.2X' % ord(direction)
+        # ALL THE REMAINING LINES IN THIS FUNCTION ARE FOR DEBUG PURPOSES AND
+        # CAN BE REMOVED, READ OUT THE IO DIRECTION REGISTER TO VERIFY CONTENTS
+        gpio.Start()
+        gpio.Write(WRITE_23017 + dir_reg)
+        gpio.Stop()
+        gpio.Start()
+        gpio.Write(READ_23017)
+        gpio.SendNacks()
+        direction = gpio.Read(1)
+        gpio.Stop()
+        gpio.SendAcks()
+        logger.debug('MCP23017 IO Direction Register: 0x%0.2X', ord(direction))
+    else:
+        # Octolock
+        # need to set the PCA9546A to channel 3 first
+        vec.Start()
+        vec.Write(CHANNEL3)
+        vec.Stop()
 
-    _close_i2c(vec_a)
-    _close_i2c(vec_b)
+        # Point the direction register and read out
+        vec.Start()
+        vec.Write(WRITE_23017 + dir_reg)
+        vec.Stop()
+        vec.Start()
+        vec.Write(READ_23017)
+        vec.SendNacks()
+        direction = vec.Read(1)
+        vec.Stop()
+        vec.SendAcks()
+
+        # convert direction to int
+        direction_int = ord(direction)
+
+        # This will set the IO bit connected to the Control line back to an
+        # input which will pull the line low and lock the door
+        direction_int = direction_int | mask
+
+        # now write that value into IO Direction
+        vec.Start()
+        vec.Write(WRITE_23017 + dir_reg + chr(direction_int))
+        vec.Stop()
+
+        # ALL THE REMAINING LINES IN THIS FUNCTION ARE FOR DEBUG PURPOSES AND
+        # CAN BE REMOVED, READ OUT THE IO DIRECTION REGISTER TO VERIFY CONTENTS
+        vec.Start()
+        vec.Write(WRITE_23017 + dir_reg)
+        vec.Stop()
+        vec.Start()
+        vec.Write(READ_23017)
+        vec.SendNacks()
+        direction = vec.Read(1)
+        vec.Stop()
+        vec.SendAcks()
+        logger.debug('MCP23017 IO Direction Register: 0x%0.2X', ord(direction))
 
 
 def lock_momentary_unlock(lock_number):
     """
-    Unlock a lock by index (1-12)
+    Momentarily unlock a lock (for about 3 seconds).
     :param lock_number: The index of the lock to lock.
     """
-    logger.debug('Unlocking lock {}'.format(lock_number))
-    vec_a = _open_i2c_lock(IFACE_A)
-    vec_b = _open_i2c_lock(IFACE_B)
+    logger.debug('Momentary unlock lock {}'.format(lock_number))
 
-    # Make sure reset line is held high on MCP23017 in order to use it
-    vec_a.PinHigh(GPIOL1)
-    time.sleep(0.005)
+    # Make it simple call the unlock function then wait the required 50ms to lock it again
+    # This will cause to door lock to remain unlocked for 3 seconds before locking again
+    lock_unlock(lock_number)
 
-    # Get the mask, latch, and vec to operate on.
-    mask, latch, vec = _get_lock_parameters(vec_a, vec_b, lock_number)
-
-    # All the addresses and handles are assigned above based on the lock number.
-    # Locks 1-4 are on the backplane and 5-12 are on the expansion which is
-    # shared on channel 3 of the PCA9546A the buffered I2C shared with the led
-    # controller and thermistors. At this point the only thing to do different
-    # between the BP and expansion is set the channel on the PCA9546A to access
-    # locks 5 - 12.
-    if lock_number >= 5:
-        _set_channel3(vec_a)
-
-    # First read out the associated latch register so as not to
-    # disturb any prior lock settings
-    reading = _read_latch(vec, latch)
-
-    # Unlock
-    _write_latch(vec, latch, chr(reading & ~mask))
-
+    # Wait the required time for a momentary unlock.
     # After trial an error setting to 70ms in python works, 50ms must be too fast.
     time.sleep(0.070)
 
-    # now open the control line again by clearing the control bit assigned in mask
-    _write_latch(vec, latch, chr(reading | mask))
-    _close_i2c(vec_a)
-    _close_i2c(vec_b)
+    lock_lock(lock_number)
 
 
-def _open_i2c_lock(interface):
+def check_els():
     """
-    Open and initialize the port in the FT4232H for i2c lock operations.
-    :param interface: The port index of the FT4232H. IFACE_A or IFACE_B.
-    :return: Handle to i2c interface for the port.
+    Check the electrical status of all locks 1-12.
+    :return: The electrical status of all locks. Inactive (1) means locked,
+    Active (0) means unlocked. Bit 0 is lock 1. Bit 11 is lock 12.
     """
-    vec = MPSSE()
-    vec.Open(
-        0x0403,  # VID
-        0x6011,  # PID
-        I2C,     # mode
-        ONE_HUNDRED_KHZ,  # Clock frequency
-        MSB,  # endianess. I2C is always MSB.
-        interface)  # interface
-    return vec
+    logger.debug('check_els()')
 
+    vec = VecHandles().instance.vec
+    gpio = VecHandles().instance.gpio
 
-# This is for the rev 2 board which we don't have yet. (12/19/17)
-def _check_els(vec_a, vec_b):
-    """
-    Checks the electronic lock status. Bit 0 is lock 1, etc.
-    :param vec_a: Handle to i2c port A.
-    :param vec_b: Handle to i2c port B.
-    :return: bitmap where bit 0 is MLS1, bit 1 is MLS2, etc.
-    """
-    # read out the GPIO B register
-    logger.debug('Reading GPIO B register')
-    to_send = WRITE_23017
-    to_send += GPIOB_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
+    # Point to the Port B I/O register on CE
+    gpio.Start()
+    logger.debug('writing: {}'.format(hexlify(WRITE_23017 + GPIOB_23017)))
+    gpio.Write(WRITE_23017 + GPIOB_23017)
+    gpio.Stop()
 
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec_b.Stop()
+    # read out register
+    gpio.Start()
+    gpio.Write(READ_23017)
+    logger.debug('writing: {}'.format(hexlify(READ_23017)))
+    gpio.SendNacks()
+    io_b = gpio.Read(1)
+    logger.debug('read: {}'.format(hexlify(io_b)))
+    gpio.Stop()
+    gpio.SendAcks()
 
-    to_send = READ_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    reading = vec_b.Read(1)
-    vec_b.SendNacks()
-    vec_b.Stop()
-
-    logger.debug('Read GPIO B register: {}'.format(hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
+    # convert io_b into an integer for use
+    io_b = ord(io_b)
 
     # shift down ELS1 to bit 0
-    bit = (reading & ELS1) >> 4
+    bit = (io_b & ELS1) >> 4
 
-    # store in ELS
+    # store in els
     els = bit
 
     # ELS2 is already at bit location 1
-    bit = reading & ELS2
+    bit = io_b & ELS2
 
-    # store in ELS
+    # store in els
     els |= bit
 
-    # read out the GPIO A register
-    logger.debug('Reading GPIO A register')
-    to_send = WRITE_23017
-    to_send += GPIOA_23017
+    # Point to Port A I/O register
+    gpio.Start()
+    logger.debug('writing: {}'.format(hexlify(WRITE_23017 + GPIOB_23017)))
+    gpio.Write(WRITE_23017 + GPIOA_23017)
+    gpio.Stop()
 
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec_b.Stop()
+    # Read out register
+    gpio.Start()
+    logger.debug('writing: {}'.format(hexlify(READ_23017)))
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_a = gpio.Read(1)
+    logger.debug('read: {}'.format(hexlify(io_a)))
+    gpio.Stop()
+    gpio.SendAcks()
 
-    to_send = READ_23017
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    reading = vec_b.Read(1)
-    vec_b.SendNacks()
-    vec_b.Stop()
-
-    logger.debug('Read GPIO B register: {}'.format(hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
+    # Convert io_a into integer for use
+    io_a = ord(io_a)
 
     # shift up ELS3 to bit 3
-    bit = (reading & ELS3) << 1
+    bit = (io_a & ELS3) << 1
 
-    # store in ELS
+    # store in els
     els |= bit
 
     # shift down ELS4 to bit location 4
-    els |= (reading & MLS4) >> 1
+    bit = (io_a & ELS4) >> 1
 
-    # now read out MLS 5 -12 from the expansion board
-    # need to set the switch to channel 3 first
-    _set_channel3(vec_a)
+    # store in els
+    els |= bit
+
+    # now read out ELS 5 -12 from the expansion board
+    # need to set the switch to channel 3 first on the PCA9546A
+    vec.Start()
+    logger.debug('writing: {}'.format(hexlify(CHANNEL3)))
+    vec.Write(CHANNEL3)
+    vec.Stop()
 
     # All the ELS lines are connected to the MCP23017 B port
-    # read out the GPIO register
-    logger.debug('Reading GPIO register')
-    to_send = WRITE_23017
-    to_send += GPIOB_23017
+    # read out the GPIO B register
+    vec.Start()
+    logger.debug('writing: {}'.format(hexlify(WRITE_23017 + GPIOB_23017)))
+    vec.Write(WRITE_23017 + GPIOB_23017)
+    vec.Stop()
 
-    vec_a.Start()
-    vec_a.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec_a.Stop()
+    # Read out Port B
+    vec.Start()
+    vec.Write(READ_23017)
+    vec.SendNacks()
+    io_b = vec.Read(1)
+    logger.debug('read: {}'.format(hexlify(io_b)))
+    vec.Stop()
+    vec.SendAcks()
 
-    to_send = READ_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-
-    vec_a.Start()
-    vec_a.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    reading = vec_a.Read(1)
-    vec_a.SendNacks()
-    vec_a.Stop()
-
-    logger.debug('Read GPIO register: {}'.format(hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
+    # convert io_b into an integer for use
+    io_b = ord(io_b)
 
     # Shift the entire byte up by 4 so to pack it
     # with locks 1 - 4
-    bit = (reading << 4)
+    bit = (io_b << 4)
+
     els |= bit
-    return els
+
+    return els & 0xFF
 
 
-# This is for the rev 2 board which we don't have yet. (12/19/17)
-def _check_mls(vec_a, vec_b):
+def check_mls():
     """
-    Checks the mechanical lock status. Bit 0 is lock 1, etc.
-    :param vec_a: Handle to i2c port A.
-    :param vec_b: Handle to i2c port B.
-    :return: bitmap where bit 0 is MLS1, bit 1 is MLS2, etc.
+    Check the mechanical status of all locks 1-12.
+    :return: The mechanical status of all locks. Inactive (1) means locked,
+    Active (0) means unlocked. Bit 0 is lock 1. Bit 11 is lock 12.
     """
-    # read out the GPIO B register
-    logger.debug('Reading GPIO B register')
-    to_send = WRITE_23017
-    to_send += GPIOB_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
+    vec = VecHandles().instance.vec
+    gpio = VecHandles().instance.gpio
 
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec_b.Stop()
+    # Point to the Port B I/O register on CE
+    gpio.Start()
+    gpio.Write(WRITE_23017 + GPIOB_23017)
+    gpio.Stop()
 
-    to_send = READ_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
+    # read out register
+    gpio.Start()
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_b = gpio.Read(1)
+    gpio.Stop()
+    gpio.SendAcks()
 
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    reading = vec_b.Read(1)
-    vec_b.SendNacks()
-    vec_b.Stop()
-
-    logger.debug('Read GPIO B register: {}'.format(hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
+    # convert io_b into an integer for use
+    io_b = ord(io_b)
 
     # shift down MLS1 to bit 0
-    bit = (reading & MLS1) >> 5
+    bit = (io_b & MLS1) >> 5
 
     # store in MLS
     mls = bit
 
     # shift down MLS2 to bit 1
-    bit = (reading & MLS2) >> 1
+    bit = (io_b & MLS2) >> 1
 
     # store in MLS
     mls |= bit
 
-    # read out the GPIO A register
-    logger.debug('Reading GPIO A register')
-    to_send = WRITE_23017
-    to_send += GPIOA_23017
+    # Point to Port A I/O register
+    gpio.Start()
+    gpio.Write(WRITE_23017 + GPIOA_23017)
+    gpio.Stop()
 
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec_b.Stop()
+    # Read out register
+    gpio.Start()
+    gpio.Write(READ_23017)
+    gpio.SendNacks()
+    io_a = gpio.Read(1)
+    gpio.Stop()
+    gpio.SendAcks()
 
-    to_send = READ_23017
-    vec_b.Start()
-    vec_b.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    reading = vec_b.Read(1)
-    vec_b.SendNacks()
-    vec_b.Stop()
-
-    logger.debug('Read GPIO B register: {}'.format(hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
+    # Convert io_a into integer for use
+    io_a = ord(io_a)
 
     # shift up MLS3 to bit 2
-    bit = (reading & MLS3) << 2
+    bit = (io_a & MLS3) << 2
 
     # store in MLS
     mls |= bit
 
-    # MLS4 is already in bit 3 so no need to shift
-    mls |= (reading & MLS4)
+    # MLS4 is alreay in bit 3 so no need to shift
+    mls |= io_a & MLS4
 
-    # now read out MLS 5 -12 from the expansion board
-    # need to set the switch to channel 3 first
-    _set_channel3(vec_a)
-    # logger.debug('Setting switch to channel 3.')
-    # to_send = WRITE_9546A
-    # to_send += '\x08'  # Channel 3
-    #
-    # logger.debug('to_send: {}'.format(hexlify(to_send)))
-    #
-    # vec_a.Start()
-    # vec_a.Write(to_send)
-    # if vec_b.GetAck() == ACK:
-    #     logger.debug('Got Ack')
-    # else:
-    #     logger.debug('No Ack')
-    # vec_a.Stop()
-    # logger.debug('Set switch to channel 3.')
-    # TODO: end function to set the switch.
+    # now read out MLS 5-12 from the expansion board
+    # need to set the PCA9546A to channel 3 first
+    vec.Start()
+    vec.Write(CHANNEL3)
+    vec.Stop()
 
     # All the MLS lines are connected to the MCP23008
-    # read out the GPIO register
-    logger.debug('Reading GPIO register')
-    to_send = WRITE_23008
-    to_send += GPIO_23008
+    vec.Start()
+    vec.Write(WRITE_23008 + GPIO_23008)
+    vec.Stop()
 
-    vec_a.Start()
-    vec_a.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    vec_a.Stop()
+    # Read out the port
+    vec.Start()
+    vec.Write(READ_23008)
+    vec.SendNacks()
+    reading = vec.Read(1)
+    vec.Stop()
+    vec.SendAcks()
 
-    to_send = READ_23017
-    logger.debug('to_send: {}'.format(hexlify(to_send)))
-
-    vec_a.Start()
-    vec_a.Write(to_send)
-    if vec_b.GetAck() == ACK:
-        logger.debug('Got Ack')
-    else:
-        logger.debug('No Ack')
-    reading = vec_a.Read(1)
-    vec_a.SendNacks()
-    vec_a.Stop()
-
-    logger.debug('Read GPIO register: {}'.format(hexlify(reading)))
-
-    # Need int for bitwise operations.
-    reading = struct.unpack('>B', reading)[0]
+    # convert io into an integer for use
+    reading = ord(reading)
 
     # Shift the entire byte up by 4 so to pack it
     # with locks 1 - 4
-    bit = (reading << 4)
+    bit = reading << 4
+
     mls |= bit
-    return mls
+
+    return mls & 0xFF
 
 
 def lock_status(lock_number):
@@ -714,73 +591,38 @@ def lock_status(lock_number):
     Get the status of a lock.
     :param lock_number: Lock 1-12
     :return:
-    0 = Alarms inactive Lock secure
-    1 = ELS active lock electrically released
-    2 = MLS active lock mechanical released
-    3 = ELS and MLS active, handle not fully closed
     0 = ELS and MLS Active - Door Handle Not Secured.
     1 = ELS Active - Door Electrically Unlocked.
     2 = MLS Active - Door Unlocked by Key.
     3 = Door Lock Secure.
     """
-    logger.debug('Lock Status')
+    logger.debug('lock status, lock_number: {}'.format(lock_number))
+    elec_status = check_els()
+    logger.debug('elec_status: 0x{:02x}'.format(elec_status))
+    mech_status = check_mls()
+    logger.debug('mech_status: 0x{:02x}'.format(mech_status))
 
-    if not 1 <= lock_number <= 12:
-        raise ValueError('lock_number {} must be between 1 and 12.')
+    # Combine MLS and ELS into a 2 bit number
+    # Bit 0 = ELS
+    # Bit 1 = MLS
+    # ELS can be shifted down by lock number - 1
+    elec_status >>= (lock_number - 1)
 
-    vec_a = _open_i2c_lock(IFACE_A)
-    vec_b = _open_i2c_lock(IFACE_B)
+    # MLS is a little more tricky, lock one has to shifted up by 1
+    # Lock 2 gets no shift
+    # Lock > 2 gets shifted down by lock number - 2
+    if lock_number == 1:
+        mech_status <<= 1
 
-    # Make sure reset line is held high on MCP23017 in order to use it
-    vec_a.PinHigh(GPIOL1)
-    time.sleep(0.005)
+    elif lock_number > 2:
+        mech_status >>= (lock_number - 2)
 
-    # Rev1 board:
-    vec_b.Start()
-    vec_b.Write(WRITE_23017 + GPIOA_23017)
-    vec_b.Stop()
-    vec_b.Start()
-    vec_b.Write(READ_23017)
-    vec_b.SendNacks()
+    # Mask out the other bit and combine into status pointer
+    elec_status &= 0x0001
+    mech_status &= 0x0002
 
-    status = vec_b.Read(1)
-    vec_b.Stop()
-    vec_b.SendAcks()
-
-    status = ord(status)
-    logger.debug('read status: 0x{:02x}'.format(status))
-    status = (status >> 5) & 0x03
-    logger.debug('shifted status: 0x{:02x}'.format(status))
-
-    # Below is for the rev2 board which we don't have yet.
-    # els = _check_els(vec_a, vec_b)
-    # logger.debug('lock_status els: 0x{:02x}'.format(els))
-    #
-    # mls = _check_mls(vec_a, vec_b)
-    # logger.debug('lock_status mls: 0x{:02x}'.format(mls))
-    #
-    # # combine MLS and ELS into a 2 bit number
-    # # Bit 0 = ELS
-    # # Bit 1 = MLS
-    # # ELS can be shifted down by lock number - 1
-    # els >>= (lock_number - 1)
-    #
-    # # MLS is a little more tricky, lock one has to shifted up by 1
-    # # Lock 2 gets no shift
-    # # Lock > 2 gets shifted down by lock number - 2
-    # if lock_number == 1:
-    #     mls <<= 1
-    # elif lock_number > 2:
-    #     els >>= (lock_number - 2)
-    #
-    # # mask out the other bit and combine into status pointer
-    # els &= 0x0001
-    # mls &= 0x0002
-    # status = els & mls
-
-    _close_i2c(vec_a)
-    _close_i2c(vec_b)
-    return status
+    status = mech_status | elec_status
+    return status & 0xFF
 
 
 def lock_unlock(lock_number):
@@ -789,77 +631,125 @@ def lock_unlock(lock_number):
     :param lock_number: The index of the lock to lock.
     """
     logger.debug('Unlocking lock {}'.format(lock_number))
-    vec_a = _open_i2c_lock(IFACE_A)
-    vec_b = _open_i2c_lock(IFACE_B)
 
-    # Make sure reset line is held high on MCP23017 in order to use it
-    vec_a.PinHigh(GPIOL1)
-    time.sleep(0.005)
+    # Get the mask and direction register. Get the vec and gpio handles.
+    mask, dir_reg = _get_lock_parameters(lock_number, False)
+    vec = VecHandles().instance.vec
+    gpio = VecHandles().instance.gpio
 
-    # Get the mask, latch, and vec to operate on.
-    mask, latch, vec = _get_lock_parameters(vec_a, vec_b, lock_number)
+    # First read out the direction register of the port of interest of the
+    # MCP23017 so as not to disturb any of the other bits when the control line
+    # is set or cleared
+    # TODO: Need to set the approriate stuff for Octolock when it's reading to
+    # test!! if locks 1 - 4 then on cardedge the remaining on octolock
+    if lock_number < 5:
+        gpio.Start()
+        gpio.Write(WRITE_23017 + dir_reg)
+        gpio.Stop()
+        gpio.Start()
+        gpio.Write(READ_23017)
+        gpio.SendNacks()
+        direction = gpio.Read(1)
+        gpio.Stop()
+        gpio.SendAcks()
 
-    # All the addresses and handles are assigned above based on the lock number.
-    # Locks 1-4 are on the backplane and 5-12 are on the expansion which is
-    # shared on channel 3 of the PCA9546A the buffered I2C shared with the led
-    # controller and thermistors. At this point the only thing to do different
-    # between the BP and expansion is set the channel on the PCA9546A to access
-    # locks 5 - 12.
-    if lock_number >= 5:
-        _set_channel3(vec_a)
+        # convert direction to int
+        direction_int = ord(direction)
 
-    # First read out the associated latch register so as not to
-    # disturb any prior lock settings
-    reading = _read_latch(vec, latch)
+        logger.debug(direction_int)
 
-    # Unlock
-    _write_latch(vec, latch, chr(reading & ~mask))
+        # we need to set the IO line connected to the control to an output so it
+        # pulls the control line high and unlocks the door (this set latch value
+        # to the port bit)
+        direction_int = direction_int & (mask & 0xFF)
 
-    # ALL THE REMAINING LINES IN THIS FUNCTION ARE FOR DEBUG PURPOSES AND CAN BE REMOVED,
-    # READ OUT THE IO DIRECTION REGISTER TO VERIFY CONTENTS.
-    # We should get 0x7F. Leaving this code in until we get the rev 2 boards.
-    logger.debug('reading register')
-    vec.Start()
-    vec.Write(WRITE_23017 + IODIRA_23017)
-    vec.Stop()
-    vec.Start()
-    vec.Write(READ_23017)
-    vec.SendNacks()
-    direction = vec.Read(1)
-    vec.Stop()
-    vec.SendAcks()
-    print 'MCP23017 IO Direction Port A Register: 0x%0.2X' % ord(direction)
-    _close_i2c(vec_a)
-    _close_i2c(vec_b)
+        logger.debug(direction_int)
+
+        # now write that value into IO Direction
+        gpio.Start()
+        gpio.Write(WRITE_23017 + dir_reg + chr(direction_int))
+        gpio.Stop()
+
+        # ALL THE REMAINING LINES IN THIS FUNCTION ARE FOR DEBUG PURPOSES AND
+        # CAN BE REMOVED, READ OUT THE IO DIRECTION REGISTER TO VERIFY CONTENTS
+        gpio.Start()
+        gpio.Write(WRITE_23017 + dir_reg)
+        gpio.Stop()
+        gpio.Start()
+        gpio.Write(READ_23017)
+        gpio.SendNacks()
+        direction = gpio.Read(1)
+        gpio.Stop()
+        gpio.SendAcks()
+        logger.debug('MCP23017 IO Direction Register: 0x%0.2X', ord(direction))
+    else:
+        # Octolock
+        # need to set the PCA9546A to channel 3 first
+        vec.Start()
+        vec.Write(CHANNEL3)
+        vec.Stop()
+
+        # Read out the direction register
+        vec.Start()
+        vec.Write(WRITE_23017 + dir_reg)
+        vec.Stop()
+        vec.Start()
+        vec.Write(READ_23017)
+        vec.SendNacks()
+        direction = vec.Read(1)
+        vec.Stop()
+        vec.SendAcks()
+
+        # convert direction to int
+        direction_int = ord(direction)
+
+        logger.debug(direction_int)
+
+        # we need to set the IO line connected to the control to an output so it
+        # pulls the control line high and unlocks the door (this set latch value
+        # to the port bit)
+        direction_int = direction_int & (mask & 0xFF)
+
+        logger.debug(direction_int)
+
+        # now write that value into IO Direction
+        vec.Start()
+        vec.Write(WRITE_23017 + dir_reg + chr(direction_int))
+        vec.Stop()
+
+        # ALL THE REMAINING LINES IN THIS FUNCTION ARE FOR DEBUG PURPOSES AND
+        # CAN BE REMOVED, READ OUT THE IO DIRECTION REGISTER TO VERIFY CONTENTS
+        vec.Start()
+        vec.Write(WRITE_23017 + dir_reg)
+        vec.Stop()
+        vec.Start()
+        vec.Write(READ_23017)
+        vec.SendNacks()
+        direction = vec.Read(1)
+        vec.Stop()
+        vec.SendAcks()
+        logger.debug('MCP23017 IO Direction Register: 0x%0.2X', ord(direction))
 
 
-def _close_i2c(vec):
-    """Close the i2c port on the VEC USB."""
-    vec.Close()
-
-
-def _close_vec_i2c(vec, gpio):
-    """Close the i2c port on the VEC USB."""
-    vec.Stop()
-    vec.Close()
-    gpio.Close()
+def validate_lock_write_action(action):
+    """
+    Validate a lock action string for writes. Valid actions are lock, unlock,
+    and momentary_unlock.
+    :param action: The string to validate.
+    :raises ValueError: Invalid action for a lock write.
+    """
+    if action not in ['lock', 'unlock', 'momentary_unlock']:
+        raise ValueError('Invalid action provided for lock control.')
 
 
 def _open_led_i2c():
-    """Open the i2c port on the VEC USB for led controller operations."""
+    """Open the i2c port on the VEC USB for led controller operations.
+    :returns: The vec handle to the HID device that speaks I2C to the LED
+    controller."""
+    vec = VecHandles().instance.vec
+
     # Construct string to set channel number to 3
     channel_str = PCA9546_WRITE_ADDRESS + '\x08'
-
-    # Port A I2C for PCA9546A
-    vec = MPSSE()
-    vec.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_A)
-
-    # Port B I2C for debug leds (don't need the io expander for the LED Port)
-    gpio = MPSSE()
-    gpio.Open(0x0403, 0x6011, I2C, ONE_HUNDRED_KHZ, MSB, IFACE_B)
-
-    # Set RESET line on PCA9546A to high to activate switch
-    vec.PinHigh(GPIOL0)
 
     # Set channel on PCA9546A to 3 for PCA9632 (LED Port) Keep in mind this
     # also is connected to the MAX11608
@@ -886,13 +776,7 @@ def _open_led_i2c():
     vec.Write('\xC4\x80\x00\x35')
     vec.Stop()
 
-    return vec, gpio
-
-
-def _close_led_i2c(vec, gpio):
-    """Close the i2c port on the VEC USB."""
-    vec.Close()
-    gpio.Close()
+    return vec
 
 
 def get_channel_ordinal(channel):
@@ -925,16 +809,14 @@ def get_channel_from_ordinal(ordinal):
 
 def _normalize_differential_pressure_result(channel, readings):
     """ Normalize the raw differential pressure readings to produce a result.
-
     The raw readings will vary wildly due to turbulence.
 
     Args:
-        channel: the I2C channel of the sensor.
-        readings: the raw differential pressure readings from the sensor.
+        channel: The I2C channel of the sensor.
+        readings: The raw differential pressure readings from the sensor.
     """
     # Dict for aggregating and logging.
     result_stats = {'sample_count': DIFFERENTIAL_PRESSURE_READ_COUNT}
-    result_stats['raw_mean'], result_stats['raw_stddev'] = stats.std_dev(readings)
 
     if readings is None:
         # Bad sensor read. Don't fail the fan_sensors web route.
@@ -946,6 +828,8 @@ def _normalize_differential_pressure_result(channel, readings):
         result_stats['mean'] = None
         result_stats['stddev'] = None
         return result_stats
+
+    result_stats['raw_mean'], result_stats['raw_stddev'] = stats.std_dev(readings)
 
     # Remove outliers.
     readings_copy = copy.deepcopy(readings)
@@ -969,8 +853,8 @@ def _read_differential_pressure_channel(vec, channel):
     reads.
 
     Args:
-        vec: handle for reading.
-        channel: the I2C channel to read.
+        vec: Handle for reading.
+        channel: The i2c channel to read.
 
     Returns:
         list: a list of differential pressure readings in Pascals. These will
@@ -1040,7 +924,7 @@ def configure_differential_pressure(channel):
     on synse container startup.
 
     Args:
-        channel: the channel to configure.
+        channel: The channel to configure.
     """
     logger.debug('Configuring Differential Pressure sensor on channel {}'.format(channel))
 
@@ -1124,7 +1008,11 @@ def read_differential_pressure(channel):
     Returns:
         The differential pressure in Pascals, or None on failure.
     """
-    vec, gpio = _open_vec_i2c()
+    vec = VecHandles().instance.vec
+
+    # Read channel of PCA9546A
+    vec.Start()
+    vec.Write(PCA9546_READ_ADDRESS)
 
     if vec.GetAck() == ACK:
         # If we got an ack then switch is there.
@@ -1142,10 +1030,10 @@ def read_differential_pressure(channel):
 
     else:
         logger.error('No ACK from PCA9546A')
-        _close_vec_i2c(vec, gpio)
+        vec.Stop()
         return None
 
-    _close_vec_i2c(vec, gpio)
+    vec.Stop()
 
     # Now that the bus is closed, normalize the results.
     normalized_result = _normalize_differential_pressure_result(channel, readings)
@@ -1159,16 +1047,20 @@ def read_differential_pressures(count):
     CEC board.
 
     Args:
-        count (int): the number of differential pressure sensors to read.
+        count (int): The number of differential pressure sensors to read.
 
     Returns:
-        list: an array of differential pressure sensor readings in Pascals.
+        list: An array of differential pressure sensor readings in Pascals.
             The array index will be the same as the channel in the synse i2c sdp-610
             differential pressure sensor configuration. None is returned on failure.
     """
-
     start_time = datetime.datetime.now()
-    vec, gpio = _open_vec_i2c()
+    vec = VecHandles().instance.vec
+
+    # Read channel of PCA9546A
+    vec.Start()
+    vec.Write(PCA9546_READ_ADDRESS)
+
     result = []
     raw_result = []
 
@@ -1193,10 +1085,10 @@ def read_differential_pressures(count):
         vec.Stop()
     else:
         logger.error('No ACK from PCA9546A')
-        _close_vec_i2c(vec, gpio)
+        vec.Stop()
         return None
 
-    _close_vec_i2c(vec, gpio)
+    vec.Stop()
 
     # Now that the bus is closed, normalize the results.
     for index, raw in enumerate(raw_result):
@@ -1204,6 +1096,8 @@ def read_differential_pressures(count):
         normalized = _normalize_differential_pressure_result(channel, raw)
         if normalized is None:
             return None  # Read of bad sensor.
+
+        # Return the mean.
         result.append(normalized['mean'])
 
     end_time = datetime.datetime.now()
@@ -1217,11 +1111,15 @@ def read_differential_pressures(count):
 # PCA9632 LED Controller constants.
 PCA9632_WRITE = chr(0xC4)
 PCA9632_READ = chr(0xC5)
-PCA9632_LEDOUT_BLINK = chr(0x3F)        # Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
+
+# Brightness controlled by PWMx register. Blinking controlled by GRPPWM register
+PCA9632_LEDOUT_BLINK = chr(0x3F)
 PCA9632_LEDOUT_STEADY = chr(0x2A)       # Brightness controlled by PWMx register.
 PCA9632_LEDOUT_OFF = chr(0x00)          # Led output off.
 PCA9632_GRPPWM_FULL = chr(0xFC)         # 98.4 % group duty cycle. 64-step duty cycle resolution.
-PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)    # Blink all LEDs at 2 second frequency. (one second on, one second off)
+
+# Blink all LEDs at 2 second frequency. (one second on, one second off)
+PCA9632_GRPFREQ_2S_BLINK = chr(0x2F)
 
 # register options
 PCA9632_AUTO_INCR = chr(0x80)   # Enables Auto-Increment, Mode register 1.
@@ -1248,7 +1146,7 @@ def read_led():
             color is a 3 byte RGB color.
             blink is blink or steady.
     """
-    vec, gpio = _open_led_i2c()
+    vec = _open_led_i2c()
 
     # Read out color. PWM0 register. (Register 2)
     vec.Start()
@@ -1273,8 +1171,6 @@ def read_led():
     vec.Write(PCA9632_READ)    # start a read
     ledout = vec.Read(1)
     vec.Stop()
-
-    _close_led_i2c(vec, gpio)
 
     ledout = ord(ledout)
     logger.debug('PCA9632 Register 0x08: 0x{:02x}'.format(ledout))
@@ -1302,7 +1198,7 @@ def check_led_write_parameters(state, color=None, blink_state=None):
 
     Args:
         state (str): on or off
-        color (int): a 3-byte RGB color. None is fine for off.
+        color (int): A 3 byte RGB color. None is fine for off.
         blink_state (str): blink, steady, or no_override. None is fine for off.
     """
     # Parameter checks.
@@ -1325,7 +1221,7 @@ def write_led(state, color=None, blink_state=None):
 
     Args:
         state (etd): on or off
-        color (int | str): a 3-byte RGB color or hex string. None is fine for off.
+        color (int | str): A 3 byte RGB color or hex string. None is fine for off.
         blink_state (str): blink, steady, or no_override. None is fine for off.
     """
 
@@ -1336,7 +1232,7 @@ def write_led(state, color=None, blink_state=None):
     # Parameter checks.
     check_led_write_parameters(state, color, blink_state)
 
-    vec, gpio = _open_led_i2c()
+    vec = _open_led_i2c()
 
     if state == 'off':
         # Turn off all outputs with the LEDOUT register.
@@ -1372,8 +1268,6 @@ def write_led(state, color=None, blink_state=None):
             vec.Write(PCA9632_WRITE + PCA9632_LEDOUT + PCA9632_LEDOUT_BLINK)
             vec.Stop()
 
-    _close_led_i2c(vec, gpio)
-
 
 def _get_thermistor_registers(device_name):
     """Get the read and write registers for the max116xx A/D converter attached
@@ -1405,7 +1299,11 @@ def read_thermistors(count, device_name):
     # construct channel 3 command based on address
     channel_3 = PCA9546_WRITE_ADDRESS + '\x08'
 
-    vec, gpio = _open_vec_i2c()
+    vec = VecHandles().instance.vec
+
+    # Read channel of PCA9546A
+    vec.Start()
+    vec.Write(PCA9546_READ_ADDRESS)
 
     if vec.GetAck() == ACK:
 
@@ -1452,10 +1350,10 @@ def read_thermistors(count, device_name):
 
     else:
         logger.error('No ACK from thermistors.')
-        _close_vec_i2c(vec, gpio)
+        vec.Stop()
         return None
 
-    _close_vec_i2c(vec, gpio)
+    vec.Stop()
 
     # Convert the raw reading for each thermistor.
     result = []

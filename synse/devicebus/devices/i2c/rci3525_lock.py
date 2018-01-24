@@ -5,7 +5,7 @@
      \/apor IO
 
 -------------------------------
-Copyright (C) 2015-17  Vapor IO
+Copyright (C) 2015-18  Vapor IO
 
 This file is part of Synse.
 
@@ -25,8 +25,6 @@ along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import sys
-
-import lockfile
 
 import synse.strings as _s_
 from synse.devicebus.constants import CommandId as cid
@@ -53,8 +51,6 @@ class RCI3525Lock(I2CDevice):
         # Sensor specific commands.
         self._command_map[cid.READ] = self._read
         self._command_map[cid.LOCK] = self._lock_function
-
-        self._lock = lockfile.LockFile(self.serial_lock)
 
         self.channel = int(kwargs['channel'], 16)
 
@@ -151,14 +147,13 @@ class RCI3525Lock(I2CDevice):
         Returns:
             dict: Key is lock_status. Data are:
                 0 - Electrically unlocked and mechanically unlocked.
-                1 - Electrically unlocked and mechanically locked.
-                2 - Electrically locked and mechanically unlocked.
+                1 - Electrically locked and mechanically unlocked.
+                2 - Electrically unlocked and mechanically locked.
                 3 - Electrically locked and mechanically locked.
         """
-        with self._lock:
-            logger.debug('RCI3525Lock _direct_sensor_read: {}')
-            reading = i2c_common.lock_status(self.lock_number)
-            return {'lock_status': reading}
+        logger.debug('RCI3525Lock _direct_sensor_read: {}')
+        reading = i2c_common.lock_status(self.lock_number)
+        return {'lock_status': reading}
 
     # Needs to be called something other than _lock since that is self._lock is
     # a lockfile in subclasses of I2CDevice.
@@ -224,10 +219,10 @@ class RCI3525Lock(I2CDevice):
         # caller.
         if action == 'lock':
             # Set bit 1 to denote electrically locked.
-            reading['lock_status'] = reading['lock_status'] | 0x2
+            reading['lock_status'] = reading['lock_status'] | 0x1
         elif action == 'unlock' or action == 'momentary_unlock':
             # Clear bit 1 to denote electrically unlocked.
-            reading['lock_status'] = reading['lock_status'] & 0xFD
+            reading['lock_status'] = reading['lock_status'] & 0xFE
         else:
             raise SynseException('Invalid action provided for lock control.')
         return reading
