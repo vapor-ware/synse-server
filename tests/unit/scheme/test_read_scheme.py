@@ -165,10 +165,7 @@ def test_read_scheme_no_unit():
             'temperature': {
                 'value': '10.988',
                 'timestamp': 'november',
-                'unit': {
-                    'name': '',
-                    'symbol': ''
-                }
+                'unit': None
             }
         }
     }
