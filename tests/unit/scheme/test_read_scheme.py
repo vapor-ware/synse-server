@@ -54,7 +54,7 @@ def test_read_scheme():
         'type': 'thermistor',
         'data': {
             'temperature': {
-                'value': '10.0',
+                'value': 10.0,
                 'timestamp': 'november',
                 'unit': {
                     'name': 'celsius',
@@ -83,7 +83,7 @@ def test_read_scheme_with_precision_rounding():
         'type': 'thermistor',
         'data': {
             'temperature': {
-                'value': '10.123',
+                'value': 10.123,
                 'timestamp': 'november',
                 'unit': {
                     'name': 'celsius',
@@ -112,7 +112,7 @@ def test_read_scheme_with_precision_rounding_2():
         'type': 'thermistor',
         'data': {
             'temperature': {
-                'value': '10.988',
+                'value': 10.988,
                 'timestamp': 'november',
                 'unit': {
                     'name': 'celsius',
@@ -163,7 +163,7 @@ def test_read_scheme_no_unit():
         'type': 'thermistor',
         'data': {
             'temperature': {
-                'value': '10.988',
+                'value': 10.988,
                 'timestamp': 'november',
                 'unit': {
                     'name': '',
@@ -193,7 +193,7 @@ def test_read_scheme_no_precision():
         'type': 'thermistor',
         'data': {
             'temperature': {
-                'value': '10.98765432',
+                'value': 10.98765432,
                 'timestamp': 'november',
                 'unit': {
                     'name': 'celsius',

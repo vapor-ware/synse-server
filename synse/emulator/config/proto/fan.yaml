@@ -6,6 +6,7 @@ prototypes:
     protocol: emulator
     output:
       - type: fan_speed
+        data_type: int
         unit:
           name: revolutions per minute
           symbol: RPM
