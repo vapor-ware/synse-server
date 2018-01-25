@@ -69,9 +69,8 @@ class ReadResponse(SynseResponse):
             rt = reading.type
 
             # these fields may not be specified, e.g. in cases where it wouldn't
-            # make sense for a reading kind, e.g. LED state (on/off)
-            symbol = ''
-            name = ''
+            # make sense for a reading unit, e.g. LED state (on/off)
+            unit = None
             precision = None
 
             logger.debug(gettext('device output: {}').format(dev_output))
@@ -81,6 +80,12 @@ class ReadResponse(SynseResponse):
                     symbol = out.unit.symbol
                     name = out.unit.name
                     precision = out.precision
+
+                    if symbol or name:
+                        unit = {
+                            'symbol': symbol,
+                            'name': name
+                        }
 
                     found = True
                     break
@@ -102,10 +107,7 @@ class ReadResponse(SynseResponse):
             formatted[rt] = {
                 'value': value,
                 'timestamp': reading.timestamp,
-                'unit': {
-                    'symbol': symbol,
-                    'name': name
-                }
+                'unit': unit
             }
 
         return formatted
