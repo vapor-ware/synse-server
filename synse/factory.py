@@ -12,7 +12,7 @@ from synse import config, errors
 from synse.cache import configure_cache
 from synse.log import logger, setup_logger
 from synse.response import json
-from synse.routes import aliases, backports, base, core
+from synse.routes import aliases, base, core
 
 
 def make_app():
@@ -34,7 +34,6 @@ def make_app():
     app.blueprint(aliases.bp)
     app.blueprint(base.bp)
     app.blueprint(core.bp)
-    app.blueprint(backports.bp)
 
     _disable_favicon(app)
     _register_error_handling(app)
