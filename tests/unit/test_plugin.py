@@ -7,7 +7,7 @@ import socket
 
 import pytest
 
-from synse import const, plugin
+from synse import const, errors, plugin
 
 
 @pytest.fixture()
@@ -94,7 +94,7 @@ def test_plugin_manager_add_invalid(cleanup):
     """Add an invalid plugin."""
 
     pm = plugin.PluginManager()
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.PluginStateError):
         pm.add('plugin')
 
 
@@ -103,7 +103,7 @@ def test_plugin_manager_add_already_exists(mock_plugin, cleanup):
 
     pm = plugin.PluginManager()
     pm.plugins['test-plug'] = 'foo'
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.PluginStateError):
         pm.add(mock_plugin)
 
 
@@ -142,14 +142,14 @@ def test_plugin_manager_remove_nonexistent(cleanup):
 def test_plugin_path_not_exist(cleanup):
     """Create a plugin when the socket doesn't exist."""
 
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.PluginStateError):
         plugin.Plugin('test', 'some/nonexistent/path', 'unix')
 
 
 def test_plugin_invalid_mode(cleanup):
     """Create a plugin when the mode is invalid."""
 
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.PluginStateError):
         plugin.Plugin('test', 'some/addr', 'foo')
 
 
@@ -221,7 +221,7 @@ def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
     if os.path.isdir(const.BG_SOCKS):
         shutil.rmtree(const.BG_SOCKS)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.PluginStateError):
         plugin.register_plugins()
 
 

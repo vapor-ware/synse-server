@@ -82,12 +82,17 @@ async def write_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    # FIXME - probably want a try/except?
-    data = request.json
+    try:
+        data = request.json
+    except Exception as e:
+        raise errors.InvalidJsonError(
+            gettext('Invalid JSON specified: {}').format(request.body)
+        ) from e
+
     logger.debug(gettext('WRITE -> json: {}').format(data))
 
     if not any([x in data for x in ['action', 'raw']]):
-        raise errors.SynseError(
+        raise errors.InvalidArgumentsError(
             gettext('Invalid data POSTed for write. Must contain "action" and/or "raw".')
         )
 

@@ -18,8 +18,8 @@ async def info(rack, board=None, device=None):
         InfoResponse: The "info" response scheme model.
     """
     if rack is None:
-        raise errors.SynseError(
-            gettext('No rack specified when issuing info command.'), errors.INVALID_ARGUMENTS
+        raise errors.InvalidArgumentsError(
+            gettext('No rack specified when issuing info command.')
         )
 
     _cache = await cache.get_resource_info_cache()
@@ -80,21 +80,21 @@ def get_resources(info_cache, rack=None, board=None, device=None):
     if rack is not None:
         r = info_cache.get(rack)
         if not r:
-            raise errors.SynseError(
+            raise errors.RackNotFoundError(
                 gettext('Unable to find rack "{}" in info cache.').format(rack)
             )
 
     if board is not None:
         b = r['boards'].get(board)
         if not b:
-            raise errors.SynseError(
+            raise errors.BoardNotFoundError(
                 gettext('Unable to find board "{}" in info cache.').format(board)
             )
 
     if device is not None:
         d = b['devices'].get(device)
         if not d:
-            raise errors.SynseError(
+            raise errors.DeviceNotFoundError(
                 gettext('Unable to find device "{}" in info cache.').format(device)
             )
 

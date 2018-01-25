@@ -28,9 +28,8 @@ async def write(rack, board, device, data):
     # get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(dev.protocol)
     if not _plugin:
-        raise errors.SynseError(
-            gettext('Unable to find plugin named "{}" to write to.').format(
-                dev.protocol), errors.PLUGIN_NOT_FOUND
+        raise errors.PluginNotFoundError(
+            gettext('Unable to find plugin named "{}"').format(dev.protocol)
         )
 
     # the data comes in as the POSTed dictionary which includes an 'action'
@@ -48,9 +47,7 @@ async def write(rack, board, device, data):
     try:
         t = _plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
-        raise errors.SynseError(
-            gettext('Failed to issue a write request.'), errors.FAILED_WRITE_COMMAND
-        ) from ex
+        raise errors.FailedWriteCommandError(str(ex)) from ex
 
     # now that we have the transaction info, we want to map it to the corresponding
     # process so any subsequent transaction check will know where to look.

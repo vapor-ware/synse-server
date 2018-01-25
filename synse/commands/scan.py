@@ -38,9 +38,8 @@ async def scan(rack=None, board=None, force=False):
                 cache_data = r
                 break
         else:
-            raise errors.SynseError(
-                gettext('Rack "{}" not found in scan results.').format(rack),
-                errors.RACK_NOT_FOUND
+            raise errors.RackNotFoundError(
+                gettext('Rack "{}" not found in scan results.').format(rack)
             )
 
         if board is not None:
@@ -49,9 +48,8 @@ async def scan(rack=None, board=None, force=False):
                     cache_data = b
                     break
             else:
-                raise errors.SynseError(
-                    gettext('Board "{}" not found in scan results.').format(board),
-                    errors.BOARD_NOT_FOUND
+                raise errors.BoardNotFoundError(
+                    gettext('Board "{}" not found in scan results.').format(board)
                 )
 
     logger.debug(gettext('Making "scan" response.'))

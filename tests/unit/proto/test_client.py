@@ -6,6 +6,7 @@ import pytest
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
+from synse import errors
 from synse.proto import client
 
 # --- Mock Methods ---
@@ -155,7 +156,7 @@ def test_client_init(clear_state):
 def test_client_init_bad_mode(clear_state):
     """Verify the client fails to initialize when a bad mode is provided."""
 
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.InvalidArgumentsError):
         client.SynseInternalClient('test-cli', 'test-cli.sock', 'foo')
 
 
