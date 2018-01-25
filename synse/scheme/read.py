@@ -1,6 +1,7 @@
 """Response scheme for the `read` endpoint.
 """
 
+from synse import utils
 from synse.log import logger
 from synse.scheme.base_response import SynseResponse
 
@@ -39,6 +40,13 @@ class ReadResponse(SynseResponse):
 
     """
 
+    _data_types = {
+        'string': str,
+        'float': float,
+        'int': utils.s_to_int,
+        'bool': utils.s_to_bool,
+    }
+
     def __init__(self, device, readings):
         """Constructor for the ReadResponse class.
 
@@ -72,6 +80,7 @@ class ReadResponse(SynseResponse):
             # make sense for a reading unit, e.g. LED state (on/off)
             unit = None
             precision = None
+            data_type = None
 
             logger.debug(gettext('device output: {}').format(dev_output))
             found = False
@@ -80,6 +89,7 @@ class ReadResponse(SynseResponse):
                     symbol = out.unit.symbol
                     name = out.unit.name
                     precision = out.precision
+                    data_type = out.data_type
 
                     if symbol or name:
                         unit = {
@@ -101,8 +111,15 @@ class ReadResponse(SynseResponse):
 
             logger.debug(gettext('  Precision: {}').format(precision))
             value = reading.value
+            # set the specified precision
             if precision:
                 value = str(round(float(value), precision))
+
+            # cast to the specified type
+            try:
+                value = self._data_types.get(data_type, str)(value)
+            except ValueError:
+                logger.warning(gettext('Failed to convert "{}" to {}').format(value, data_type))
 
             formatted[rt] = {
                 'value': value,
