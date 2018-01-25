@@ -4,6 +4,7 @@
 import os
 import stat
 
+from synse import errors
 from synse.const import BG_SOCKS
 from synse.log import logger
 from synse.proto.client import register_client
@@ -37,15 +38,14 @@ class PluginManager(object):
                 add to the managed dictionary.
         """
         if not isinstance(plugin, Plugin):
-            raise ValueError(
+            raise errors.PluginStateError(
                 gettext('Only Plugin instances can be added to the manager.')
             )
 
         name = plugin.name
         if name in self.plugins:
-            raise ValueError(
-                gettext('The given Plugin ("{}") already exists in the managed dictionary.')
-                .format(name)
+            raise errors.PluginStateError(
+                gettext('Plugin ("{}") already exists in the manager.').format(name)
             )
 
         self.plugins[name] = plugin
@@ -113,14 +113,14 @@ class Plugin(object):
     def _validate_mode(self):
         """Validate the plugin mode."""
         if self.mode not in ['tcp', 'unix']:
-            raise ValueError(
-                gettext('The given mode must be "tcp" or "unix" but was {}').format(self.mode)
+            raise errors.PluginStateError(
+                gettext('The given mode ({}) must be one of: tcp, unix').format(self.mode)
             )
 
         if self.mode == 'unix':
             if not os.path.exists(self.addr):
-                raise ValueError(
-                    gettext('The given unix socket ({}) must exist.').format(self.addr)
+                raise errors.PluginStateError(
+                    gettext('Unix socket ({}) does not exist.').format(self.addr)
                 )
 
 
@@ -182,7 +182,7 @@ def register_unix_plugins():
     """
     logger.debug(gettext('Registering plugins (unix)'))
     if not os.path.exists(BG_SOCKS):
-        raise ValueError(
+        raise errors.PluginStateError(
             gettext('{} does not exist - unable to get unix plugin sockets.')
             .format(BG_SOCKS)
         )

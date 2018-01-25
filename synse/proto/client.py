@@ -7,6 +7,7 @@ import grpc
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
+from synse import errors
 from synse.const import BG_SOCKS
 from synse.log import logger
 
@@ -79,7 +80,9 @@ class SynseInternalClient(object):
         elif self.mode == 'tcp':
             target = self.addr
         else:
-            raise ValueError(gettext('Invalid mode: {}').format(self.mode))
+            raise errors.InvalidArgumentsError(
+                gettext('Invalid gRPC client mode: {}').format(self.mode)
+            )
 
         return grpc.insecure_channel(target)
 
@@ -119,7 +122,7 @@ class SynseInternalClient(object):
         cli = cls._client_stubs[name]
 
         logger.debug(gettext('Registered Client:'))
-        logger.debug('  name:    {}'.format(cli.name))
+        logger.debug(gettext('  name:    {}').format(cli.name))
         logger.debug(gettext('  mode:    {}').format(cli.mode))
         logger.debug(gettext('  address: {}').format(cli.addr))
         logger.debug(gettext('  channel: {}').format(cli.channel))

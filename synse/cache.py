@@ -109,9 +109,9 @@ async def get_device_meta(rack, board, device):
     dev = _cache.get(cid)
 
     if dev is None:
-        raise errors.SynseError(
+        raise errors.DeviceNotFoundError(
             gettext('{} does not correspond with a known device.').format(
-                '/'.join([rack, board, device])), errors.DEVICE_NOT_FOUND
+                '/'.join([rack, board, device]))
         )
     return dev
 
@@ -174,9 +174,8 @@ async def get_metainfo_cache():
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugins and len(plugins) == len(failures):
-        raise errors.SynseError(
-            gettext('Failed to scan all plugins: {}').format(failures),
-            errors.INTERNAL_API_FAILURE
+        raise errors.InternalApiError(
+            gettext('Failed to scan all plugins: {}').format(failures)
         )
 
     logger.debug(gettext('Got metainfo cache!'))
