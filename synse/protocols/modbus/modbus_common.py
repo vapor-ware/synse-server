@@ -4,9 +4,26 @@
          \/apor IO
 
 
-        Common file for modbus operations to avoid cut and paste.
-        The gs3 command line tool and the synse device bus use this code.
+-------------------------------
+Copyright (C) 2015-18  Vapor IO
+
+This file is part of Synse.
+
+Synse is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+Synse is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Synse.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+# pylint: disable=import-error
 
 import logging
 import struct
@@ -128,10 +145,8 @@ def read_holding_register(ser, slave_address, register):
     """
     client = dkmodbus.dkmodbus(ser)
     register_data = client.read_holding_registers(slave_address, register, 1)
-    logger.debug('register_data: {}, type(register_data): {}'.format(
-        register_data, type(register_data)))
     result = unpack_register_data(register_data)
-    logger.debug('read_holding_register result: 0x{:x} {}d'.format(result, result))
+    logger.debug('read_holding_register result: {}, type: {}'.format(result, type(result)))
     return result
 
 
