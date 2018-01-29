@@ -231,10 +231,10 @@ def set(key, value):
 
     For example:
         Given the options above, setting a value for tcp requires:
-            options['plugins']['tcp']['example'] = 'localhost:5000'
+            options['plugin']['tcp']['example'] = 'localhost:5000'
 
-        Using nested key 'plugins.unix.bg_socks', we can just do
-            set('plugins.tcp.example', 'localhost:5000')
+        Using nested key 'plugin.tcp.example', we can just do
+            set('plugin.tcp.example', 'localhost:5000')
 
     Args:
         key (str): The nested key with CONFIG_DELIMITER.

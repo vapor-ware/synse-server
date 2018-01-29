@@ -90,15 +90,15 @@ Each item takes precedence over the item below it:
   - type: `str`
   - default: `info`
   - options: `debug | info | warning | error | critical`
-- `plugins`
+- `plugin`
   - `unix`: UNIX socket location 
     - type: `dict`
     - default: `/synse/procs`
     - options: to be set using `{name}:{path}` format
-  - `tcp`: TCP plugins
+  - `tcp`: TCP plugin
     - type: `dict`
     - default: not set anywhere
-    - options: to be set using `{name}:{host}` format
+    - options: to be set using `{name}:{address}` format
 - `cache`:
   - `ttl`: Time-to-live
     - type: `int`
@@ -118,7 +118,7 @@ Each item takes precedence over the item below it:
 ```YAML
 pretty_json: True
 logging: debug
-plugins:
+plugin:
   unix:
     foo: /synse/example
   tcp:
@@ -137,6 +137,7 @@ in whatever environment user is running.
 However, it should follow this format: `SYNSE_{KEYNAME}`, where:
 - `SYNSE` is the prefix for our application.
 - `{KEYNAME}` can be anything in UPPERCASE.
+- `{KEYNAME}` must NOT have a delimiter `_`.
 
 If user want to set a value for a nested key, 
 it's almost similar: `SYNSE_{KEYNAME1}_{KEYNAME2}_{KEYNAME3}`, where:

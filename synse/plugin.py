@@ -4,7 +4,7 @@
 import os
 import stat
 
-from synse import errors
+from synse import config, errors
 from synse.const import BG_SOCKS
 from synse.log import logger
 from synse.proto.client import register_client
@@ -228,7 +228,7 @@ def register_tcp_plugins():
     """
     logger.debug(gettext('Registering plugins (tcp)'))
 
-    configured = {k: v for k, v in os.environ.items() if k.startswith('SYNSE_PLUGIN_')}
+    configured = config.options.get('plugin', {}).get('tcp', {})
     if not configured:
         logger.debug(gettext('found no plugins configured for tcp'))
         return []
@@ -238,16 +238,11 @@ def register_tcp_plugins():
     # track the names of all plugins that are registered.
     registered = []
 
-    # the name of the plugin is found after the SYNSE_PLUGIN_ portion of the
-    # env key. we will need to extract it and then format it uniformly. plugin
-    # names will be lower cased and underscores will be converted to dashes.
-    for k, v in configured.items():
-        name = k.split('SYNSE_PLUGIN_')[1].lower().replace('_', '-')
-
+    for name, address in configured.items():
         registered.append(name)
         if manager.get(name) is None:
             # a new plugin gets added to the manager on initialization.
-            plugin = Plugin(name=name, address=v, mode='tcp')
+            plugin = Plugin(name=name, address=address, mode='tcp')
             logger.debug(gettext('Created new plugin (tcp): {}').format(plugin))
         else:
             logger.info(

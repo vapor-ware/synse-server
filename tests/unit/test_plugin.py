@@ -7,7 +7,7 @@ import socket
 
 import pytest
 
-from synse import const, errors, plugin
+from synse import config, const, errors, plugin
 
 
 @pytest.fixture()
@@ -64,6 +64,13 @@ def cleanup(remove_tmp_dir):
     """Fixture to reset the PluginManager state between tests."""
     yield
     plugin.Plugin.manager.plugins = {}
+
+
+@pytest.fixture()
+def clear_config():
+    """Reset configuration options to an empty dicionary"""
+    yield
+    config.options = {}
 
 
 @pytest.fixture()
@@ -422,67 +429,121 @@ def test_register_tcp_plugin_none_defined(cleanup):
     assert len(registered) == 0
 
 
-def test_register_tcp_plugin(cleanup, clear_environ):
-    """Test registering TCP based plugins when one is specified."""
-    os.environ['SYNSE_PLUGIN_TEST'] = 'localhost:5001'
+def test_register_tcp_plugin(cleanup, clear_config):
+    """Test registering TCP based plugin when one configuration is specified"""
+    config.options = {
+        'plugin': {
+            'tcp': {
+                'foo': 'localhost:5000'
+            }
+        }
+    }
+
     registered = plugin.register_tcp_plugins()
 
     assert isinstance(registered, list)
     assert len(registered) == 1
-    assert registered[0] == 'test'
+    assert registered[0] == 'foo'
 
-    p = plugin.get_plugin('test')
+    p = plugin.get_plugin('foo')
     assert p is not None
 
-    assert p.name == 'test'
+    assert p.name == 'foo'
     assert p.mode == 'tcp'
-    assert p.addr == 'localhost:5001'
+    assert p.addr == 'localhost:5000'
 
 
-def test_register_tcp_plugins(cleanup, clear_environ):
-    """Test registering TCP based plugins when multiple are specified."""
-    os.environ['SYNSE_PLUGIN_FOO'] = 'localhost:5001'
-    os.environ['SYNSE_PLUGIN_BAR'] = 'localhost:5002'
-    os.environ['SYNSE_PLUGIN_FOO_BAR'] = 'localhost:5003'
+def test_register_tcp_plugins(cleanup, clear_config):
+    """Test registering TCP based plugins when multiple configurations are specified"""
+    config.options = {
+        'plugin': {
+            'tcp': {
+                'foo': 'localhost:5000',
+                'bar': 'localhost:5001',
+            }
+        }
+    }
+
     registered = plugin.register_tcp_plugins()
 
     assert isinstance(registered, list)
-    assert len(registered) == 3
-    for name in ['foo', 'bar', 'foo-bar']:
+    assert len(registered) == 2
+    for name in ['foo', 'bar']:
         assert name in registered
 
     p = plugin.get_plugin('foo')
     assert p is not None
     assert p.name == 'foo'
     assert p.mode == 'tcp'
-    assert p.addr == 'localhost:5001'
+    assert p.addr == 'localhost:5000'
 
     p = plugin.get_plugin('bar')
     assert p is not None
     assert p.name == 'bar'
     assert p.mode == 'tcp'
-    assert p.addr == 'localhost:5002'
-
-    p = plugin.get_plugin('foo-bar')
-    assert p is not None
-    assert p.name == 'foo-bar'
-    assert p.mode == 'tcp'
-    assert p.addr == 'localhost:5003'
+    assert p.addr == 'localhost:5001'
 
 
-def test_register_tcp_plugin_duplicate(cleanup, clear_environ):
-    """Test registering TCP based plugins when two of the same are specified."""
-    os.environ['SYNSE_PLUGIN_TEST'] = 'localhost:5001'
-    os.environ['SYNSE_PLUGIN_test'] = 'localhost:5002'
+def test_register_tcp_plugin_env(cleanup, clear_config, clear_environ):
+    """Test registering TCP based plugin when an environment variable is set"""
+    os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
+    config.parse_env_vars()
+
     registered = plugin.register_tcp_plugins()
 
     assert isinstance(registered, list)
     assert len(registered) == 1
-    assert registered[0] == 'test'
+    assert registered[0] == 'foo'
 
-    p = plugin.get_plugin('test')
+    p = plugin.get_plugin('foo')
     assert p is not None
 
-    assert p.name == 'test'
+    assert p.name == 'foo'
+    assert p.mode == 'tcp'
+    assert p.addr == 'localhost:5000'
+
+
+def test_register_tcp_plugins_env(cleanup, clear_config, clear_environ):
+    """Test registering TCP based plugins when multiple environment variables are specified"""
+    os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
+    os.environ['SYNSE_PLUGIN_TCP_BAR'] = 'localhost:5001'
+    config.parse_env_vars()
+
+    registered = plugin.register_tcp_plugins()
+
+    assert isinstance(registered, list)
+    assert len(registered) == 2
+    for name in ['foo', 'bar']:
+        assert name in registered
+
+    p = plugin.get_plugin('foo')
+    assert p is not None
+    assert p.name == 'foo'
+    assert p.mode == 'tcp'
+    assert p.addr == 'localhost:5000'
+
+    p = plugin.get_plugin('bar')
+    assert p is not None
+    assert p.name == 'bar'
+    assert p.mode == 'tcp'
+    assert p.addr == 'localhost:5001'
+
+
+def test_register_tcp_plugin_env_duplicate(cleanup, clear_config, clear_environ):
+    """Test registering TCP based plugins when two same environment variables are specified."""
+    os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
+    os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5001'
+    config.parse_env_vars()
+
+    registered = plugin.register_tcp_plugins()
+
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+    assert registered[0] == 'foo'
+
+    p = plugin.get_plugin('foo')
+    assert p is not None
+
+    assert p.name == 'foo'
     assert p.mode == 'tcp'
     assert p.addr == 'localhost:5001'
