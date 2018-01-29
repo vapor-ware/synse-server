@@ -38,6 +38,7 @@ The Synse Server 2.0 Docker image can be built using the make target
 make build
 ```
 
+
 ## Testing
 Synse Server 2.0 contains both unit and integration tests. Both suites of tests
 can be run with the make target
@@ -60,6 +61,87 @@ Synse Server 2.0 source code can be linted using the make target
 ```
 make lint
 ```
+
+
+## Configuration
+
+### Supports
+- Setting defaults.
+- Reading from YAML config files.
+- Reading from environment variables.
+ 
+### Precedence order
+Each item takes precedence over the item below it:
+- Environment variables.
+- Config files.
+- Default options.
+
+### Configuration file
+- Only supports YAML for now.
+- Can be specified in `/synse/config.py`.
+- Default configuration filepath is `/synse/config/config.yml`.
+
+### Configurable options
+- `pretty_json`: JSON format's response with indents and spaces
+  - type: `bool`
+  - default: `False`
+  - options: `True | False`
+- `logging`: logging level
+  - type: `str`
+  - default: `info`
+  - options: `debug | info | warning | error | critical`
+- `plugins`
+  - `unix`: UNIX socket location 
+    - type: `dict`
+    - default: `/synse/procs`
+    - options: to be set using `{name}:{path}` format
+  - `tcp`: TCP plugins
+    - type: `dict`
+    - default: not set anywhere
+    - options: to be set using `{name}:{host}` format
+- `cache`:
+  - `ttl`: Time-to-live
+    - type: `int`
+    - default: `20`
+    - options: to be set
+- `grpc`:
+  - `timeout`: timeout for gRPC calls, including read, write, transaction, metainfo
+    - type: `int`
+    - default: `20` seconds
+    - options: to be set
+- `locale`: for translation purpose, can be set to other languages.
+    - type: `str`
+    - default: `en_US`
+    - options: [Localization's documentation](locale/README.md) goes into more details on languages setup.
+
+### Configuration's file example
+```YAML
+pretty_json: True
+logging: debug
+plugins:
+  unix:
+    foo: /synse/example
+  tcp:
+    bar: localhost:5000
+cache:
+  ttl: 10
+grpc:
+  timeout: 10
+locale: nl_BE
+```
+
+### Setting environment variables
+The environment varibles can be set outside the application, 
+in whatever environment user is running. 
+
+However, it should follow this format: `SYNSE_{KEYNAME}`, where:
+- `SYNSE` is the prefix for our application.
+- `{KEYNAME}` can be anything in UPPERCASE.
+
+If user want to set a value for a nested key, 
+it's almost similar: `SYNSE_{KEYNAME1}_{KEYNAME2}_{KEYNAME3}`, where:
+- Each key is separated by a delimiter `_`
+- `{KEY1}...{KEYN}` are keys.
 
 
 ## License

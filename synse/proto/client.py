@@ -7,7 +7,7 @@ import grpc
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
-from synse import errors
+from synse import config, errors
 from synse.const import BG_SOCKS
 from synse.log import logger
 
@@ -147,8 +147,10 @@ class SynseInternalClient(object):
             rack=rack
         )
 
+
         resp = []
-        for r in self.stub.Read(req):
+        config_timeout = config.options.get('grpc', {}).get('timeout', None)
+        for r in self.stub.Read(req, timeout=config_timeout):
             resp.append(r)
 
         return resp
@@ -175,7 +177,8 @@ class SynseInternalClient(object):
         )
 
         resp = []
-        for r in self.stub.Metainfo(req):
+        config_timeout = config.options.get('grpc', {}).get('timeout', None)
+        for r in self.stub.Metainfo(req, timeout=config_timeout):
             resp.append(r)
 
         return resp
@@ -200,7 +203,8 @@ class SynseInternalClient(object):
             data=[d.to_grpc() for d in data]
         )
 
-        resp = self.stub.Write(req)
+        config_timeout = config.options.get('grpc', {}).get('timeout', None)
+        resp = self.stub.Write(req, timeout=config_timeout)
         return resp
 
     def check_transaction(self, transaction_id):
@@ -217,7 +221,8 @@ class SynseInternalClient(object):
             id=transaction_id
         )
 
-        resp = self.stub.TransactionCheck(req)
+        config_timeout = config.options.get('grpc', {}).get('timeout', None)
+        resp = self.stub.TransactionCheck(req, timeout=config_timeout)
         return resp
 
 

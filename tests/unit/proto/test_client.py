@@ -12,7 +12,7 @@ from synse.proto import client
 # --- Mock Methods ---
 
 
-def mock_read(req):
+def mock_read(req, timeout):
     """Mock the internal read call."""
     return [
         synse_api.ReadResponse(
@@ -23,7 +23,7 @@ def mock_read(req):
     ]
 
 
-def mock_write(req):
+def mock_write(req, timeout):
     """Mock the internal write call."""
     return synse_api.Transactions(
         transactions={
@@ -35,7 +35,7 @@ def mock_write(req):
     )
 
 
-def mock_metainfo(req):
+def mock_metainfo(req, timeout):
     """Mock the internal metainfo call."""
     return [
         synse_api.MetainfoResponse(
@@ -69,7 +69,7 @@ def mock_metainfo(req):
     ]
 
 
-def mock_transaction(req):
+def mock_transaction(req, timeout):
     """Mock the internal transaction call."""
     return synse_api.WriteResponse(
         created='october',
