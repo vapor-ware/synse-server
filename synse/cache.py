@@ -4,27 +4,33 @@
 import aiocache
 import grpc
 
-from synse import errors, utils
-from synse.config import AIOCACHE
+from synse import config, errors, utils
 from synse.log import logger
 from synse.plugin import Plugin
 from synse.proto import util as putil
 
+# Define namespace for caches
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
 NS_SCAN = 'scan'
 NS_INFO = 'info'
 
+# Define cached key for caches
+META_CACHE_KEY = 'meta_cache_key'
+SCAN_CACHE_KEY = 'scan_cache_key'
+INFO_CACHE_KEY = 'info_cache_key'
 
-# FIXME -- the TTL here should probably be longer and configured
-# separately from the other ttls.
+# Create caches
 transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
+_meta_cache = aiocache.SimpleMemoryCache(namespace=NS_META)
+_scan_cache = aiocache.SimpleMemoryCache(namespace=NS_SCAN)
+_info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 
 
 def configure_cache():
     """Set the configuration for the asynchronous cache used by Synse."""
-    logger.debug(gettext('CONFIGURING CACHE: {}').format(AIOCACHE))
-    aiocache.caches.set_config(AIOCACHE)
+    logger.debug(gettext('CONFIGURING CACHE: {}').format(config.AIOCACHE))
+    aiocache.caches.set_config(config.AIOCACHE)
 
 
 async def clear_cache(namespace):
@@ -116,7 +122,6 @@ async def get_device_meta(rack, board, device):
     return dev
 
 
-@aiocache.cached(ttl=20, namespace=NS_META)
 async def get_metainfo_cache():
     """Get the cached meta-information aggregated from the gRPC Metainfo
     request across all plugins.
@@ -138,12 +143,17 @@ async def get_metainfo_cache():
         dict: The metainfo dictionary in which the key is the device id
             and the value is the data associated with that device.
     """
+    value = await _meta_cache.get(META_CACHE_KEY)
+    if value is not None:
+        return value
+
+    # if the cache is not found, we will (re)build it and update the cache
+    logger.debug(gettext('Creating meta cache'))
     metainfo = {}
 
     # first, we want to iterate through all of the known background processes
     # and use the associated client to get the meta information provided by
     # that backend.
-
     plugins = Plugin.manager.plugins
     logger.debug(gettext('plugins to scan: {}').format(plugins))
 
@@ -178,11 +188,13 @@ async def get_metainfo_cache():
             gettext('Failed to scan all plugins: {}').format(failures)
         )
 
-    logger.debug(gettext('Got metainfo cache!'))
+    # get meta cache's ttl and update the cache
+    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _meta_cache.set(META_CACHE_KEY, metainfo, ttl=config_ttl)
+
     return metainfo
 
 
-@aiocache.cached(ttl=20, namespace=NS_SCAN)
 async def get_scan_cache():
     """Get the cached scan results.
 
@@ -218,14 +230,24 @@ async def get_scan_cache():
     Returns:
         dict: A dictionary containing the scan command result.
     """
-    logger.debug(gettext('Getting scan metainfo cache for scancache'))
+    value = await _scan_cache.get(SCAN_CACHE_KEY)
+    if value is not None:
+        return value
+
+    # if the cache is not found, we will (re)build it from metainfo cache
+    logger.debug(gettext('Getting scan metainfo cache for scan cache'))
     _metainfo = await get_metainfo_cache()
-    logger.debug(gettext('Building scan cache.'))
+
+    logger.debug(gettext('Building scan cache'))
     scan_cache = build_scan_cache(_metainfo)
+
+    # use the same ttl as meta cache's to update the cache
+    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _scan_cache.set(SCAN_CACHE_KEY, scan_cache, ttl=config_ttl)
+
     return scan_cache
 
 
-@aiocache.cached(ttl=20, namespace=NS_INFO)
 async def get_resource_info_cache():
     """Get the cached resource info.
 
@@ -278,8 +300,20 @@ async def get_resource_info_cache():
     Returns:
         dict: A dictionary containing the info command result.
     """
+    value = await _info_cache.get(INFO_CACHE_KEY)
+    if value is not None:
+        return value
+
+    # if the cache is not found, we will (re)build it from metainfo cache
     _metainfo = await get_metainfo_cache()
+
+    logger.debug(gettext('Building info cache'))
     info_cache = build_resource_info_cache(_metainfo)
+
+    # use the same ttl as meta cache's to update the cache
+    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _info_cache.set(INFO_CACHE_KEY, info_cache, ttl=config_ttl)
+
     return info_cache
 
 
