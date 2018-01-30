@@ -1,5 +1,4 @@
 aiocache>=0.8.0
-configargparse==0.12.0
-grpcio==1.4.0
-pyyaml==3.12
+grpcio>=1.8.6
+pyyaml>=3.12
 sanic>=0.7.0
