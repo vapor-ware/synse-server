@@ -205,20 +205,20 @@ async def get_scan_cache():
         {
           'racks': [
             {
-              'rack_id': 'rack-1',
+              'id': 'rack-1',
               'boards': [
                 {
-                  'board_id': 'vec',
+                  'id': 'vec',
                   'devices': [
                     {
-                      'device_id': '1e93da83dd383757474f539314446c3d',
-                      'device_info': 'Rack Temperature Spare',
-                      'device_type': 'temperature'
+                      'id': '1e93da83dd383757474f539314446c3d',
+                      'info': 'Rack Temperature Spare',
+                      'type': 'temperature'
                     },
                     {
-                      'device_id': '18185208cbc0e5a4700badd6e39bb12d',
-                      'device_info': 'Rack Temperature Middle Rear',
-                      'device_type': 'temperature'
+                      'id': '18185208cbc0e5a4700badd6e39bb12d',
+                      'info': 'Rack Temperature Middle Rear',
+                      'type': 'temperature'
                     }
                   ]
                 }
@@ -352,36 +352,36 @@ def build_scan_cache(metainfo):
     _tracked = {}
 
     for source in metainfo.values():
-        rack = source.location.rack
-        board = source.location.board
-        device = source.uid
+        rack_id = source.location.rack
+        board_id = source.location.board
+        device_id = source.uid
 
         # the given rack does not yet exist in our scan cache.
         # in this case, we will create it, along with the board
         # and device that the source record provides.
-        if rack not in _tracked:
+        if rack_id not in _tracked:
             new_board = {
-                'board_id': board,
+                'id': board_id,
                 'devices': [
                     {
-                        'device_id': device,
-                        'device_info': source.info,
-                        'device_type': source.type
+                        'id': device_id,
+                        'info': source.info,
+                        'type': source.type
                     }
                 ]
             }
 
             new_rack = {
-                'rack_id': rack,
+                'id': rack_id,
                 'boards': []
             }
 
             # update the _tracked dictionary with references to the
             # newly created rack and board.
-            _tracked[rack] = {
+            _tracked[rack_id] = {
                 'rack': new_rack,
                 'boards': {
-                    board: new_board
+                    board_id: new_board
                 }
             }
 
@@ -391,26 +391,26 @@ def build_scan_cache(metainfo):
         # the device information provided by the source record to the
         # existing board.
         else:
-            r = _tracked[rack]
-            if board not in r['boards']:
+            r = _tracked[rack_id]
+            if board_id not in r['boards']:
                 new_board = {
-                    'board_id': board,
+                    'id': board_id,
                     'devices': [
                         {
-                            'device_id': device,
-                            'device_info': source.info,
-                            'device_type': source.type
+                            'id': device_id,
+                            'info': source.info,
+                            'type': source.type
                         }
                     ]
                 }
 
-                r['boards'][board] = new_board
+                r['boards'][board_id] = new_board
 
             else:
-                r['boards'][board]['devices'].append({
-                    'device_id': device,
-                    'device_info': source.info,
-                    'device_type': source.type
+                r['boards'][board_id]['devices'].append({
+                    'id': device_id,
+                    'info': source.info,
+                    'type': source.type
                 })
 
     for ref in _tracked.values():
