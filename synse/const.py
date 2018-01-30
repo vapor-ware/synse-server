@@ -1,7 +1,7 @@
 """Synse Server application-wide constants.
 """
 
-BG_SOCKS = '/synse/procs'
+BG_SOCKS = '/tmp/synse/procs'
 
 
 # LED states
