@@ -7,10 +7,8 @@ RUN apk add --update \
   alpine-sdk \
   bash
 
-COPY test-requirements.txt .
-
 RUN pip install --upgrade pip setuptools
-RUN pip install -r test-requirements.txt
+RUN pip install tox
 
 WORKDIR /code
 
