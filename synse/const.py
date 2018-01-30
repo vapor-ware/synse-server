@@ -3,6 +3,12 @@
 
 BG_SOCKS = '/tmp/synse/procs'
 
+# Device Types
+TYPE_LED = 'led'
+TYPE_FAN = 'fan'
+TYPE_SYSTEM = 'system'
+TYPE_POWER = 'power'
+
 
 # LED states
 LED_ON = 'on'
