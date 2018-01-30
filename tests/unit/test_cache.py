@@ -383,36 +383,36 @@ def validate_scan_cache(scan_cache, expected_rack, expected_board, expected_devi
 
     rack = None
     for r in scan_cache['racks']:
-        if r['rack_id'] == expected_rack:
+        if r['id'] == expected_rack:
             rack = r
 
     assert rack is not None
-    assert 'rack_id' in rack
+    assert 'id' in rack
     assert 'boards' in rack
-    assert rack['rack_id'] == expected_rack
+    assert rack['id'] == expected_rack
     assert isinstance(rack['boards'], list)
 
     board = None
     for b in rack['boards']:
-        if b['board_id'] == expected_board:
+        if b['id'] == expected_board:
             board = b
 
     assert board is not None
-    assert 'board_id' in board
+    assert 'id' in board
     assert 'devices' in board
-    assert board['board_id'] == expected_board
+    assert board['id'] == expected_board
     assert isinstance(board['devices'], list)
 
     device = None
     for d in board['devices']:
-        if d['device_id'] == expected_device:
+        if d['id'] == expected_device:
             device = d
 
     assert device is not None
-    assert 'device_id' in device
-    assert device['device_id'] == expected_device
-    assert 'device_info' in device
-    assert 'device_type' in device
+    assert 'id' in device
+    assert device['id'] == expected_device
+    assert 'info' in device
+    assert 'type' in device
 
 
 def validate_info_cache(info_cache, expected_rack, expected_board, expected_device):
