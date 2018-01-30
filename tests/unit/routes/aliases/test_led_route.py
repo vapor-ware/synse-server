@@ -10,6 +10,7 @@ from synse_plugin import api
 from tests import utils
 
 import synse.commands
+import synse.validate
 from synse import config, errors
 from synse.routes.aliases import led_route
 from synse.scheme.base_response import SynseResponse
@@ -50,6 +51,19 @@ def mock_read(monkeypatch):
     return mock_read
 
 
+def mockvalidatedevicetype(device_type, rack, board, device):
+    """Mock method that will be used in mokeypatching the validate device type method."""
+    return
+
+
+@pytest.fixture()
+def mock_validate_device_type(monkeypatch):
+    """Fixture to monkeypatch the validate_device_type method."""
+    mock = asynctest.CoroutineMock(synse.validate.validate_device_type, side_effect=mockvalidatedevicetype)
+    monkeypatch.setattr(synse.validate, 'validate_device_type', mock)
+    return mock_validate_device_type
+
+
 @pytest.fixture()
 def no_pretty_json():
     """Fixture to ensure basic JSON responses."""
@@ -57,7 +71,7 @@ def no_pretty_json():
 
 
 @pytest.mark.asyncio
-async def test_synse_led_read(mock_read, no_pretty_json):
+async def test_synse_led_read(mock_validate_device_type, mock_read, no_pretty_json):
     """Test a successful read."""
 
     r = utils.make_request('/synse/led')
@@ -70,7 +84,7 @@ async def test_synse_led_read(mock_read, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_invalid_1(mock_write, no_pretty_json):
+async def test_synse_led_write_invalid_1(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
     r = utils.make_request('/synse/led?state=test')
@@ -83,7 +97,7 @@ async def test_synse_led_write_invalid_1(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_invalid_2(mock_write, no_pretty_json):
+async def test_synse_led_write_invalid_2(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
     r = utils.make_request('/synse/led?blink=foo')
@@ -96,7 +110,7 @@ async def test_synse_led_write_invalid_2(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_invalid_3(mock_write, no_pretty_json):
+async def test_synse_led_write_invalid_3(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
     r = utils.make_request('/synse/led?color=xyz')
@@ -109,7 +123,7 @@ async def test_synse_led_write_invalid_3(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_invalid_4(mock_write, no_pretty_json):
+async def test_synse_led_write_invalid_4(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
     r = utils.make_request('/synse/led?state=on&color=ff0044&blink=bar')
@@ -122,7 +136,7 @@ async def test_synse_led_write_invalid_4(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_invalid_5(mock_write, no_pretty_json):
+async def test_synse_led_write_invalid_5(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
     r = utils.make_request('/synse/led?color=1000000')
@@ -135,7 +149,7 @@ async def test_synse_led_write_invalid_5(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_invalid_6(mock_write, no_pretty_json):
+async def test_synse_led_write_invalid_6(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
     r = utils.make_request('/synse/led?color=-FF')
@@ -148,7 +162,7 @@ async def test_synse_led_write_invalid_6(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_valid_1(mock_write, no_pretty_json):
+async def test_synse_led_write_valid_1(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
     r = utils.make_request('/synse/led?state=on')
@@ -161,7 +175,7 @@ async def test_synse_led_write_valid_1(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_valid_2(mock_write, no_pretty_json):
+async def test_synse_led_write_valid_2(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
     r = utils.make_request('/synse/led?state=off')
@@ -174,7 +188,7 @@ async def test_synse_led_write_valid_2(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_valid_3(mock_write, no_pretty_json):
+async def test_synse_led_write_valid_3(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
     r = utils.make_request('/synse/led?blink=blink')
@@ -187,7 +201,7 @@ async def test_synse_led_write_valid_3(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_valid_4(mock_write, no_pretty_json):
+async def test_synse_led_write_valid_4(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
     r = utils.make_request('/synse/led?blink=steady')
@@ -200,7 +214,7 @@ async def test_synse_led_write_valid_4(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_valid_5(mock_write, no_pretty_json):
+async def test_synse_led_write_valid_5(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
     r = utils.make_request('/synse/led?color=ffffff')
@@ -213,7 +227,7 @@ async def test_synse_led_write_valid_5(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_led_write_valid_6(mock_write, no_pretty_json):
+async def test_synse_led_write_valid_6(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
     r = utils.make_request('/synse/led?color=ffffff&state=on&blink=steady')

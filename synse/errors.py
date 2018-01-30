@@ -23,10 +23,12 @@ INTERNAL_API_FAILURE = 6000
 # Plugin related errors
 PLUGIN_STATE_ERROR = 6500
 
-# Request type errors
+# Request related errors
 URL_NOT_FOUND = 3000
 INVALID_ARGUMENTS = 3001
-INVALID_JSON = 3001
+INVALID_JSON = 3002
+INVALID_DEVICE_TYPE = 3003
+
 
 # Unknown type error - this is used as the fallback
 UNKNOWN = 0
@@ -58,6 +60,13 @@ class InvalidJsonError(SynseError):
 
     def __init__(self, message):
         super(InvalidJsonError, self).__init__(message, INVALID_JSON)
+
+
+class InvalidDeviceType(SynseError):
+    """A device of some type is not handled by some route."""
+
+    def __init__(self, message):
+        super(InvalidDeviceType, self).__init__(message, INVALID_DEVICE_TYPE)
 
 
 class DeviceNotFoundError(SynseError):

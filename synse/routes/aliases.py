@@ -4,7 +4,7 @@
 
 from sanic import Blueprint
 
-from synse import commands, const, errors
+from synse import commands, const, errors, validate
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
@@ -27,6 +27,8 @@ async def led_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_LED, rack, board, device)
+
     param_state = request.raw_args.get('state')
     param_blink = request.raw_args.get('blink')
     param_color = request.raw_args.get('color')
@@ -107,6 +109,8 @@ async def fan_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
+
     param_speed = request.raw_args.get('speed')
 
     # if a request parameter is specified, this will translate to a
@@ -148,6 +152,8 @@ async def power_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_POWER, rack, board, device)
+
     param_state = request.raw_args.get('state')
 
     # if a request parameter is specified, this will translate to a
@@ -190,6 +196,8 @@ async def boot_target_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_SYSTEM, rack, board, device)
+
     param_target = request.raw_args.get('target')
 
     # if a request parameter is specified, this will translate to a

@@ -1,6 +1,6 @@
 """Test the 'synse.routes.aliases' Synse Server module's fan route.
 """
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
 import pytest
@@ -8,6 +8,7 @@ from sanic.response import HTTPResponse
 from tests import utils
 
 import synse.commands
+import synse.validate
 from synse import config, errors
 from synse.routes.aliases import fan_route
 from synse.scheme.base_response import SynseResponse
@@ -43,6 +44,19 @@ def mock_read(monkeypatch):
     return mock_read
 
 
+def mockvalidatedevicetype(device_type, rack, board, device):
+    """Mock method that will be used in mokeypatching the validate device type method."""
+    return
+
+
+@pytest.fixture()
+def mock_validate_device_type(monkeypatch):
+    """Fixture to monkeypatch the validate_device_type method."""
+    mock = asynctest.CoroutineMock(synse.validate.validate_device_type, side_effect=mockvalidatedevicetype)
+    monkeypatch.setattr(synse.validate, 'validate_device_type', mock)
+    return mock_validate_device_type
+
+
 @pytest.fixture()
 def no_pretty_json():
     """Fixture to ensure basic JSON responses."""
@@ -50,7 +64,7 @@ def no_pretty_json():
 
 
 @pytest.mark.asyncio
-async def test_synse_fan_read(mock_read, no_pretty_json):
+async def test_synse_fan_read(mock_validate_device_type, mock_read, no_pretty_json):
     """Test a successful read."""
 
     r = utils.make_request('/synse/fan')
@@ -64,7 +78,7 @@ async def test_synse_fan_read(mock_read, no_pretty_json):
 
 @pytest.mark.asyncio
 @pytest.mark.skip  # TODO - need to implement validation before we can test.
-async def test_synse_fan_write_invalid(mock_write, no_pretty_json):
+async def test_synse_fan_write_invalid(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing fan speed with an invalid speed specified."""
 
     r = utils.make_request('/synse/fan?speed=test')
@@ -77,7 +91,7 @@ async def test_synse_fan_write_invalid(mock_write, no_pretty_json):
 
 
 @pytest.mark.asyncio
-async def test_synse_fan_write_valid(mock_write, no_pretty_json):
+async def test_synse_fan_write_valid(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing fan speed with a valid target specified."""
 
     r = utils.make_request('/synse/fan?speed=500')
