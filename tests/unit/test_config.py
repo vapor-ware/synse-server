@@ -68,31 +68,87 @@ def test_parse_user_configs_wrong_path():
         config.parse_user_configs()
 
 
-def test_parse_user_configs_working_path(set_default_filepath, clear_config):
-    """Parse user configurations using a working path"""
+def test_parse_user_configs_default_path_yml_ext(set_default_filepath, clear_config):
+    """Parse user configurations using a .yml default configuration file path"""
     assert len(config.options) == 0
 
-    expected_configs = {
-        'locale': 'en_US',
-        'pretty_json': True,
-        'logging': 'debug',
-        'cache': {
-            'meta': {
-                'ttl': 20
-            },
-            'transaction': {
-                'ttl': 20
-            }
-        },
-        'grpc': {
-            'timeout': 20
-        }
+    config.options = {
+        'pretty_json': False,
+        'logging': 'info',
     }
 
-    config.load_default_configs()
+    assert config.options.get('pretty_json') is False
+    assert config.options.get('logging') == 'info'
+
     config.parse_user_configs()
+
+    expected_configs = {
+        'pretty_json': True,
+        'logging': 'debug',
+    }
+
     assert len(config.options) != 0
     assert config.options == expected_configs
+
+
+def test_parse_user_configs_default_path_yaml_ext(tmpdir, clear_config):
+    """Parse user configurations using a .yml default configuration file path"""
+    assert len(config.options) == 0
+
+    config.options = {
+        'pretty_json': False,
+    }
+
+    assert config.options.get('pretty_json') is False
+
+    path = tmpdir.mkdir('tmp').join('test.yaml')
+    path.write('pretty_json: True')
+
+    config.DEFAULT_CONFIG_PATH = str(path)
+    config.parse_user_configs()
+
+    expected_configs = {
+        'pretty_json': True,
+    }
+
+    assert len(config.options) != 0
+    assert config.options == expected_configs
+
+
+def test_parse_user_configs_custom_path_yml_ext(tmpdir, clear_environ, clear_config):
+    """Parse user configurations using a .yml custom configuration file path"""
+    assert len(config.options) == 0
+
+    config.options = {
+        'foo': 'bar'
+    }
+
+    assert config.options.get('foo') == 'bar'
+
+    path = tmpdir.mkdir('tmp').join('test.yml')
+    path.write('foo: foobar')
+
+    os.environ['SYNSE_CONFIG'] = str(path)
+    config.parse_user_configs()
+    assert config.options.get('foo') == 'foobar'
+
+
+def test_parse_user_configs_custom_path_yaml_ext(tmpdir, clear_environ, clear_config):
+    """Parse user configurations using a .yaml custom configuration file path"""
+    assert len(config.options) == 0
+
+    config.options = {
+        'foo': 'bar'
+    }
+
+    assert config.options.get('foo') == 'bar'
+
+    path = tmpdir.mkdir('tmp').join('test.yaml')
+    path.write('foo: foobar')
+
+    os.environ['SYNSE_CONFIG'] = str(path)
+    config.parse_user_configs()
+    assert config.options.get('foo') == 'foobar'
 
 
 def test_parse_env_vars_str(clear_environ, clear_config):
@@ -165,6 +221,27 @@ def test_parse_env_vars_nested(clear_environ, clear_config):
     os.environ['SYNSE_ONE_TWO_THREE'] = 'bar'
     config.parse_env_vars()
     assert config.options.get('one').get('two').get('three') == 'bar'
+
+
+def test_parse_env_vars_config_file(tmpdir, clear_environ, clear_config):
+    """Parse an environment variable with a configuration file path"""
+    assert len(config.options) == 0
+
+    config.options = {
+        'foo': 'bar'
+    }
+
+    assert config.options.get('foo') == 'bar'
+
+    path = tmpdir.mkdir('tmp').join('test.yaml')
+    path.write('foo: foobar')
+
+    os.environ['SYNSE_CONFIG'] = str(path)
+    assert config.options.get('foo') == 'bar'
+
+    config.parse_user_configs()
+    config.parse_env_vars()
+    assert config.options.get('foo') == 'foobar'
 
 
 def test_load_no_env(set_default_filepath, clear_environ, clear_config):

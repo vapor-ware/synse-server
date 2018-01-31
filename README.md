@@ -78,7 +78,6 @@ Each item takes precedence over the item below it:
 
 ### Configuration file
 - Only supports YAML for now.
-- Can be specified in `/synse/config.py`.
 - Default configuration filepath is `/synse/config/config.yml`.
 
 ### Configurable options
@@ -134,15 +133,24 @@ locale: nl_BE
 The environment varibles can be set outside the application, 
 in whatever environment user is running. 
 
-However, it should follow this format: `SYNSE_{KEYNAME}`, where:
+However, it should follow this format: `SYNSE_{KEY}={VALUE}`, where:
 - `SYNSE` is the prefix for our application.
-- `{KEYNAME}` can be anything in UPPERCASE.
-- `{KEYNAME}` must NOT have a delimiter `_`.
+- `{KEY}` can be anything in UPPERCASE.
+- `{KEY}` must NOT have a delimiter `_`.
 
 If user want to set a value for a nested key, 
-it's almost similar: `SYNSE_{KEYNAME1}_{KEYNAME2}_{KEYNAME3}`, where:
+it's almost similar: `SYNSE_{KEY1}_{KEY2}_{KEY3}={VALUE}`, where:
 - Each key is separated by a delimiter `_`
 - `{KEY1}...{KEYN}` are keys.
+
+
+### Add a custom configuration filepath using environment variable
+This allows users to specify the location of a file they want to use and
+not require it to be in the default location.
+
+It should follow the format: `SYNSE_CONFIG={CUSTOM_FILE_PATH}`.
+
+For example: `SYNSE_CONFIG=/tmp/cfg.yml`
 
 
 ## License
