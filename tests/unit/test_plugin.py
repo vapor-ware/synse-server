@@ -222,6 +222,7 @@ def test_get_plugins2(mock_plugin, cleanup):
     assert p.addr == 'tmp/test-plug'
 
 
+@pytest.mark.skip('https://github.com/vapor-ware/synse-server-internal/issues/364')
 def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
     """Register plugins when the plugin path doesn't exist."""
 

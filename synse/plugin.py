@@ -182,10 +182,12 @@ def register_unix_plugins():
     """
     logger.debug(gettext('Registering plugins (unix)'))
     if not os.path.exists(BG_SOCKS):
-        raise errors.PluginStateError(
-            gettext('{} does not exist - unable to get unix plugin sockets.')
-            .format(BG_SOCKS)
-        )
+        logger.debug('socket path does not exist, will not register anything')
+        return []
+        # raise errors.PluginStateError(
+        #     gettext('{} does not exist - unable to get unix plugin sockets.')
+        #     .format(BG_SOCKS)
+        # )
 
     logger.debug(gettext('socket dir exists'))
 
@@ -229,6 +231,7 @@ def register_tcp_plugins():
     logger.debug(gettext('Registering plugins (tcp)'))
 
     configured = config.options.get('plugin', {}).get('tcp', {})
+    logger.debug('config options: {}'.format(config.options))
     if not configured:
         logger.debug(gettext('found no plugins configured for tcp'))
         return []
