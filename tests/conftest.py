@@ -2,11 +2,12 @@
 """
 
 import logging
+import os
+import shutil
 
 import pytest
-import os
 
-from synse import const, plugin
+from synse import const
 
 
 # https://stackoverflow.com/a/48207909/5843840
@@ -19,30 +20,17 @@ def install_gettext():
     trans.install('gettext')
 
 
-@pytest.fixture(scope='session', autouse=True)
-def plugin_context():
+@pytest.fixture()
+def plugin_dir():
     """Fixture to setup and teardown the test context for creating plugins."""
     # create paths that will be used by the plugins
 
-    print(const.BG_SOCKS)
     if not os.path.isdir(const.BG_SOCKS):
         os.makedirs(const.BG_SOCKS)
-
-    if not os.path.isdir('tmp'):
-        os.mkdir('tmp')
-
-    # create dummy 'socket' files for the plugins
-    open('tmp/foo', 'w').close()
-    open('tmp/bar', 'w').close()
 
     yield
 
     # cleanup
-    plugin.Plugin.manager.plugins = {}
-
-    if os.path.isdir('tmp'):
-        shutil.rmtree('tmp')
-
     if os.path.isdir(const.BG_SOCKS):
         shutil.rmtree(const.BG_SOCKS)
 

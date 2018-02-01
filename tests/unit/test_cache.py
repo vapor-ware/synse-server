@@ -252,7 +252,7 @@ async def test_get_device_meta_ok(patch_metainfo, clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_get_device_meta_not_found(clear_caches):
+async def test_get_device_meta_not_found(clear_caches, plugin_dir):
     """Get device metainfo when the specified device doesn't exist."""
 
     try:
@@ -306,7 +306,7 @@ async def test_get_metainfo_cache_partial_failure(plugin_context, clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_get_metainfo_cache_no_plugins(clear_caches):
+async def test_get_metainfo_cache_no_plugins(clear_caches, plugin_context):
     """Get the metainfo cache when there are no plugins to provide data."""
 
     meta = await cache.get_metainfo_cache()

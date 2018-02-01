@@ -10,7 +10,7 @@ import pytest
 from synse_plugin import api
 
 import synse.cache
-from synse import const, errors, plugin
+from synse import errors, plugin
 from synse.commands.read import read
 from synse.proto.client import SynseInternalClient
 from synse.scheme.read import ReadResponse
@@ -31,34 +31,6 @@ def setup():
 
     if os.path.isdir('tmp'):
         shutil.rmtree('tmp')
-
-
-@pytest.fixture()
-def plugin_context():
-    """Fixture to setup and teardown the test context for creating plugins."""
-    # create paths that will be used by the plugins
-
-    print(const.BG_SOCKS)
-    if not os.path.isdir(const.BG_SOCKS):
-        os.makedirs(const.BG_SOCKS)
-
-    if not os.path.isdir('tmp'):
-        os.mkdir('tmp')
-
-    # create dummy 'socket' files for the plugins
-    open('tmp/foo', 'w').close()
-    open('tmp/bar', 'w').close()
-
-    yield
-
-    # cleanup
-    plugin.Plugin.manager.plugins = {}
-
-    if os.path.isdir('tmp'):
-        shutil.rmtree('tmp')
-
-    if os.path.isdir(const.BG_SOCKS):
-        shutil.rmtree(const.BG_SOCKS)
 
 
 def mockgetdevicemeta(rack, board, device):
@@ -144,7 +116,7 @@ def make_plugin(setup):
 
 
 @pytest.mark.asyncio
-async def test_read_command_no_device():
+async def test_read_command_no_device(plugin_dir):
     """Get a ReadResponse when the device doesn't exist."""
 
     # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
