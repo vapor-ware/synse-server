@@ -132,7 +132,7 @@ def make_plugin(setup):
 
 
 @pytest.mark.asyncio
-async def test_write_command_no_device():
+async def test_write_command_no_device(plugin_dir):
     """Get a WriteResponse when the device doesn't exist."""
 
     # FIXME - it would be nice to use pytest.raises, but it seems like it isn't

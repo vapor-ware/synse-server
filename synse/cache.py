@@ -6,7 +6,7 @@ import grpc
 
 from synse import config, errors, utils
 from synse.log import logger
-from synse.plugin import Plugin
+from synse.plugin import Plugin, register_plugins
 from synse.proto import util as putil
 
 # Define namespace for caches
@@ -129,6 +129,8 @@ async def get_metainfo_cache():
     If the cache does not exist or has surpassed its TTL, it will be
     refreshed.
 
+    If there are no registered plugins, it attempts to re-register them.
+
     The metainfo cache is a map where the key is the device id composite
     and the value is the MetainfoResponse associated with that device.
     For example:
@@ -155,6 +157,12 @@ async def get_metainfo_cache():
     # and use the associated client to get the meta information provided by
     # that backend.
     plugins = Plugin.manager.plugins
+
+    if len(plugins) == 0:
+        logger.debug(gettext('Re-registering plugins.'))
+        register_plugins()
+        plugins = Plugin.manager.plugins
+
     logger.debug(gettext('plugins to scan: {}').format(plugins))
 
     # track which plugins failed to provide metainfo for any reason.

@@ -78,7 +78,7 @@ async def test_validate_device_type(patch_metainfo, clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_validate_device_type_no_device():
+async def test_validate_device_type_no_device(plugin_dir):
     """Test validating a device when the specified device doesn't exist."""
     with pytest.raises(errors.DeviceNotFoundError):
         await validate.validate_device_type('thermistor', 'foo', 'bar', 'baz')
