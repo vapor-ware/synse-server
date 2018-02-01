@@ -6,12 +6,13 @@ import pytest
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
+from synse import errors
 from synse.proto import client
 
 # --- Mock Methods ---
 
 
-def mock_read(req):
+def mock_read(req, timeout):
     """Mock the internal read call."""
     return [
         synse_api.ReadResponse(
@@ -22,7 +23,7 @@ def mock_read(req):
     ]
 
 
-def mock_write(req):
+def mock_write(req, timeout):
     """Mock the internal write call."""
     return synse_api.Transactions(
         transactions={
@@ -34,7 +35,7 @@ def mock_write(req):
     )
 
 
-def mock_metainfo(req):
+def mock_metainfo(req, timeout):
     """Mock the internal metainfo call."""
     return [
         synse_api.MetainfoResponse(
@@ -68,7 +69,7 @@ def mock_metainfo(req):
     ]
 
 
-def mock_transaction(req):
+def mock_transaction(req, timeout):
     """Mock the internal transaction call."""
     return synse_api.WriteResponse(
         created='october',
@@ -155,7 +156,7 @@ def test_client_init(clear_state):
 def test_client_init_bad_mode(clear_state):
     """Verify the client fails to initialize when a bad mode is provided."""
 
-    with pytest.raises(ValueError):
+    with pytest.raises(errors.InvalidArgumentsError):
         client.SynseInternalClient('test-cli', 'test-cli.sock', 'foo')
 
 

@@ -4,7 +4,7 @@
 
 from sanic import Blueprint
 
-from synse import commands, const, errors
+from synse import commands, const, errors, validate
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
@@ -27,6 +27,8 @@ async def led_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_LED, rack, board, device)
+
     param_state = request.raw_args.get('state')
     param_blink = request.raw_args.get('blink')
     param_color = request.raw_args.get('color')
@@ -38,9 +40,9 @@ async def led_route(request, rack, board, device):
 
         if param_state:
             if param_state not in (const.LED_ON, const.LED_OFF):
-                raise errors.SynseError(
-                    gettext('Invalid state: {}').format(param_state),
-                    errors.INVALID_ARGUMENTS
+                # FIXME - improve error message here. provide valid states.
+                raise errors.InvalidArgumentsError(
+                    gettext('Invalid state: {}').format(param_state)
                 )
 
             data.append({
@@ -50,9 +52,9 @@ async def led_route(request, rack, board, device):
 
         if param_blink:
             if param_blink not in (const.LED_BLINK, const.LED_STEADY):
-                raise errors.SynseError(
-                    gettext('Invalid blink state: {}').format(param_blink),
-                    errors.INVALID_ARGUMENTS
+                # FIXME - improve error message here. provide valid states.
+                raise errors.InvalidArgumentsError(
+                    gettext('Invalid blink state: {}').format(param_blink)
                 )
 
             data.append({
@@ -61,7 +63,14 @@ async def led_route(request, rack, board, device):
             })
 
         if param_color:
-            # TODO - validate that given color is valid hex
+            try:
+                assert 0x000000 <= int(param_color, 16) <= 0xFFFFFF
+            except Exception as e:
+                raise errors.InvalidArgumentsError(
+                    gettext('Invalid color value ({}). Must be a hexadecimal '
+                            'string between 000000 and FFFFFF.').format(param_color)
+                ) from e
+
             data.append({
                 'action': 'color',
                 'raw': param_color
@@ -100,15 +109,18 @@ async def fan_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
+
     param_speed = request.raw_args.get('speed')
 
     # if a request parameter is specified, this will translate to a
     # write request.
     if param_speed is not None:
-        # TODO - validate the fan speed. open question as to how, since different
-        # fans will have different acceptable speeds. checking that it is within
-        # range could be done here by looking up the device meta and comparing, or
-        # it could be the responsibility of the backend..
+        # FIXME - is the below true? could we check against the device prototype's
+        #   "range.min" and "range.max" fields for this?
+        # no validation is done on the fan speed. valid fan speeds vary based on
+        # fan make/model, so it is up to the underlying implementation to do the
+        # validation.
         data = {
             'action': 'speed',
             'raw': param_speed
@@ -140,15 +152,17 @@ async def power_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_POWER, rack, board, device)
+
     param_state = request.raw_args.get('state')
 
     # if a request parameter is specified, this will translate to a
     # write request.
     if param_state is not None:
         if param_state not in (const.PWR_ON, const.PWR_OFF, const.PWR_CYCLE):
-            raise errors.SynseError(
-                gettext('Invalid power state: {}').format(param_state),
-                errors.INVALID_ARGUMENTS
+            # FIXME - improve message, add valid states
+            raise errors.InvalidArgumentsError(
+                gettext('Invalid power state: {}').format(param_state)
             )
 
         data = {
@@ -182,15 +196,17 @@ async def boot_target_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    await validate.validate_device_type(const.TYPE_SYSTEM, rack, board, device)
+
     param_target = request.raw_args.get('target')
 
     # if a request parameter is specified, this will translate to a
     # write request.
     if param_target is not None:
         if param_target not in (const.BT_PXE, const.BT_HDD):
-            raise errors.SynseError(
-                gettext('Invalid boot target: {}').format(param_target),
-                errors.INVALID_ARGUMENTS
+            # FIXME - add valid targets to the error message..
+            raise errors.InvalidArgumentsError(
+                gettext('Invalid boot target: {}').format(param_target)
             )
 
         data = {

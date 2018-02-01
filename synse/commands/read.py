@@ -29,19 +29,15 @@ async def read(rack, board, device):
     _plugin = plugin.get_plugin(dev.protocol)
     logger.debug(gettext('  |- got plugin: {}').format(_plugin))
     if not _plugin:
-        raise errors.SynseError(
-            gettext('Unable to find plugin named "{}" to read.').format(
-                dev.protocol), errors.PLUGIN_NOT_FOUND
+        raise errors.PluginNotFoundError(
+            gettext('Unable to find plugin named "{}" to read.').format(dev.protocol)
         )
 
-    # perform a gRPC read on the device's managing plugin
     try:
+        # perform a gRPC read on the device's managing plugin
         read_data = [r for r in _plugin.client.read(rack, board, device)]
     except grpc.RpcError as ex:
-        logger.error(gettext('  |- (error): {}').format(ex))
-        raise errors.SynseError(
-            gettext('Failed to issue a read request.'), errors.FAILED_READ_COMMAND
-        ) from ex
+        raise errors.FailedReadCommandError(str(ex)) from ex
 
     logger.debug(gettext('  |- read results: {}').format(read_data))
     return ReadResponse(

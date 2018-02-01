@@ -6,6 +6,7 @@ prototypes:
     protocol: emulator
     output:
       - type: temperature
+        data_type: float
         unit:
           name: degrees celsius
           symbol: C

@@ -190,7 +190,7 @@ async def test_read_command(mock_get_device_meta, mock_client_read, make_plugin)
         'type': 'thermistor',
         'data': {
             'temperature': {
-                'value': '10.0',
+                'value': 10.0,
                 'timestamp': 'october',
                 'unit': {
                     'name': 'celsius',

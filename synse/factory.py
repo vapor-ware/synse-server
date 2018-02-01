@@ -77,6 +77,9 @@ def _register_error_handling(app):
     @app.exception(NotFound)
     def err_404(request, exception):  # pylint: disable=unused-variable,unused-argument
         """Handler for a 404 error."""
+        logger.error('Exception for request: {}'.format(request))
+        logger.exception(exception)
+
         err = {
             'http_code': 404,
             'error_id': errors.URL_NOT_FOUND,
@@ -90,6 +93,9 @@ def _register_error_handling(app):
     @app.exception(ServerError)
     def err_500(request, exception):  # pylint: disable=unused-variable,unused-argument
         """Handler for a 500 error."""
+        logger.error('Exception for request: {}'.format(request))
+        logger.exception(exception)
+
         if hasattr(exception, 'error_id'):
             error_id = exception.error_id
         else:

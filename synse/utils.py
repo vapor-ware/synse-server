@@ -16,3 +16,40 @@ def composite(rack, board, device):
         str: A composite of the input strings.
     """
     return '-'.join([rack, board, device])
+
+
+def s_to_bool(val):
+    """Take a string value and convert it to a boolean value. In Python
+    it is not as simple as casting to a bool type since something like
+    bool("false") would result in True, as a non-zero length string is
+    "truthy".
+
+    Args:
+        val (str): The string value to convert to boolean.
+
+    Returns:
+        bool: True, if the string represents "true"; False otherwise.
+    """
+    if val.lower() not in ('true', 'false'):
+        raise ValueError('string "{}" not a valid boolean value'.format(val))
+    return val.lower() == 'true'
+
+
+def s_to_int(val):
+    """Take a string value and convert it to an int. This needs to be more
+    complex than just int("1") since we can have values like int("1.1") which
+    does not get converted to an integer.
+
+    Args:
+        val (str): The string value to convert to int.
+
+    Returns:
+        int: The integer representation of the given string.
+
+    Raises:
+        ValueError: Unable to cast to int.
+    """
+    try:
+        return int(float(val))
+    except Exception as e:
+        raise ValueError from e

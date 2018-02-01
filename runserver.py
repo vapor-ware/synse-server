@@ -12,6 +12,6 @@ if __name__ == '__main__':
     app = make_app()
 
     app.run(
-        host=config.options.get('host'),
-        port=config.options.get('port'),
+        host='0.0.0.0',
+        port=5000,
     )

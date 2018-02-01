@@ -1,7 +1,13 @@
 """Synse Server application-wide constants.
 """
 
-BG_SOCKS = '/synse/procs'
+BG_SOCKS = '/tmp/synse/procs'
+
+# Device Types
+TYPE_LED = 'led'
+TYPE_FAN = 'fan'
+TYPE_SYSTEM = 'system'
+TYPE_POWER = 'power'
 
 
 # LED states

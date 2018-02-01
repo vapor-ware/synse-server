@@ -4,27 +4,33 @@
 import aiocache
 import grpc
 
-from synse import errors, utils
-from synse.config import AIOCACHE
+from synse import config, errors, utils
 from synse.log import logger
 from synse.plugin import Plugin, register_plugins
 from synse.proto import util as putil
 
+# Define namespace for caches
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
 NS_SCAN = 'scan'
 NS_INFO = 'info'
 
+# Define cached key for caches
+META_CACHE_KEY = 'meta_cache_key'
+SCAN_CACHE_KEY = 'scan_cache_key'
+INFO_CACHE_KEY = 'info_cache_key'
 
-# FIXME -- the TTL here should probably be longer and configured
-# separately from the other ttls.
+# Create caches
 transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
+_meta_cache = aiocache.SimpleMemoryCache(namespace=NS_META)
+_scan_cache = aiocache.SimpleMemoryCache(namespace=NS_SCAN)
+_info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 
 
 def configure_cache():
     """Set the configuration for the asynchronous cache used by Synse."""
-    logger.debug(gettext('CONFIGURING CACHE: {}').format(AIOCACHE))
-    aiocache.caches.set_config(AIOCACHE)
+    logger.debug(gettext('CONFIGURING CACHE: {}').format(config.AIOCACHE))
+    aiocache.caches.set_config(config.AIOCACHE)
 
 
 async def clear_cache(namespace):
@@ -109,14 +115,13 @@ async def get_device_meta(rack, board, device):
     dev = _cache.get(cid)
 
     if dev is None:
-        raise errors.SynseError(
+        raise errors.DeviceNotFoundError(
             gettext('{} does not correspond with a known device.').format(
-                '/'.join([rack, board, device])), errors.DEVICE_NOT_FOUND
+                '/'.join([rack, board, device]))
         )
     return dev
 
 
-@aiocache.cached(ttl=20, namespace=NS_META)
 async def get_metainfo_cache():
     """Get the cached meta-information aggregated from the gRPC Metainfo
     request across all plugins.
@@ -140,12 +145,17 @@ async def get_metainfo_cache():
         dict: The metainfo dictionary in which the key is the device id
             and the value is the data associated with that device.
     """
+    value = await _meta_cache.get(META_CACHE_KEY)
+    if value is not None:
+        return value
+
+    # if the cache is not found, we will (re)build it and update the cache
+    logger.debug(gettext('Creating meta cache'))
     metainfo = {}
 
     # first, we want to iterate through all of the known background processes
     # and use the associated client to get the meta information provided by
     # that backend.
-
     plugins = Plugin.manager.plugins
 
     if len(plugins) == 0:
@@ -182,16 +192,17 @@ async def get_metainfo_cache():
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugins and len(plugins) == len(failures):
-        raise errors.SynseError(
-            gettext('Failed to scan all plugins: {}').format(failures),
-            errors.INTERNAL_API_FAILURE
+        raise errors.InternalApiError(
+            gettext('Failed to scan all plugins: {}').format(failures)
         )
 
-    logger.debug(gettext('Got metainfo cache!'))
+    # get meta cache's ttl and update the cache
+    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _meta_cache.set(META_CACHE_KEY, metainfo, ttl=config_ttl)
+
     return metainfo
 
 
-@aiocache.cached(ttl=20, namespace=NS_SCAN)
 async def get_scan_cache():
     """Get the cached scan results.
 
@@ -202,20 +213,20 @@ async def get_scan_cache():
         {
           'racks': [
             {
-              'rack_id': 'rack-1',
+              'id': 'rack-1',
               'boards': [
                 {
-                  'board_id': 'vec',
+                  'id': 'vec',
                   'devices': [
                     {
-                      'device_id': '1e93da83dd383757474f539314446c3d',
-                      'device_info': 'Rack Temperature Spare',
-                      'device_type': 'temperature'
+                      'id': '1e93da83dd383757474f539314446c3d',
+                      'info': 'Rack Temperature Spare',
+                      'type': 'temperature'
                     },
                     {
-                      'device_id': '18185208cbc0e5a4700badd6e39bb12d',
-                      'device_info': 'Rack Temperature Middle Rear',
-                      'device_type': 'temperature'
+                      'id': '18185208cbc0e5a4700badd6e39bb12d',
+                      'info': 'Rack Temperature Middle Rear',
+                      'type': 'temperature'
                     }
                   ]
                 }
@@ -227,14 +238,24 @@ async def get_scan_cache():
     Returns:
         dict: A dictionary containing the scan command result.
     """
-    logger.debug(gettext('Getting scan metainfo cache for scancache'))
+    value = await _scan_cache.get(SCAN_CACHE_KEY)
+    if value is not None:
+        return value
+
+    # if the cache is not found, we will (re)build it from metainfo cache
+    logger.debug(gettext('Getting scan metainfo cache for scan cache'))
     _metainfo = await get_metainfo_cache()
-    logger.debug(gettext('Building scan cache.'))
+
+    logger.debug(gettext('Building scan cache'))
     scan_cache = build_scan_cache(_metainfo)
+
+    # use the same ttl as meta cache's to update the cache
+    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _scan_cache.set(SCAN_CACHE_KEY, scan_cache, ttl=config_ttl)
+
     return scan_cache
 
 
-@aiocache.cached(ttl=20, namespace=NS_INFO)
 async def get_resource_info_cache():
     """Get the cached resource info.
 
@@ -287,8 +308,20 @@ async def get_resource_info_cache():
     Returns:
         dict: A dictionary containing the info command result.
     """
+    value = await _info_cache.get(INFO_CACHE_KEY)
+    if value is not None:
+        return value
+
+    # if the cache is not found, we will (re)build it from metainfo cache
     _metainfo = await get_metainfo_cache()
+
+    logger.debug(gettext('Building info cache'))
     info_cache = build_resource_info_cache(_metainfo)
+
+    # use the same ttl as meta cache's to update the cache
+    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _info_cache.set(INFO_CACHE_KEY, info_cache, ttl=config_ttl)
+
     return info_cache
 
 
@@ -327,36 +360,36 @@ def build_scan_cache(metainfo):
     _tracked = {}
 
     for source in metainfo.values():
-        rack = source.location.rack
-        board = source.location.board
-        device = source.uid
+        rack_id = source.location.rack
+        board_id = source.location.board
+        device_id = source.uid
 
         # the given rack does not yet exist in our scan cache.
         # in this case, we will create it, along with the board
         # and device that the source record provides.
-        if rack not in _tracked:
+        if rack_id not in _tracked:
             new_board = {
-                'board_id': board,
+                'id': board_id,
                 'devices': [
                     {
-                        'device_id': device,
-                        'device_info': source.info,
-                        'device_type': source.type
+                        'id': device_id,
+                        'info': source.info,
+                        'type': source.type
                     }
                 ]
             }
 
             new_rack = {
-                'rack_id': rack,
+                'id': rack_id,
                 'boards': []
             }
 
             # update the _tracked dictionary with references to the
             # newly created rack and board.
-            _tracked[rack] = {
+            _tracked[rack_id] = {
                 'rack': new_rack,
                 'boards': {
-                    board: new_board
+                    board_id: new_board
                 }
             }
 
@@ -366,26 +399,26 @@ def build_scan_cache(metainfo):
         # the device information provided by the source record to the
         # existing board.
         else:
-            r = _tracked[rack]
-            if board not in r['boards']:
+            r = _tracked[rack_id]
+            if board_id not in r['boards']:
                 new_board = {
-                    'board_id': board,
+                    'id': board_id,
                     'devices': [
                         {
-                            'device_id': device,
-                            'device_info': source.info,
-                            'device_type': source.type
+                            'id': device_id,
+                            'info': source.info,
+                            'type': source.type
                         }
                     ]
                 }
 
-                r['boards'][board] = new_board
+                r['boards'][board_id] = new_board
 
             else:
-                r['boards'][board]['devices'].append({
-                    'device_id': device,
-                    'device_info': source.info,
-                    'device_type': source.type
+                r['boards'][board_id]['devices'].append({
+                    'id': device_id,
+                    'info': source.info,
+                    'type': source.type
                 })
 
     for ref in _tracked.values():
