@@ -21,13 +21,19 @@ jobs:
           command: |
             bin/circleci.sh unit
 
+      - save_cache:
+          when: always
+          key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          paths:
+            - .tox
+
       - run:
           name: Lint
           command: |
             bin/circleci.sh lint
 
       - save_cache:
-          when: on_success
+          when: always
           key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox
