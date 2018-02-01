@@ -10,7 +10,7 @@ import pytest
 from synse_plugin import api
 
 import synse.cache
-from synse import errors, plugin
+from synse import const, errors, plugin
 from synse.commands.write import write
 from synse.proto.client import SynseInternalClient
 from synse.scheme.write import WriteResponse
@@ -129,6 +129,34 @@ def make_plugin(setup):
 
     if 'foo' in plugin.Plugin.manager.plugins:
         del plugin.Plugin.manager.plugins['foo']
+
+
+@pytest.fixture()
+def plugin_context():
+    """Fixture to setup and teardown the test context for creating plugins."""
+    # create paths that will be used by the plugins
+
+    print(const.BG_SOCKS)
+    if not os.path.isdir(const.BG_SOCKS):
+        os.makedirs(const.BG_SOCKS)
+
+    if not os.path.isdir('tmp'):
+        os.mkdir('tmp')
+
+    # create dummy 'socket' files for the plugins
+    open('tmp/foo', 'w').close()
+    open('tmp/bar', 'w').close()
+
+    yield
+
+    # cleanup
+    plugin.Plugin.manager.plugins = {}
+
+    if os.path.isdir('tmp'):
+        shutil.rmtree('tmp')
+
+    if os.path.isdir(const.BG_SOCKS):
+        shutil.rmtree(const.BG_SOCKS)
 
 
 @pytest.mark.asyncio
