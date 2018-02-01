@@ -16,10 +16,10 @@ def mockreturn():
     return {
         'racks': [
             {
-                'rack_id': 'rack-1',
+                'id': 'rack-1',
                 'boards': [
                     {
-                        'board_id': 'vec',
+                        'id': 'vec',
                         'devices': [
                             {
                                 'device_id': '1e93da83dd383757474f539314446c3d',

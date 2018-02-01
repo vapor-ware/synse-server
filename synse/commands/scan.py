@@ -34,7 +34,7 @@ async def scan(rack=None, board=None, force=False):
 
     if rack is not None:
         for r in cache_data['racks']:
-            if r['rack_id'] == rack:
+            if r['id'] == rack:
                 cache_data = r
                 break
         else:
@@ -44,7 +44,7 @@ async def scan(rack=None, board=None, force=False):
 
         if board is not None:
             for b in cache_data['boards']:
-                if b['board_id'] == board:
+                if b['id'] == board:
                     cache_data = b
                     break
             else:
