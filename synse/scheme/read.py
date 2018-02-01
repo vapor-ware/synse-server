@@ -111,15 +111,21 @@ class ReadResponse(SynseResponse):
 
             logger.debug(gettext('  Precision: {}').format(precision))
             value = reading.value
-            # set the specified precision
-            if precision:
-                value = str(round(float(value), precision))
 
-            # cast to the specified type
-            try:
-                value = self._data_types.get(data_type, str)(value)
-            except ValueError:
-                logger.warning(gettext('Failed to convert "{}" to {}').format(value, data_type))
+            # Handle empty string.
+            if value == '':
+                value = None
+
+            else:
+                # set the specified precision
+                if precision:
+                    value = str(round(float(value), precision))
+
+                # cast to the specified type
+                try:
+                    value = self._data_types.get(data_type, str)(value)
+                except ValueError:
+                    logger.warning(gettext('Failed to convert "{}" to {}').format(value, data_type))
 
             formatted[rt] = {
                 'value': value,

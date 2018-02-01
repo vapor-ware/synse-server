@@ -20,7 +20,7 @@ RUN pip3 install synse_plugin-*.tar.gz
 
 # the location where the bg processes will place their
 # unix sockets so the Synse app can communicate.
-RUN mkdir -p /synse/procs
+RUN mkdir -p /tmp/synse/procs
 
 # install synse_server python package
 # TODO - since we are pretty much just using the package, what
