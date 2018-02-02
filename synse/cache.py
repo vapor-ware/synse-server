@@ -198,7 +198,11 @@ async def get_metainfo_cache():
 
     # get meta cache's ttl and update the cache
     config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    await _meta_cache.set(META_CACHE_KEY, metainfo, ttl=config_ttl)
+    if metainfo:
+        await _meta_cache.set(META_CACHE_KEY, metainfo, ttl=config_ttl)
+    else:
+        logger.info(gettext('Refusing to cache empty metainfo results.'))
+        await _meta_cache.set(META_CACHE_KEY, None, ttl=config_ttl)
 
     return metainfo
 
@@ -251,7 +255,11 @@ async def get_scan_cache():
 
     # use the same ttl as meta cache's to update the cache
     config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    await _scan_cache.set(SCAN_CACHE_KEY, scan_cache, ttl=config_ttl)
+    if scan_cache['racks']:
+        await _scan_cache.set(SCAN_CACHE_KEY, scan_cache, ttl=config_ttl)
+    else:
+        logger.info(gettext('Refusing to cache empty scan result.'))
+        await _scan_cache.set(SCAN_CACHE_KEY, None, ttl=config_ttl)
 
     return scan_cache
 
@@ -320,7 +328,11 @@ async def get_resource_info_cache():
 
     # use the same ttl as meta cache's to update the cache
     config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    await _info_cache.set(INFO_CACHE_KEY, info_cache, ttl=config_ttl)
+    if info_cache:
+        await _info_cache.set(INFO_CACHE_KEY, info_cache, ttl=config_ttl)
+    else:
+        logger.info('Resource info empty, refusing to cache.')
+        await _info_cache.set(INFO_CACHE_KEY, None, ttl=config_ttl)
 
     return info_cache
 
