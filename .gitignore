@@ -79,3 +79,7 @@ ENV/
 # packages
 *.rpm
 *.deb
+
+# v2.0 directories
+prof/
+results/
