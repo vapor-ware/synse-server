@@ -5,7 +5,7 @@ import os
 import stat
 
 from synse import config, errors
-from synse.const import BG_SOCKS
+from synse.const import SOCKET_DIR
 from synse.log import logger
 from synse.proto.client import register_client
 
@@ -177,47 +177,102 @@ def register_plugins():
 def register_unix_plugins():
     """Register the plugins that use a unix socket for communication.
 
+    Unix plugins can be configured two ways:
+      1.) Listed in the configuration file under plugin.unix
+      2.) Automatically by existing in the default socket directory
+
+    Here, we will parse both the configuration and the default socket
+    directory and return a unified list of all known unix-configured
+    plugins.
+
     Returns:
         list[str]: The names of all plugins that were registered.
     """
     logger.debug(gettext('Registering plugins (unix)'))
-    if not os.path.exists(BG_SOCKS):
-        logger.debug('socket path does not exist, will not register anything')
-        return []
-        # raise errors.PluginStateError(
-        #     gettext('{} does not exist - unable to get unix plugin sockets.')
-        #     .format(BG_SOCKS)
-        # )
-
-    logger.debug(gettext('socket dir exists'))
 
     manager = Plugin.manager
 
-    # track the names of all plugins that are registered.
+    # track the names of the plugins that have been registered
     registered = []
 
-    for item in os.listdir(BG_SOCKS):
-        logger.debug('  {}'.format(item))
-        fqn = os.path.join(BG_SOCKS, item)
-        name, _ = os.path.splitext(item)
+    # First, register any plugins that are defined in the Synse Server
+    # configuration.
+    configured = config.options.get('plugin', {}).get('unix', {})
+    logger.debug('configured unix plugins: {}'.format(configured))
+    if configured:
+        for name, path in configured.items():
+            # If the user wants to use the default configuration directory,
+            # they can specify something like
+            #
+            #   plugins:
+            #       unix:
+            #           plugin_name:
+            #
+            # This will give us a 'name' here of 'plugin_name' and a 'path'
+            # of None.
+            if path is None:
+                path = SOCKET_DIR
 
-        if stat.S_ISSOCK(os.stat(fqn).st_mode):
-            registered.append(name)
+            # Check for both 'plugin_name' and 'plugin_name.sock'
+            sock_path = os.path.join(path, name, '.sock')
+            logger.debug('checking for socket: {}'.format(sock_path))
+            if not os.path.exists(sock_path):
+                logger.debug('checking for socket: {}'.format(sock_path))
+                sock_path = os.path.join(path, name)
+                if not os.path.exists(sock_path):
+                    logger.error('could not find configured socket: {}[.sock]'.format(sock_path))
+                    continue
+
+            if not stat.S_ISSOCK(os.stat(sock_path).st_mode):
+                logger.error('{} is not a socket, will not register'.format(sock_path))
+                continue
 
             # we have a plugin socket. if it already exists, there is nothing
             # to do; it is already registered. if it does not exist, we will
             # need to register it.
             if manager.get(name) is None:
-                # a new plugin gets added to the manager on initialization.
-                plugin = Plugin(name=name, address=fqn, mode='unix')
+                plugin = Plugin(name=name, address=sock_path, mode='unix')
                 logger.debug(gettext('Created new plugin (unix): {}').format(plugin))
             else:
                 logger.info(
                     gettext('plugin "{}" already exists - will not re-register (unix)').format(name)
                 )
 
-        else:
-            logger.debug(gettext('file is not a socket.. {}').format(fqn))
+            registered.append(name)
+
+    # Now go through the default socket directory to pick up any other sockets
+    # that may be set for automatic registration.
+    if not os.path.exists(SOCKET_DIR):
+        logger.debug(
+            gettext('default socket path does not exist, no plugins registered from {}')
+            .format(SOCKET_DIR)
+        )
+
+    else:
+        logger.debug(gettext('socket dir exists'))
+
+        for item in os.listdir(SOCKET_DIR):
+            logger.debug('  {}'.format(item))
+            fqn = os.path.join(SOCKET_DIR, item)
+            name, _ = os.path.splitext(item)
+
+            if stat.S_ISSOCK(os.stat(fqn).st_mode):
+                # we have a plugin socket. if it already exists, there is nothing
+                # to do; it is already registered. if it does not exist, we will
+                # need to register it.
+                if manager.get(name) is None:
+                    # a new plugin gets added to the manager on initialization.
+                    plugin = Plugin(name=name, address=fqn, mode='unix')
+                    logger.debug(gettext('Created new plugin (unix): {}').format(plugin))
+                else:
+                    logger.info(
+                        gettext('plugin "{}" already exists - will not re-register (unix)')
+                        .format(name)
+                    )
+                registered.append(name)
+
+            else:
+                logger.debug(gettext('file is not a socket.. {}').format(fqn))
 
     return list(set(registered))
 
@@ -231,7 +286,7 @@ def register_tcp_plugins():
     logger.debug(gettext('Registering plugins (tcp)'))
 
     configured = config.options.get('plugin', {}).get('tcp', {})
-    logger.debug('config options: {}'.format(config.options))
+    logger.debug('configured tcp plugins: {}'.format(configured))
     if not configured:
         logger.debug(gettext('found no plugins configured for tcp'))
         return []

@@ -8,7 +8,7 @@ from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
 from synse import config, errors
-from synse.const import BG_SOCKS
+from synse.const import SOCKET_DIR
 from synse.log import logger
 
 
@@ -76,7 +76,7 @@ class SynseInternalClient(object):
     def _channel(self):
         """Convenience method to create the client grpc channel."""
         if self.mode == 'unix':
-            target = 'unix:{}'.format(os.path.join(BG_SOCKS, self.name + '.sock'))
+            target = 'unix:{}'.format(os.path.join(SOCKET_DIR, self.name + '.sock'))
         elif self.mode == 'tcp':
             target = self.addr
         else:

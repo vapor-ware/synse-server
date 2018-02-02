@@ -89,8 +89,8 @@ async def clear_caches():
 def plugin_context():
     """Fixture to setup and teardown the test context for creating plugins."""
     # create paths that will be used by the plugins
-    if not os.path.isdir(const.BG_SOCKS):
-        os.makedirs(const.BG_SOCKS)
+    if not os.path.isdir(const.SOCKET_DIR):
+        os.makedirs(const.SOCKET_DIR)
 
     if not os.path.isdir('tmp'):
         os.mkdir('tmp')
@@ -107,8 +107,8 @@ def plugin_context():
     if os.path.isdir('tmp'):
         shutil.rmtree('tmp')
 
-    if os.path.isdir(const.BG_SOCKS):
-        shutil.rmtree(const.BG_SOCKS)
+    if os.path.isdir(const.SOCKET_DIR):
+        shutil.rmtree(const.SOCKET_DIR)
 
 # --- Test Cases ---
 

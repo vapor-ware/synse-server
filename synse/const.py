@@ -1,7 +1,8 @@
 """Synse Server application-wide constants.
 """
 
-BG_SOCKS = '/tmp/synse/procs'
+# QUESTION (etd) - should this be 'procs', or something else? perhaps 'run' or 'sock'
+SOCKET_DIR = '/tmp/synse/procs'
 
 # Device Types
 TYPE_LED = 'led'
