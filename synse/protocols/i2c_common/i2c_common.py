@@ -1303,12 +1303,14 @@ def read_thermistors(count, device_name):
     # Convert the raw reading for each thermistor.
     result = []
     if ad_reading:
+        logger.debug('ad_reading: {}'.format(hexlify(ad_reading)))
         for x in range(count):
             index = x * 2
             temperature = conversions.convert_thermistor_reading(
                 ad_reading, index, device_name)
             result.append(temperature)
 
+    logger.debug('thermistor result: {}'.format(result))
     return result
 
 
