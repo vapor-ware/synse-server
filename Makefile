@@ -33,7 +33,6 @@ build:
 	    -t ${IMG_NAME}:${PKG_VER} \
 	    -t ${IMG_NAME}:${GIT_VER} .
 
-
 .PHONY: run
 run: build
 	docker run -d -p 5000:5000 --name synse2 ${IMG_NAME} enable-emulator

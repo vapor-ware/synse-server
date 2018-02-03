@@ -92,7 +92,7 @@ Each item takes precedence over the item below it:
 - `plugin`
   - `unix`: UNIX socket location 
     - type: `dict`
-    - default: `/synse/procs`
+    - default: `/tmp/synse/procs`
     - options: to be set using `{name}:{path}` format
   - `tcp`: TCP plugin
     - type: `dict`
