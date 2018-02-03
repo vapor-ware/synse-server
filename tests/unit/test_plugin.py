@@ -50,13 +50,13 @@ def remove_tmp_dir():
 @pytest.fixture()
 def make_bgsocks():
     """Fixture to create and remove the BG_SOCKS directory for testing."""
-    if not os.path.isdir(const.BG_SOCKS):
-        os.makedirs(const.BG_SOCKS)
+    if not os.path.isdir(const.SOCKET_DIR):
+        os.makedirs(const.SOCKET_DIR)
 
     yield
 
-    if os.path.isdir(const.BG_SOCKS):
-        shutil.rmtree(const.BG_SOCKS)
+    if os.path.isdir(const.SOCKET_DIR):
+        shutil.rmtree(const.SOCKET_DIR)
 
 
 @pytest.fixture()
@@ -226,8 +226,8 @@ def test_get_plugins2(mock_plugin, cleanup):
 def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
     """Register plugins when the plugin path doesn't exist."""
 
-    if os.path.isdir(const.BG_SOCKS):
-        shutil.rmtree(const.BG_SOCKS)
+    if os.path.isdir(const.SOCKET_DIR):
+        shutil.rmtree(const.SOCKET_DIR)
 
     with pytest.raises(errors.PluginStateError):
         plugin.register_plugins()
@@ -237,7 +237,7 @@ def test_register_plugins_no_socks(make_bgsocks, cleanup):
     """Register plugins when no sockets are in the plugin path."""
 
     # create a non-socket file in the plugin path
-    path = os.path.join(const.BG_SOCKS, 'test.txt')
+    path = os.path.join(const.SOCKET_DIR, 'test.txt')
     open(path, 'w').close()
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -254,7 +254,7 @@ def test_register_plugins_ok(make_bgsocks, cleanup):
 
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = '{}/test'.format(const.BG_SOCKS)
+    path = '{}/test'.format(const.SOCKET_DIR)
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -281,7 +281,7 @@ def test_register_plugins_already_exists(make_bgsocks, cleanup):
 
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = '{}/test'.format(const.BG_SOCKS)
+    path = '{}/test'.format(const.SOCKET_DIR)
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -321,7 +321,7 @@ def test_register_plugins_new(make_bgsocks, cleanup):
 
     # create the socket
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path1 = '{}/foo'.format(const.BG_SOCKS)
+    path1 = '{}/foo'.format(const.SOCKET_DIR)
     sock1.bind(path1)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -338,7 +338,7 @@ def test_register_plugins_new(make_bgsocks, cleanup):
 
     # now, re-register
     sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path2 = '{}/bar'.format(const.BG_SOCKS)
+    path2 = '{}/bar'.format(const.SOCKET_DIR)
     sock2.bind(path2)
 
     assert len(plugin.Plugin.manager.plugins) == 1
@@ -372,11 +372,11 @@ def test_register_plugins_old(make_bgsocks, cleanup):
 
     # create the socket
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path1 = '{}/foo'.format(const.BG_SOCKS)
+    path1 = '{}/foo'.format(const.SOCKET_DIR)
     sock1.bind(path1)
 
     sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path2 = '{}/bar'.format(const.BG_SOCKS)
+    path2 = '{}/bar'.format(const.SOCKET_DIR)
     sock2.bind(path2)
 
     assert len(plugin.Plugin.manager.plugins) == 0

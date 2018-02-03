@@ -25,14 +25,14 @@ def plugin_dir():
     """Fixture to setup and teardown the test context for creating plugins."""
     # create paths that will be used by the plugins
 
-    if not os.path.isdir(const.BG_SOCKS):
-        os.makedirs(const.BG_SOCKS)
+    if not os.path.isdir(const.SOCKET_DIR):
+        os.makedirs(const.SOCKET_DIR)
 
     yield
 
     # cleanup
-    if os.path.isdir(const.BG_SOCKS):
-        shutil.rmtree(const.BG_SOCKS)
+    if os.path.isdir(const.SOCKET_DIR):
+        shutil.rmtree(const.SOCKET_DIR)
 
 
 @pytest.fixture(autouse=True)
