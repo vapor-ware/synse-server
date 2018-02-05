@@ -14,18 +14,66 @@ search: true
 # Overview
 
 Synse Server provides a simple JSON API to monitor and control data center and IT equipment. More
-generally, it provides a uniform interface for backends implementing various protocols, such as
+generally, it provides a uniform interface for back-ends implementing various protocols, such as
 RS485 and I2C. The Synse Server API makes it easy to read from and write to devices, gather device
 information, and scan for configured devices through a curl-able interface.
 
 
+# Errors
+
+```json
+{
+  "http_code": 500,
+  "error_id": 4000,
+  "description": "device not found",
+  "timestamp": "2018-01-24 19:54:37.382551",
+  "context": "rack-1\/vec\/f52d29fecf05a195af13f14c73065252d does not correspond with a known device."
+}
+```
+
+Synse Server will return a JSON response with 500 and 404 errors. This JSON is used to provide
+context around the error.
+
+An example of a 500 response error JSON is provided here. The fields for the error response
+are:
+
+| Field | Description |
+| ----- | ----------- |
+| http_code | The HTTP code corresponding to the the error (e.g. 500, 404). |
+| error_id | The Synse Server defined error ID. This is used to identify the type of error. |
+| description | A short description for the error type, as defined by the `error_id`. |
+| timestamp | The time at which the error occurred. |
+| context | Any message associated with the error to provide information on the root cause of the error. |
+
+
+The currently defined error IDs follow.
+
+| Error ID | Description |
+| -------- | ----------- |
+| 0 | Unknown Error |
+| 3000 | URL not found |
+| 3001 | Invalid arguments |
+| 3002 | Invalid JSON |
+| 3003 | Invalid device type |
+| 4000 | Device not found |
+| 4001 | Board not found |
+| 4002 | Rack not found |
+| 4003 | Plugin not found |
+| 4004 | Transaction not found |
+| 5000 | Failed info command |
+| 5001 | Failed read command |
+| 5002 | Failed scan command |
+| 5003 | Failed transaction command |
+| 5004 | Failed write command |
+| 6000 | Internal API failure |
+| 6500 | Plugin state error |
 
 # Endpoints
 
 ## Test
 
 ```shell
-curl "host:5000/synse/test"
+curl "http://host:5000/synse/test"
 ```
 
 ```python
@@ -46,9 +94,9 @@ response = requests.get('http://host:5000/synse/test')
 Test that the endpoint is reachable.
 
 If the endpoint is reachable (e.g. if Synse Server is up and ready), this will return a 200 response
-with the JSON as described below. If the test endpoint is unreachable or otherwise fails, it will return
-a 500 response. This is indicative of Synse Server not being up and serving. The test endpoint does not
-have any internal dependencies.
+with the described JSON response. If the test endpoint is unreachable or otherwise fails, it will return
+a 500 response. The test endpoint does not have any internal dependencies, so a failure would indicate
+Synse Server not being up and serving.
 
 ### HTTP Request
 
@@ -66,7 +114,7 @@ have any internal dependencies.
 ## Version
 
 ```shell
-curl "host:5000/synse/version"
+curl "http://host:5000/synse/version"
 ```
 
 ```python
@@ -85,8 +133,8 @@ response = requests.get('http://host:5000/synse/version')
 
 ```
 
-Get the API version of the Synse Server instance. This version info can be used to ensure the correct
-request URI schema and version are being used for a given Synse Server instance.
+Get the version info of the Synse Server instance. The API version provided by this endpoint
+should be used in subsequent requests.
 
 ### HTTP Request
 
@@ -103,7 +151,7 @@ request URI schema and version are being used for a given Synse Server instance.
 ## Config
 
 ```shell
-curl "host:5000/synse/2.0/config"
+curl "http://host:5000/synse/2.0/config"
 ```
 
 ```python
@@ -129,16 +177,15 @@ response = requests.get('http://host:5000/synse/2.0/config')
   },
   "grpc": {
     "timeout": 20
-  },
-  "lang": "en_US"
+  }
 }
 ```
 
-Get the current Synse Server configuration.
+Get the configuration for the Synse Server instance.
 
-This is added as a convenience to make it easier to determine what configuration Synse Server is running 
-with. Since configuration in Synse Server 1.X was difficult, this endpoints aims to make configuration 
-more user-friendly in Synse Server 2.0.
+This endpoint is added as a convenience to make it easier to determine what configuration Synse Server
+is running with. The Synse Server configuration can be made up of default, file, and environment
+configurations. This endpoint provides the final joined configuration.
 
 ### HTTP Request
 
@@ -150,14 +197,14 @@ The response to the `config` endpoint should be the unified configuration for Sy
 unified config is the three layers of merged configuration (default, file, environment).
 
 See [the Synse Server configuration documentation]() for more info on how to configure Synse Server
-as well as what you can expect from this response.
+as well as what the JSON response for this endpoint will look like.
 
 
 
 ## Scan
 
 ```shell
-curl "host:5000/synse/2.0/scan"
+curl "http://host:5000/synse/2.0/scan"
 ```
 
 ```python
@@ -220,12 +267,13 @@ response = requests.get('http://host:5000/synse/2.0/scan')
 }
 ```
 
-Enumerate all known racks, boards, and devices accessible by Synse.
+Enumerate all known devices that are accessible by Synse Server, grouped by rack and board.
 
-This aggregates the known configured racks, boards, and devices for each of the configured plugins providing
-information to Synse Server. The scan response provides a high level view of which devices exist to the system
-and where they exist. With a scan response, a user should have enough routing information to perform any
-subsequent command (e.g. read, write) for a given device.
+The `scan` endpoint provides an aggregated view of the devices, along with their rack and board
+locations, which are made known to Synse Server by each of the configured plugin back-ends. The
+`scan` response provides a high-level view of what exists and how to route to it. This routing
+information (e.g. rack ID, board ID, device ID) can be used in subsequent commands such as [read](#read),
+[write](#write), and [info](#info).
 
 ### HTTP Request
 
@@ -247,14 +295,15 @@ subsequent command (e.g. read, write) for a given device.
 | {board}.id | The primary identifier for the board. |
 | {board}.devices | A list of device objects which belong to the board. |
 | {device}.id | The primary identifier for the device. |
-| {device}.info | Any notational information associated with the device to help identify it in a more human-readble way. |
+| {device}.info | Any notational information associated with the device to help identify it in a more human-readable way. |
 | {device}.type | The type of the device. |
+
 
 
 ## Read
 
 ```shell
-curl "host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03"
+curl "http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03"
 ```
 
 ```python
@@ -308,10 +357,12 @@ response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0
 
 Read data from a known device.
 
-Devices are made known to Synse Server via the internal gRPC metainfo request on the configured plugins.
-This information is surfaced to the user via the scan route. If the specified device supports reading (as
-determined by the plugin that manages the device), it will return a read response. Otherwise, an error is
-returned stating that reads are not permitted on the type of the given device. 
+Devices may not necessarily support reading, and the reading values for one device of a given type
+may not match those of a different device with the same type. That is to say, the read behavior for
+a device is defined at the plugin level, and may differ from plugin to plugin or device to device.
+
+If a read is not supported, a 500 error will be returned with a JSON response specifying the cause
+as reads not permitted.
 
 ### HTTP Request
 
@@ -325,7 +376,7 @@ returned stating that reads are not permitted on the type of the given device.
 | board     | yes      | The id of the board containing the device to read. |
 | device    | yes      | The id of the device to read. |
 
-These values can be found via the [Scan](#scan) command.
+These values can be found via the [scan](#scan) command.
 
 ### Response Fields
 
@@ -347,7 +398,7 @@ curl \
   -H "Content-Type: application/json" \
   -X POST \
   -d '{"action": "color", "raw": "f38ac2"}' \
-  "host:5000/synse/2.0/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
+  "http://host:5000/synse/2.0/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
 ```
 
 ```python
@@ -382,10 +433,12 @@ response = requests.post(
 
 Write data to a known device.
 
-Devices are made known to Synse Server via the internal gRPC metainfo request on the configured plugins.
-This information is surfaced to the user via the scan route. If the specified device supports writing (as
-determined by the plugin that manages the device), it will return a write response. Otherwise, an error is
-returned stating that writes are not permitted on the type of the given device. 
+Devices may not necessarily support writing, and the write actions for one device of a given type
+may not match those of a different device with the same type. That is to say, the write behavior for
+a device is defined at the plugin level, and may differ from plugin to plugin or device to device.
+
+If a write is not supported, a 500 error will be returned with a JSON response specifying the cause
+as writes not permitted.
 
 ### HTTP Request
 
@@ -399,7 +452,7 @@ returned stating that writes are not permitted on the type of the given device.
 | board     | yes      | The id of the board containing the device to write to. |
 | device    | yes      | The id of the device to write to. |
 
-These values can be found via the [Scan](#scan) command.
+These values can be found via the [scan](#scan) command.
 
 ### POST Body
 
@@ -423,6 +476,10 @@ The valid values and requirements for `action` and `raw` are dependent on the de
 example, an `LED` device supports the actions: `color`, `state`, `blink`; a `fan` device supports
 `speed`. 
 
+Some devices may only need an `action` specified. Some may need both `action` and `raw` specified.
+While it is up to the underlying plugin to determine what are valid values for a device, generally,
+the `action` should be the attribute to set and `raw` should be the value to set it to.
+
 ### Response Fields
 
 | Field | Description |
@@ -432,10 +489,11 @@ example, an `LED` device supports the actions: `color`, `state`, `blink`; a `fan
 | transaction | The ID of the write transaction. Each write will have its own ID. The status of a transaction can be checked with the [transaction](#transaction) command. |
 
 
+
 ## Transaction
 
 ```shell
-curl "host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g"
+curl "http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g"
 ```
 
 ```python
@@ -463,7 +521,7 @@ response = requests.get('http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vm
 }
 ```
 
-Check the status of a write transaction.
+Check the state and status of a write transaction.
 
 ### HTTP Request
 
@@ -473,7 +531,7 @@ Check the status of a write transaction.
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| transaction id | yes | The ID of the write transaction to get the status of. |
+| transaction id | yes | The ID of the write transaction to get the status of. This is given by the corresponding [write](#write). |
 
 ### Response Fields
 
@@ -484,7 +542,7 @@ Check the status of a write transaction.
 | state   | The current state of the transaction. *Valid values:* (`ok`,`error`) |
 | status  | The current status of the transaction. *Valid values:* (`unknown`,`pending`,`writing`,`done`)|
 | created | The time at which the transaction was created (e.g. the write issued). |
-| updated | The last time the state or status was updated for the transaction. If the transaction has state `ok` and status `done`, no further updates will happen. |
+| updated | The last time the state or status was updated for the transaction. If the transaction has state `ok` and status `done`, no further updates will occur. |
 | message | Any context information for the transaction relating to its error state. |
 
 
@@ -494,7 +552,7 @@ Check the status of a write transaction.
 > a rack-level request:
 
 ```shell
-curl "host:5000/synse/2.0/info/rack-1"
+curl "http://host:5000/synse/2.0/info/rack-1"
 ```
 
 ```python
@@ -517,7 +575,7 @@ response = requests.get('http://host:5000/synse/2.0/info/rack-1')
 > For a board-level request:
 
 ```shell
-curl "host:5000/synse/2.0/info/rack-1/vec"
+curl "http://host:5000/synse/2.0/info/rack-1/vec"
 ```
 
 ```python
@@ -550,7 +608,7 @@ response = requests.get('http://host:5000/synse/2.0/info/rack-1/vec')
 > For a device-level request:
 
 ```shell
-curl "host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"
+curl "http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"
 ```
 
 ```python
@@ -593,12 +651,7 @@ response = requests.get('http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9
 }
 ```
 
-Get any information on the specified resource.
-
-This command replaces what used to be the “host info” and “asset info” command in Synse v1.3. While the
-response here does not mirror a union of the two previous commands’ responses, it does provide a generalized
-information scheme that can be applied to all devices of any backend protocol, whereas before host/asset info
-were tightly coupled with IPMI responses.
+Get the available information for the specified resource.
 
 ### HTTP Request
 
@@ -609,7 +662,7 @@ were tightly coupled with IPMI responses.
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
 | rack      | yes      | The id of the rack to get info for. |
-| board     | no       | The id of the board to get info for. Required only if specifying device. |
+| board     | no       | The id of the board to get info for. *Required only if specifying device.* |
 | device    | no       | The id of the device to get info for. |
 
 ### Response Fields
@@ -651,7 +704,7 @@ were tightly coupled with IPMI responses.
 > If no query parameters are specified, this will **read** from the LED device.
 
 ```shell
-curl "host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
+curl "http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
 ```
 
 ```python
@@ -688,7 +741,7 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
 > If any valid query parameters are specified, this will **write** to the LED device.
 
 ```shell
-curl "host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
+curl "http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
 ```
 
 ```python
@@ -725,10 +778,10 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
 
 Read from or write to a known LED device.
 
-While an LED device can be read directly via the read route or written to directly from the write route,
-this route provides some additional checks and validation before dispatching to the appropriate route. In
-particular, it checks if the specified device is an LED device and that the given values (if any) are
-permissible.
+While an LED device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is an LED device and
+that the given query parameter values (if any) are permissible.
 
 If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.
@@ -768,7 +821,7 @@ See the responses for [read](#read) and [write](#write).
 > If no query parameters are specified, this will **read** from the fan device.
 
 ```shell
-curl "host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
+curl "http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
 ```
 
 ```python
@@ -798,7 +851,7 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
 > If any valid query parameters are specified, this will **write** to the fan device.
 
 ```shell
-curl "host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
+curl "http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
 ```
 
 ```python
@@ -825,13 +878,13 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
 
 Read from or write to a known fan device.
 
-While a fan device can be read directly via the read route or written to directly from the write route,
-this route provides some additional checks and validation before dispatching to the appropriate route. In
-particular, it checks if the specified device is a fan device and that the given values (if any) are
-permissible.
+While a fan device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a fan device and
+that the given query parameter values (if any) are permissible.
 
-If no query parameters are specified, this endpoint will read the specified device. If any number of
-valid query parameters are specified, the endpoint will write to the specified device.
+If no query parameters are specified, this endpoint will read the specified device. If any number of valid
+query parameters are specified, the endpoint will write to the specified device.
 
 ### HTTP Request
 
@@ -866,7 +919,7 @@ See the responses for [read](#read) and [write](#write).
 > If no query parameters are specified, this will **read** from the system device.
 
 ```shell
-curl "host:5000/synse/2.0/boot_target/rack-1/vec/--"
+curl "http://host:5000/synse/2.0/boot_target/rack-1/vec/--"
 ```
 
 ```python
@@ -884,7 +937,7 @@ TODO
 > If any valid query parameters are specified, this will **write** to the system device.
 
 ```shell
-curl "host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe"
+curl "http://host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe"
 ```
 
 ```python
@@ -896,15 +949,15 @@ response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/--?ta
 > The response JSON will be the same as a write response:
 
 ```json
-
+TODO
 ```
 
 Read from or write to a known boot target (system) device.
 
-While a boot target (system) device can be read directly via the read route or written to directly from the
-write route, this route provides some additional checks and validation before dispatching to the appropriate
-route. In particular, it checks if the specified device is a system device and that the given values (if any)
-are permissible.
+While a system device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a system device and
+that the given query parameter values (if any) are permissible.
 
 If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.
@@ -942,7 +995,7 @@ See the responses for [read](#read) and [write](#write).
 > If no query parameters are specified, this will **read** from the power device.
 
 ```shell
-curl "host:5000/synse/2.0/power/rack-1/vec/--"
+curl "http://host:5000/synse/2.0/power/rack-1/vec/--"
 ```
 
 ```python
@@ -954,13 +1007,13 @@ response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/--')
 > The response JSON will be the same as read response:
 
 ```json
-
+TODO
 ```
 
 > If any valid query parameters are specified, this will **write** to the power device.
 
 ```shell
-curl "host:5000/synse/2.0/power/rack-1/vec/--?state=cycle"
+curl "http://host:5000/synse/2.0/power/rack-1/vec/--?state=cycle"
 ```
 
 ```python
@@ -972,15 +1025,15 @@ response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/--?state=cy
 > The response JSON will be the same as a write response:
 
 ```json
-
+TODO
 ```
 
 Read from or write to a known power device.
 
-While a power device can be read directly via the read route or written to directly from the write route,
-this route provides some additional checks and validation before dispatching to the appropriate route. In
-particular, it checks if the specified device is a power device and that the given values (if any) are
-permissible.
+While a power device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a power device and
+that the given query parameter values (if any) are permissible.
 
 If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.
@@ -1018,7 +1071,7 @@ See the responses for [read](#read) and [write](#write).
 > If no query parameters are specified, this will **read** from the lock device.
 
 ```shell
-curl "host:5000/synse/2.0/lock/rack-1/vec/--"
+curl "http://host:5000/synse/2.0/lock/rack-1/vec/--"
 ```
 
 ```python
@@ -1030,13 +1083,13 @@ response = requests.get('http://host:5000/synse/2.0/lock/rack-1/vec/--')
 > The response JSON will be the same as read response:
 
 ```json
-
+TODO
 ```
 
 > If any valid query parameters are specified, this will **write** to the lock device.
 
 ```shell
-curl "host:5000/synse/2.0/lock/rack-1/vec/--?state=lock"
+curl "http://host:5000/synse/2.0/lock/rack-1/vec/--?state=lock"
 ```
 
 ```python
@@ -1048,8 +1101,18 @@ response = requests.get('http://host:5000/synse/2.0/lock/rack-1/vec/--?state=loc
 > The response JSON will be the same as a write response:
 
 ```json
-
+TODO
 ```
+
+Read from or write to a known lock device.
+
+While a lock device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a lock device and
+that the given query parameter values (if any) are permissible.
+
+If no query parameters are specified, this endpoint will read the specified device. If any number of valid
+query parameters are specified, the endpoint will write to the specified device.
 
 ### HTTP Request
 
