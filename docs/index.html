@@ -223,6 +223,9 @@
             <a href="#overview" class="toc-h1 toc-link" data-title="overview">Overview</a>
           </li>
           <li>
+            <a href="#errors" class="toc-h1 toc-link" data-title="errors">Errors</a>
+          </li>
+          <li>
             <a href="#endpoints" class="toc-h1 toc-link" data-title="endpoints">Endpoints</a>
               <ul class="toc-list-h2">
                   <li>
@@ -276,10 +279,129 @@
       <div class="content">
         <h1 id='overview'>Overview</h1>
 <p>Synse Server provides a simple JSON API to monitor and control data center and IT equipment. More
-generally, it provides a uniform interface for backends implementing various protocols, such as
+generally, it provides a uniform interface for back-ends implementing various protocols, such as
 RS485 and I2C. The Synse Server API makes it easy to read from and write to devices, gather device
 information, and scan for configured devices through a curl-able interface.</p>
-<h1 id='endpoints'>Endpoints</h1><h2 id='test'>Test</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/test"</span>
+<h1 id='errors'>Errors</h1><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"http_code"</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"error_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4000</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"device not found"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-01-24 19:54:37.382551"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="s2">"rack-1</span><span class="se">\/</span><span class="s2">vec</span><span class="se">\/</span><span class="s2">f52d29fecf05a195af13f14c73065252d does not correspond with a known device."</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<p>Synse Server will return a JSON response with 500 and 404 errors. This JSON is used to provide
+context around the error. </p>
+
+<p>An example of a 500 response error JSON is provided here. The fields for the error response
+are:</p>
+
+<table><thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>http_code</td>
+<td>The HTTP code corresponding to the the error (e.g. 500, 404).</td>
+</tr>
+<tr>
+<td>error_id</td>
+<td>The Synse Server defined error ID. This is used to identify the type of error.</td>
+</tr>
+<tr>
+<td>description</td>
+<td>A short description for the error type, as defined by the <code>error_id</code>.</td>
+</tr>
+<tr>
+<td>timestamp</td>
+<td>The time at which the error occurred.</td>
+</tr>
+<tr>
+<td>context</td>
+<td>Any message associated with the error to provide information on the root cause of the error.</td>
+</tr>
+</tbody></table>
+
+<p>The currently defined error IDs follow.</p>
+
+<table><thead>
+<tr>
+<th>Error ID</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>0</td>
+<td>Unknown Error</td>
+</tr>
+<tr>
+<td>3000</td>
+<td>URL not found</td>
+</tr>
+<tr>
+<td>3001</td>
+<td>Invalid arguments</td>
+</tr>
+<tr>
+<td>3002</td>
+<td>Invalid JSON</td>
+</tr>
+<tr>
+<td>3003</td>
+<td>Invalid device type</td>
+</tr>
+<tr>
+<td>4000</td>
+<td>Device not found</td>
+</tr>
+<tr>
+<td>4001</td>
+<td>Board not found</td>
+</tr>
+<tr>
+<td>4002</td>
+<td>Rack not found</td>
+</tr>
+<tr>
+<td>4003</td>
+<td>Plugin not found</td>
+</tr>
+<tr>
+<td>4004</td>
+<td>Transaction not found</td>
+</tr>
+<tr>
+<td>5000</td>
+<td>Failed info command</td>
+</tr>
+<tr>
+<td>5001</td>
+<td>Failed read command</td>
+</tr>
+<tr>
+<td>5002</td>
+<td>Failed scan command</td>
+</tr>
+<tr>
+<td>5003</td>
+<td>Failed transaction command</td>
+</tr>
+<tr>
+<td>5004</td>
+<td>Failed write command</td>
+</tr>
+<tr>
+<td>6000</td>
+<td>Internal API failure</td>
+</tr>
+<tr>
+<td>6500</td>
+<td>Plugin state error</td>
+</tr>
+</tbody></table>
+<h1 id='endpoints'>Endpoints</h1><h2 id='test'>Test</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/test"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/test'</span><span class="p">)</span>
@@ -295,9 +417,9 @@ information, and scan for configured devices through a curl-able interface.</p>
 <p>Test that the endpoint is reachable.</p>
 
 <p>If the endpoint is reachable (e.g. if Synse Server is up and ready), this will return a 200 response
-with the JSON as described below. If the test endpoint is unreachable or otherwise fails, it will return
-a 500 response. This is indicative of Synse Server not being up and serving. The test endpoint does not
-have any internal dependencies.</p>
+with the described JSON response. If the test endpoint is unreachable or otherwise fails, it will return
+a 500 response. The test endpoint does not have any internal dependencies, so a failure would indicate 
+Synse Server not being up and serving.</p>
 <h3 id='http-request'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/test</code></p>
 <h3 id='response-fields'>Response Fields</h3>
@@ -316,7 +438,7 @@ have any internal dependencies.</p>
 <td>The time at which the status was tested.</td>
 </tr>
 </tbody></table>
-<h2 id='version'>Version</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/version"</span>
+<h2 id='version'>Version</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/version"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/version'</span><span class="p">)</span>
@@ -330,8 +452,8 @@ have any internal dependencies.</p>
 </span><span class="p">}</span><span class="w">
 
 </span></code></pre>
-<p>Get the API version of the Synse Server instance. This version info can be used to ensure the correct
-request URI schema and version are being used for a given Synse Server instance.</p>
+<p>Get the version info of the Synse Server instance. The API version provided by this endpoint 
+should be used in subsequent requests.</p>
 <h3 id='http-request-2'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/version</code></p>
 <h3 id='response-fields-2'>Response Fields</h3>
@@ -350,7 +472,7 @@ request URI schema and version are being used for a given Synse Server instance.
 <td>The API version (major.minor) that can be used to construct subsequent API requests.</td>
 </tr>
 </tbody></table>
-<h2 id='config'>Config</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/config"</span>
+<h2 id='config'>Config</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/config"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/config'</span><span class="p">)</span>
@@ -372,15 +494,14 @@ request URI schema and version are being used for a given Synse Server instance.
   </span><span class="p">},</span><span class="w">
   </span><span class="s2">"grpc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
     </span><span class="s2">"timeout"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="s2">"lang"</span><span class="p">:</span><span class="w"> </span><span class="s2">"en_US"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
-<p>Get the current Synse Server configuration.</p>
+<p>Get the configuration for the Synse Server instance.</p>
 
-<p>This is added as a convenience to make it easier to determine what configuration Synse Server is running 
-with. Since configuration in Synse Server 1.X was difficult, this endpoints aims to make configuration 
-more user-friendly in Synse Server 2.0.</p>
+<p>This endpoint is added as a convenience to make it easier to determine what configuration Synse Server
+is running with. The Synse Server configuration can be made up of default, file, and environment 
+configurations. This endpoint provides the final joined configuration.</p>
 <h3 id='http-request-3'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/config</code></p>
 <h3 id='response'>Response</h3>
@@ -388,8 +509,8 @@ more user-friendly in Synse Server 2.0.</p>
 unified config is the three layers of merged configuration (default, file, environment).</p>
 
 <p>See <a href="#">the Synse Server configuration documentation</a> for more info on how to configure Synse Server
-as well as what you can expect from this response.</p>
-<h2 id='scan'>Scan</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/scan"</span>
+as well as what the JSON response for this endpoint will look like.</p>
+<h2 id='scan'>Scan</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/scan"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/scan'</span><span class="p">)</span>
@@ -447,12 +568,13 @@ as well as what you can expect from this response.</p>
   </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
-<p>Enumerate all known racks, boards, and devices accessible by Synse.</p>
+<p>Enumerate all known devices that are accessible by Synse Server, grouped by rack and board.</p>
 
-<p>This aggregates the known configured racks, boards, and devices for each of the configured plugins providing
-information to Synse Server. The scan response provides a high level view of which devices exist to the system
-and where they exist. With a scan response, a user should have enough routing information to perform any
-subsequent command (e.g. read, write) for a given device.</p>
+<p>The <code>scan</code> endpoint provides an aggregated view of the devices, along with their rack and board
+locations, which are made known to Synse Server by each of the configured plugin back-ends. The
+<code>scan</code> response provides a high-level view of what exists and how to route to it. This routing
+information (e.g. rack ID, board ID, device ID) can be used in subsequent commands such as <a href="#read">read</a>,
+<a href="#write">write</a>, and <a href="#info">info</a>.</p>
 <h3 id='http-request-4'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/scan</code></p>
 <h3 id='query-parameters'>Query Parameters</h3>
@@ -502,14 +624,14 @@ subsequent command (e.g. read, write) for a given device.</p>
 </tr>
 <tr>
 <td>{device}.info</td>
-<td>Any notational information associated with the device to help identify it in a more human-readble way.</td>
+<td>Any notational information associated with the device to help identify it in a more human-readable way.</td>
 </tr>
 <tr>
 <td>{device}.type</td>
 <td>The type of the device.</td>
 </tr>
 </tbody></table>
-<h2 id='read'>Read</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03"</span>
+<h2 id='read'>Read</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03'</span><span class="p">)</span>
@@ -557,10 +679,12 @@ subsequent command (e.g. read, write) for a given device.</p>
 </span></code></pre>
 <p>Read data from a known device.</p>
 
-<p>Devices are made known to Synse Server via the internal gRPC metainfo request on the configured plugins.
-This information is surfaced to the user via the scan route. If the specified device supports reading (as
-determined by the plugin that manages the device), it will return a read response. Otherwise, an error is
-returned stating that reads are not permitted on the type of the given device. </p>
+<p>Devices may not necessarily support reading, and the reading values for one device of a given type
+may not match those of a different device with the same type. That is to say, the read behavior for
+a device is defined at the plugin level, and may differ from plugin to plugin or device to device.</p>
+
+<p>If a read is not supported, a 500 error will be returned with a JSON response specifying the cause
+as reads not permitted.</p>
 <h3 id='http-request-5'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/read/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters'>URI Parameters</h3>
@@ -588,7 +712,7 @@ returned stating that reads are not permitted on the type of the given device. <
 </tr>
 </tbody></table>
 
-<p>These values can be found via the <a href="#scan">Scan</a> command.</p>
+<p>These values can be found via the <a href="#scan">scan</a> command.</p>
 <h3 id='response-fields-4'>Response Fields</h3>
 <table><thead>
 <tr>
@@ -629,7 +753,7 @@ returned stating that reads are not permitted on the type of the given device. <
   -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
   -X POST <span class="se">\</span>
   -d <span class="s1">'{"action": "color", "raw": "f38ac2"}'</span> <span class="se">\</span>
-  <span class="s2">"host:5000/synse/2.0/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"</span>
+  <span class="s2">"http://host:5000/synse/2.0/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
@@ -659,10 +783,12 @@ returned stating that reads are not permitted on the type of the given device. <
 </span></code></pre>
 <p>Write data to a known device.</p>
 
-<p>Devices are made known to Synse Server via the internal gRPC metainfo request on the configured plugins.
-This information is surfaced to the user via the scan route. If the specified device supports writing (as
-determined by the plugin that manages the device), it will return a write response. Otherwise, an error is
-returned stating that writes are not permitted on the type of the given device. </p>
+<p>Devices may not necessarily support writing, and the write actions for one device of a given type
+may not match those of a different device with the same type. That is to say, the write behavior for
+a device is defined at the plugin level, and may differ from plugin to plugin or device to device.</p>
+
+<p>If a write is not supported, a 500 error will be returned with a JSON response specifying the cause
+as writes not permitted.</p>
 <h3 id='http-request-6'>HTTP Request</h3>
 <p><code>POST http://host:5000/synse/2.0/write/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-2'>URI Parameters</h3>
@@ -690,7 +816,7 @@ returned stating that writes are not permitted on the type of the given device. 
 </tr>
 </tbody></table>
 
-<p>These values can be found via the <a href="#scan">Scan</a> command.</p>
+<p>These values can be found via the <a href="#scan">scan</a> command.</p>
 <h3 id='post-body'>POST Body</h3>
 <p>The post body requires an &quot;action&quot; and &quot;raw&quot; to be specified, e.g.</p>
 
@@ -721,6 +847,10 @@ returned stating that writes are not permitted on the type of the given device. 
 <p>The valid values and requirements for <code>action</code> and <code>raw</code> are dependent on the device type. For
 example, an <code>LED</code> device supports the actions: <code>color</code>, <code>state</code>, <code>blink</code>; a <code>fan</code> device supports
 <code>speed</code>. </p>
+
+<p>Some devices may only need an <code>action</code> specified. Some may need both <code>action</code> and <code>raw</code> specified.
+While it is up to the underlying plugin to determine what are valid values for a device, generally,
+the <code>action</code> should be the attribute to set and <code>raw</code> should be the value to set it to.</p>
 <h3 id='response-fields-5'>Response Fields</h3>
 <table><thead>
 <tr>
@@ -741,7 +871,7 @@ example, an <code>LED</code> device supports the actions: <code>color</code>, <c
 <td>The ID of the write transaction. Each write will have its own ID. The status of a transaction can be checked with the <a href="#transaction">transaction</a> command.</td>
 </tr>
 </tbody></table>
-<h2 id='transaction'>Transaction</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g"</span>
+<h2 id='transaction'>Transaction</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g'</span><span class="p">)</span>
@@ -764,7 +894,7 @@ example, an <code>LED</code> device supports the actions: <code>color</code>, <c
   </span><span class="s2">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
-<p>Check the status of a write transaction.</p>
+<p>Check the state and status of a write transaction.</p>
 <h3 id='http-request-7'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/transaction/{transaction id}</code></p>
 <h3 id='uri-parameters-3'>URI Parameters</h3>
@@ -778,7 +908,7 @@ example, an <code>LED</code> device supports the actions: <code>color</code>, <c
 <tr>
 <td>transaction id</td>
 <td>yes</td>
-<td>The ID of the write transaction to get the status of.</td>
+<td>The ID of the write transaction to get the status of. This is given by the corresponding <a href="#write">write</a>.</td>
 </tr>
 </tbody></table>
 <h3 id='response-fields-6'>Response Fields</h3>
@@ -810,7 +940,7 @@ example, an <code>LED</code> device supports the actions: <code>color</code>, <c
 </tr>
 <tr>
 <td>updated</td>
-<td>The last time the state or status was updated for the transaction. If the transaction has state <code>ok</code> and status <code>done</code>, no further updates will happen.</td>
+<td>The last time the state or status was updated for the transaction. If the transaction has state <code>ok</code> and status <code>done</code>, no further updates will occur.</td>
 </tr>
 <tr>
 <td>message</td>
@@ -822,7 +952,7 @@ example, an <code>LED</code> device supports the actions: <code>color</code>, <c
 <p>The <code>info</code> endpoint will return different responses based on the scope of the request. For 
 a rack-level request:</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/info/rack-1"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/info/rack-1"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/info/rack-1'</span><span class="p">)</span>
@@ -840,7 +970,7 @@ a rack-level request:</p>
 <blockquote>
 <p>For a board-level request:</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/info/rack-1/vec"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/info/rack-1/vec"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/info/rack-1/vec'</span><span class="p">)</span>
@@ -868,7 +998,7 @@ a rack-level request:</p>
 <blockquote>
 <p>For a device-level request:</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913'</span><span class="p">)</span>
@@ -906,12 +1036,7 @@ a rack-level request:</p>
   </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
-<p>Get any information on the specified resource.</p>
-
-<p>This command replaces what used to be the “host info” and “asset info” command in Synse v1.3. While the
-response here does not mirror a union of the two previous commands’ responses, it does provide a generalized
-information scheme that can be applied to all devices of any backend protocol, whereas before host/asset info
-were tightly coupled with IPMI responses.</p>
+<p>Get the available information for the specified resource.</p>
 <h3 id='http-request-8'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/info/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-4'>URI Parameters</h3>
@@ -930,7 +1055,7 @@ were tightly coupled with IPMI responses.</p>
 <tr>
 <td>board</td>
 <td>no</td>
-<td>The id of the board to get info for. Required only if specifying device.</td>
+<td>The id of the board to get info for. <em>Required only if specifying device.</em></td>
 </tr>
 <tr>
 <td>device</td>
@@ -1032,7 +1157,7 @@ were tightly coupled with IPMI responses.</p>
 <blockquote>
 <p>If no query parameters are specified, this will <strong>read</strong> from the LED device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed'</span><span class="p">)</span>
@@ -1064,7 +1189,7 @@ were tightly coupled with IPMI responses.</p>
 <blockquote>
 <p>If any valid query parameters are specified, this will <strong>write</strong> to the LED device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&amp;state=on"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&amp;state=on"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&amp;state=on'</span><span class="p">)</span>
@@ -1074,31 +1199,31 @@ were tightly coupled with IPMI responses.</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
   </span><span class="p">{</span><span class="w">
-    </span><span class="s2">"context"</span><span class="p">:{</span><span class="w">
-      </span><span class="s2">"action"</span><span class="p">:</span><span class="s2">"state"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"raw"</span><span class="p">:[</span><span class="w">
+    </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"state"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
         </span><span class="s2">"on"</span><span class="w">
       </span><span class="p">]</span><span class="w">
     </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="s2">"b9pjujgfmg5g01vmt7b0"</span><span class="w">
+    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b9pjujgfmg5g01vmt7b0"</span><span class="w">
   </span><span class="p">},</span><span class="w">
   </span><span class="p">{</span><span class="w">
-    </span><span class="s2">"context"</span><span class="p">:{</span><span class="w">
-      </span><span class="s2">"action"</span><span class="p">:</span><span class="s2">"color"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"raw"</span><span class="p">:[</span><span class="w">
+    </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"color"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
         </span><span class="s2">"00ff00"</span><span class="w">
       </span><span class="p">]</span><span class="w">
     </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="s2">"b9pjujgfmg5g01vmt7bg"</span><span class="w">
+    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b9pjujgfmg5g01vmt7bg"</span><span class="w">
   </span><span class="p">}</span><span class="w">
 </span><span class="p">]</span><span class="w">
 </span></code></pre>
 <p>Read from or write to a known LED device.</p>
 
-<p>While an LED device can be read directly via the read route or written to directly from the write route,
-this route provides some additional checks and validation before dispatching to the appropriate route. In
-particular, it checks if the specified device is an LED device and that the given values (if any) are
-permissible.</p>
+<p>While an LED device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is an LED device and
+that the given query parameter values (if any) are permissible.</p>
 
 <p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.</p>
@@ -1159,7 +1284,7 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>If no query parameters are specified, this will <strong>read</strong> from the fan device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c'</span><span class="p">)</span>
@@ -1184,7 +1309,7 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>If any valid query parameters are specified, this will <strong>write</strong> to the fan device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200'</span><span class="p">)</span>
@@ -1206,13 +1331,13 @@ query parameters are specified, the endpoint will write to the specified device.
 </span></code></pre>
 <p>Read from or write to a known fan device.</p>
 
-<p>While a fan device can be read directly via the read route or written to directly from the write route,
-this route provides some additional checks and validation before dispatching to the appropriate route. In
-particular, it checks if the specified device is a fan device and that the given values (if any) are
-permissible.</p>
+<p>While a fan device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a fan device and
+that the given query parameter values (if any) are permissible.</p>
 
-<p>If no query parameters are specified, this endpoint will read the specified device. If any number of
-valid query parameters are specified, the endpoint will write to the specified device.</p>
+<p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
+query parameters are specified, the endpoint will write to the specified device.</p>
 <h3 id='http-request-10'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/fan/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-6'>URI Parameters</h3>
@@ -1262,7 +1387,7 @@ valid query parameters are specified, the endpoint will write to the specified d
 <blockquote>
 <p>If no query parameters are specified, this will <strong>read</strong> from the system device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/boot_target/rack-1/vec/--"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/boot_target/rack-1/vec/--"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/boot_target/rack-1/vec/--'</span><span class="p">)</span>
@@ -1275,7 +1400,7 @@ valid query parameters are specified, the endpoint will write to the specified d
 <blockquote>
 <p>If any valid query parameters are specified, this will <strong>write</strong> to the system device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe'</span><span class="p">)</span>
@@ -1283,14 +1408,14 @@ valid query parameters are specified, the endpoint will write to the specified d
 <blockquote>
 <p>The response JSON will be the same as a write response:</p>
 </blockquote>
-<pre class="highlight json tab-json"><code><span class="w">
+<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
 </span></code></pre>
 <p>Read from or write to a known boot target (system) device.</p>
 
-<p>While a boot target (system) device can be read directly via the read route or written to directly from the
-write route, this route provides some additional checks and validation before dispatching to the appropriate
-route. In particular, it checks if the specified device is a system device and that the given values (if any)
-are permissible.</p>
+<p>While a system device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a system device and
+that the given query parameter values (if any) are permissible.</p>
 
 <p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.</p>
@@ -1343,7 +1468,7 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>If no query parameters are specified, this will <strong>read</strong> from the power device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/power/rack-1/vec/--"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/power/rack-1/vec/--"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/power/rack-1/vec/--'</span><span class="p">)</span>
@@ -1351,12 +1476,12 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>The response JSON will be the same as read response:</p>
 </blockquote>
-<pre class="highlight json tab-json"><code><span class="w">
+<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
 </span></code></pre>
 <blockquote>
 <p>If any valid query parameters are specified, this will <strong>write</strong> to the power device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/power/rack-1/vec/--?state=cycle"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/power/rack-1/vec/--?state=cycle"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/power/rack-1/vec/--?state=cycle'</span><span class="p">)</span>
@@ -1364,14 +1489,14 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>The response JSON will be the same as a write response:</p>
 </blockquote>
-<pre class="highlight json tab-json"><code><span class="w">
+<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
 </span></code></pre>
 <p>Read from or write to a known power device.</p>
 
-<p>While a power device can be read directly via the read route or written to directly from the write route,
-this route provides some additional checks and validation before dispatching to the appropriate route. In
-particular, it checks if the specified device is a power device and that the given values (if any) are
-permissible.</p>
+<p>While a power device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a power device and
+that the given query parameter values (if any) are permissible.</p>
 
 <p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.</p>
@@ -1424,7 +1549,7 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>If no query parameters are specified, this will <strong>read</strong> from the lock device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/lock/rack-1/vec/--"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/lock/rack-1/vec/--"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/lock/rack-1/vec/--'</span><span class="p">)</span>
@@ -1432,12 +1557,12 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>The response JSON will be the same as read response:</p>
 </blockquote>
-<pre class="highlight json tab-json"><code><span class="w">
+<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
 </span></code></pre>
 <blockquote>
 <p>If any valid query parameters are specified, this will <strong>write</strong> to the lock device.</p>
 </blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"host:5000/synse/2.0/lock/rack-1/vec/--?state=lock"</span>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/lock/rack-1/vec/--?state=lock"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/lock/rack-1/vec/--?state=lock'</span><span class="p">)</span>
@@ -1445,8 +1570,18 @@ query parameters are specified, the endpoint will write to the specified device.
 <blockquote>
 <p>The response JSON will be the same as a write response:</p>
 </blockquote>
-<pre class="highlight json tab-json"><code><span class="w">
-</span></code></pre><h3 id='http-request-13'>HTTP Request</h3>
+<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
+</span></code></pre>
+<p>Read from or write to a known lock device.</p>
+
+<p>While a lock device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a lock device and
+that the given query parameter values (if any) are permissible.</p>
+
+<p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
+query parameters are specified, the endpoint will write to the specified device.</p>
+<h3 id='http-request-13'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/lock/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-9'>URI Parameters</h3>
 <table><thead>
