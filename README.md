@@ -40,8 +40,8 @@ make build
 
 
 ## Testing
-Synse Server 2.0 contains both unit and integration tests. Both suites of tests
-can be run with the make target
+Synse Server 2.0 contains unit tests, integration tests and end-to-end tests.
+Unit and integration tests can be run with the make target
 ```
 make test
 ```
@@ -53,6 +53,11 @@ make utest
 
 # integration tests
 make itest
+```
+
+End-to-end tests can be run individually with
+```
+make etest
 ```
 
 

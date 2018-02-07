@@ -1,0 +1,25 @@
+version: "3"
+services:
+  synse-test:
+    container_name: synse-test
+    links:
+      - synse
+    image: vaporio/synse-server-test:${GIT_VER}
+    build:
+      context: ..
+      dockerfile: dockerfile/test.dockerfile
+    volumes:
+      - ..:/code
+    command: bin/run_tests.sh end-to-end
+
+  synse:
+    container_name: synse
+    image: vaporio/synse-server:${GIT_VER}
+    build:
+      context: ..
+      dockerfile: dockerfile/release.dockerfile
+    environment:
+      - VAPOR_DEBUG=true
+    ports:
+      - 5000:5000
+    command: enable-emulator

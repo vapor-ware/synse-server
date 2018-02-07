@@ -62,7 +62,6 @@ lint:
 	    --abort-on-container-exit \
 	    --exit-code-from synse-lint
 
-
 # Test
 
 .PHONY: test
@@ -81,6 +80,16 @@ itest:
 	    --build \
 	    --abort-on-container-exit \
 	    --exit-code-from synse-test
+
+## end-to-end tests
+end-to-end-test:
+	docker-compose -f compose/end-to-end_test.yml up \
+	    --build \
+	    --abort-on-container-exit \
+	    --exit-code-from synse-test
+
+# shortcut for end-to-end-test
+etest: end-to-end-test
 
 
 .PHONY: cover
