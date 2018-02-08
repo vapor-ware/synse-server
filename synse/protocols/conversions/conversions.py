@@ -63,6 +63,9 @@ def differential_pressure_sdp610(reading, altitude):
         data = (~data + 1) & 0xFFFF
         data = -data
     correction = differential_pressure_sdp610_altitude(altitude)
+    logger.debug(
+        'Converted dp read: data: {}, correction: {}, result: {}'.format(
+            data, correction, data * correction))
     return data * correction
 
 
