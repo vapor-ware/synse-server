@@ -48,12 +48,14 @@ def test_config():
 
 def test_end_to_end():
     """Main entry point for all the tests"""
+    # Perform a general scan
     scan_req = requests.get('{}/scan'.format(core_blueprint))
     assert scan_req.status_code == 200 
 
     racks = scan_req.json().get('racks')
     assert len(racks) != 0
 
+    # Iterate through the results and execute other tests
     # Rack Level
     for rack in racks:
         rack_id = rack.get('id')
@@ -62,7 +64,7 @@ def test_end_to_end():
         boards = rack.get('boards')
         assert len(boards) != 0
 
-        # Collect all boards ids to check at if match with info request
+        # Collect all boards ids to check if they match with rack info request
         boards_ids = [board.get('id') for board in boards]
         check_rack_info(boards_ids, rack_id)
 
@@ -74,7 +76,7 @@ def test_end_to_end():
             devices = board.get('devices')
             assert len(devices) != 0
 
-            # Collect all devices ids to check at if match with info request
+            # Collect all devices ids to check if they match with board info request
             devices_ids = [device.get('id') for device in devices]
             check_board_info(devices_ids, rack_id, board_id)
 
@@ -241,8 +243,12 @@ def check_led_write(rack_id, board_id, device_id):
     Details:
         This is the list for all the cases that need to be check.
         On the left side are cases and sub-cases.
-        On the right side are expected return value.
+        On the right side are expected return values.
+        Return values contains 2 components: status code and transaction state
 
+        Cases,                                                      Status code,
+        Subcases                                                    Transaction state
+        ------------------------------------------------------------------------------
         Key's correctness
             2 keys are correct
                 2 values are valid                                  -> 200, ok
@@ -414,6 +420,8 @@ def check_led_write(rack_id, board_id, device_id):
     tx_ids_code_200_state_error = []
 
     # For every post request, get its transaction id and append to the corresponding list
+    # We only append the first returned transaction because at the moment,
+    # it is only possible to write one value at a time
     for option, payload in code_200_state_ok.items():
         write_req = requests.post(
             '{}/write/{}/{}/{}'.format(core_blueprint, rack_id,board_id, device_id),
@@ -455,11 +463,12 @@ def check_transaction(transaction_id, expected_state):
     
     Args:
         transaction_id (str): Transaction's unique ID
+        expected_state (str): Expected state of the transaction
     """
     r = requests.get('{}/transaction/{}'.format(core_blueprint, transaction_id))
     assert r.status_code == 200
 
-    # If a transaction is done processing, check its state
+    # If a transaction is done processing, check if it match the expected state
     # Otherwise, sleep for some time and check again
     if r.json().get('status') == 'done':
         assert r.json().get('state') == expected_state
@@ -482,7 +491,7 @@ def check_fan_write(rack_id, board_id, device_id):
 
 def check_temperature_write(rack_id, board_id, device_id):
     """Check a write request for a given temperature device
-    However, temperature device don't support write, should return 500.
+    Temperature device don't support write. Should return 500.
 
     Args:
         rack_id (str): Rack's unique ID
@@ -514,6 +523,7 @@ def check_device_alias(rack_id, board_id, device_id, device_type):
 
 def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
     """Check a alias request using no query parameter
+    Without query parameter, it acts like a read request.
     
     Args:
         rack_id (str): Rack's unique ID
@@ -524,8 +534,8 @@ def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
     alias_req = requests.get(
         '{}/{}/{}/{}/{}'.format(core_blueprint, device_type, rack_id, board_id, device_id)
     )
-    # Check if device type is in the list, it should be successful
-    # Otherwise, there is no endpoint exposed for that, should return 404
+    # If device type is in the supported list, it should be successful
+    # Otherwise, there is no endpoint exposed for it. Should return 404
     if device_type in ['led', 'fan', 'power', 'boot_target']:
         assert alias_req.status_code == 200
         assert alias_req.json().get('type') == device_type
@@ -538,6 +548,8 @@ def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
 
 def check_alias_query_param(rack_id, board_id, device_id, device_type):
     """Check a alias request using query parameters
+    With query parameter, it acts like a write request if and only if
+    query parameter is valid. Otherwise, it acts like a read request.
 
     Args:
         rack_id (str): Rack's unique ID
@@ -574,22 +586,58 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         - status code is 200, state is ok
         - state code is 500
         - doesn't write anything, return like read request
+        Each case, except the last one, will check for both single and query parameters.
     """
+    # Options that return 200 status code and their transactions states are ok
     code_200_state_ok = {
+        # Case: Single query parameter / correct key and valid value
         'state_on': 'state=on',
         'state_off': 'state=off',
         'color_min': 'color=000000',
         'color_max': 'color=FFFFFF',
         'blink_blink': 'blink=blink',
-        'blink_steady': 'blink=steady'
+        'blink_steady': 'blink=steady',
+
+        # Case: Multiple query parameters / different correct keys
+        'state_on_color_max': 'state=on&color=FFFFFF',
+        'color_max_blink_steady': 'color=FFFFFF&blink=steady',
+        'blink_steady_state_on': 'blink=steady&state=on',
+
+        # Case: Multiple query parameters / same correct keys, valid values
+        'state_off_on': 'state=off&state=on',
+        'color_min_max': 'color=000000&color=FFFFFF',
+        'blink_blink_steady': 'blink=blink&blink=steady',
+
+        # Case: Multiple query parameters / same correct keys, 
+        # 1 invalid value after 1 valid value
+        'state_valid_invalid': 'state=on&state=invalid',
+        'color_valid_invalid': 'color=000000&color=invalid',
+        'blink_valid_invalid': 'blink=steady&blink=invalid'
     }
 
+    # Options that return 500 status code
     code_500 = {
+        # Case: Single query parameter / correct key and invalid value
         'invalid_state': 'state=invalid',
         'invalid_color': 'color=invalid',
-        'invalid_blink': 'blink=invalid'
+        'invalid_blink': 'blink=invalid',
+
+        # Case: Multiple query parameters / correct keys, 1 invalid value
+        'state_valid_color_invalid': 'state=on&color=invalid',
+        'state_invalid_color_valid': 'state=invalid&color=FFFFFF',
+        'color_valid_blink_invalid': 'color=FFFFFF&blink=invalid',
+        'color_invalid_blink_valid': 'color=invalid&blink=steady',
+        'blink_valid_state_invalid': 'blink=steady&state=invalid',
+        'blink_invalid_state_valid': 'blink=invalid&state=on',
+
+        # Case: Multiple query parameters / same correct keys,
+        # 1 valid value after 1 invalid value
+        'state_invalid_valid': 'state=invalid&state=on',
+        'color_invalid_valid': 'color=invalid&color=FFFFFF',
+        'state_invalid_valid': 'blink=invalid&blink=steady'
     }
 
+    # Options that return like read requests
     return_like_read = {
         'absence_key': '',
         'invalid_key': 'invalid',
@@ -597,19 +645,26 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         'absence_state_value': 'color=',
         'absence_state_value': 'blink=',
         'absence_state_value_no_equal_sign': 'state',
-        'absence_state_value_no_equal_sign': 'color',
-        'absence_state_value_no_equal_sign': 'color',
+        'absence_color_value_no_equal_sign': 'color',
+        'absence_blink_value_no_equal_sign': 'blink',
     }
 
+    # List of transaction ids for requests that return 200 status codes
     tx_ids_code_200_state_ok = []
 
+    # For every post request, get its transaction id(s) and append to the corresponding list
     for option, param in code_200_state_ok.items():
         alias_req = requests.get(
             '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
         )
         assert alias_req.status_code == 200
-        tx_ids_code_200_state_ok.append(alias_req.json()[0].get('transaction'))
 
+        # Append all returned transactions to the list
+        for transaction in alias_req.json():
+            tx_ids_code_200_state_ok.append(transaction.get('transaction'))
+
+    # For requests that return 500 status code, there are no transactions have made
+    # Only check for its status code
     for option, param in code_500.items():
         alias_req = requests.get(
             '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
@@ -618,6 +673,7 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         assert alias_req.json().get('http_code') == 500
         assert alias_req.json().get('error_id') == 3001
 
+    # For requests that return just like read requests, simply check for its type and data
     for option, param in return_like_read.items():
         alias_req = requests.get(
             '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
@@ -626,5 +682,7 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         assert alias_req.json().get('type') == 'led'
         assert 'data' in alias_req.json()
 
+    # After making requests and having all the transaction ids needed
+    # Check if transactions ids' states are correct
     for id in tx_ids_code_200_state_ok:
         check_transaction(id, 'ok')
