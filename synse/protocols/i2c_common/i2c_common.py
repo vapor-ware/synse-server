@@ -871,6 +871,7 @@ def _read_differential_pressure_channel(vec, channel):
 
         # Read the three bytes out of the DPS sensor (two data bytes and crc)
         sensor_data = vec.Read(3)
+        logger.debug('raw sensor_data: {}:'.format(hexlify(sensor_data)))
         vec.Stop()
 
         if _crc8(sensor_data):
