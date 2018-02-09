@@ -9,14 +9,3 @@ services:
     volumes:
       - ..:/code
     command: bin/run_tests.sh integration
-
-  synse:
-    container_name: synse
-    image: vaporio/synse-server:${GIT_VER}
-    build:
-      context: ..
-      dockerfile: dockerfile/release.dockerfile
-    environment:
-      - VAPOR_DEBUG=true
-    ports:
-      - 5000:5000
