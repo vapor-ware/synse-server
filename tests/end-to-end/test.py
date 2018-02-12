@@ -6,7 +6,7 @@ import time
 import pytest
 import requests
 
-from synse import __version__
+from synse import __version__, errors
 from synse.version import __api_version__
 
 host        = 'synse:5000'
@@ -148,19 +148,22 @@ def check_board_info(devices_ids, rack_id, board_id):
 
 def check_device_scan(rack_id, board_id, device_id):
     """Check a scan request for a given device, board and rack
-    There is no available endpoint for this. Should return 404.
-
+    
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
+
+    Details:
+        There is no available endpoint for this. 
+        Should return 404 HTTP code and URL_NOT_FOUND error.
     """
     device_scan_req = requests.get(
         '{}/scan/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id)
     )
     assert device_scan_req.status_code == 404
     assert device_scan_req.json().get('http_code') == 404
-    assert device_scan_req.json().get('error_id') == 3000
+    assert device_scan_req.json().get('error_id') == errors.URL_NOT_FOUND
 
 
 def check_device_info(rack_id, board_id, device_id, device_type):
@@ -222,7 +225,6 @@ def check_device_write(rack_id, board_id, device_id, device_type):
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
         device_type (str): Type of device
-
     """
     if device_type == 'led':
         check_led_write(rack_id, board_id, device_id)
@@ -491,13 +493,15 @@ def check_fan_write(rack_id, board_id, device_id):
 
 def check_temperature_write(rack_id, board_id, device_id):
     """Check a write request for a given temperature device
-    Temperature device don't support write. Should return 500.
 
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
 
+    Details:
+        Temperature device don't support write.
+        Should return 500 HTTP code and INVALID_ARGUMENTS error.
     """
     temperature_write_req = requests.post(
         '{}/write/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id),
@@ -505,7 +509,7 @@ def check_temperature_write(rack_id, board_id, device_id):
     )
     assert temperature_write_req.status_code == 500
     assert temperature_write_req.json().get('http_code') == 500
-    assert temperature_write_req.json().get('error_id') == 3001
+    assert temperature_write_req.json().get('error_id') == errors.INVALID_ARGUMENTS
 
 
 def check_device_alias(rack_id, board_id, device_id, device_type):
@@ -523,19 +527,21 @@ def check_device_alias(rack_id, board_id, device_id, device_type):
 
 def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
     """Check a alias request using no query parameter
-    Without query parameter, it acts like a read request.
-    
+
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
         device_type (str): Type of device 
+
+    Details:
+        Without query parameter, it acts like a read request.
+        If a device type is not in the supported list, there is no endpoint for that device.
+        Should return 404 HTTP code and URL_NOT_FOUND error.
     """
     alias_req = requests.get(
         '{}/{}/{}/{}/{}'.format(core_blueprint, device_type, rack_id, board_id, device_id)
     )
-    # If device type is in the supported list, it should be successful
-    # Otherwise, there is no endpoint exposed for it. Should return 404
     if device_type in ['led', 'fan', 'power', 'boot_target']:
         assert alias_req.status_code == 200
         assert alias_req.json().get('type') == device_type
@@ -543,19 +549,21 @@ def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
     else:
         assert alias_req.status_code == 404
         assert alias_req.json().get('http_code') == 404
-        assert alias_req.json().get('error_id') == 3000
+        assert alias_req.json().get('error_id') == errors.URL_NOT_FOUND
 
 
 def check_alias_query_param(rack_id, board_id, device_id, device_type):
     """Check a alias request using query parameters
-    With query parameter, it acts like a write request if and only if
-    query parameter is valid. Otherwise, it acts like a read request.
 
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
         device_type (str): Type of device 
+
+    Details:
+        It acts like a write request if and only if query parameter(s) is valid.
+        Otherwise, it acts like a read request.
     """
     if device_type == 'led':
         check_alias_led_query_param(rack_id, board_id, device_id)
@@ -671,7 +679,7 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         )
         assert alias_req.status_code == 500
         assert alias_req.json().get('http_code') == 500
-        assert alias_req.json().get('error_id') == 3001
+        assert alias_req.json().get('error_id') == errors.INVALID_ARGUMENTS
 
     # For requests that return just like read requests, simply check for its type and data
     for option, param in return_like_read.items():
