@@ -146,3 +146,17 @@ async def config_route(request):
     """
     response = await commands.config()
     return response.to_json()
+
+
+@bp.route('/plugins')
+async def plugins_route(request):
+    """Get the plugins that are currently configured with Synse Server.
+
+    Args:
+        request (sanic.request.Request): The incoming request.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
+    """
+    response = await commands.get_plugins()
+    return response.to_json()

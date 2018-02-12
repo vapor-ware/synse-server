@@ -46,6 +46,31 @@ def test_config():
         assert key in req_json
 
 
+def test_plugins():
+    """Get all configured plugins"""
+    # Only after hitting /scan endpoint do plugins start to register
+    # Should expect no data in the first request
+    plugins_1st_req = requests.get('{}/plugins'.format(core_blueprint))
+    assert plugins_1st_req.status_code == 200
+
+    assert len(plugins_1st_req.json()) == 0
+
+    # Make a scan request and check for the second plugins request
+    # This time, it should return all the configured plugins
+    scan_req = requests.get('{}/scan'.format(core_blueprint))
+    assert scan_req.status_code == 200 
+
+    plugins_2nd_req = requests.get('{}/plugins'.format(core_blueprint))
+    assert plugins_2nd_req.status_code == 200
+
+    assert len(plugins_2nd_req.json()) != 0
+    
+    for plugin in plugins_2nd_req.json():
+        assert 'name' in plugin
+        assert 'network' in plugin
+        assert 'address' in plugin
+
+
 def test_end_to_end():
     """Main entry point for all the tests"""
     # Perform a general scan

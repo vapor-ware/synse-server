@@ -148,6 +148,7 @@ should be used in subsequent requests.
 | api_version | The API version (major.minor) that can be used to construct subsequent API requests. |
 
 
+
 ## Config
 
 ```shell
@@ -198,6 +199,50 @@ unified config is the three layers of merged configuration (default, file, envir
 
 See [the Synse Server configuration documentation]() for more info on how to configure Synse Server
 as well as what the JSON response for this endpoint will look like.
+
+
+
+## Plugins
+
+```shell
+curl "http://host:5000/synse/2.0/plugins"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.0/plugins')
+```
+
+> The response JSON would be structured as:
+
+```json
+[
+    {
+        "name": "emulator",
+        "network": "unix",
+        "address": "/tmp/synse/procs/emulator.sock"
+    }
+]
+```
+
+Get all the plugins that are currently registered with Synse Server. 
+
+This endpoint is added as a convenience to make it easier to determine what plugins Synse Server
+is running with. The Synse Server plugins' configurations can be made up of default, file, and environment
+configurations. This endpoint provides the final configured plugins.
+
+### HTTP Request
+
+`GET http://host:5000/synse/2.0/plugins`
+
+### Response
+
+| Field | Description |
+| ----- | ----------- |
+| name | The name of plugin |
+| network | The plugin's network can either be a unix socket for communication or TCP |
+| address | The configuration filepath of the plugin |
 
 
 

@@ -7,6 +7,7 @@ endpoints. This is where the logic for all commands are implemented.
 
 from .config import config
 from .info import info
+from .plugins import get_plugins
 from .read import read
 from .scan import scan
 from .test import test
