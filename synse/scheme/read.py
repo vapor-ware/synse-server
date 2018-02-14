@@ -2,6 +2,7 @@
 """
 
 from synse import utils
+from synse.i18n import gettext
 from synse.log import logger
 from synse.scheme.base_response import SynseResponse
 

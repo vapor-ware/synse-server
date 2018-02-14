@@ -5,6 +5,7 @@ import aiocache
 import grpc
 
 from synse import config, errors, utils
+from synse.i18n import gettext
 from synse.log import logger
 from synse.plugin import Plugin, register_plugins
 from synse.proto import util as putil

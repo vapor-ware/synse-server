@@ -4,6 +4,7 @@
 import grpc
 
 from synse import cache, errors, plugin
+from synse.i18n import gettext
 from synse.log import logger
 from synse.proto.client import WriteData
 from synse.scheme.write import WriteResponse

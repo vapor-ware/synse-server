@@ -9,6 +9,7 @@ from synse_plugin import grpc as synse_grpc
 
 from synse import config, errors
 from synse.const import SOCKET_DIR
+from synse.i18n import gettext
 from synse.log import logger
 
 

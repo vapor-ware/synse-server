@@ -2,6 +2,7 @@
 """
 
 from synse import cache, errors
+from synse.i18n import gettext
 
 
 async def validate_device_type(device_type, rack, board, device):

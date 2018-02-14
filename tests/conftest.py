@@ -10,14 +10,33 @@ import pytest
 from synse import const
 
 
-# https://stackoverflow.com/a/48207909/5843840
-@pytest.fixture(scope='session', autouse=True)
-def install_gettext():
-    """Adds 'gettext()' to builtins for tests.
+@pytest.fixture(autouse=True)
+def i18n_passthrough():
+    """Sets i18n.trans_func, just like if i18n.init_gettext was called.
+        If you encounter the following error, you need to include this fixture.
+
+    ```
+def gettext(text):
+    if trans_func:
+        return trans_func(text)
+    else:
+        raise RuntimeError(
+>               'i18n.gettext() not yet initialized, i18n.init_gettext() mus be called first.'
+                )
+E       RuntimeError: i18n.gettext() not yet initialized, i18n.init_gettext() mus be called first.
+
+synse/i18n.py:62: RuntimeError
+    ```
     """
-    import gettext as g
-    trans = g.translation('foo', 'locale', fallback=True)
-    trans.install('gettext')
+    from synse import i18n
+    old_trans_func = i18n.trans_func
+    i18n.old_trans_func = old_trans_func
+    trans = lambda s: s
+    i18n.trans_func = trans
+
+    yield
+
+    i18n.trans_func = old_trans_func
 
 
 @pytest.fixture()

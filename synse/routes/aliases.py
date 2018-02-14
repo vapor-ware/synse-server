@@ -5,6 +5,7 @@
 from sanic import Blueprint
 
 from synse import commands, const, errors, validate
+from synse.i18n import gettext
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)

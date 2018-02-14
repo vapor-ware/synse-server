@@ -2,6 +2,7 @@
 """
 
 from synse import cache, errors, plugin
+from synse.i18n import gettext
 from synse.log import logger
 from synse.scheme.scan import ScanResponse
 
