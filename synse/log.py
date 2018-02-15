@@ -19,7 +19,8 @@ def setup_logger(level=logging.INFO):
     """Configure the Synse Server logger.
 
     Args:
-        level (int): The logging level to set the 'synse' logger to.
+        level (int): The default logging level to set the 'synse' logger to
+            if no configuration is available.
     """
-    level = levels.get(config.options.get('logging'), logging.INFO)
+    level = levels.get(config.options.get('logging'), level)
     logger.setLevel(level)

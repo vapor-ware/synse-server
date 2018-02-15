@@ -1,5 +1,5 @@
-"""Factory for creating Synse Server Sanic application instances.
-"""
+"""Factory for creating Synse Server Sanic application instances."""
+# pylint: disable=unused-variable,unused-argument
 
 import datetime
 
@@ -50,7 +50,7 @@ def _disable_favicon(app):
         app: The Sanic application to add the route to.
     """
     @app.route('/favicon.ico')
-    def favicon(*_):  # pylint: disable=unused-variable
+    def favicon(*_):
         """Return empty response on favicon request."""
         return text('')
 
@@ -63,7 +63,7 @@ def _register_error_handling(app):
     """
 
     @app.exception(NotFound)
-    def err_404(request, exception):  # pylint: disable=unused-variable,unused-argument
+    def err_404(request, exception):
         """Handler for a 404 error."""
         logger.error('Exception for request: {}'.format(request))
         logger.exception(exception)
@@ -79,7 +79,7 @@ def _register_error_handling(app):
         return json(err, status=404)
 
     @app.exception(ServerError)
-    def err_500(request, exception):  # pylint: disable=unused-variable,unused-argument
+    def err_500(request, exception):
         """Handler for a 500 error."""
         logger.error('Exception for request: {}'.format(request))
         logger.exception(exception)

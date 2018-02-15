@@ -1,5 +1,7 @@
 """Test the 'synse.scheme.read' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-variable
 
+import pytest
 from synse_plugin import api
 
 from synse.scheme.read import ReadResponse
@@ -39,7 +41,6 @@ def make_metainfo_response():
 
 def test_read_scheme():
     """Test that the read scheme matches the expected."""
-
     dev = make_metainfo_response()
 
     rr = api.ReadResponse(
@@ -55,6 +56,79 @@ def test_read_scheme():
         'data': {
             'temperature': {
                 'value': 10.0,
+                'timestamp': 'november',
+                'unit': {
+                    'name': 'celsius',
+                    'symbol': 'C'
+                }
+            }
+        }
+    }
+
+
+def test_read_scheme_empty_value():
+    """Test that the read scheme matches the expected when the read value
+    is an empty string.
+    """
+    dev = make_metainfo_response()
+
+    rr = api.ReadResponse(
+        timestamp='november',
+        type='temperature',
+        value=''
+    )
+
+    response_scheme = ReadResponse(dev, [rr])
+
+    assert response_scheme.data == {
+        'type': 'thermistor',
+        'data': {
+            'temperature': {
+                'value': None,
+                'timestamp': 'november',
+                'unit': {
+                    'name': 'celsius',
+                    'symbol': 'C'
+                }
+            }
+        }
+    }
+
+
+def test_read_scheme_wrong_type_value():
+    """Test that the read scheme matches the expected when the read value
+    has the wrong type.
+    """
+    with pytest.raises(TypeError):
+        rr = api.ReadResponse(
+            timestamp='november',
+            type='temperature',
+            value=101
+        )
+
+
+def test_read_scheme_non_convertible_value():
+    """Test that the read scheme matches the expected when the read value
+    is non-convertible.
+
+    In this case, it doesn't raise the error but log a warning.
+    The error value is still processed and left for the plugin level to handle.
+    """
+    dev = make_metainfo_response()
+
+    rr = api.ReadResponse(
+        timestamp='november',
+        type='temperature',
+        value='101a'
+    )
+
+    response_scheme = ReadResponse(dev, [rr])
+
+    assert response_scheme.data == {
+        'type': 'thermistor',
+        'data': {
+            'temperature': {
+                'value': '101a',
                 'timestamp': 'november',
                 'unit': {
                     'name': 'celsius',

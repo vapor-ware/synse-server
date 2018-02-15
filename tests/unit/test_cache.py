@@ -63,6 +63,11 @@ def mock_client_metainfo(rack=None, board=None):
     return [mir]
 
 
+def mock_client_metainfo_empty(rack=None, board=None):
+    """Mock method for the gRPC client's metainfo method that contains empty metainfo."""
+    return []
+
+
 def mock_client_metainfo_fail(rack=None, board=None):
     """Mock method for the gRPC client's metainfo method that is intended to fail."""
     raise grpc.RpcError()
@@ -276,6 +281,42 @@ async def test_get_metainfo_cache_ok(plugin_context, clear_caches):
 
 
 @pytest.mark.asyncio
+async def test_get_metainfo_cache_empty(plugin_context, clear_caches):
+    """Get the empty metainfo cache."""
+
+    # create & register new plugin
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p.client.metainfo = mock_client_metainfo_empty
+
+    meta = await cache.get_metainfo_cache()
+    assert isinstance(meta, dict)
+    assert len(meta) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_metainfo_cache_exist(plugin_context, clear_caches):
+    """Get the existing metainfo cache."""
+
+    # create & register new plugin
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p.client.metainfo = mock_client_metainfo
+
+    # this is the first time we ask for cache
+    # it's not there yet so we build one
+    first_meta = await cache.get_metainfo_cache()
+    assert isinstance(first_meta, dict)
+    assert 'rack-1-vec-12345' in first_meta
+    assert first_meta['rack-1-vec-12345'] == mock_get_metainfo_cache()['rack-1-vec-12345']
+
+    # this is the second time we ask for it
+    # it should be there this time and return right away
+    second_meta = await cache.get_metainfo_cache()
+    assert isinstance(second_meta, dict)
+    assert 'rack-1-vec-12345' in second_meta
+    assert second_meta['rack-1-vec-12345'] == mock_get_metainfo_cache()['rack-1-vec-12345']
+
+
+@pytest.mark.asyncio
 async def test_get_metainfo_cache_total_failure(plugin_context, clear_caches):
     """Get the metainfo cache when all plugins fail to respond."""
 
@@ -322,11 +363,78 @@ async def test_get_scan_cache_ok(patch_metainfo, clear_caches):
 
 
 @pytest.mark.asyncio
+async def test_get_scan_cache_empty(plugin_context, clear_caches):
+    """Get the empty scan cache."""
+
+    # create & register new plugin with empty metainfo cache
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p.client.metainfo = mock_client_metainfo_empty
+
+    meta_cache = await cache.get_metainfo_cache()
+    assert isinstance(meta_cache, dict)
+    assert len(meta_cache) == 0
+
+    # because metainfo cache is empty and scan cache is built upon metainfo's
+    # scan cache should also be empty
+    scan_cache = await cache.get_scan_cache()
+    assert isinstance(scan_cache, dict)
+    assert 'racks' in scan_cache
+    assert len(scan_cache['racks']) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_scan_cache_exist(patch_metainfo, clear_caches):
+    """Get the existing scan cache."""
+
+    # similar to test_get_metainfo_cache_exist(),
+    # the first time we ask for cache, it's not there so we build one
+    first_scan_cache = await cache.get_scan_cache()
+    validate_scan_cache(first_scan_cache, 'rack-1', 'vec', '12345')
+
+    # the second time we ask for it, it should return right away
+    second_scan_cache = await cache.get_scan_cache()
+    validate_scan_cache(second_scan_cache, 'rack-1', 'vec', '12345')
+
+
+@pytest.mark.asyncio
 async def test_get_resource_info_cache_ok(patch_metainfo, clear_caches):
     """Get the resource info cache."""
 
     info_cache = await cache.get_resource_info_cache()
     validate_info_cache(info_cache, 'rack-1', 'vec', '12345')
+
+
+@pytest.mark.asyncio
+async def test_get_resource_info_cache_empty(plugin_context, clear_caches):
+    """Get the empty info cache."""
+
+    # create & register new plugin with empty metainfo cache
+    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p.client.metainfo = mock_client_metainfo_empty
+
+    meta_cache = await cache.get_metainfo_cache()
+    assert isinstance(meta_cache, dict)
+    assert len(meta_cache) == 0
+
+    # because metainfo cache is empty and info cache is built upon metainfo's
+    # scan cache should also be empty
+    info_cache = await cache.get_resource_info_cache()
+    assert isinstance(info_cache, dict)
+    assert len(info_cache) == 0
+
+
+@pytest.mark.asyncio
+async def test_get_resource_info_cache_exist(patch_metainfo, clear_caches):
+    """Get the existing info cache."""
+
+    # similar to test_get_metainfo_cache_exist(),
+    # the first time we ask for cache, it's not there so we build one
+    first_info_cache = await cache.get_resource_info_cache()
+    validate_info_cache(first_info_cache, 'rack-1', 'vec', '12345')
+
+    # the second time we ask for it, it should return right away
+    second_info_cache = await cache.get_resource_info_cache()
+    validate_info_cache(second_info_cache, 'rack-1', 'vec', '12345')
 
 
 def test_build_scan_cache_ok():

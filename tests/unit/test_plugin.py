@@ -13,7 +13,6 @@ from synse import config, const, errors, plugin
 @pytest.fixture()
 def mock_plugin():
     """Convenience fixture to create a test plugin."""
-
     # create a temp dir to hold the socket
     if not os.path.isdir('tmp'):
         os.mkdir('tmp')
@@ -84,7 +83,6 @@ def clear_environ():
 
 def test_plugin_manager_get(cleanup):
     """Get a plugin from the Manager."""
-
     pm = plugin.PluginManager()
     pm.plugins['test'] = 'foo'
     assert pm.get('test') == 'foo'
@@ -92,14 +90,12 @@ def test_plugin_manager_get(cleanup):
 
 def test_plugin_manager_get_no_value(cleanup):
     """Get a plugin that is not managed by the Manager."""
-
     pm = plugin.PluginManager()
     assert pm.get('test') is None
 
 
 def test_plugin_manager_add_invalid(cleanup):
     """Add an invalid plugin."""
-
     pm = plugin.PluginManager()
     with pytest.raises(errors.PluginStateError):
         pm.add('plugin')
@@ -107,7 +103,6 @@ def test_plugin_manager_add_invalid(cleanup):
 
 def test_plugin_manager_add_already_exists(mock_plugin, cleanup):
     """Add a plugin that is already managed by the Manager."""
-
     pm = plugin.PluginManager()
     pm.plugins['test-plug'] = 'foo'
     with pytest.raises(errors.PluginStateError):
@@ -116,7 +111,6 @@ def test_plugin_manager_add_already_exists(mock_plugin, cleanup):
 
 def test_plugin_manager_add(mock_plugin, cleanup):
     """Add a plugin to the Manager."""
-
     pm = plugin.PluginManager()
     assert len(pm.plugins) == 0
     pm.add(mock_plugin)
@@ -126,7 +120,6 @@ def test_plugin_manager_add(mock_plugin, cleanup):
 
 def test_plugin_manager_remove(mock_plugin, cleanup):
     """Remove a plugin from the Manager."""
-
     pm = plugin.PluginManager()
     pm.plugins['test-plug'] = mock_plugin
     assert len(pm.plugins) == 1
@@ -139,7 +132,6 @@ def test_plugin_manager_remove(mock_plugin, cleanup):
 
 def test_plugin_manager_remove_nonexistent(cleanup):
     """Remove a plugin from the Manager that is not there."""
-
     pm = plugin.PluginManager()
     assert len(pm.plugins) == 0
     pm.remove('test')
@@ -148,21 +140,18 @@ def test_plugin_manager_remove_nonexistent(cleanup):
 
 def test_plugin_path_not_exist(cleanup):
     """Create a plugin when the socket doesn't exist."""
-
     with pytest.raises(errors.PluginStateError):
         plugin.Plugin('test', 'some/nonexistent/path', 'unix')
 
 
 def test_plugin_invalid_mode(cleanup):
     """Create a plugin when the mode is invalid."""
-
     with pytest.raises(errors.PluginStateError):
         plugin.Plugin('test', 'some/addr', 'foo')
 
 
 def test_plugin_ok(cleanup):
     """Create a plugin successfully"""
-
     if not os.path.isdir('tmp'):
         os.mkdir('tmp')
 
@@ -185,20 +174,17 @@ def test_plugin_ok(cleanup):
 
 def test_plugins_same_manager(mock_plugin, cleanup):
     """Check that all plugins have the same manager."""
-
     assert plugin.Plugin.manager == mock_plugin.manager
 
 
 def test_get_plugin1(cleanup):
     """Get a plugin when it doesn't exist."""
-
     p = plugin.get_plugin('test')
     assert p is None
 
 
 def test_get_plugin2(mock_plugin, cleanup):
     """Get a plugin when it does exist."""
-
     p = plugin.get_plugin('test-plug')
     assert isinstance(p, plugin.Plugin)
     assert p.name == 'test-plug'
@@ -208,14 +194,12 @@ def test_get_plugin2(mock_plugin, cleanup):
 
 def test_get_plugins1(cleanup):
     """Get all plugins when no plugins exist."""
-
     with pytest.raises(StopIteration):
         next(plugin.get_plugins())
 
 
 def test_get_plugins2(mock_plugin, cleanup):
     """Get all plugins when some plugins exist."""
-
     name, p = next(plugin.get_plugins())
     assert isinstance(p, plugin.Plugin)
     assert name == p.name == 'test-plug'
@@ -225,7 +209,6 @@ def test_get_plugins2(mock_plugin, cleanup):
 @pytest.mark.skip('https://github.com/vapor-ware/synse-server-internal/issues/364')
 def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
     """Register plugins when the plugin path doesn't exist."""
-
     if os.path.isdir(const.SOCKET_DIR):
         shutil.rmtree(const.SOCKET_DIR)
 
@@ -235,7 +218,6 @@ def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
 
 def test_register_plugins_no_socks(make_bgsocks, cleanup):
     """Register plugins when no sockets are in the plugin path."""
-
     # create a non-socket file in the plugin path
     path = os.path.join(const.SOCKET_DIR, 'test.txt')
     open(path, 'w').close()
@@ -251,7 +233,6 @@ def test_register_plugins_no_socks(make_bgsocks, cleanup):
 
 def test_register_plugins_ok(make_bgsocks, cleanup):
     """Register plugins successfully."""
-
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     path = '{}/test'.format(const.SOCKET_DIR)
@@ -278,7 +259,6 @@ def test_register_plugins_ok(make_bgsocks, cleanup):
 
 def test_register_plugins_already_exists(make_bgsocks, cleanup):
     """Register plugins when the plugins were already registered."""
-
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     path = '{}/test'.format(const.SOCKET_DIR)
@@ -318,7 +298,6 @@ def test_register_plugins_already_exists(make_bgsocks, cleanup):
 
 def test_register_plugins_new(make_bgsocks, cleanup):
     """Re-register, adding a new plugin."""
-
     # create the socket
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     path1 = '{}/foo'.format(const.SOCKET_DIR)
@@ -369,7 +348,6 @@ def test_register_plugins_new(make_bgsocks, cleanup):
 
 def test_register_plugins_old(make_bgsocks, cleanup):
     """Re-register, removing an old plugin."""
-
     # create the socket
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     path1 = '{}/foo'.format(const.SOCKET_DIR)
@@ -422,16 +400,267 @@ def test_register_plugins_old(make_bgsocks, cleanup):
             raise
 
 
+def test_register_unix_plugin_none_defined(cleanup):
+    """Test registering unix based plugins when none is specified."""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+    assert isinstance(registered, list)
+    assert len(registered) == 0
+
+
+def test_register_unix_plugin(cleanup, clear_config):
+    """Test registering unix plugin when a configuration is specified"""
+    # create the socket
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    path = 'tmp/foo'
+    sock.bind(path)
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    # set a configuration
+    config.options = {
+        'plugin': {
+            'unix': {
+                'foo': 'tmp'
+            }
+        }
+    }
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 1
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+
+    assert 'foo' in registered
+
+    p = plugin.get_plugin('foo')
+    assert p is not None
+    assert p.name == 'foo'
+    assert p.mode == 'unix'
+    assert p.addr == 'tmp/foo'
+
+    try:
+        os.unlink(path)
+        shutil.rmtree(path)
+    except OSError:
+        if os.path.exists(path):
+            raise
+
+
+def test_register_unix_plugins(cleanup, clear_config):
+    """Test registering unix plugins when multiple configurations are specified"""
+    # create sockets
+    sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    path1 = 'tmp/foo'
+    sock1.bind(path1)
+
+    sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    path2 = 'tmp/bar'
+    sock2.bind(path2)
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    # set configurations
+    config.options = {
+        'plugin': {
+            'unix': {
+                'foo': 'tmp',
+                'bar': 'tmp'
+            }
+        }
+    }
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 2
+    assert isinstance(registered, list)
+    assert len(registered) == 2
+
+    assert 'foo' in registered
+    assert 'bar' in registered
+
+    p1 = plugin.get_plugin('foo')
+    assert p1 is not None
+    assert p1.name == 'foo'
+    assert p1.mode == 'unix'
+    assert p1.addr == 'tmp/foo'
+
+    p2 = plugin.get_plugin('bar')
+    assert p2 is not None
+    assert p2.name == 'bar'
+    assert p2.mode == 'unix'
+    assert p2.addr == 'tmp/bar'
+
+    try:
+        os.unlink(path1)
+        os.unlink(path2)
+        shutil.rmtree(path1)
+        shutil.rmtree(path2)
+    except OSError:
+        if os.path.exists(path1):
+            raise
+        elif os.path.exists(path2):
+            raise
+
+
+def test_register_unix_plugin_already_exists(make_bgsocks, cleanup):
+    """Test registering unix plugin when the plugin was already registered."""
+    # create the socket
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    path = '{}/test'.format(const.SOCKET_DIR)
+    sock.bind(path)
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 1
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+
+    assert 'test' in registered
+
+    p = plugin.get_plugin('test')
+    assert p is not None
+    assert p.name == 'test'
+    assert p.addr == path
+    assert p.mode == 'unix'
+
+    # now, re-register
+    assert len(plugin.Plugin.manager.plugins) == 1
+
+    # set the same configuration
+    config.options = {
+        'plugin': {
+            'unix': {
+                'test': '{}'.format(const.SOCKET_DIR),
+            }
+        }
+    }
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 1
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+
+    assert 'test' in registered
+
+    p = plugin.get_plugin('test')
+    assert p is not None
+    assert p.name == 'test'
+    assert p.addr == path
+    assert p.mode == 'unix'
+
+    try:
+        os.unlink(path)
+    except OSError:
+        if os.path.exists(path):
+            raise
+
+
+def test_register_unix_plugin_no_socket():
+    """Test registering unix plugin when no socket is bind"""
+    # create a temporary path
+    if not os.path.isdir('tmp/foo'):
+        os.makedirs('tmp/foo')
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    config.options = {
+        'plugin': {
+            'unix': {
+                'foo': 'tmp'
+            }
+        }
+    }
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+    assert isinstance(registered, list)
+    assert len(registered) == 0
+
+    shutil.rmtree('tmp/foo')
+
+
+def test_register_unix_plugin_no_socket_no_path():
+    """Test registering unix plugin when no socket is bind, no path is available"""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    config.options = {
+        'plugin': {
+            'unix': {
+                'foo': 'tmp'
+            }
+        }
+    }
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+    assert isinstance(registered, list)
+    assert len(registered) == 0
+
+
+def test_register_unix_plugin_no_config_path(make_bgsocks, cleanup):
+    """Test registering unix plugin when a configuration without a path is specified"""
+    # create the socket
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    path = '{}/foo'.format(const.SOCKET_DIR)
+    sock.bind(path)
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    config.options = {
+        'plugin': {
+            'unix': {
+                'foo': None
+            }
+        }
+    }
+
+    registered = plugin.register_unix_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 1
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+
+    assert 'foo' in registered
+
+    p = plugin.get_plugin('foo')
+    assert p is not None
+    assert p.name == 'foo'
+    assert p.mode == 'unix'
+    assert p.addr == '{}/foo'.format(const.SOCKET_DIR)
+
+    try:
+        os.unlink(path)
+        shutil.rmtree(path)
+    except OSError:
+        if os.path.exists(path):
+            raise
+
+
 def test_register_tcp_plugin_none_defined(cleanup):
-    """Test registering TCP based plugins when none are specified."""
+    """Test registering TCP based plugins when none is specified."""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
     registered = plugin.register_tcp_plugins()
 
+    assert len(plugin.Plugin.manager.plugins) == 0
     assert isinstance(registered, list)
     assert len(registered) == 0
 
 
 def test_register_tcp_plugin(cleanup, clear_config):
-    """Test registering TCP based plugin when one configuration is specified"""
+    """Test registering TCP based plugin when a configuration is specified"""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
     config.options = {
         'plugin': {
             'tcp': {
@@ -442,13 +671,14 @@ def test_register_tcp_plugin(cleanup, clear_config):
 
     registered = plugin.register_tcp_plugins()
 
+    assert len(plugin.Plugin.manager.plugins) == 1
     assert isinstance(registered, list)
     assert len(registered) == 1
-    assert registered[0] == 'foo'
+
+    assert 'foo' in registered
 
     p = plugin.get_plugin('foo')
     assert p is not None
-
     assert p.name == 'foo'
     assert p.mode == 'tcp'
     assert p.addr == 'localhost:5000'
@@ -456,6 +686,8 @@ def test_register_tcp_plugin(cleanup, clear_config):
 
 def test_register_tcp_plugins(cleanup, clear_config):
     """Test registering TCP based plugins when multiple configurations are specified"""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
     config.options = {
         'plugin': {
             'tcp': {
@@ -467,10 +699,12 @@ def test_register_tcp_plugins(cleanup, clear_config):
 
     registered = plugin.register_tcp_plugins()
 
+    assert len(plugin.Plugin.manager.plugins) == 2
     assert isinstance(registered, list)
     assert len(registered) == 2
-    for name in ['foo', 'bar']:
-        assert name in registered
+
+    assert 'foo' in registered
+    assert 'bar' in registered
 
     p = plugin.get_plugin('foo')
     assert p is not None
@@ -485,20 +719,66 @@ def test_register_tcp_plugins(cleanup, clear_config):
     assert p.addr == 'localhost:5001'
 
 
+def test_register_tcp_plugin_already_exists(cleanup, clear_config):
+    """Test registering TCP plugin when the plugin was already registered."""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    config.options = {
+        'plugin': {
+            'tcp': {
+                'foo': 'localhost:5000'
+            }
+        }
+    }
+
+    # register the first time
+    registered = plugin.register_tcp_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 1
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+
+    assert 'foo' in registered
+
+    p = plugin.get_plugin('foo')
+    assert p is not None
+    assert p.name == 'foo'
+    assert p.mode == 'tcp'
+    assert p.addr == 'localhost:5000'
+
+    # register the second time
+    registered = plugin.register_tcp_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 1
+    assert isinstance(registered, list)
+    assert len(registered) == 1
+
+    assert 'foo' in registered
+
+    p = plugin.get_plugin('foo')
+    assert p is not None
+    assert p.name == 'foo'
+    assert p.mode == 'tcp'
+    assert p.addr == 'localhost:5000'
+
+
 def test_register_tcp_plugin_env(cleanup, clear_config, clear_environ):
     """Test registering TCP based plugin when an environment variable is set"""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
     config.parse_env_vars()
 
     registered = plugin.register_tcp_plugins()
 
+    assert len(plugin.Plugin.manager.plugins) == 1
     assert isinstance(registered, list)
     assert len(registered) == 1
-    assert registered[0] == 'foo'
+
+    assert 'foo' in registered
 
     p = plugin.get_plugin('foo')
     assert p is not None
-
     assert p.name == 'foo'
     assert p.mode == 'tcp'
     assert p.addr == 'localhost:5000'
@@ -506,16 +786,20 @@ def test_register_tcp_plugin_env(cleanup, clear_config, clear_environ):
 
 def test_register_tcp_plugins_env(cleanup, clear_config, clear_environ):
     """Test registering TCP based plugins when multiple environment variables are specified"""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
     os.environ['SYNSE_PLUGIN_TCP_BAR'] = 'localhost:5001'
     config.parse_env_vars()
 
     registered = plugin.register_tcp_plugins()
 
+    assert len(plugin.Plugin.manager.plugins) == 2
     assert isinstance(registered, list)
     assert len(registered) == 2
-    for name in ['foo', 'bar']:
-        assert name in registered
+
+    assert 'foo' in registered
+    assert 'bar' in registered
 
     p = plugin.get_plugin('foo')
     assert p is not None
@@ -531,20 +815,23 @@ def test_register_tcp_plugins_env(cleanup, clear_config, clear_environ):
 
 
 def test_register_tcp_plugin_env_duplicate(cleanup, clear_config, clear_environ):
-    """Test registering TCP based plugins when two same environment variables are specified."""
+    """Test registering TCP based plugins when same environment variables are specified."""
+    assert len(plugin.Plugin.manager.plugins) == 0
+
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5001'
     config.parse_env_vars()
 
     registered = plugin.register_tcp_plugins()
 
+    assert len(plugin.Plugin.manager.plugins) == 1
     assert isinstance(registered, list)
     assert len(registered) == 1
-    assert registered[0] == 'foo'
+
+    assert 'foo' in registered
 
     p = plugin.get_plugin('foo')
     assert p is not None
-
     assert p.name == 'foo'
     assert p.mode == 'tcp'
     assert p.addr == 'localhost:5001'

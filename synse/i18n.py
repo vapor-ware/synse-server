@@ -8,6 +8,7 @@ from synse.log import logger
 
 trans_func = None
 
+
 def _get_locale_dir():
     """Returns path to `locale` directory adjacent to this source file if it exists,
         otherwise raises an IOError.
@@ -48,7 +49,7 @@ def _get_translator():
     trans = _gettext.translation('synse', locale_dir, languages=[language], fallback=True)
 
     if trans.__class__ == _gettext.NullTranslations:
-        # If gettext failed to find a trnslation file, it will fallback to the default messages.
+        # If gettext failed to find a translation file, it will fallback to the default messages.
         logger.warning(
             'Translation files for {} were not found. Using default language (en_US)'
             .format(language)
@@ -62,6 +63,7 @@ def init_gettext():
     """
     global trans_func
     trans_func = _get_translator().gettext
+
 
 def gettext(text):
     """Takes a string, and passes it through the translator that was created during initialization.

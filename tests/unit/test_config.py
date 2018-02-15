@@ -68,6 +68,13 @@ def test_parse_user_configs_wrong_path():
         config.parse_user_configs()
 
 
+def test_parse_user_configs_unsupported_ext():
+    """Parse user configurations using an unsupported file extention"""
+    config.DEFAULT_CONFIG_PATH = '/synse/config/config.json'
+    with pytest.raises(ValueError):
+        config.parse_user_configs()
+
+
 def test_parse_user_configs_default_path_yml_ext(set_default_filepath, clear_config):
     """Parse user configurations using a .yml default configuration file path"""
     assert len(config.options) == 0

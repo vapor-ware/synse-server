@@ -120,7 +120,12 @@ class ReadResponse(SynseResponse):
             else:
                 # set the specified precision
                 if precision:
-                    value = str(round(float(value), precision))
+                    try:
+                        value = str(round(float(value), precision))
+                    except ValueError:
+                        logger.warning(
+                            gettext('Invalid value for {}: "{}"').format(data_type, value)
+                        )
 
                 # cast to the specified type
                 try:

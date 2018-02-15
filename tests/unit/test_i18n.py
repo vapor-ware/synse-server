@@ -49,6 +49,7 @@ def test_gettext_raises(clean_i18n):
 
     assert error_string in str(r_err)
 
+
 def test_gettext_translates(clean_i18n):
     """Tests that i18n.gettext() correctly returns a string when using a Nulltranslations object.
     """
