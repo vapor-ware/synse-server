@@ -286,7 +286,7 @@ def check_led_write(rack_id, board_id, device_id):
             1 key is correct
                 action is correct
                     action's value is valid                         -> break
-                    action's value is not valid                     -> 200, ok
+                    action's value is not valid                     -> 200, error
                 raw is correct
                     raw's value is valid                            -> 200, ok
                     raw's value is not valid                        -> 200, ok
@@ -300,7 +300,7 @@ def check_led_write(rack_id, board_id, device_id):
                     raw's value is not valid                        -> 200, ok
                 raw is absence
                     action's value is valid                         -> break
-                    action's value is not valid                     -> 200, ok
+                    action's value is not valid                     -> 200, error
     """
     # Options that return 200 status codes and their transactions' states are ok
     code_200_state_ok = {
@@ -345,13 +345,6 @@ def check_led_write(rack_id, board_id, device_id):
             'raw': 'invalid'
         },
 
-        # Case: 1 key is correct / action is correct, action's value is not valid
-        # Because raw is incorrect, raw's value can be anything even if it's valid
-        'correct_action_invalid_value': {
-            'action': 'invalid',
-            'incorrect_raw': 'on/off/ffffff/blink'
-        },
-
         # Case: 1 key is correct / raw is correct, raw's value is valid
         # Because action is incorrect, action's value can be anything
         # Therefore, no need to check for a specific state, color or blink
@@ -371,12 +364,6 @@ def check_led_write(rack_id, board_id, device_id):
         # Because action is absence, raw's value can be anything, even if it's valid
         'absence_action': {
             'raw': 'valid/invalid'
-        },
-
-        # Case: 1 key is absence / raw is absence, action's value is not valid
-        # If the value is valid, see Issue #2 
-        'absence_raw_invalid_action_value': {
-            'action': 'invalid'
         }
     }
 
@@ -388,7 +375,7 @@ def check_led_write(rack_id, board_id, device_id):
             'raw': 'invalid'
         },
 
-        # FIXME: Issue #1. 
+        # FIXME: synse-emulator-plugin's issue #1. 
         # LED color write isn't validated so the test fail
         # Comment out until fixed.
         # 'color_invalid_value': {
@@ -398,10 +385,23 @@ def check_led_write(rack_id, board_id, device_id):
         'blink_invalid_value': {
             'action': 'blink',
             'raw': 'invalid'
+        },
+
+        # Case: 1 key is correct / action is correct, action's value is not valid
+        # Because raw is incorrect, raw's value can be anything even if it's valid
+        'correct_action_invalid_value': {
+            'action': 'invalid',
+            'incorrect_raw': 'on/off/ffffff/blink'
+        },
+
+        # Case: 1 key is absence / raw is absence, action's value is not valid
+        # If the value is valid, see synse-emulator-plugin's issue #2 
+        'absence_raw_invalid_action_value': {
+            'action': 'invalid'
         }
 
         # Case: 1 key is correct / action is correct, action's value is valid
-        # FIXME: Issue #2
+        # FIXME: synse-emulator-plugin's issue #2
         # It returns 200 status code and break the program.
         # Comment out until fixed.
         # 'state_incorrect_raw': {
@@ -442,34 +442,42 @@ def check_led_write(rack_id, board_id, device_id):
         'no_keys': {}
     }
 
-    # List of transaction ids for requests that return 200 status codes
-    tx_ids_code_200_state_ok = []
-    tx_ids_code_200_state_error = []
+    # List of transactions objects for requests that return 200 status codes
+    # Each transaction object have its checking case, inherited from these cases above, and its id
+    tx_code_200_state_ok = []
+    tx_code_200_state_error = []
 
     # For every post request, get its transaction id and append to the corresponding list
+    # along with its checking case
     # We only append the first returned transaction because at the moment,
     # it is only possible to write one value at a time
-    for option, payload in code_200_state_ok.items():
+    for case, payload in code_200_state_ok.items():
         write_req = requests.post(
             '{}/write/{}/{}/{}'.format(core_blueprint, rack_id,board_id, device_id),
             json=payload
         )
         assert write_req.status_code == 200
 
-        tx_ids_code_200_state_ok.append(write_req.json()[0].get('transaction'))
+        tx_code_200_state_ok.append({
+            'case': case,
+            'id': write_req.json()[0].get('transaction')
+        })
 
-    for option, payload in code_200_state_error.items():
+    for case, payload in code_200_state_error.items():
         write_req = requests.post(
             '{}/write/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id),
             json=payload
         )
         assert write_req.status_code == 200
 
-        tx_ids_code_200_state_error.append(write_req.json()[0].get('transaction'))
+        tx_code_200_state_error.append({
+            'case': case,
+            'id': write_req.json()[0].get('transaction')
+        })
 
     # For requests that return 500 status code, there are no transactions have made
     # Only check for its status code
-    for option, payload in code_500.items():
+    for case, payload in code_500.items():
         write_req = requests.post(
             '{}/write/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id),
             json=payload
@@ -478,17 +486,18 @@ def check_led_write(rack_id, board_id, device_id):
 
     # After making write requests and having all the transaction ids needed
     # Check if transactions ids' states are correct
-    for id in tx_ids_code_200_state_ok:
-        check_transaction(id, 'ok')
+    for case in tx_code_200_state_ok:
+        check_transaction(case['case'], case['id'], 'ok')
  
-    for id in tx_ids_code_200_state_error:
-        check_transaction(id, 'error')
+    for case in tx_code_200_state_error:
+        check_transaction(case['case'], case['id'], 'error')
 
 
-def check_transaction(transaction_id, expected_state):
+def check_transaction(case, transaction_id, expected_state):
     """Check a transaction request for a given transaction id and state
     
     Args:
+        case(str): Transaction's checking case
         transaction_id (str): Transaction's unique ID
         expected_state (str): Expected state of the transaction
     """
@@ -501,7 +510,7 @@ def check_transaction(transaction_id, expected_state):
         assert r.json().get('state') == expected_state
     else:
         time.sleep(0.1)
-        check_transaction(transaction_id, expected_state)
+        check_transaction(case, transaction_id, expected_state)
     
 
 def check_fan_write(rack_id, board_id, device_id):
@@ -682,23 +691,30 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         'absence_blink_value_no_equal_sign': 'blink',
     }
 
-    # List of transaction ids for requests that return 200 status codes
-    tx_ids_code_200_state_ok = []
+    # List of transactions objects for requests that return 200 status codes
+    # Similar to checking write request, each transaction object has its checking case and id
+    tx_code_200_state_ok = []
 
     # For every post request, get its transaction id(s) and append to the corresponding list
-    for option, param in code_200_state_ok.items():
+    for case, param in code_200_state_ok.items():
         alias_req = requests.get(
             '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
         )
         assert alias_req.status_code == 200
 
-        # Append all returned transactions to the list
+        # Using alias route, we can write multiple values for a device
+        # Each successful write has its own transaction id
+        # Therefore, unlike the write request, we need to append all the returned
+        # transactions to the list, instead of just the first one
         for transaction in alias_req.json():
-            tx_ids_code_200_state_ok.append(transaction.get('transaction'))
+            tx_code_200_state_ok.append({
+                'case': case,
+                'id': transaction.get('transaction')
+            })
 
     # For requests that return 500 status code, there are no transactions have made
     # Only check for its status code
-    for option, param in code_500.items():
+    for case, param in code_500.items():
         alias_req = requests.get(
             '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
         )
@@ -707,7 +723,7 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         assert alias_req.json().get('error_id') == errors.INVALID_ARGUMENTS
 
     # For requests that return just like read requests, simply check for its type and data
-    for option, param in return_like_read.items():
+    for case, param in return_like_read.items():
         alias_req = requests.get(
             '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
         )
@@ -717,5 +733,5 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
 
     # After making requests and having all the transaction ids needed
     # Check if transactions ids' states are correct
-    for id in tx_ids_code_200_state_ok:
-        check_transaction(id, 'ok')
+    for case in tx_code_200_state_ok:
+        check_transaction(case['case'], case['id'], 'ok')
