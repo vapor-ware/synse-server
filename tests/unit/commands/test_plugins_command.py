@@ -41,6 +41,19 @@ def mock_plugin():
             raise
 
 
+@pytest.fixture()
+def disable_register():
+    """Disable plugin registration."""
+    # plugin registration will remove plugins from the manager that are
+    # not found to be 'active' any longer, where 'active' is defined as
+    # being present/absent from the expected directory. In some test setups,
+    # the plugins won't be in standard places so we disable registration.
+    def passthru():
+        """Passthrough function for testing."""
+        return
+    plugin.register_plugins = passthru
+
+
 @pytest.fixture(scope='module')
 def remove_tmp_dir():
     """Fixture to remove any test data."""
@@ -64,13 +77,12 @@ async def test_plugins_command_no_plugin():
 
 
 @pytest.mark.asyncio
-async def test_plugins_command_plugin(mock_plugin, cleanup):
+async def test_plugins_command_plugin(mock_plugin, disable_register, cleanup):
     """Get a plugins response using plugin."""
     # Add a mock plugin to the Manager
-    pm = plugin.PluginManager()
-    assert len(pm.plugins) == 0
+    pm = plugin.Plugin.manager
 
-    pm.add(mock_plugin)
+    # the plugin tested here is added via the mock_plugin fixture
     assert len(pm.plugins) == 1
     assert 'test-plug' in pm.plugins
 

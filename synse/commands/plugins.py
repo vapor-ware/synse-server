@@ -11,16 +11,16 @@ async def get_plugins():
     Returns:
         PluginsResponse: The "plugins" response scheme model.
     """
-    # List of configured plugins
-    plugins = []
+    # register plugins. if no plugins exist, this will attempt to register
+    # new ones. if plugins already exist, this will just ensure that all of
+    # the tracked plugins are up to date.
+    plugin.register_plugins()
 
-    # Get the plugins generators
-    plugins_generators = plugin.get_plugins()
-    for item in plugins_generators:
-        plugins.append({
-            'name': item[1].name,
-            'network': item[1].mode,
-            'address': item[1].addr
-        })
+    # Build a view of all the plugins registered with the plugin manager.
+    plugins = [{
+        'name': p[1].name,
+        'network': p[1].mode,
+        'address': p[1].addr
+    } for p in plugin.get_plugins()]
 
     return PluginsResponse(data=plugins)
