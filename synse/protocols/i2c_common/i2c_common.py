@@ -1239,6 +1239,7 @@ def read_thermistors(count, device_name):
     :returns: An array of thermistor readings in degrees Celsius. The array
     index will be the same as the channel in the synse i2c max-11608 thermistor
     configuration."""
+    logger.debug('read_thermistors start: count {}, device_name {}'.format(count, device_name))
     read_register, write_register = _get_thermistor_registers(device_name)
 
     # construct channel 3 command based on address
@@ -1248,39 +1249,47 @@ def read_thermistors(count, device_name):
 
     # Read channel of PCA9546A
     vec.Start()
+    logger.debug('Writing read address: [{}]'.format(hexlify(PCA9546_READ_ADDRESS)))
     vec.Write(PCA9546_READ_ADDRESS)
 
     if vec.GetAck() == ACK:
+        logger.debug('Got ack')
 
         # if we got an ack then slave is there
         vec.SendNacks()
-        vec.Read(1)
+        test = vec.Read(1)
+        logger.debug('first test read: [{}]'.format(hexlify(test)))
 
         vec.SendAcks()
         vec.Stop()
 
         # Set channel to 3 for MAX11608
         vec.Start()
+        logger.debug('Writing channel_3: [{}]'.format(hexlify(channel_3)))
         vec.Write(channel_3)
         vec.Stop()
 
         # verify channel was set
         vec.Start()
+        logger.debug('Writing read address: [{}]'.format(hexlify(PCA9546_READ_ADDRESS)))
         vec.Write(PCA9546_READ_ADDRESS)
         vec.SendNacks()
-        vec.Read(1)
+        test = vec.Read(1)
+        logger.debug('second test read: {}'.format(hexlify(test)))
         vec.Stop()
 
         # Configure MAX116xx
         # There are two registers to write to however there is no address.
         # Bit 7 determines which register gets written; 0 = Configuration byte,
         # 1 = Setup byte
+        logger.debug('Configure start')
         vec.SendAcks()
         vec.Start()
 
         # Following the slave address write 0xD2 for setup byte and 0x0F for configuration
         # byte. See tables 1 and 2 in MAX116xx for byte definitions but basically sets up
         # for an internal reference and do an a/d conversion all channels
+        logger.debug('Writing read address: [{}]'.format(hexlify(PCA9546_READ_ADDRESS)))
         vec.Write(write_register + '\xD2\x0F')
 
         # Initiating a read starts the conversion
@@ -1292,6 +1301,7 @@ def read_thermistors(count, device_name):
 
         # Read the count number of channels (2 bytes per channel)
         ad_reading = vec.Read(count * 2)
+        logger.debug('ad_reading: [{}]'.format(hexlify(ad_reading)))
 
     else:
         logger.error('No ACK from thermistors.')
