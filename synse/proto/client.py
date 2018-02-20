@@ -52,7 +52,7 @@ class WriteData(object):
 
 class SynseInternalClient(object):
     """The `SynseInternalClient` object is a convenience wrapper around a
-    grpc client used for communication between Synse and the background
+    gRPC client used for communication between Synse and the background
     processes which are its data sources.
 
     There should be one instance of the `SynseInternalClient` for every
@@ -75,7 +75,7 @@ class SynseInternalClient(object):
         SynseInternalClient._client_stubs[self.name] = self
 
     def _channel(self):
-        """Convenience method to create the client grpc channel."""
+        """Convenience method to create the client gRPC channel."""
         if self.mode == 'unix':
             target = 'unix:{}'.format(os.path.join(SOCKET_DIR, self.name + '.sock'))
         elif self.mode == 'tcp':
@@ -88,7 +88,7 @@ class SynseInternalClient(object):
         return grpc.insecure_channel(target)
 
     def _stub(self):
-        """Convenience method to create the grpc stub."""
+        """Convenience method to create the gRPC stub."""
         return synse_grpc.InternalApiStub(self.channel)
 
     @classmethod
@@ -148,11 +148,8 @@ class SynseInternalClient(object):
             rack=rack
         )
 
-
-        resp = []
         config_timeout = config.options.get('grpc', {}).get('timeout', None)
-        for r in self.stub.Read(req, timeout=config_timeout):
-            resp.append(r)
+        resp = [r for r in self.stub.Read(req, timeout=config_timeout)]
 
         return resp
 
@@ -177,10 +174,8 @@ class SynseInternalClient(object):
             board=board
         )
 
-        resp = []
         config_timeout = config.options.get('grpc', {}).get('timeout', None)
-        for r in self.stub.Metainfo(req, timeout=config_timeout):
-            resp.append(r)
+        resp = [r for r in self.stub.Metainfo(req, timeout=config_timeout)]
 
         return resp
 
@@ -228,14 +223,15 @@ class SynseInternalClient(object):
 
 
 def get_client(name):
-    """Get the internal client for the given process name.
+    """Get the internal client for the given plugin name.
 
     This is a convenience module-level wrapper around the
     `SynseInternalClient.get_client` method.
 
     Args:
         name (str): The name of the client. This is also the name
-            given to the background process socket.
+            given to the plugin socket, if configured for UNIX socket
+            networking.
 
     Returns:
         SynseInternalClient: The client instance associated with

@@ -27,6 +27,8 @@ def make_app():
     app = Sanic(__name__, log_config=config.LOGGING)
     app.config.LOGO = None
 
+    config.load()
+
     setup_logger()
     init_gettext()
 
