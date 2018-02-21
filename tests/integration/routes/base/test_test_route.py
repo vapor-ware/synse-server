@@ -12,10 +12,6 @@ test_url = '/synse/test'
 @pytest.fixture()
 def app():
     """Fixture to get a Synse Server application instance."""
-    # FIXME: Open Issue #383
-    # Shouldn't need to configure locale here like other tests.
-    # However, somehow the test fails without it.
-    config.options['locale'] = 'en_US'
     yield factory.make_app()
 
 
