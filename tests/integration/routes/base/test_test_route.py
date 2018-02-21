@@ -4,7 +4,7 @@
 import pytest
 import ujson
 
-from synse import config, factory
+from synse import factory
 
 test_url = '/synse/test'
 
