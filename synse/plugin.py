@@ -62,7 +62,7 @@ class PluginManager(object):
         """
         if name not in self.plugins:
             logger.debug(
-                gettext('"{}" is not known to PluginManager - will not remove.')
+                gettext('"{}" is not known to PluginManager - nothing to remove.')
                 .format(name)
             )
         else:

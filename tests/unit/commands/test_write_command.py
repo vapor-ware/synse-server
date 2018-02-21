@@ -209,3 +209,29 @@ async def test_write_command_failed_add(mock_get_device_meta, mock_transaction_a
             'transaction': 'abcdef'
         }
     ]
+
+
+@pytest.mark.asyncio
+async def test_write_command_bad_action_value(mock_get_device_meta, mock_client_write, make_plugin):
+    """Write when an invalid value is passed in for the action field."""
+
+    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
+    # properly trapping the exception for further testing.
+    try:
+        data = {'action': 1, 'raw': 'bar'}
+        await write('rack-1', 'vec', '12345', data)
+    except errors.SynseError as e:
+        assert e.error_id == errors.INVALID_ARGUMENTS
+
+
+@pytest.mark.asyncio
+async def test_write_command_bad_raw_value(mock_get_device_meta, mock_client_write, make_plugin):
+    """Write when an invalid value is passed in for the raw field."""
+
+    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
+    # properly trapping the exception for further testing.
+    try:
+        data = {'action': 'foo', 'raw': 1}
+        await write('rack-1', 'vec', '12345', data)
+    except errors.SynseError as e:
+        assert e.error_id == errors.INVALID_ARGUMENTS

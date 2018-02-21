@@ -34,6 +34,11 @@ async def scan(rack=None, board=None, force=False):
     cache_data = await cache.get_scan_cache()
 
     if rack is not None:
+        if not cache_data:
+            raise errors.FailedScanCommandError(
+                gettext('Unable to filter by resource - no scan results returned.')
+            )
+
         for r in cache_data['racks']:
             if r['id'] == rack:
                 cache_data = r

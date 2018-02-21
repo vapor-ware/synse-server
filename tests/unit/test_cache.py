@@ -378,8 +378,7 @@ async def test_get_scan_cache_empty(plugin_context, clear_caches):
     # scan cache should also be empty
     scan_cache = await cache.get_scan_cache()
     assert isinstance(scan_cache, dict)
-    assert 'racks' in scan_cache
-    assert len(scan_cache['racks']) == 0
+    assert len(scan_cache) == 0
 
 
 @pytest.mark.asyncio
@@ -445,7 +444,7 @@ def test_build_scan_cache_ok():
         'rack-1-board-12345': make_metainfo_response('rack-1', 'board', '12345'),
         'rack-1-board-56789': make_metainfo_response('rack-1', 'board', '456789')
     }
-    scan_cache = cache.build_scan_cache(metainfo)
+    scan_cache = cache._build_scan_cache(metainfo)
     validate_scan_cache(scan_cache, 'rack-1', 'vec', '12345')
     validate_scan_cache(scan_cache, 'rack-1', 'board', '12345')
     validate_scan_cache(scan_cache, 'rack-1', 'board', '456789')
@@ -455,8 +454,8 @@ def test_build_scan_cache_no_metainfo():
     """Build the scan cache when empty metainfo is provided."""
 
     metainfo = {}
-    scan_cache = cache.build_scan_cache(metainfo)
-    assert scan_cache == {'racks': []}
+    scan_cache = cache._build_scan_cache(metainfo)
+    assert scan_cache == {}
 
 
 def test_build_info_cache_ok():
@@ -467,7 +466,7 @@ def test_build_info_cache_ok():
         'rack-1-board-12345': make_metainfo_response('rack-1', 'board', '12345'),
         'rack-1-board-56789': make_metainfo_response('rack-1', 'board', '456789')
     }
-    info_cache = cache.build_resource_info_cache(metainfo)
+    info_cache = cache._build_resource_info_cache(metainfo)
     validate_info_cache(info_cache, 'rack-1', 'vec', '12345')
     validate_info_cache(info_cache, 'rack-1', 'board', '12345')
     validate_info_cache(info_cache, 'rack-1', 'board', '456789')
@@ -477,7 +476,7 @@ def test_build_info_cache_no_metainfo():
     """Build the info cache when empty metainfo is provided."""
 
     metainfo = {}
-    info_cache = cache.build_resource_info_cache(metainfo)
+    info_cache = cache._build_resource_info_cache(metainfo)
     assert info_cache == {}
 
 

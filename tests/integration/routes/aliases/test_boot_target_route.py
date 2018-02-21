@@ -13,10 +13,6 @@ invalid_boot_target_route_url = '/synse/{}/boot_target/invalid-rack/invalid-boar
 @pytest.fixture()
 def app():
     """Fixture to get a Synse Server application instance."""
-    # FIXME: Open Issue #383
-    # This is also mentioned in test_test_route.py.
-    # Somehow the application doesn't work without setting this locale option.
-    config.options['locale'] = 'en_US'
     yield factory.make_app()
 
 

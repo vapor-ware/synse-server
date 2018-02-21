@@ -1,7 +1,9 @@
 """Test the 'synse.config' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
+import copy
 import os
+import shutil
 
 import pytest
 
@@ -17,6 +19,22 @@ def set_default_filepath():
     """
     config.DEFAULT_CONFIG_PATH = '/code/config/config.yml'
     yield
+
+
+@pytest.fixture()
+def json_config():
+    """Create a JSON file for configuration."""
+    if not os.path.isdir('_tmp'):
+        os.mkdir('_tmp')
+
+    cfg_file = '_tmp/config.json'
+    with open(cfg_file, 'w') as f:
+        f.write('{}')
+
+    yield cfg_file
+
+    if os.path.isdir('_tmp'):
+        shutil.rmtree('_tmp')
 
 
 @pytest.fixture()
@@ -61,16 +79,17 @@ def test_load_default_configs(clear_config):
     assert config.options == expected_defaults
 
 
-def test_parse_user_configs_wrong_path():
+def test_parse_user_configs_no_file():
     """Parse user configurations using a wrong default configuration filepath"""
-    config.DEFAULT_CONFIG_PATH = '/synse/config/config.yml'
-    with pytest.raises(FileNotFoundError):
-        config.parse_user_configs()
+    config.DEFAULT_CONFIG_PATH = '/synse/config/nothing.yml'
+    cfg_start = copy.deepcopy(config.options)
+    config.parse_user_configs()
+    assert cfg_start == config.options
 
 
-def test_parse_user_configs_unsupported_ext():
-    """Parse user configurations using an unsupported file extention"""
-    config.DEFAULT_CONFIG_PATH = '/synse/config/config.json'
+def test_parse_user_configs_unsupported_ext(json_config):
+    """Parse user configurations using an unsupported file extension"""
+    config.DEFAULT_CONFIG_PATH = json_config
     with pytest.raises(ValueError):
         config.parse_user_configs()
 
