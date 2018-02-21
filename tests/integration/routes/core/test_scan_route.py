@@ -30,10 +30,7 @@ def test_scan_endpoint_ok(app):
     assert response.status == 200
 
     data = ujson.loads(response.text)
-
-    assert 'racks' in data
-
-    assert len(data['racks']) == 0
+    assert data == {}
 
 
 def test_scan_endpoint_post_not_allowed(app):
@@ -76,8 +73,8 @@ def test_rack_scan_endpoint_invalid(app):
     """Test getting a invalid rack scan response.
 
     Details:
-        In this case, rack is invalid.
-        The returned error should be RACK_NOT_FOUND.
+        There is no backend, so the scan will be empty. When
+        the scan is empty, we can't filter on racks/boards.
     """
     _, response = app.test_client.get(invalid_rack_scan_url)
 
@@ -92,7 +89,7 @@ def test_rack_scan_endpoint_invalid(app):
     assert 'context' in data
 
     assert data['http_code'] == 500
-    assert data['error_id'] == errors.RACK_NOT_FOUND
+    assert data['error_id'] == errors.FAILED_SCAN_COMMAND
 
 
 def test_rack_scan_endpoint_post_not_allowed(app):
@@ -135,10 +132,8 @@ def test_board_scan_endpoint_invalid(app):
     """Test getting a board scan response.
 
     Details:
-        In this case, rack and board are invalid.
-        Since the rack is not valid in the first place,
-        it doesn't matter if the board is valid or not.
-        The returned error should still be RACK_NOT_FOUND.
+        There is no backend, so the scan will be empty. When
+        the scan is empty, we can't filter on racks/boards.
     """
     _, response = app.test_client.get(invalid_board_scan_url)
 
@@ -153,7 +148,7 @@ def test_board_scan_endpoint_invalid(app):
     assert 'context' in data
 
     assert data['http_code'] == 500
-    assert data['error_id'] == errors.RACK_NOT_FOUND
+    assert data['error_id'] == errors.FAILED_SCAN_COMMAND
 
 
 def test_board_scan_endpoint_post_not_allowed(app):

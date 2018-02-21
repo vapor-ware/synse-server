@@ -86,6 +86,9 @@ async def add_transaction(transaction_id, context, plugin_name):
     Returns:
         bool: True if successful; False otherwise.
     """
+    # TODO (etd): add TTL to the transactions. TBD where this timeout is
+    # defined. Likely check the config for a value - if not there, use some
+    # default. #397
     return await transaction_cache.set(
         transaction_id,
         {
@@ -146,64 +149,21 @@ async def get_metainfo_cache():
         dict: The metainfo dictionary in which the key is the device id
             and the value is the data associated with that device.
     """
+    # Get the cache and return it if it exists, otherwise, rebuild.
     value = await _meta_cache.get(META_CACHE_KEY)
     if value is not None:
         return value
 
-    # if the cache is not found, we will (re)build it and update the cache
-    logger.debug(gettext('Creating meta cache'))
-    metainfo = {}
+    metainfo = _build_metainfo_cache()
 
-    # first, we want to iterate through all of the known background processes
-    # and use the associated client to get the meta information provided by
-    # that backend.
-    plugins = Plugin.manager.plugins
-
-    if len(plugins) == 0:
-        logger.debug(gettext('Re-registering plugins.'))
-        register_plugins()
-        plugins = Plugin.manager.plugins
-
-    logger.debug(gettext('plugins to scan: {}').format(plugins))
-
-    # track which plugins failed to provide metainfo for any reason.
-    failures = {}
-
-    for name, plugin in plugins.items():
-        logger.debug('{} -- {}'.format(name, plugin))
-
-        try:
-            for device in plugin.client.metainfo():
-                _id = utils.composite(device.location.rack, device.location.board, device.uid)
-                metainfo[_id] = device
-
-        # we do not want to fail the scan if a single plugin fails to provide
-        # meta-information.
-        #
-        # FIXME (etd): instead of just logging out the errors, we could either:
-        #   - update the response scheme to hold an 'errors' field which will alert
-        #     the user of these partial non-fatal errors.
-        #   - update the API to add a url to check the currently configured plugins
-        #     and their 'health'/'state'.
-        #   - both
-        except grpc.RpcError as ex:
-            failures[name] = ex
-            logger.warning(gettext('Failed to get metainfo for plugin: {}').format(name))
-
-    # if we fail to read from all plugins (assuming there were any), then we
-    # can raise an error since it is likely something is mis-configured.
-    if plugins and len(plugins) == len(failures):
-        raise errors.InternalApiError(
-            gettext('Failed to scan all plugins: {}').format(failures)
-        )
+    # If the metainfo data is empty when built, we don't want to cache an
+    # empty dictionary, so we will set it to None. Future calls to get_metainfo_cache
+    # will then attempt to rebuild the cache
+    value = metainfo if metainfo else None
 
     # get meta cache's ttl and update the cache
-    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    if metainfo:
-        await _meta_cache.set(META_CACHE_KEY, metainfo, ttl=config_ttl)
-    else:
-        logger.info(gettext('Refusing to cache empty metainfo results.'))
-        await _meta_cache.set(META_CACHE_KEY, None, ttl=config_ttl)
+    ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _meta_cache.set(META_CACHE_KEY, value, ttl=ttl)
 
     return metainfo
 
@@ -248,19 +208,18 @@ async def get_scan_cache():
         return value
 
     # if the cache is not found, we will (re)build it from metainfo cache
-    logger.debug(gettext('Getting scan metainfo cache for scan cache'))
     _metainfo = await get_metainfo_cache()
+    scan_cache = _build_scan_cache(_metainfo)
 
-    logger.debug(gettext('Building scan cache'))
-    scan_cache = build_scan_cache(_metainfo)
+    # If the scan data is empty when built, we don't want to cache an empty
+    # dictionary, so we will set it to None. Future calls to get_scan_cache
+    # will then attempt to rebuild the cache
+    value = scan_cache if scan_cache else None
 
-    # use the same ttl as meta cache's to update the cache
-    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    if scan_cache['racks']:
-        await _scan_cache.set(SCAN_CACHE_KEY, scan_cache, ttl=config_ttl)
-    else:
-        logger.info(gettext('Refusing to cache empty scan result.'))
-        await _scan_cache.set(SCAN_CACHE_KEY, None, ttl=config_ttl)
+    # get the scan cache's ttl and update the cache. this should be the same
+    # ttl that is used by the metainfo cache.
+    ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _meta_cache.set(SCAN_CACHE_KEY, value, ttl=ttl)
 
     return scan_cache
 
@@ -323,22 +282,77 @@ async def get_resource_info_cache():
 
     # if the cache is not found, we will (re)build it from metainfo cache
     _metainfo = await get_metainfo_cache()
+    info_cache = _build_resource_info_cache(_metainfo)
 
-    logger.debug(gettext('Building info cache'))
-    info_cache = build_resource_info_cache(_metainfo)
+    # If the info data is empty when built, we don't want to cache an empty
+    # dictionary, so we will set it to None. Future calls to get_info_cache
+    # will then attempt to rebuild the cache
+    value = info_cache if info_cache else None
 
-    # use the same ttl as meta cache's to update the cache
-    config_ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    if info_cache:
-        await _info_cache.set(INFO_CACHE_KEY, info_cache, ttl=config_ttl)
-    else:
-        logger.info('Resource info empty, refusing to cache.')
-        await _info_cache.set(INFO_CACHE_KEY, None, ttl=config_ttl)
+    # get the info cache's ttl and update the cache. this should be the same
+    # ttl that is used by the metainfo cache.
+    ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    await _meta_cache.set(INFO_CACHE_KEY, value, ttl=ttl)
 
     return info_cache
 
 
-def build_scan_cache(metainfo):
+def _build_metainfo_cache():
+    """Construct the dictionary that will become the metainfo cache.
+
+    Returns:
+        dict: The metainfo dictionary in which the key is the device id
+            and the value is the data associated with that device.
+    """
+    logger.debug(gettext('Building the metainfo cache.'))
+    metainfo = {}
+
+    # first, we want to iterate through all of the known plugins and
+    # use the associated client to get the meta information provided by
+    # that backend.
+    plugins = Plugin.manager.plugins
+    if len(plugins) == 0:
+        logger.debug(gettext('Manager has no plugins - registering plugins.'))
+        register_plugins()
+        plugins = Plugin.manager.plugins
+
+    logger.debug(gettext('plugins to scan: {}').format(len(plugins)))
+
+    # track which plugins failed to provide metainfo for any reason.
+    failures = {}
+
+    for name, plugin in plugins.items():
+        logger.debug('{} -- {}'.format(name, plugin))
+
+        try:
+            for device in plugin.client.metainfo():
+                _id = utils.composite(device.location.rack, device.location.board, device.uid)
+                metainfo[_id] = device
+
+        # we do not want to fail the scan if a single plugin fails to provide
+        # meta-information.
+        #
+        # FIXME (etd): instead of just logging out the errors, we could either:
+        #   - update the response scheme to hold an 'errors' field which will alert
+        #     the user of these partial non-fatal errors.
+        #   - update the API to add a url to check the currently configured plugins
+        #     and their 'health'/'state'.
+        #   - both
+        except grpc.RpcError as ex:
+            failures[name] = ex
+            logger.warning(gettext('Failed to get metainfo for plugin: {}').format(name))
+
+    # if we fail to read from all plugins (assuming there were any), then we
+    # can raise an error since it is likely something is mis-configured.
+    if plugins and len(plugins) == len(failures):
+        raise errors.InternalApiError(
+            gettext('Failed to scan all plugins: {}').format(failures)
+        )
+
+    return metainfo
+
+
+def _build_scan_cache(metainfo):
     """Build the scan cache.
 
     This builds the scan cache, adhering to the Scan response scheme,
@@ -350,8 +364,8 @@ def build_scan_cache(metainfo):
     Returns:
         dict: The constructed scan cache.
     """
-
-    scan_cache = {'racks': []}
+    logger.debug(gettext('Building the scan cache.'))
+    scan_cache = {}
 
     # the _tracked dictionary is used to help track which racks and
     # boards already exist while we are building the cache. it should
@@ -434,14 +448,19 @@ def build_scan_cache(metainfo):
                     'type': source.type
                 })
 
-    for ref in _tracked.values():
-        ref['rack']['boards'] = list(ref['boards'].values())
-        scan_cache['racks'].append(ref['rack'])
+    if _tracked:
+        # add the root 'racks' field to the scan data
+        scan_cache['racks'] = []
+
+        # populate the rack info and add it to the scan data racks list
+        for ref in _tracked.values():
+            ref['rack']['boards'] = list(ref['boards'].values())
+            scan_cache['racks'].append(ref['rack'])
 
     return scan_cache
 
 
-def build_resource_info_cache(metainfo):
+def _build_resource_info_cache(metainfo):
     """Build the resource info cache.
 
     This builds the info cache, adhering to the Info response scheme,
@@ -453,6 +472,7 @@ def build_resource_info_cache(metainfo):
     Returns:
         dict: The constructed info cache.
     """
+    logger.debug(gettext('Building the info cache.'))
     info_cache = {}
 
     for source in metainfo.values():
