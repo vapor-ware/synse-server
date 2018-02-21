@@ -103,6 +103,8 @@ def load():
     parse_user_configs()
     parse_env_vars()
 
+    logger.info('final configuration: {}'.format(options))
+
 
 def load_default_configs():
     """Set the default configurations for the application.
@@ -138,16 +140,11 @@ def parse_user_configs():
     """
     global options
 
-    # If a custom configuration file is set through environment variable, use it.
-    # Otherwise, use the defaults
-    custom_path = os.getenv('SYNSE_CONFIG')
-    if custom_path:
-        user_configs = load_config_file(custom_path)
-    else:
-        user_configs = load_config_file(DEFAULT_CONFIG_PATH)
+    cfg_path = os.getenv('SYNSE_CONFIG', DEFAULT_CONFIG_PATH)
+    config = load_config_file(cfg_path)
 
     # Given the result as a dictionary, merge it with our current configs
-    merge_dicts(options, user_configs)
+    merge_dicts(options, config)
 
 
 def parse_env_vars():
@@ -157,8 +154,9 @@ def parse_env_vars():
     # Look for environment variables that start with CONFIG_ENV_PREFIX
     for k, v in os.environ.items():
         if k.startswith(CONFIG_ENV_PREFIX):
+            logger.info('found ENV config: {}={}'.format(k, v))
 
-            # Contruct the configuration key from the environment variable key
+            # Construct the configuration key from the environment variable key
             key = k[len(CONFIG_ENV_PREFIX)+1:].replace('_', '.').lower()
 
             # If current key equals to 'config', the value is an user-specified config file path.
@@ -188,19 +186,23 @@ def load_config_file(filepath):
     Returns:
         dict: The values loaded from the specified YAML file.
     """
+    if not os.path.exists(filepath):
+        logger.debug(
+            '{} does not exist - not loading any configuration from file'.format(filepath)
+        )
+        return {}
+
     # List of supported YAML extensions
     yaml_exts = ['.yml', '.yaml']
 
-    if os.path.splitext(filepath)[1] in yaml_exts:
-        try:
-            with open(filepath, 'r') as config_file:
-                return yaml.load(config_file)
-        except FileNotFoundError as e:
-            logger.error(e)
-            raise
+    if os.path.splitext(filepath)[1] not in yaml_exts:
+        raise ValueError('The file extension is not supported (must be .yml or .yaml)')
 
-    # If not found, raise an error to notify that extension is not supported
-    raise ValueError('The file extension is not supported.')
+    logger.info('loading config from file: {}'.format(filepath))
+    with open(filepath, 'r') as config_file:
+        data = yaml.load(config_file)
+        logger.info('loaded config data: {}'.format(data))
+    return data
 
 
 def merge_dicts(merged_dict, merging_dict):

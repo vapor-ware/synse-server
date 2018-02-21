@@ -15,6 +15,7 @@ levels = dict(
     critical=logging.CRITICAL
 )
 
+
 def setup_logger(level=logging.INFO):
     """Configure the Synse Server logger.
 
