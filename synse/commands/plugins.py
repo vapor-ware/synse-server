@@ -17,6 +17,8 @@ async def get_plugins():
     plugin.register_plugins()
 
     # Build a view of all the plugins registered with the plugin manager.
+    # Here we take the element at index 1 because get_plugins returns a tuple
+    # of (name, plugin) -- we are only interested in the plugin.
     plugins = [{
         'name': p[1].name,
         'network': p[1].mode,

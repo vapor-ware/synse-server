@@ -29,7 +29,6 @@ INVALID_ARGUMENTS = 3001
 INVALID_JSON = 3002
 INVALID_DEVICE_TYPE = 3003
 
-
 # Unknown type error - this is used as the fallback
 UNKNOWN = 0
 

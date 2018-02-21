@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-"""
+"""Setup and packaging for Synse Server."""
 
 from setuptools import setup, find_packages
 

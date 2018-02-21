@@ -1,5 +1,6 @@
 """Functions to setup gettext translations.
 """
+
 import gettext as _gettext
 import os
 
@@ -11,7 +12,7 @@ trans_func = None
 
 def _get_locale_dir():
     """Returns path to `locale` directory adjacent to this source file if it exists,
-        otherwise raises an IOError.
+    otherwise raises an IOError.
     """
     # TODO This is not the most robust method of finding the locale file.
     locale_dir = '{}/locale'.format(os.path.dirname(os.path.realpath(__file__)))
@@ -21,12 +22,12 @@ def _get_locale_dir():
         raise IOError(
             '{} locale directory does not exit.'
             .format(locale_dir)
-            )
+        )
 
 
 def _get_language():
     """Attempts to load the value of the "locale" key from the config.
-        If there is a value for "locale", it is returned, otherwise we return "en_US".
+    If there is a value for "locale", it is returned, otherwise we return "en_US".
     """
     lang = config.options.get('locale')
     if lang:
@@ -39,10 +40,11 @@ def _get_language():
 
 
 def _get_translator():
-    """Attempts to intialize a translations object based on the provided language.
-        If the provided language is not supported, it will default to en_US.
+    """Attempts to initialize a translations object based on the provided language.
+    If the provided language is not supported, it will default to en_US.
 
-        Returns: NullTranslations object.
+    Returns:
+        NullTranslations
     """
     locale_dir = _get_locale_dir()
     language = _get_language()
@@ -59,21 +61,21 @@ def _get_translator():
 
 
 def init_gettext():
-    """Initializes a translator, and makes it's gettext method publicly available.
-    """
+    """Initializes a translator, and makes it's gettext method publicly available."""
     global trans_func
     trans_func = _get_translator().gettext
 
 
 def gettext(text):
-    """Takes a string, and passes it through the translator that was created during initialization.
-        This function will raise an error if it is called before init_gettext()
+    """Takes a string, and passes it through the translator that was created during
+    initialization. This function will raise an error if it is called before
+    init_gettext()
 
-        Args:
-            text (string): String to be translated.
+    Args:
+        text (str): The string to be translated.
 
-        Returns:
-            string: Translated string (if gettext can translate it).
+    Returns:
+        str: The translated string (if gettext can translate it).
     """
     if trans_func:
         return trans_func(text)
@@ -81,4 +83,4 @@ def gettext(text):
         # If this method is called before initialization, something is wrong, so we raise.
         raise RuntimeError(
             'i18n.gettext() not yet initialized, i18n.init_gettext() must be called first.'
-            )
+        )

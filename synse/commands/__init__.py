@@ -2,6 +2,9 @@
 
 This module contains the command definitions for all Synse Server
 endpoints. This is where the logic for all commands are implemented.
+Command functions are imported here for easier importing elsewhere,
+e.g. instead of having to do 'from synse.commands.scan import scan'
+you can simply 'from synse.commands import scan'.
 """
 # pylint: disable=unused-import
 

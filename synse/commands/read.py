@@ -20,6 +20,7 @@ async def read(rack, board, device):
     Returns:
         ReadResponse: The "read" response scheme model.
     """
+    # FIXME: clean up logging
     logger.debug(gettext('>> READ cmd'))
 
     # lookup the known info for the specified device

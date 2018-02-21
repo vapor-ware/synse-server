@@ -1,5 +1,4 @@
-"""Run Synse Server.
-"""
+"""Run Synse Server."""
 
 from synse.factory import make_app
 

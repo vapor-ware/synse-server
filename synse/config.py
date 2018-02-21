@@ -78,7 +78,6 @@ LOGGING = dict(
     }
 )
 
-
 AIOCACHE = {
     'default': {
         'cache': 'aiocache.SimpleMemoryCache',
@@ -87,7 +86,6 @@ AIOCACHE = {
         }
     }
 }
-
 
 # Configs options will be parsed here once the application starts.
 options = {}
@@ -135,8 +133,8 @@ def load_default_configs():
 
 
 def parse_user_configs():
-    """Set the user configurations for the application.
-    These configurations will overwrite default configurations.
+    """Set the user configurations for the application. These configurations
+    will overwrite default configurations.
     """
     global options
 
@@ -148,8 +146,8 @@ def parse_user_configs():
 
 
 def parse_env_vars():
-    """Parse the environment variables for the application.
-    These configurations have the top precedence order and will overwrite user and defaults.
+    """Parse the environment variables for the application. These configurations
+    have the top precedence order and will overwrite user and defaults.
     """
     # Look for environment variables that start with CONFIG_ENV_PREFIX
     for k, v in os.environ.items():
@@ -174,15 +172,16 @@ def parse_env_vars():
                 v = set_value_type(key.split(CONFIG_DELIMITER)[0], v)
 
             # Update the pair
-            set(key, v)
+            update_options(key, v)
 
 
 def load_config_file(filepath):
-    """Load the specified YAML configuration into a dictionary.
-    If no config file is specified, the default file is used.
+    """Load the specified YAML configuration into a dictionary. If no config
+    file is specified, the default file is used.
 
     Args:
         filepath (str): The configuration file path.
+
     Returns:
         dict: The values loaded from the specified YAML file.
     """
@@ -205,28 +204,29 @@ def load_config_file(filepath):
     return data
 
 
-def merge_dicts(merged_dict, merging_dict):
+def merge_dicts(dct, merge_dict):
     """Recursively merge dictionaries.
+
     Instead of updating only top-level keys, it recurses down into
     dicts nested to an arbitrary depth, updating keys.
 
     Args:
-        merged_dict (dict): The dictionary being merged into.
-        merging_dict (dict): The dictionary merging into.
+        dct (dict): The dictionary being merged into.
+        merge_dict (dict): The dictionary being merged into dct.
 
     Reference:
         https://gist.github.com/angstwad/bf22d1822c38a92ec0a9#file-dict_merge-py
     """
     try:
-        for k, _ in merging_dict.items():
-            if (k in merged_dict and isinstance(merged_dict[k], dict) \
-                and isinstance(merging_dict[k], collections.Mapping)):
-                merge_dicts(merged_dict[k], merging_dict[k])
+        for k, _ in merge_dict.items():
+            if k in dct and isinstance(dct[k], dict) and isinstance(merge_dict[k], collections.Mapping):
+                merge_dicts(dct[k], merge_dict[k])
             else:
-                merged_dict[k] = merging_dict[k]
+                dct[k] = merge_dict[k]
     except (AttributeError, TypeError) as e:
         logger.error(e)
         raise
+
 
 def set_value_type(key, value):
     """Set the right value for parsing an environment variable into configs.
@@ -238,7 +238,7 @@ def set_value_type(key, value):
         value (str): The value to be modified.
 
     Returns:
-        The value with the right type.
+        str: The value with the right type.
     """
     if key in ('grpc', 'cache'):
         return int(value)
@@ -246,9 +246,9 @@ def set_value_type(key, value):
     return str(value)
 
 
-def set(key, value):
-    """Set a value for a given key, supporting nested keys.
-    Assumes all levels of nesting in the config are dictionaries and not lists.
+def update_options(key, value):
+    """Set a value for a given key, supporting nested keys. This method assumes that
+    all levels of nesting in the config are dictionaries and not lists.
 
     For example:
         Given the options above, setting a value for tcp requires:

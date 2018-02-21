@@ -409,7 +409,7 @@ def test_set_normal(clear_config):
     config.options['foo'] = 'bar'
     assert config.options.get('foo') == 'bar'
 
-    config.set('foo', 'foo')
+    config.update_options('foo', 'foo')
     assert config.options.get('foo') == 'foo'
 
 
@@ -427,5 +427,5 @@ def test_set_nested_key(clear_config):
 
     assert config.options.get('one').get('two').get('three') == 'foo'
 
-    config.set('one.two.three', 'bar')
+    config.update_options('one.two.three', 'bar')
     assert config.options.get('one').get('two').get('three') == 'bar'
