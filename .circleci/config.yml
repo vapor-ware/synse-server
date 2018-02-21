@@ -13,30 +13,15 @@ jobs:
           exclusive: false
           version: 17.06.0-ce
 
-      - run:
-          name: check 1
-          command: |
-            ls .tox/unit || true
-
       - restore_cache:
           keys:
             - v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
             - v1.2-tox-test-cache- # used if checksum fails
 
       - run:
-          name: check 2
-          command: |
-            ls .tox/unit || true
-
-      - run:
           name: Unit Tests
           command: |
             bin/circleci.sh unit
-
-      - run:
-          name: check 3
-          command: |
-            ls .tox/unit || true
 
       - save_cache:
           when: always
@@ -44,30 +29,15 @@ jobs:
           paths:
             - .tox/unit
 
-      - run:
-          name: check 4
-          command: |
-            ls .tox/lint || true
-
       - restore_cache:
           keys:
             - v2.3-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
             - v2.3-tox-lint-cache- # used if checksum fails
 
       - run:
-          name: check 5
-          command: |
-            ls .tox/lint || true
-
-      - run:
           name: Lint
           command: |
             bin/circleci.sh lint
-
-      - run:
-          name: check 6
-          command: |
-            ls .tox/lint || true
 
       - save_cache:
           when: always
