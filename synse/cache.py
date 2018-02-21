@@ -341,6 +341,7 @@ def _build_metainfo_cache():
         except grpc.RpcError as ex:
             failures[name] = ex
             logger.warning(gettext('Failed to get metainfo for plugin: {}').format(name))
+            logger.warning(ex)
 
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.

@@ -36,6 +36,10 @@ function main {
   # run the tests and capture the test results
   run_test "$1.circleci.yml"
   docker cp synse-server:/code/results/. /tmp/test-results || true
+
+  # copy out the tox data for caching
+  mkdir -p .tox/$1 || true
+  docker cp synse-server:/code/.tox/$1/. .tox/$1 || true
 }
 
 

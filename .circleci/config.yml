@@ -14,7 +14,9 @@ jobs:
           version: 17.06.0-ce
 
       - restore_cache:
-          key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          keys:
+            - v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+            - v1.2-tox-test-cache- # used if checksum fails
 
       - run:
           name: Unit Tests
@@ -23,9 +25,14 @@ jobs:
 
       - save_cache:
           when: always
-          key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          key: v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
-            - .tox
+            - .tox/unit
+
+      - restore_cache:
+          keys:
+            - v2.3-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+            - v2.3-tox-lint-cache- # used if checksum fails
 
       - run:
           name: Lint
@@ -34,9 +41,9 @@ jobs:
 
       - save_cache:
           when: always
-          key: tox-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          key: v2.3-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
-            - .tox
+            - .tox/lint
 
       - store_artifacts:
           path: /tmp/
