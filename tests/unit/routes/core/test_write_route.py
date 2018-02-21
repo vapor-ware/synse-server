@@ -49,8 +49,8 @@ async def test_synse_write_route(mock_write, no_pretty_json):
     expected = '{"r":"rack-1","b":"vec","d":"123456"}'
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == expected.encode('ascii')
     assert result.status == 200
+    assert result.body == expected.encode('ascii')
 
 
 @pytest.mark.asyncio
@@ -96,8 +96,8 @@ async def test_synse_write_route_partial_json_ok_1(mock_write, no_pretty_json):
     expected = '{"r":"rack-1","b":"vec","d":"123456"}'
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == expected.encode('ascii')
     assert result.status == 200
+    assert result.body == expected.encode('ascii')
 
 
 @pytest.mark.asyncio
@@ -115,5 +115,5 @@ async def test_synse_write_route_partial_json_ok_2(mock_write, no_pretty_json):
     expected = '{"r":"rack-1","b":"vec","d":"123456"}'
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == expected.encode('ascii')
     assert result.status == 200
+    assert result.body == expected.encode('ascii')
