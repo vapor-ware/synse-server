@@ -3,7 +3,6 @@
 
 import time
 
-import pytest
 import requests
 
 from synse import __version__, errors
@@ -48,24 +47,14 @@ def test_config():
 
 def test_plugins():
     """Get all configured plugins"""
-    # Only after hitting /scan endpoint do plugins start to register
-    # Should expect no data in the first request
-    plugins_1st_req = requests.get('{}/plugins'.format(core_blueprint))
-    assert plugins_1st_req.status_code == 200
+    # The /plugins endpoint should register plugins, so we expect the emulator
+    # plugin to exist.
+    req = requests.get('{}/plugins'.format(core_blueprint))
+    assert req.status_code == 200
 
-    assert len(plugins_1st_req.json()) == 0
+    assert len(req.json()) == 1
 
-    # Make a scan request and check for the second plugins request
-    # This time, it should return all the configured plugins
-    scan_req = requests.get('{}/scan'.format(core_blueprint))
-    assert scan_req.status_code == 200 
-
-    plugins_2nd_req = requests.get('{}/plugins'.format(core_blueprint))
-    assert plugins_2nd_req.status_code == 200
-
-    assert len(plugins_2nd_req.json()) != 0
-    
-    for plugin in plugins_2nd_req.json():
+    for plugin in req.json():
         assert 'name' in plugin
         assert 'network' in plugin
         assert 'address' in plugin
@@ -676,7 +665,7 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         # 1 valid value after 1 invalid value
         'state_invalid_valid': 'state=invalid&state=on',
         'color_invalid_valid': 'color=invalid&color=FFFFFF',
-        'state_invalid_valid': 'blink=invalid&blink=steady'
+        'blink_invalid_valid': 'blink=invalid&blink=steady'
     }
 
     # Options that return like read requests
@@ -684,8 +673,8 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         'absence_key': '',
         'invalid_key': 'invalid',
         'absence_state_value': 'state=',
-        'absence_state_value': 'color=',
-        'absence_state_value': 'blink=',
+        'absence_color_value': 'color=',
+        'absence_blink_value': 'blink=',
         'absence_state_value_no_equal_sign': 'state',
         'absence_color_value_no_equal_sign': 'color',
         'absence_blink_value_no_equal_sign': 'blink',
