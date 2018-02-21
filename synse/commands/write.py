@@ -37,9 +37,18 @@ async def write(rack, board, device, data):
     # and/or 'raw' field. here, we convert it to the appropriate modeling for
     # transport to the plugin.
     action = data.get('action')
+    if not isinstance(action, str):
+        raise errors.InvalidArgumentsError(
+            gettext('"action" value must be a string, but was {}'.format(type(action)))
+        )
+
     raw = data.get('raw')
     if raw is not None:
-        # raw will be a string - we need to convert to bytes
+        # raw should be a string - we need to convert to bytes
+        if not isinstance(raw, str):
+            raise errors.InvalidArgumentsError(
+                gettext('"raw" value must be a string, but was {}'.format(type(raw)))
+            )
         raw = [str.encode(raw)]
 
     wd = WriteData(action=action, raw=raw)

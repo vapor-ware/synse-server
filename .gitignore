@@ -48,6 +48,7 @@ coverage.xml
 results/
 prof/
 *.log
+.pytest_cache/
 
 # Flask stuff:
 instance/
@@ -70,7 +71,6 @@ celerybeat-schedule
 venv/
 ENV/
 
-*.pyc
 .vagrant
 .idea
 .DS_Store
