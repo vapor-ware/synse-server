@@ -2,16 +2,20 @@ version: 2
 jobs:
   build:
     docker:
-      - image: vaporio/build-base:68a4171
+      - image: vaporio/build-base
     working_directory: ~/code
 
     steps:
       - checkout
 
       - setup_remote_docker:
-          reusable: true
-          exclusive: false
-          version: 17.06.0-ce
+
+      - run:
+          name: Build Images
+          command: |
+            make build
+            docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
+            docker push vaporio/synse-server
 
       - restore_cache:
           keys:
