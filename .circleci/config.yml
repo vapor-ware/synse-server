@@ -18,7 +18,7 @@ jobs:
       - run:
           name: Build Images
           command: |
-            make build
+            make docker
             docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
             docker push vaporio/synse-server
 
