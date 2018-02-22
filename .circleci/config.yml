@@ -8,7 +8,12 @@ jobs:
     steps:
       - checkout
 
-      - setup_remote_docker:
+      - setup_remote_docker
+
+      - restore_cache:
+          keys:
+            - v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+            - v1.2-tox-test-cache- # used if checksum fails
 
       - run:
           name: Build Images
@@ -16,11 +21,6 @@ jobs:
             make build
             docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
             docker push vaporio/synse-server
-
-      - restore_cache:
-          keys:
-            - v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
-            - v1.2-tox-test-cache- # used if checksum fails
 
       - run:
           name: Unit Tests
