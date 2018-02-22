@@ -1,6 +1,6 @@
 
 PKG_NAME := synse
-IMG_NAME := vaporio/synse-server2
+IMG_NAME := vaporio/synse-server
 PKG_VER := $(shell python synse/__init__.py)
 export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
