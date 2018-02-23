@@ -3,75 +3,43 @@
 
 import copy
 import os
-import shutil
 
 import pytest
 import yaml
 
 from synse import config
+from tests import data_dir
 
 
 @pytest.fixture()
 def json_config():
     """Create a JSON file for configuration."""
-    if not os.path.isdir('_tmp'):
-        os.mkdir('_tmp')
-
-    cfg_file = '_tmp/config.json'
+    cfg_file = os.path.join(data_dir, 'config.json')
     with open(cfg_file, 'w') as f:
         f.write('{}')
-
-    yield cfg_file
-
-    if os.path.isdir('_tmp'):
-        shutil.rmtree('_tmp')
-
-
-@pytest.fixture()
-def clear_config():
-    """Reset options to an empty dictionary"""
-    yield
-    config.options = {}
-
-
-@pytest.fixture()
-def clear_environ():
-    """Remove test data put in environment variables."""
-    yield
-    for k, _ in os.environ.items():
-        if k.startswith('SYNSE_'):
-            del os.environ[k]
+    return cfg_file
 
 
 @pytest.fixture()
 def set_test_config():
     """Fixture to set a test configuration YAML"""
-    config = {
+    cfg = {
         'pretty_json': True,
         'logging': 'debug'
     }
 
-    if not os.path.isdir('_tmp'):
-        os.mkdir('_tmp')
-
-    cfg_file = '_tmp/config.yml'
+    old = config.DEFAULT_CONFIG_PATH
+    cfg_file = os.path.join(data_dir, 'config.yml')
+    config.DEFAULT_CONFIG_PATH = cfg_file
     with open(cfg_file, 'w') as f:
-        yaml.dump(config, f)
-
-    _old_env = os.environ.get('SYNSE_CONFIG')
-    os.environ['SYNSE_CONFIG'] = cfg_file
+        yaml.dump(cfg, f)
 
     yield
 
-    if _old_env:
-        os.environ['SYNSE_CONFIG'] = _old_env
-    else:
-        del os.environ['SYNSE_CONFIG']
-
-    shutil.rmtree('_tmp')
+    config.DEFAULT_CONFIG_PATH = old
 
 
-def test_load_default_configs(clear_config):
+def test_load_default_configs():
     """Load defaults configurations"""
     assert len(config.options) == 0
 
@@ -112,7 +80,7 @@ def test_parse_user_configs_unsupported_ext(json_config):
         config.parse_user_configs()
 
 
-def test_parse_user_configs_default_path_yml_ext(set_test_config, clear_config):
+def test_parse_user_configs_default_path_yml_ext(set_test_config):
     """Parse user configurations using a .yml default configuration file path"""
     assert len(config.options) == 0
 
@@ -132,7 +100,7 @@ def test_parse_user_configs_default_path_yml_ext(set_test_config, clear_config):
     assert config.options.get('logging') == 'debug'
 
 
-def test_parse_user_configs_default_path_yaml_ext(tmpdir, clear_config):
+def test_parse_user_configs_default_path_yaml_ext(tmpdir):
     """Parse user configurations using a .yml default configuration file path"""
     assert len(config.options) == 0
 
@@ -156,7 +124,7 @@ def test_parse_user_configs_default_path_yaml_ext(tmpdir, clear_config):
     assert config.options == expected_configs
 
 
-def test_parse_user_configs_custom_path_yml_ext(tmpdir, clear_environ, clear_config):
+def test_parse_user_configs_custom_path_yml_ext(tmpdir):
     """Parse user configurations using a .yml custom configuration file path"""
     assert len(config.options) == 0
 
@@ -174,7 +142,7 @@ def test_parse_user_configs_custom_path_yml_ext(tmpdir, clear_environ, clear_con
     assert config.options.get('foo') == 'foobar'
 
 
-def test_parse_user_configs_custom_path_yaml_ext(tmpdir, clear_environ, clear_config):
+def test_parse_user_configs_custom_path_yaml_ext(tmpdir):
     """Parse user configurations using a .yaml custom configuration file path"""
     assert len(config.options) == 0
 
@@ -192,7 +160,7 @@ def test_parse_user_configs_custom_path_yaml_ext(tmpdir, clear_environ, clear_co
     assert config.options.get('foo') == 'foobar'
 
 
-def test_parse_env_vars_str(clear_environ, clear_config):
+def test_parse_env_vars_str():
     """Parse a string-type environment variable"""
     assert len(config.options) == 0
 
@@ -204,7 +172,7 @@ def test_parse_env_vars_str(clear_environ, clear_config):
     assert config.options.get('foo') == 'foobar'
 
 
-def test_parse_env_vars_int(clear_environ, clear_config):
+def test_parse_env_vars_int():
     """Parse an integer-type environment variable"""
     assert len(config.options) == 0
 
@@ -229,7 +197,7 @@ def test_parse_env_vars_int(clear_environ, clear_config):
     assert config.options.get('cache').get('meta').get('ttl') == 101
 
 
-def test_parse_env_vars_bool(clear_environ, clear_config):
+def test_parse_env_vars_bool():
     """Parse a boolean-type environment variable"""
     assert len(config.options) == 0
 
@@ -245,7 +213,7 @@ def test_parse_env_vars_bool(clear_environ, clear_config):
     assert config.options.get('foo') is False
 
 
-def test_parse_env_vars_nested(clear_environ, clear_config):
+def test_parse_env_vars_nested():
     """Parse an environment variable using a nested key"""
     assert len(config.options) == 0
 
@@ -264,7 +232,7 @@ def test_parse_env_vars_nested(clear_environ, clear_config):
     assert config.options.get('one').get('two').get('three') == 'bar'
 
 
-def test_parse_env_vars_config_file(tmpdir, clear_environ, clear_config):
+def test_parse_env_vars_config_file(tmpdir):
     """Parse an environment variable with a configuration file path"""
     assert len(config.options) == 0
 
@@ -285,18 +253,16 @@ def test_parse_env_vars_config_file(tmpdir, clear_environ, clear_config):
     assert config.options.get('foo') == 'foobar'
 
 
-def test_load_no_env(clear_environ, clear_config):
+def test_load_no_env():
     """Load all configurations without setting any environment variable"""
     assert len(config.options) == 0
-
     config.load()
     assert len(config.options) != 0
 
 
-def test_load_env(clear_environ, clear_config):
-    """Load allconfigurations while setting a test environment variable"""
+def test_load_env():
+    """Load all configurations while setting a test environment variable"""
     assert len(config.options) == 0
-
     config.options['foo'] = 'bar'
     assert config.options.get('foo') == 'bar'
 
@@ -417,7 +383,7 @@ def test_set_value_type_int():
     assert config.set_value_type('cache', '10') == 10
 
 
-def test_set_normal(clear_config):
+def test_set_normal():
     """Set a value for a normal/non-nested key"""
     assert len(config.options) == 0
 
@@ -428,7 +394,7 @@ def test_set_normal(clear_config):
     assert config.options.get('foo') == 'foo'
 
 
-def test_set_nested_key(clear_config):
+def test_set_nested_key():
     """Set a value for a nested key"""
     assert len(config.options) == 0
 

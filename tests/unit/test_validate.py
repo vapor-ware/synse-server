@@ -57,13 +57,6 @@ def patch_metainfo(monkeypatch):
     return patch_metainfo
 
 
-@pytest.fixture()
-async def clear_caches():
-    """Fixture to clear all caches before a test starts."""
-    await cache.clear_all_meta_caches()
-    await cache.clear_cache(cache.NS_TRANSACTION)
-
-
 @pytest.mark.asyncio
 async def test_validate_device_type(patch_metainfo, clear_caches):
     """Test successfully validating a device."""
@@ -78,7 +71,7 @@ async def test_validate_device_type(patch_metainfo, clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_validate_device_type_no_device(plugin_dir):
+async def test_validate_device_type_no_device():
     """Test validating a device when the specified device doesn't exist."""
     with pytest.raises(errors.DeviceNotFoundError):
         await validate.validate_device_type('thermistor', 'foo', 'bar', 'baz')

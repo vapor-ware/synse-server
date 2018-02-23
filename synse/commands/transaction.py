@@ -19,6 +19,11 @@ async def check_transaction(transaction_id):
     """
 
     transaction = await cache.get_transaction(transaction_id)
+    if not transaction:
+        raise errors.TransactionNotFoundError(
+            gettext('Transaction with id "{}" not found').format(transaction_id)
+        )
+
     plugin_name = transaction.get('plugin')
     context = transaction.get('context')
 

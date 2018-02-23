@@ -1,45 +1,22 @@
-"""Test the 'synse.routes.core' Synse Server module's read route."""
+"""Test the 'synse.routes.core' module's read route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
-import ujson
-
-from synse import errors, factory
+from synse import errors
 from synse.version import __api_version__
+from tests import utils
 
 invalid_read_url = '/synse/{}/read/invalid-rack/invalid-board/invalid-device'.format(__api_version__)
-
-
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
 
 
 def test_read_endpoint_invalid(app):
     """Test getting a invalid read response.
 
-    Details:
-        In this case, rack, board, device are invalid.
-        Since the rack is not valid in the first place,
-        there exists no board or device for it.
-        However, instead of returning error RACK_NOT_FOUND,
-        should return DEVICE_NOT_FOUND.
+    We get a DEVICE_NOT_FOUND error because the rack, board, and
+    device are used to make a composite ID for the device. If any
+    one component is wrong, the ID composite device ID is wrong.
     """
     _, response = app.test_client.get(invalid_read_url)
-
-    assert response.status == 500
-
-    data = ujson.loads(response.text)
-
-    assert 'http_code' in data
-    assert 'error_id' in data
-    assert 'description' in data
-    assert 'timestamp' in data
-    assert 'context' in data
-
-    assert data['http_code'] == 500
-    assert data['error_id'] == errors.DEVICE_NOT_FOUND
+    utils.test_error_json(response, errors.DEVICE_NOT_FOUND)
 
 
 def test_read_endpoint_post_not_allowed(app):

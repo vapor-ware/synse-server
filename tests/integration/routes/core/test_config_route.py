@@ -1,34 +1,19 @@
-"""Test the 'synse.routes.core' Synse Server module's config route."""
+"""Test the 'synse.routes.core' module's config route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
-from synse import config, factory
 from synse.version import __api_version__
 
 config_url = '/synse/{}/config'.format(__api_version__)
 
 
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
-
-
 def test_config_endpoint_ok(app):
-    """Test getting a good config response.
-
-    Details:
-        These are the final configurations for the application.
-        Check one by one to to make sure it return the right value.
-    """
+    """Get the Synse Server configuration."""
     _, response = app.test_client.get(config_url)
-
     assert response.status == 200
 
     data = ujson.loads(response.text)
-
     assert 'locale' in data
     assert 'pretty_json' in data
     assert 'logging' in data

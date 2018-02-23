@@ -1,16 +1,9 @@
 """Test the 'synse.factory' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
 from synse import config, errors, factory
-
-
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
 
 
 def test_make_app():

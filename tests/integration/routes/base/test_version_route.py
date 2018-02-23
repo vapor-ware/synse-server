@@ -1,28 +1,19 @@
-"""Test the 'synse.routes.base' Synse Server module's version route."""
+"""Test the 'synse.routes.base' module's version route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
-from synse import factory, version
+from synse import version
 
 version_url = '/synse/version'
-
-
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
 
 
 def test_version_endpoint_ok(app):
     """Test getting a good version response."""
     _, response = app.test_client.get(version_url)
-
     assert response.status == 200
 
     data = ujson.loads(response.text)
-
     assert 'version' in data
     assert 'api_version' in data
 
