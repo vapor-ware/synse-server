@@ -238,6 +238,9 @@
                     <a href="#config" class="toc-h2 toc-link" data-title="config">Config</a>
                   </li>
                   <li>
+                    <a href="#plugins" class="toc-h2 toc-link" data-title="plugins">Plugins</a>
+                  </li>
+                  <li>
                     <a href="#scan" class="toc-h2 toc-link" data-title="scan">Scan</a>
                   </li>
                   <li>
@@ -257,15 +260,6 @@
                   </li>
                   <li>
                     <a href="#fan" class="toc-h2 toc-link" data-title="fan">Fan</a>
-                  </li>
-                  <li>
-                    <a href="#boot-target" class="toc-h2 toc-link" data-title="boot-target">Boot Target</a>
-                  </li>
-                  <li>
-                    <a href="#power" class="toc-h2 toc-link" data-title="power">Power</a>
-                  </li>
-                  <li>
-                    <a href="#lock" class="toc-h2 toc-link" data-title="lock">Lock</a>
                   </li>
               </ul>
           </li>
@@ -291,7 +285,7 @@ information, and scan for configured devices through a curl-able interface.</p>
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 <p>Synse Server will return a JSON response with 500 and 404 errors. This JSON is used to provide
-context around the error. </p>
+context around the error.</p>
 
 <p>An example of a 500 response error JSON is provided here. The fields for the error response
 are:</p>
@@ -418,7 +412,7 @@ are:</p>
 
 <p>If the endpoint is reachable (e.g. if Synse Server is up and ready), this will return a 200 response
 with the described JSON response. If the test endpoint is unreachable or otherwise fails, it will return
-a 500 response. The test endpoint does not have any internal dependencies, so a failure would indicate 
+a 500 response. The test endpoint does not have any internal dependencies, so a failure would indicate
 Synse Server not being up and serving.</p>
 <h3 id='http-request'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/test</code></p>
@@ -452,7 +446,7 @@ Synse Server not being up and serving.</p>
 </span><span class="p">}</span><span class="w">
 
 </span></code></pre>
-<p>Get the version info of the Synse Server instance. The API version provided by this endpoint 
+<p>Get the version info of the Synse Server instance. The API version provided by this endpoint
 should be used in subsequent requests.</p>
 <h3 id='http-request-2'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/version</code></p>
@@ -500,7 +494,7 @@ should be used in subsequent requests.</p>
 <p>Get the configuration for the Synse Server instance.</p>
 
 <p>This endpoint is added as a convenience to make it easier to determine what configuration Synse Server
-is running with. The Synse Server configuration can be made up of default, file, and environment 
+is running with. The Synse Server configuration can be made up of default, file, and environment
 configurations. This endpoint provides the final joined configuration.</p>
 <h3 id='http-request-3'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/config</code></p>
@@ -510,6 +504,49 @@ unified config is the three layers of merged configuration (default, file, envir
 
 <p>See <a href="#">the Synse Server configuration documentation</a> for more info on how to configure Synse Server
 as well as what the JSON response for this endpoint will look like.</p>
+<h2 id='plugins'>Plugins</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/plugins"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/plugins'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON would be structured as:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"emulator"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"network"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unix"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/tmp/synse/procs/emulator.sock"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre>
+<p>Get all the plugins that are currently registered with Synse Server. </p>
+
+<p>This endpoint is added as a convenience to make it easier to determine what plugins Synse Server
+is running with. The Synse Server plugins&#39; configurations can be made up of default, file, and environment
+configurations. This endpoint provides the final configured plugins.</p>
+<h3 id='http-request-4'>HTTP Request</h3>
+<p><code>GET http://host:5000/synse/2.0/plugins</code></p>
+<h3 id='response-2'>Response</h3>
+<table><thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>name</td>
+<td>The name of plugin</td>
+</tr>
+<tr>
+<td>network</td>
+<td>The plugin&#39;s network can either be a unix socket for communication or TCP</td>
+</tr>
+<tr>
+<td>address</td>
+<td>The configuration filepath of the plugin</td>
+</tr>
+</tbody></table>
 <h2 id='scan'>Scan</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/scan"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
@@ -575,7 +612,7 @@ locations, which are made known to Synse Server by each of the configured plugin
 <code>scan</code> response provides a high-level view of what exists and how to route to it. This routing
 information (e.g. rack ID, board ID, device ID) can be used in subsequent commands such as <a href="#read">read</a>,
 <a href="#write">write</a>, and <a href="#info">info</a>.</p>
-<h3 id='http-request-4'>HTTP Request</h3>
+<h3 id='http-request-5'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/scan</code></p>
 <h3 id='query-parameters'>Query Parameters</h3>
 <table><thead>
@@ -685,7 +722,7 @@ a device is defined at the plugin level, and may differ from plugin to plugin or
 
 <p>If a read is not supported, a 500 error will be returned with a JSON response specifying the cause
 as reads not permitted.</p>
-<h3 id='http-request-5'>HTTP Request</h3>
+<h3 id='http-request-6'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/read/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters'>URI Parameters</h3>
 <table><thead>
@@ -789,7 +826,7 @@ a device is defined at the plugin level, and may differ from plugin to plugin or
 
 <p>If a write is not supported, a 500 error will be returned with a JSON response specifying the cause
 as writes not permitted.</p>
-<h3 id='http-request-6'>HTTP Request</h3>
+<h3 id='http-request-7'>HTTP Request</h3>
 <p><code>POST http://host:5000/synse/2.0/write/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-2'>URI Parameters</h3>
 <table><thead>
@@ -895,7 +932,7 @@ the <code>action</code> should be the attribute to set and <code>raw</code> shou
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 <p>Check the state and status of a write transaction.</p>
-<h3 id='http-request-7'>HTTP Request</h3>
+<h3 id='http-request-8'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/transaction/{transaction id}</code></p>
 <h3 id='uri-parameters-3'>URI Parameters</h3>
 <table><thead>
@@ -1037,7 +1074,7 @@ a rack-level request:</p>
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 <p>Get the available information for the specified resource.</p>
-<h3 id='http-request-8'>HTTP Request</h3>
+<h3 id='http-request-9'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/info/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-4'>URI Parameters</h3>
 <table><thead>
@@ -1227,7 +1264,7 @@ that the given query parameter values (if any) are permissible.</p>
 
 <p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.</p>
-<h3 id='http-request-9'>HTTP Request</h3>
+<h3 id='http-request-10'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/led/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-5'>URI Parameters</h3>
 <table><thead>
@@ -1338,7 +1375,7 @@ that the given query parameter values (if any) are permissible.</p>
 
 <p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
 query parameters are specified, the endpoint will write to the specified device.</p>
-<h3 id='http-request-10'>HTTP Request</h3>
+<h3 id='http-request-11'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/fan/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-6'>URI Parameters</h3>
 <table><thead>
@@ -1382,249 +1419,6 @@ query parameters are specified, the endpoint will write to the specified device.
  corresponding actions. As a result, writing to some <i>fan</i> instances may result in error.
 </aside>
 <h3 id='response-fields-9'>Response Fields</h3>
-<p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
-<h2 id='boot-target'>Boot Target</h2>
-<blockquote>
-<p>If no query parameters are specified, this will <strong>read</strong> from the system device.</p>
-</blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/boot_target/rack-1/vec/--"</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/boot_target/rack-1/vec/--'</span><span class="p">)</span>
-</code></pre>
-<blockquote>
-<p>The response JSON will be the same as read response:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
-</span></code></pre>
-<blockquote>
-<p>If any valid query parameters are specified, this will <strong>write</strong> to the system device.</p>
-</blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe"</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/boot_target/rack-1/vec/--?target=pxe'</span><span class="p">)</span>
-</code></pre>
-<blockquote>
-<p>The response JSON will be the same as a write response:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
-</span></code></pre>
-<p>Read from or write to a known boot target (system) device.</p>
-
-<p>While a system device can be read directly via the <a href="#read">read</a> route or written to directly from the
-<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
-the appropriate plugin handler. In particular, it checks if the specified device is a system device and
-that the given query parameter values (if any) are permissible.</p>
-
-<p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
-query parameters are specified, the endpoint will write to the specified device.</p>
-<h3 id='http-request-11'>HTTP Request</h3>
-<p><code>GET http://host:5000/synse/2.0/boot_target/{rack}/{board}/{device}</code></p>
-<h3 id='uri-parameters-7'>URI Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>rack</td>
-<td>yes</td>
-<td>The id of the rack containing the device to read from/write to.</td>
-</tr>
-<tr>
-<td>board</td>
-<td>yes</td>
-<td>The id of the board containing the device to read from/write to.</td>
-</tr>
-<tr>
-<td>device</td>
-<td>yes</td>
-<td>The id of the device to read from/write to.</td>
-</tr>
-</tbody></table>
-<h3 id='query-parameters-4'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>target</td>
-<td>The boot target to set. <em>Valid values:</em> (<code>pxe</code>,<code>hdd</code>)</td>
-</tr>
-</tbody></table>
-
-<aside class="notice">
- While Synse Server supports the listed Query Parameters, not all devices will support the 
- corresponding actions. As a result, writing to some <i>system</i> instances may result in error.
-</aside>
-<h3 id='response-fields-10'>Response Fields</h3>
-<p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
-<h2 id='power'>Power</h2>
-<blockquote>
-<p>If no query parameters are specified, this will <strong>read</strong> from the power device.</p>
-</blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/power/rack-1/vec/--"</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/power/rack-1/vec/--'</span><span class="p">)</span>
-</code></pre>
-<blockquote>
-<p>The response JSON will be the same as read response:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
-</span></code></pre>
-<blockquote>
-<p>If any valid query parameters are specified, this will <strong>write</strong> to the power device.</p>
-</blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/power/rack-1/vec/--?state=cycle"</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/power/rack-1/vec/--?state=cycle'</span><span class="p">)</span>
-</code></pre>
-<blockquote>
-<p>The response JSON will be the same as a write response:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
-</span></code></pre>
-<p>Read from or write to a known power device.</p>
-
-<p>While a power device can be read directly via the <a href="#read">read</a> route or written to directly from the
-<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
-the appropriate plugin handler. In particular, it checks if the specified device is a power device and
-that the given query parameter values (if any) are permissible.</p>
-
-<p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
-query parameters are specified, the endpoint will write to the specified device.</p>
-<h3 id='http-request-12'>HTTP Request</h3>
-<p><code>GET http://host:5000/synse/2.0/power/{rack}/{board}/{device}</code></p>
-<h3 id='uri-parameters-8'>URI Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>rack</td>
-<td>yes</td>
-<td>The id of the rack containing the device to read from/write to.</td>
-</tr>
-<tr>
-<td>board</td>
-<td>yes</td>
-<td>The id of the board containing the device to read from/write to.</td>
-</tr>
-<tr>
-<td>device</td>
-<td>yes</td>
-<td>The id of the device to read from/write to.</td>
-</tr>
-</tbody></table>
-<h3 id='query-parameters-5'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>state</td>
-<td>The power state to set. <em>Valid values:</em> (<code>on</code>,<code>off</code>,<code>cycle</code>)</td>
-</tr>
-</tbody></table>
-
-<aside class="notice">
- While Synse Server supports the listed Query Parameters, not all devices will support the 
- corresponding actions. As a result, writing to some <i>power</i> instances may result in error.
-</aside>
-<h3 id='response-fields-11'>Response Fields</h3>
-<p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
-<h2 id='lock'>Lock</h2>
-<blockquote>
-<p>If no query parameters are specified, this will <strong>read</strong> from the lock device.</p>
-</blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/lock/rack-1/vec/--"</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/lock/rack-1/vec/--'</span><span class="p">)</span>
-</code></pre>
-<blockquote>
-<p>The response JSON will be the same as read response:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
-</span></code></pre>
-<blockquote>
-<p>If any valid query parameters are specified, this will <strong>write</strong> to the lock device.</p>
-</blockquote>
-<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/lock/rack-1/vec/--?state=lock"</span>
-</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
-
-<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/lock/rack-1/vec/--?state=lock'</span><span class="p">)</span>
-</code></pre>
-<blockquote>
-<p>The response JSON will be the same as a write response:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="err">TODO</span><span class="w">
-</span></code></pre>
-<p>Read from or write to a known lock device.</p>
-
-<p>While a lock device can be read directly via the <a href="#read">read</a> route or written to directly from the
-<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
-the appropriate plugin handler. In particular, it checks if the specified device is a lock device and
-that the given query parameter values (if any) are permissible.</p>
-
-<p>If no query parameters are specified, this endpoint will read the specified device. If any number of valid
-query parameters are specified, the endpoint will write to the specified device.</p>
-<h3 id='http-request-13'>HTTP Request</h3>
-<p><code>GET http://host:5000/synse/2.0/lock/{rack}/{board}/{device}</code></p>
-<h3 id='uri-parameters-9'>URI Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>rack</td>
-<td>yes</td>
-<td>The id of the rack containing the device to read from/write to.</td>
-</tr>
-<tr>
-<td>board</td>
-<td>yes</td>
-<td>The id of the board containing the device to read from/write to.</td>
-</tr>
-<tr>
-<td>device</td>
-<td>yes</td>
-<td>The id of the device to read from/write to.</td>
-</tr>
-</tbody></table>
-<h3 id='query-parameters-6'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>state</td>
-<td>The lock state of the lock device. <em>Valid values:</em> (<code>lock</code>,<code>unlock</code>)</td>
-</tr>
-</tbody></table>
-
-<aside class="notice">
- While Synse Server supports the listed Query Parameters, not all devices will support the 
- corresponding actions. As a result, writing to some <i>lock</i> instances may result in error.
-</aside>
-<h3 id='response-fields-12'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 
       </div>
