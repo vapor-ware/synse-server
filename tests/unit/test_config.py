@@ -70,7 +70,7 @@ def test_load_default_configs(clear_config):
             }
         },
         'grpc': {
-            'timeout': 20
+            'timeout': 3
         }
     }
 
