@@ -8,4 +8,4 @@ services:
       dockerfile: dockerfile/test.dockerfile
     volumes:
       - ..:/code
-    command: bin/run_tests.sh unit
+    command: bin/run_tests.sh tests/unit

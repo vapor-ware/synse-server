@@ -6,19 +6,9 @@ import os
 import shutil
 
 import pytest
+import yaml
 
 from synse import config
-
-
-@pytest.fixture()
-def set_default_filepath():
-    """Set default configuration filepath for test environment
-    Note:
-        /synse/config/config.yml is the correct filepath for production environment,
-        not for test environment.
-    """
-    config.DEFAULT_CONFIG_PATH = '/code/config/config.yml'
-    yield
 
 
 @pytest.fixture()
@@ -51,6 +41,34 @@ def clear_environ():
     for k, _ in os.environ.items():
         if k.startswith('SYNSE_'):
             del os.environ[k]
+
+
+@pytest.fixture()
+def set_test_config():
+    """Fixture to set a test configuration YAML"""
+    config = {
+        'pretty_json': True,
+        'logging': 'debug'
+    }
+
+    if not os.path.isdir('_tmp'):
+        os.mkdir('_tmp')
+
+    cfg_file = '_tmp/config.yml'
+    with open(cfg_file, 'w') as f:
+        yaml.dump(config, f)
+
+    _old_env = os.environ.get('SYNSE_CONFIG')
+    os.environ['SYNSE_CONFIG'] = cfg_file
+
+    yield
+
+    if _old_env:
+        os.environ['SYNSE_CONFIG'] = _old_env
+    else:
+        del os.environ['SYNSE_CONFIG']
+
+    shutil.rmtree('_tmp')
 
 
 def test_load_default_configs(clear_config):
@@ -94,7 +112,7 @@ def test_parse_user_configs_unsupported_ext(json_config):
         config.parse_user_configs()
 
 
-def test_parse_user_configs_default_path_yml_ext(set_default_filepath, clear_config):
+def test_parse_user_configs_default_path_yml_ext(set_test_config, clear_config):
     """Parse user configurations using a .yml default configuration file path"""
     assert len(config.options) == 0
 
@@ -108,13 +126,10 @@ def test_parse_user_configs_default_path_yml_ext(set_default_filepath, clear_con
 
     config.parse_user_configs()
 
-    expected_configs = {
-        'pretty_json': True,
-        'logging': 'debug',
-    }
-
     assert len(config.options) != 0
-    assert config.options == expected_configs
+    # these values are set via the `set_test_config` fixture
+    assert config.options.get('pretty_json') is True
+    assert config.options.get('logging') == 'debug'
 
 
 def test_parse_user_configs_default_path_yaml_ext(tmpdir, clear_config):
@@ -270,7 +285,7 @@ def test_parse_env_vars_config_file(tmpdir, clear_environ, clear_config):
     assert config.options.get('foo') == 'foobar'
 
 
-def test_load_no_env(set_default_filepath, clear_environ, clear_config):
+def test_load_no_env(clear_environ, clear_config):
     """Load all configurations without setting any environment variable"""
     assert len(config.options) == 0
 
@@ -278,7 +293,7 @@ def test_load_no_env(set_default_filepath, clear_environ, clear_config):
     assert len(config.options) != 0
 
 
-def test_load_env(set_default_filepath, clear_environ, clear_config):
+def test_load_env(clear_environ, clear_config):
     """Load allconfigurations while setting a test environment variable"""
     assert len(config.options) == 0
 

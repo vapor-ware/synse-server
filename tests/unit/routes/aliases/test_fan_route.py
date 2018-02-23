@@ -77,7 +77,6 @@ async def test_synse_fan_read(mock_validate_device_type, mock_read, no_pretty_js
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip  # TODO - need to implement validation before we can test.
 async def test_synse_fan_write_invalid(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing fan speed with an invalid speed specified."""
 

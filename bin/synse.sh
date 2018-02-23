@@ -1,6 +1,6 @@
 #!/bin/bash
 # ---------------------------------------------------------------------
-# Copyright (C) 2015-17  Vapor IO
+# Copyright (C) 2015-18  Vapor IO
 #
 # This file is part of Synse.
 #

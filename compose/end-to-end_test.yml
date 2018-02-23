@@ -10,7 +10,7 @@ services:
       dockerfile: dockerfile/test.dockerfile
     volumes:
       - ..:/code
-    command: bin/run_tests.sh end-to-end
+    command: bin/run_tests.sh tests/end-to-end
 
   synse:
     container_name: synse
