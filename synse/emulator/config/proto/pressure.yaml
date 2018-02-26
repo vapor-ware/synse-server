@@ -1,0 +1,16 @@
+version: 1.0
+prototypes:
+  - type: differential_pressure
+    model: emul8-pressure
+    manufacturer: Vapor IO
+    protocol: emulator
+    output:
+      - type: pressure
+        data_type: float
+        unit:
+          name: Pascals
+          symbol: Pa
+        precision: 3
+        range:
+          min: 0
+          max: 100

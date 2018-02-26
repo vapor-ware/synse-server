@@ -1,0 +1,15 @@
+version: 1.0
+locations:
+  r1vec:
+    rack: rack-1
+    board: vec
+devices:
+  - type: differential_pressure
+    model: emul8-pressure
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Pressure Sensor 1
+      - id: "2"
+        location: r1vec
+        info: Synse Pressure Sensor 2

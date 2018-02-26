@@ -1,0 +1,12 @@
+version: 1.0
+locations:
+  r1vec:
+    rack: rack-1
+    board: vec
+devices:
+  - type: humidity
+    model: emul8-humidity
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Humidity Sensor
