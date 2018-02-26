@@ -1,28 +1,17 @@
-"""Test the 'synse.routes.base' Synse Server module's test route."""
+"""Test the 'synse.routes.base' module's test route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
-from synse import factory
-
 test_url = '/synse/test'
-
-
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
 
 
 def test_test_endpoint_ok(app):
     """Test getting a good test response."""
     _, response = app.test_client.get(test_url)
-
     assert response.status == 200
 
     data = ujson.loads(response.text)
-
     assert 'status' in data
     assert 'timestamp' in data
 

@@ -7,15 +7,6 @@ import pytest
 
 from synse import config, i18n
 
-# --- Helper Functions ---
-
-def change_config_locale(value):
-    """Helper method to change the locale key in synse.config.options.
-    """
-    config.options['locale'] = value
-
-
-# --- Mock Methods ---
 
 def mock_get_translator():
     """Used to replace i18n._get_translator().
@@ -23,8 +14,6 @@ def mock_get_translator():
     """
     return gettext.translation('', '', fallback=True)
 
-
-# --- Test Fixtures ---
 
 @pytest.fixture()
 def clean_i18n():
@@ -71,12 +60,12 @@ def test_i18n_init(clean_i18n):
 def test_get_language_none():
     """Tests that i18n._get_language() returns 'en_US' when config has None as locale key.
     """
-    change_config_locale(None)
+    config.options['locale'] = None
     assert i18n._get_language() == 'en_US'
 
 
 def test_get_language_str():
     """Tests that i18n._get_language() returns the correct config key.
     """
-    change_config_locale('this is a string')
+    config.options['locale'] = 'this is a string'
     assert i18n._get_language() == 'this is a string'

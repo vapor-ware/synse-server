@@ -2,7 +2,6 @@
 # pylint: disable=redefined-outer-name,unused-argument
 
 import os
-import shutil
 
 import aiocache
 import asynctest
@@ -10,7 +9,8 @@ import grpc
 import pytest
 from synse_plugin import api
 
-from synse import cache, config, const, errors, plugin
+from synse import cache, config, errors, plugin
+from tests import data_dir
 
 # -- Helper Methods ---
 
@@ -84,36 +84,13 @@ def patch_metainfo(monkeypatch):
 
 
 @pytest.fixture()
-async def clear_caches():
-    """Fixture to clear all caches before a test starts."""
-    await cache.clear_all_meta_caches()
-    await cache.clear_cache(cache.NS_TRANSACTION)
-
-
-@pytest.fixture()
 def plugin_context():
     """Fixture to setup and teardown the test context for creating plugins."""
-    # create paths that will be used by the plugins
-    if not os.path.isdir(const.SOCKET_DIR):
-        os.makedirs(const.SOCKET_DIR)
-
-    if not os.path.isdir('tmp'):
-        os.mkdir('tmp')
 
     # create dummy 'socket' files for the plugins
-    open('tmp/foo', 'w').close()
-    open('tmp/bar', 'w').close()
+    open(os.path.join(data_dir, 'foo'), 'w').close()
+    open(os.path.join(data_dir, 'bar'), 'w').close()
 
-    yield
-
-    # cleanup
-    plugin.Plugin.manager.plugins = {}
-
-    if os.path.isdir('tmp'):
-        shutil.rmtree('tmp')
-
-    if os.path.isdir(const.SOCKET_DIR):
-        shutil.rmtree(const.SOCKET_DIR)
 
 # --- Test Cases ---
 
@@ -257,7 +234,7 @@ async def test_get_device_meta_ok(patch_metainfo, clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_get_device_meta_not_found(clear_caches, plugin_dir):
+async def test_get_device_meta_not_found(clear_caches):
     """Get device metainfo when the specified device doesn't exist."""
 
     try:
@@ -271,7 +248,7 @@ async def test_get_metainfo_cache_ok(plugin_context, clear_caches):
     """Get the metainfo cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo
 
     meta = await cache.get_metainfo_cache()
@@ -285,7 +262,7 @@ async def test_get_metainfo_cache_empty(plugin_context, clear_caches):
     """Get the empty metainfo cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo_empty
 
     meta = await cache.get_metainfo_cache()
@@ -298,7 +275,7 @@ async def test_get_metainfo_cache_exist(plugin_context, clear_caches):
     """Get the existing metainfo cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo
 
     # this is the first time we ask for cache
@@ -321,7 +298,7 @@ async def test_get_metainfo_cache_total_failure(plugin_context, clear_caches):
     """Get the metainfo cache when all plugins fail to respond."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo_fail  # override to induce failure
 
     try:
@@ -335,10 +312,10 @@ async def test_get_metainfo_cache_partial_failure(plugin_context, clear_caches):
     """Get the metainfo cache when some plugins fail to respond."""
 
     # create & register new plugins
-    p = plugin.Plugin('bar', 'tmp/bar', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo
 
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('bar', 'localhost:9998', 'tcp')
     p.client.metainfo = mock_client_metainfo_fail  # override to induce failure
 
     meta = await cache.get_metainfo_cache()
@@ -367,7 +344,7 @@ async def test_get_scan_cache_empty(plugin_context, clear_caches):
     """Get the empty scan cache."""
 
     # create & register new plugin with empty metainfo cache
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo_empty
 
     meta_cache = await cache.get_metainfo_cache()
@@ -408,7 +385,7 @@ async def test_get_resource_info_cache_empty(plugin_context, clear_caches):
     """Get the empty info cache."""
 
     # create & register new plugin with empty metainfo cache
-    p = plugin.Plugin('foo', 'tmp/foo', 'unix')
+    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
     p.client.metainfo = mock_client_metainfo_empty
 
     meta_cache = await cache.get_metainfo_cache()

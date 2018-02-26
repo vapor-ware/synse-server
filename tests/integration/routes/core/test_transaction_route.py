@@ -1,29 +1,17 @@
-"""Test the 'synse.routes.core' Synse Server module's transaction route."""
+"""Test the 'synse.routes.core' module's transaction route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
-import ujson
-
-from synse import factory
+from synse import errors
 from synse.version import __api_version__
+from tests import utils
 
 invalid_transaction_url = '/synse/{}/transaction/invalid-id'.format(__api_version__)
-
-
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
 
 
 def test_transaction_endpoint_invalid(app):
     """Test getting a invalid transaction response."""
     _, response = app.test_client.get(invalid_transaction_url)
-
-    assert response.status == 500
-
-    # FIXME: Failed transaction id should return some kind of error message.
-    # Right now, it doesn't seem to have one
+    utils.test_error_json(response, errors.TRANSACTION_NOT_FOUND)
 
 
 def test_transaction_endpoint_post_not_allowed(app):

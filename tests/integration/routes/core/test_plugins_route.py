@@ -1,29 +1,20 @@
-"""Test the 'synse.routes.core' Synse Server module's plugin route."""
+"""Test the 'synse.routes.core' module's plugin route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
-from synse import factory
 from synse.version import __api_version__
 
 plugins_url = '/synse/{}/plugins'.format(__api_version__)
 
 
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
-
-
 def test_plugins_endpoint_ok(app):
     """Test getting a good plugins response."""
     _, response = app.test_client.get(plugins_url)
-
     assert response.status == 200
 
+    # since there is no plugin backend, we don't expect any plugins
     data = ujson.loads(response.text)
-
     assert len(data) == 0
 
 

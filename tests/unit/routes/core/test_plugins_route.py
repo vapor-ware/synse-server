@@ -6,7 +6,6 @@ import pytest
 from sanic.response import HTTPResponse
 
 import synse.commands
-from synse import config
 from synse.routes.core import plugins_route
 from synse.scheme.base_response import SynseResponse
 
@@ -24,12 +23,6 @@ def mock_plugins(monkeypatch):
     mock = asynctest.CoroutineMock(synse.commands.get_plugins, side_effect=mockreturn)
     monkeypatch.setattr(synse.commands, 'get_plugins', mock)
     return mock_plugins
-
-
-@pytest.fixture()
-def no_pretty_json():
-    """Fixture to ensure basic JSON responses."""
-    config.options['pretty_json'] = False
 
 
 @pytest.mark.asyncio

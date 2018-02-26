@@ -1,19 +1,13 @@
-"""Test the 'synse.routes.core' Synse Server module's write route."""
+"""Test the 'synse.routes.core' module's write route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
-from synse import errors, factory
+from synse import errors
 from synse.version import __api_version__
+from tests import utils
 
 invalid_write_url = '/synse/{}/write/invalid-rack/invalid-board/invalid-device'.format(__api_version__)
-
-
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
 
 
 def test_write_invalid_endpoint_valid_data(app):
@@ -52,19 +46,7 @@ def test_write_invalid_endpoint_valid_data(app):
 
     for option, payload in valid_post_data.items():
         _, response = app.test_client.post(invalid_write_url, data=ujson.dumps(payload))
-
-        assert response.status == 500
-
-        response_data = ujson.loads(response.text)
-
-        assert 'http_code' in response_data
-        assert 'error_id' in response_data
-        assert 'description' in response_data
-        assert 'timestamp' in response_data
-        assert 'context' in response_data
-
-        assert response_data['http_code'] == 500
-        assert response_data['error_id'] == errors.DEVICE_NOT_FOUND
+        utils.test_error_json(response, errors.DEVICE_NOT_FOUND)
 
 
 def test_write_invalid_endpoint_invalid_data(app):
@@ -84,19 +66,7 @@ def test_write_invalid_endpoint_invalid_data(app):
     
     for option, payload in invalid_post_data.items():
         _, response = app.test_client.post(invalid_write_url, data=ujson.dumps(payload))
-
-        assert response.status == 500
-
-        response_data = ujson.loads(response.text)
-
-        assert 'http_code' in response_data
-        assert 'error_id' in response_data
-        assert 'description' in response_data
-        assert 'timestamp' in response_data
-        assert 'context' in response_data
-
-        assert response_data['http_code'] == 500
-        assert response_data['error_id'] == errors.INVALID_ARGUMENTS
+        utils.test_error_json(response, errors.INVALID_ARGUMENTS)
 
 
 def test_write_endpoint_post_not_allowed(app):
