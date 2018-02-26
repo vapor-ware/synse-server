@@ -1,35 +1,121 @@
-<img src="https://github.com/vapor-ware/synse-server/raw/master/assets/logo.png" width=25% align=right>
+<p align="center"><img src="assets/logo.png" width="360"></p>
+<p align="center">
+    <a href="https://circleci.com/gh/vapor-ware/synse-server"><img src="https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield"></a>
+        
+<h1 align="center">Synse Server</h1>
+</p>
 
-# Synse Server 2.0 *DEV*
+<p align="center">An HTTP API for monitoring and control of physical and virtual devices.</p>
 
-NOTE: this is the development branch for synse-server v2.0. the architecture here
-is pretty different from the v1.X branches. **this branch is NOT intended to be merged
-into master here.** it is just meant to be a source-controlled place for development. 
-
-once it comes time to release v2, what will likely need to happen is this branch will
-get copied into the public synse server repo as a branch. that will probably be a bit
-of a headache, but once that is done and synse server v2.0 is live, then we will no
-longer have to maintain a public and private repo for synse server and life will be 
-much simpler.
 
 ## Overview
 
-Synse Server provides an API for monitoring and control of data center and IT
-equipment, including reading sensors and server power control - via numerous
-backend protocols such as IPMI, Redfish, SNMP, I2C, RS485, and PLC. The API is
-easy to integrate into third-party monitoring, management and orchestration
-providers. It provides a simple, curl-able interface for common and custom
-devops tasks.
+Synse Server provides a simple JSON API to monitor and control physical and virtual devices.
+It provides a uniform HTTP interface for back-end plugins implementing various protocols,
+such as RS485, I2C, and IPMI. The Synse Server API makes it easy to read from and write
+to devices, gather device meta-information, and scan for devices across multiple back-ends
+through a curl-able interface.
 
-The [CLI](cli) makes it even easier to see what's going on with your physical
-hardware. You can use it to do any kind of scripting required for your use cases.
+The [CLI][cli] makes it even easier to interact with Synse Server from the command line.
 
+A [GraphQL][graphql] service can be used to wrap the JSON API in a powerful query language
+that lets you perform aggregations/operations over multiple devices easily.
 
-If you're looking for an integration, check out [synse-prometheus](prometheus).
-You'll be able to put together complete monitoring and dashboard solution from
-the instructions there.
+If you're looking for an integration, check out [synse-prometheus][prometheus]. You'll be
+able to put together complete monitoring and dashboard solution from the instructions there.
 
 Additional documentation may be found on the [Docs][docs] site.
+
+### Architecture
+TODO - will need diagrams, will need a description of how plugins work/interface with
+Synse Server
+
+
+## Getting Started
+Synse Server is provided as a Docker image to make it easy to setup and deploy. Additionally,
+it is released as a Python package that you can install to run locally without Docker or to
+integrate into your application as you see fit. Below are the steps to get Synse Server and
+run it with its built-in emulator.
+
+### Docker
+1. Get the Docker image from [DockerHub][synse-dockerhub]
+
+    ```
+    docker pull vaporio/synse-server
+    ```
+    
+1. Run the container with the default configurations, enabling the emulator
+    
+    ```
+    docker run -d \
+        -p 5000:5000 \
+        --name synse \
+        vaporio/synse-server enable-emulator
+    ```
+
+1. Verify that Synse Server is up and running and reachable
+    
+    ```
+    $ curl http://localhost:5000/synse/test
+    {
+      "status": "ok",
+      "timestamp": "2018-02-26 16:58:07.844486"
+    }
+    ```
+
+1. Issue a `scan` command to list all of the devices known to Synse. The devices that
+   Synse Server interacts with are made available by the Synse Plugin(s) it is interfacing
+   with, which in this case is the [emulator][synse-emulator].
+   
+    ```
+    curl http://localhost:5000/synse/2.0/scan
+    ```
+
+### Python Package
+TODO
+
+
+## Configuration
+Synse Server 
+
+
+## Deploying with Plugins
+Deploying Synse Server with the emulator is pretty straightforward, as shown in the [Getting Started - Docker](#docker)
+section. In practice, running Synse Server with plugins is somewhat more complex because all
+other plugins live external to the Synse Server image.
+
+> **Side Note**
+> 
+> While generally not recommended, you can build a custom Synse Server image that
+> includes a plugin binary to have them run in the same container. This is what is done
+> with the emulator plugin and is done more out of convenience than necessity.
+
+The [configuration](#configuration) section contains some information on how to register plugins
+with Synse Server. The [Synse SDK][synse-sdk] provides information on the configurations needed
+at the plugin level. An [example deployment][example-deployment] can be found in the emulator
+repository that shows how to run Synse Server with an external emulator container both via
+TCP and UNIX socket.
+
+## Development
+
+### Building
+
+### Testing
+
+### Linting
+
+
+## Contributing
+
+
+## License
+Synse is released under GPLv2 - see [LICENSE](LICENSE) for more information.
+
+
+
+
+
+
 
 
 ## Building
@@ -159,10 +245,10 @@ For example: `SYNSE_CONFIG=/tmp/cfg.yml`
 
 
 ## License
-Synse is released under GPLv2 - see LICENSE for more information.
+Synse is released under GPLv2 - see [LICENSE](LICENSE) for more information.
 
 
-[cli]: https://github.com/vapor-ware/synse-cli
 [docs]: http://opendcre.com
-[license]: https://github.com/vapor-ware/synse-server/blob/master/LICENSE
+[cli]: https://github.com/vapor-ware/synse-cli
 [prometheus]: https://github.com/vapor-ware/synse-prometheus
+[graphql]: https://github.com/vapor-ware/synse-graphql
