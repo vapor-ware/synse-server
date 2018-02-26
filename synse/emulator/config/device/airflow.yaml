@@ -1,0 +1,12 @@
+version: 1.0
+locations:
+  r1vec:
+    rack: rack-1
+    board: vec
+devices:
+  - type: airflow
+    model: emul8-air
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Airflow Sensor

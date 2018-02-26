@@ -1,0 +1,25 @@
+version: 1.0
+prototypes:
+  - type: humidity
+    model: emul8-humidity
+    manufacturer: Vapor IO
+    protocol: emulator
+    output:
+      - type: humidity
+        data_type: float
+        unit:
+          name: percent humidity
+          symbol: "%"
+        precision: 3
+        range:
+          min: 0
+          max: 100
+      - type: temperature
+        data_type: float
+        unit:
+          name: celsius
+          symbol: C
+        precision: 3
+        range:
+          min: 0
+          max: 100
