@@ -3,7 +3,6 @@
 
 import os
 import shutil
-import socket
 
 import pytest
 
@@ -14,31 +13,16 @@ from synse.scheme.plugins import PluginsResponse
 
 @pytest.fixture()
 def mock_plugin():
-    """Convenience fixture to create a test plugin."""
-    # create a temp dir to hold the socket
-    if not os.path.isdir('tmp'):
-        os.mkdir('tmp')
-
-    # create the socket
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind('tmp/test-plug')
-
+    """Convenience fixture to create a test plugin. We create a TCP
+    based plugin for ease of testing.
+    """
     p = plugin.Plugin(
         name='test-plug',
-        address='tmp/test-plug',
-        mode='unix'
+        address='localhost:9999',
+        mode='tcp'
     )
 
     yield p
-
-    sock.shutdown(2)
-    sock.close()
-    try:
-        os.unlink('tmp/test-plug')
-    except OSError:
-        if os.path.exists('tmp/test-plug'):
-            raise
 
 
 @pytest.fixture()
@@ -93,7 +77,7 @@ async def test_plugins_command_plugin(mock_plugin, disable_register, cleanup):
     assert c.data == [
         {
             'name': 'test-plug',
-            'network': 'unix',
-            'address': 'tmp/test-plug'
+            'network': 'tcp',
+            'address': 'localhost:9999'
         }
     ]

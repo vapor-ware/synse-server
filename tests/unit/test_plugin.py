@@ -12,31 +12,16 @@ from synse import config, const, errors, plugin
 
 @pytest.fixture()
 def mock_plugin():
-    """Convenience fixture to create a test plugin."""
-    # create a temp dir to hold the socket
-    if not os.path.isdir('tmp'):
-        os.mkdir('tmp')
-
-    # create the socket
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind('tmp/test-plug')
-
+    """Convenience fixture to create a test plugin. We create a TCP
+    based plugin for ease of testing.
+    """
     p = plugin.Plugin(
         name='test-plug',
-        address='tmp/test-plug',
-        mode='unix'
+        address='localhost:9999',
+        mode='tcp'
     )
 
     yield p
-
-    sock.shutdown(2)
-    sock.close()
-    try:
-        os.unlink('tmp/test-plug')
-    except OSError:
-        if os.path.exists('tmp/test-plug'):
-            raise
 
 
 @pytest.fixture(scope='module')
@@ -67,7 +52,7 @@ def cleanup(remove_tmp_dir):
 
 @pytest.fixture()
 def clear_config():
-    """Reset configuration options to an empty dicionary"""
+    """Reset configuration options to an empty dictionary"""
     yield
     config.options = {}
 
@@ -82,7 +67,7 @@ def clear_environ():
 
 
 def test_plugin_manager_get(cleanup):
-    """Get a plugin from the Manager."""
+    """Get a value from the Plugin Manager."""
     pm = plugin.PluginManager()
     pm.plugins['test'] = 'foo'
     assert pm.get('test') == 'foo'
@@ -95,7 +80,7 @@ def test_plugin_manager_get_no_value(cleanup):
 
 
 def test_plugin_manager_add_invalid(cleanup):
-    """Add an invalid plugin."""
+    """Add an invalid plugin (a string is not a valid plugin)."""
     pm = plugin.PluginManager()
     with pytest.raises(errors.PluginStateError):
         pm.add('plugin')
@@ -188,8 +173,8 @@ def test_get_plugin2(mock_plugin, cleanup):
     p = plugin.get_plugin('test-plug')
     assert isinstance(p, plugin.Plugin)
     assert p.name == 'test-plug'
-    assert p.addr == 'tmp/test-plug'
-    assert p.mode == 'unix'
+    assert p.addr == 'localhost:9999'
+    assert p.mode == 'tcp'
 
 
 def test_get_plugins1(cleanup):
@@ -203,17 +188,18 @@ def test_get_plugins2(mock_plugin, cleanup):
     name, p = next(plugin.get_plugins())
     assert isinstance(p, plugin.Plugin)
     assert name == p.name == 'test-plug'
-    assert p.addr == 'tmp/test-plug'
+    assert p.addr == 'localhost:9999'
+    assert p.mode == 'tcp'
 
 
-@pytest.mark.skip('https://github.com/vapor-ware/synse-server-internal/issues/364')
 def test_register_plugins_no_sock_path(make_bgsocks, cleanup):
     """Register plugins when the plugin path doesn't exist."""
     if os.path.isdir(const.SOCKET_DIR):
         shutil.rmtree(const.SOCKET_DIR)
 
-    with pytest.raises(errors.PluginStateError):
-        plugin.register_plugins()
+    assert len(plugin.Plugin.manager.plugins) == 0
+    plugin.register_plugins()
+    assert len(plugin.Plugin.manager.plugins) == 0
 
 
 def test_register_plugins_no_socks(make_bgsocks, cleanup):

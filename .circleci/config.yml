@@ -1,57 +1,62 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/synse-server
     docker:
-      - image: vaporio/build-base
-    working_directory: ~/code
-
+      - image: circleci/python:3.6.4
     steps:
       - checkout
 
       - setup_remote_docker
 
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo chown -R circleci:circleci /usr/local/bin
+            sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+            pip install tox>=2.9.0
+
       - restore_cache:
           keys:
-            - v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
-            - v1.2-tox-test-cache- # used if checksum fails
+            - v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+            - v1.4-tox-test-cache- # used if checksum fails
 
-      - run:
-          name: Build Images
-          command: |
-            make docker
-            docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
-            docker push vaporio/synse-server
+# FIXME: for now, commenting this out here. This will move to the release bit of the workflow
+# once we move to a workflow pattern (next block of work after updates to testing)
+#      - run:
+#          name: Build Images
+#          command: |
+#            make docker
+#            docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
+#            docker push vaporio/synse-server
 
       - run:
           name: Unit Tests
-          command: |
-            bin/circleci.sh unit
+          command: make test-unit
 
       - save_cache:
-          when: always
-          key: v1.2-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          key: v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
-            - .tox/unit
+            - .tox/py36
 
       - restore_cache:
           keys:
-            - v2.3-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
-            - v2.3-tox-lint-cache- # used if checksum fails
+            - v2.5-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+            - v2.5-tox-lint-cache- # used if checksum fails
 
       - run:
           name: Lint
-          command: |
-            bin/circleci.sh lint
+          command: make lint
 
       - save_cache:
-          when: always
-          key: v2.3-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          key: v2.5-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/lint
 
       - store_artifacts:
-          path: /tmp/
-          destination: test-output
+          path: ./results
 
       - store_test_results:
-          path: /tmp/test-results
+          path: ./results/pytest
+
+# TODO - workflow for build/release

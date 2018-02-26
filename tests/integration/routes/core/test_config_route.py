@@ -13,13 +13,6 @@ config_url = '/synse/{}/config'.format(__api_version__)
 @pytest.fixture()
 def app():
     """Fixture to get a Synse Server application instance."""
-    # Need to reset default configuration filepath
-    # because the path in test environment is different
-    config.DEFAULT_CONFIG_PATH = '/code/config/config.yml'
-
-    # Load configuration options
-    config.load()
-
     yield factory.make_app()
 
 
@@ -43,8 +36,8 @@ def test_config_endpoint_ok(app):
     assert 'grpc' in data
 
     assert data['locale'] == 'en_US'
-    assert data['pretty_json'] == True
-    assert data['logging'] == 'debug'
+    assert data['pretty_json'] == False
+    assert data['logging'] == 'info'
     assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 20}}
     assert data['grpc'] == {'timeout': 20}
 
