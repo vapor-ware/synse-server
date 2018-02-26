@@ -34,6 +34,10 @@ jobs:
           name: Unit Tests
           command: make test-unit
 
+      - run:
+          name: Integration Tests
+          command: make test-integration
+
       - save_cache:
           key: v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
