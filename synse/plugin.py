@@ -4,8 +4,7 @@
 import os
 import stat
 
-from synse import config, errors
-from synse.const import SOCKET_DIR
+from synse import config, const, errors
 from synse.i18n import gettext
 from synse.log import logger
 from synse.proto.client import register_client
@@ -212,7 +211,7 @@ def register_unix_plugins():
             # This will give us a 'name' here of 'plugin_name' and a 'path'
             # of None.
             if path is None:
-                path = SOCKET_DIR
+                path = const.SOCKET_DIR
 
             # Check for both 'plugin_name' and 'plugin_name.sock'
             sock_path = os.path.join(path, name, '.sock')
@@ -243,18 +242,18 @@ def register_unix_plugins():
 
     # Now go through the default socket directory to pick up any other sockets
     # that may be set for automatic registration.
-    if not os.path.exists(SOCKET_DIR):
+    if not os.path.exists(const.SOCKET_DIR):
         logger.debug(
             gettext('default socket path does not exist, no plugins registered from {}')
-            .format(SOCKET_DIR)
+            .format(const.SOCKET_DIR)
         )
 
     else:
         logger.debug(gettext('socket dir exists'))
 
-        for item in os.listdir(SOCKET_DIR):
+        for item in os.listdir(const.SOCKET_DIR):
             logger.debug('  {}'.format(item))
-            fqn = os.path.join(SOCKET_DIR, item)
+            fqn = os.path.join(const.SOCKET_DIR, item)
             name, _ = os.path.splitext(item)
 
             if stat.S_ISSOCK(os.stat(fqn).st_mode):

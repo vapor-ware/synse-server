@@ -1,32 +1,24 @@
-"""Test the 'synse.routes.core' Synse Server module's scan route."""
+"""Test the 'synse.routes.core' module's scan route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-import pytest
 import ujson
 
-from synse import errors, factory
+from synse import errors
 from synse.version import __api_version__
+from tests import utils
 
 scan_url = '/synse/{}/scan'.format(__api_version__)
 invalid_rack_scan_url = '{}/invalid-rack'.format(scan_url)
 invalid_board_scan_url = '{}/invalid-board'.format(invalid_rack_scan_url)
 
 
-@pytest.fixture()
-def app():
-    """Fixture to get a Synse Server application instance."""
-    yield factory.make_app()
-
-
 def test_scan_endpoint_ok(app):
     """Test getting a scan response.
 
-    Details:
-        Since the emulator plugin is not enabled,
-        there should not be any data for the rack.
+    Since the emulator plugin is not enabled, there should not
+    be any data for the rack.
     """
     _, response = app.test_client.get(scan_url)
-
     assert response.status == 200
 
     data = ujson.loads(response.text)
@@ -72,24 +64,11 @@ def test_scan_endpoint_options_not_allowed(app):
 def test_rack_scan_endpoint_invalid(app):
     """Test getting a invalid rack scan response.
 
-    Details:
-        There is no backend, so the scan will be empty. When
-        the scan is empty, we can't filter on racks/boards.
+    There is no plugin backend, so the scan will be empty. When
+    the scan is empty, we can't filter on racks/boards.
     """
     _, response = app.test_client.get(invalid_rack_scan_url)
-
-    assert response.status == 500
-
-    data = ujson.loads(response.text)
-
-    assert 'http_code' in data
-    assert 'error_id' in data
-    assert 'description' in data
-    assert 'timestamp' in data
-    assert 'context' in data
-
-    assert data['http_code'] == 500
-    assert data['error_id'] == errors.FAILED_SCAN_COMMAND
+    utils.test_error_json(response, errors.FAILED_SCAN_COMMAND)
 
 
 def test_rack_scan_endpoint_post_not_allowed(app):
@@ -131,24 +110,11 @@ def test_rack_scan_endpoint_options_not_allowed(app):
 def test_board_scan_endpoint_invalid(app):
     """Test getting a board scan response.
 
-    Details:
-        There is no backend, so the scan will be empty. When
-        the scan is empty, we can't filter on racks/boards.
+    There is no plugin backend, so the scan will be empty. When
+    the scan is empty, we can't filter on racks/boards.
     """
     _, response = app.test_client.get(invalid_board_scan_url)
-
-    assert response.status == 500
-
-    data = ujson.loads(response.text)
-
-    assert 'http_code' in data
-    assert 'error_id' in data
-    assert 'description' in data
-    assert 'timestamp' in data
-    assert 'context' in data
-
-    assert data['http_code'] == 500
-    assert data['error_id'] == errors.FAILED_SCAN_COMMAND
+    utils.test_error_json(response, errors.FAILED_SCAN_COMMAND)
 
 
 def test_board_scan_endpoint_post_not_allowed(app):

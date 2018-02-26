@@ -5,13 +5,13 @@
 import asynctest
 import pytest
 from sanic.response import HTTPResponse
-from tests import utils
 
 import synse.commands
 import synse.validate
-from synse import config, errors
+from synse import errors
 from synse.routes.aliases import fan_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockwritereturn(rack, board, device, data):
@@ -55,12 +55,6 @@ def mock_validate_device_type(monkeypatch):
     mock = asynctest.CoroutineMock(synse.validate.validate_device_type, side_effect=mockvalidatedevicetype)
     monkeypatch.setattr(synse.validate, 'validate_device_type', mock)
     return mock_validate_device_type
-
-
-@pytest.fixture()
-def no_pretty_json():
-    """Fixture to ensure basic JSON responses."""
-    config.options['pretty_json'] = False
 
 
 @pytest.mark.asyncio

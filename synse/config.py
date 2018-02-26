@@ -124,7 +124,7 @@ def load_default_configs():
             }
         },
         'grpc': {
-            'timeout': 20
+            'timeout': 3
         }
     }
 

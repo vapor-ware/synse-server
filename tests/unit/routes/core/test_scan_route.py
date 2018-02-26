@@ -4,12 +4,11 @@
 import asynctest
 import pytest
 from sanic.response import HTTPResponse
-from tests import utils
 
 import synse.commands
-from synse import config
 from synse.routes.core import scan_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockreturn(rack, board, force):
@@ -25,12 +24,6 @@ def mock_scan(monkeypatch):
     mock = asynctest.CoroutineMock(synse.commands.scan, side_effect=mockreturn)
     monkeypatch.setattr(synse.commands, 'scan', mock)
     return mock_scan
-
-
-@pytest.fixture()
-def no_pretty_json():
-    """Fixture to ensure basic JSON responses."""
-    config.options['pretty_json'] = False
 
 
 @pytest.mark.asyncio

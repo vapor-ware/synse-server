@@ -78,18 +78,10 @@ def mock_transaction(req, timeout):
         state=0,
     )
 
-# --- Test Fixtures ---
-
-
-@pytest.fixture()
-def clear_state():
-    """Fixture to clear out the state of the client manager between tests."""
-    client.SynseInternalClient._client_stubs = {}
-
 # --- Test Cases ---
 
 
-def test_write_data(clear_state):
+def test_write_data():
     """Test initializing WriteData instances."""
 
     wd = client.WriteData()
@@ -109,7 +101,7 @@ def test_write_data(clear_state):
     assert wd.raw == [b'test']
 
 
-def test_write_data_to_grpc(clear_state):
+def test_write_data_to_grpc():
     """Convert a WriteData instance to its gRPC equivalent."""
 
     wd = client.WriteData(action='test', raw=[b'test'])
@@ -120,7 +112,7 @@ def test_write_data_to_grpc(clear_state):
     assert rpc.raw == [b'test']
 
 
-def test_get_client_exists(clear_state):
+def test_get_client_exists():
     """Get a client when the client exists."""
 
     c = client.SynseInternalClient('test-cli', 'localhost:5000', 'tcp')
@@ -131,7 +123,7 @@ def test_get_client_exists(clear_state):
     assert len(client.SynseInternalClient._client_stubs) == 1
 
 
-def test_get_client_does_not_exist(clear_state):
+def test_get_client_does_not_exist():
     """Get a client when it does not already exist."""
 
     assert len(client.SynseInternalClient._client_stubs) == 0
@@ -141,7 +133,7 @@ def test_get_client_does_not_exist(clear_state):
     assert len(client.SynseInternalClient._client_stubs) == 0
 
 
-def test_client_init(clear_state):
+def test_client_init():
     """Verify the client initializes as expected."""
 
     c = client.SynseInternalClient('test-cli', 'test-cli.sock', 'unix')
@@ -153,14 +145,14 @@ def test_client_init(clear_state):
     assert isinstance(c.stub, synse_grpc.InternalApiStub)
 
 
-def test_client_init_bad_mode(clear_state):
+def test_client_init_bad_mode():
     """Verify the client fails to initialize when a bad mode is provided."""
 
     with pytest.raises(errors.InvalidArgumentsError):
         client.SynseInternalClient('test-cli', 'test-cli.sock', 'foo')
 
 
-def test_client_read(clear_state):
+def test_client_read():
     """Test reading via the client."""
 
     c = client.SynseInternalClient('test', 'test.sock', 'unix')
@@ -173,7 +165,7 @@ def test_client_read(clear_state):
     assert isinstance(resp[0], synse_api.ReadResponse)
 
 
-def test_client_write(clear_state):
+def test_client_write():
     """Test writing via the client."""
 
     c = client.SynseInternalClient('test', 'test.sock', 'unix')
@@ -184,7 +176,7 @@ def test_client_write(clear_state):
     assert isinstance(resp, synse_api.Transactions)
 
 
-def test_client_metainfo(clear_state):
+def test_client_metainfo():
     """Test getting metainfo via the client."""
 
     c = client.SynseInternalClient('test', 'test.sock', 'unix')
@@ -197,7 +189,7 @@ def test_client_metainfo(clear_state):
     assert isinstance(resp[0], synse_api.MetainfoResponse)
 
 
-def test_client_transaction(clear_state):
+def test_client_transaction():
     """Test checking a transaction via the client."""
 
     c = client.SynseInternalClient('test', 'test.sock', 'unix')

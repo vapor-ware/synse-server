@@ -4,13 +4,12 @@
 import asynctest
 import pytest
 from sanic.response import HTTPResponse
-from tests import utils
 
 import synse.commands
-from synse import config
 from synse.errors import InvalidJsonError, SynseError
 from synse.routes.core import write_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockreturn(rack, board, device, data):
@@ -26,12 +25,6 @@ def mock_write(monkeypatch):
     mock = asynctest.CoroutineMock(synse.commands.write, side_effect=mockreturn)
     monkeypatch.setattr(synse.commands, 'write', mock)
     return mock_write
-
-
-@pytest.fixture()
-def no_pretty_json():
-    """Fixture to ensure basic JSON responses."""
-    config.options['pretty_json'] = False
 
 
 @pytest.mark.asyncio
