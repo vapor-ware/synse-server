@@ -7,7 +7,7 @@ import grpc
 from synse import config, errors, utils
 from synse.i18n import gettext
 from synse.log import logger
-from synse.plugin import Plugin, register_plugins
+from synse.plugin import Plugin, get_plugins, register_plugins
 from synse.proto import util as putil
 
 # Define namespace for caches
@@ -154,7 +154,7 @@ async def get_metainfo_cache():
     if value is not None:
         return value
 
-    metainfo = _build_metainfo_cache()
+    metainfo = await _build_metainfo_cache()
 
     # If the metainfo data is empty when built, we don't want to cache an
     # empty dictionary, so we will set it to None. Future calls to get_metainfo_cache
@@ -297,7 +297,7 @@ async def get_resource_info_cache():
     return info_cache
 
 
-def _build_metainfo_cache():
+async def _build_metainfo_cache():
     """Construct the dictionary that will become the metainfo cache.
 
     Returns:
@@ -310,18 +310,18 @@ def _build_metainfo_cache():
     # first, we want to iterate through all of the known plugins and
     # use the associated client to get the meta information provided by
     # that backend.
-    plugins = Plugin.manager.plugins
-    if len(plugins) == 0:
+    plugin_count = len(Plugin.manager.plugins)
+    if plugin_count == 0:
         logger.debug(gettext('Manager has no plugins - registering plugins.'))
         register_plugins()
-        plugins = Plugin.manager.plugins
+        plugin_count = len(Plugin.manager.plugins)
 
-    logger.debug(gettext('plugins to scan: {}').format(len(plugins)))
+    logger.debug(gettext('plugins to scan: {}').format(plugin_count))
 
     # track which plugins failed to provide metainfo for any reason.
     failures = {}
 
-    for name, plugin in plugins.items():
+    async for name, plugin in get_plugins():
         logger.debug('{} -- {}'.format(name, plugin))
 
         try:
@@ -345,7 +345,7 @@ def _build_metainfo_cache():
 
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
-    if plugins and len(plugins) == len(failures):
+    if plugin_count != 0 and plugin_count == len(failures):
         raise errors.InternalApiError(
             gettext('Failed to scan all plugins: {}').format(failures)
         )

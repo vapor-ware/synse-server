@@ -141,15 +141,17 @@ def test_get_plugin2(mock_plugin):
     assert p.mode == 'tcp'
 
 
-def test_get_plugins1():
+@pytest.mark.asyncio
+async def test_get_plugins1():
     """Get all plugins when no plugins exist."""
-    with pytest.raises(StopIteration):
-        next(plugin.get_plugins())
+    with pytest.raises(StopAsyncIteration):
+        await plugin.get_plugins().__anext__()
 
 
-def test_get_plugins2(mock_plugin):
+@pytest.mark.asyncio
+async def test_get_plugins2(mock_plugin):
     """Get all plugins when some plugins exist."""
-    name, p = next(plugin.get_plugins())
+    name, p = await plugin.get_plugins().__anext__()
     assert isinstance(p, plugin.Plugin)
     assert name == p.name == 'test-plug'
     assert p.addr == 'localhost:9999'

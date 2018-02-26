@@ -23,6 +23,6 @@ async def get_plugins():
         'name': p[1].name,
         'network': p[1].mode,
         'address': p[1].addr
-    } for p in plugin.get_plugins()]
+    } async for p in plugin.get_plugins()]
 
     return PluginsResponse(data=plugins)

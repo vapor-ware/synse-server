@@ -140,7 +140,7 @@ def get_plugin(name):
     return Plugin.manager.get(name)
 
 
-def get_plugins():
+async def get_plugins():
     """Get all of the managed plugins.
 
     Yields:

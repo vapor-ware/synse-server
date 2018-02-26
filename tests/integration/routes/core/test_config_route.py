@@ -24,7 +24,7 @@ def test_config_endpoint_ok(app):
     assert data['pretty_json'] == False
     assert data['logging'] == 'info'
     assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 20}}
-    assert data['grpc'] == {'timeout': 20}
+    assert data['grpc'] == {'timeout': 3}
 
 
 def test_config_endpoint_post_not_allowed(app):
