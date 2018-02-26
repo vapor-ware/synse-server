@@ -53,8 +53,12 @@ docker: ## Build the docker image for Synse Server locally
 	    -t ${IMG_NAME}:${PKG_VER} \
 	    -t ${IMG_NAME}:${GIT_VER} .
 
-.PHONY: docs
-docs: ## Generate the API docs for Synse Server
+.PHONY: api-doc
+api-doc:
+	open ./docs/index.html
+
+.PHONY: build-docs
+build-docs: ## Generate the API docs for Synse Server
 	docker build -f docs/build/Dockerfile -t vaporio/slate-docs docs/build
 	docker run --name slate-docs -v `pwd`/docs/build/src:/source vaporio/slate-docs
 	docker cp slate-docs:/slate/build/. docs
