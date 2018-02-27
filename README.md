@@ -72,6 +72,13 @@ run it with its built-in emulator.
     ```
 
 ### Python Package
+
+> **Note**
+>
+> Synse Server is developed and tested on Python 3.6. It may run on other Python 3 versions,
+> but there is no guarantee or active support for anything other than Python 3.6. Version
+> compatibility contributions are welcome.
+
 TODO
 
 
