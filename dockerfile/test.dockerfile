@@ -10,6 +10,4 @@ RUN pip install tox
 
 WORKDIR /code
 
-COPY synse_plugin-*.tar.gz .
-
 CMD ["bin/run_tests.sh"]
