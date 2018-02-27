@@ -78,12 +78,14 @@ function -v {
 #   start the background process emulator using the emulator
 #   configurations found in /synse/synse/emulator/config
 function enable-emulator {
-    (cd emulator ; PLUGIN_DEVICE_CONFIG=config ./emulator 1>&2 &)
-
-    # FIXME - this sleep is just added in for safety to make sure that
-    # the emulator, if started, has enough time to start up and create
-    # the socket that synse will use to communicate with it.
-    sleep 1
+    if [ -d emulator ]; then
+        (cd emulator ; PLUGIN_DEVICE_CONFIG=config ./emulator 1>&2 &)
+    else
+        echo "This Synse Server image does not contain the emulator."
+        echo "Try using a non 'slim' Synse Server image for emulator"
+        echo "support."
+        exit 1
+    fi
 }
 
 

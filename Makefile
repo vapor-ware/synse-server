@@ -32,13 +32,33 @@ pip-clean:
 
 # Helper Targets
 
-.PHONY: pycache-clean
 # pycache-clean is used to clean out .pyc and .pyo files and the __pycache__
 # directories from the ./tests directory. This isn't always necessary, but
 # the cache will be incorrect if run via container and then locally or vice
 # versa. To be safe, we can just clean up with this.
+.PHONY: pycache-clean
 pycache-clean:
 	@find ./tests | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
+
+# build the docker images of synse server without the emulator
+.PHONY: docker-slim
+docker-slim:
+	cp .dockerignore.slim .dockerignore
+	docker build -f dockerfile/release.dockerfile \
+		-t ${IMG_NAME}:slim \
+		-t ${IMG_NAME}:${PKG_VER}-slim .
+	rm .dockerignore
+
+# build the docker images of synse server with the emulator
+.PHONY: docker-default
+docker-default:
+	cp .dockerignore.default .dockerignore
+	docker build -f dockerfile/release.dockerfile \
+	    -t ${IMG_NAME}:latest \
+	    -t ${IMG_NAME}:${PKG_VER} \
+	    -t ${IMG_NAME}:${GIT_VER} .
+	rm .dockerignore
+
 
 # Targets
 
@@ -47,11 +67,7 @@ cover: test-unit ## Run unit tests and open the HTML coverage report
 	open ./results/cov-html/index.html
 
 .PHONY: docker
-docker: ## Build the docker image for Synse Server locally
-	docker build -f dockerfile/release.dockerfile \
-	    -t ${IMG_NAME}:latest \
-	    -t ${IMG_NAME}:${PKG_VER} \
-	    -t ${IMG_NAME}:${GIT_VER} .
+docker: docker-default docker-slim ## Build the docker image for Synse Server locally
 
 .PHONY: api-doc
 api-doc:
