@@ -225,7 +225,7 @@ async def boot_target_route(request, rack, board, device):
 
 
 @bp.route('/lock/<rack>/<board>/<device>')
-async def lock_route(request, rack, board, device):
+async def lock_route(request, rack, board, device): # pylint: disable=unused-argument
     """Endpoint to read/write lock device data.
 
     If no lock action is specified through the request parameters,
