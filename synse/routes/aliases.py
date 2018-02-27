@@ -241,28 +241,30 @@ async def lock_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    await validate.validate_device_type(const.TYPE_LOCK, rack, board, device)
-
-    param_action = request.raw_args.get('action')
-
-    # if a request parameter is specified, this will translate to a
-    # write request.
-    if param_action is not None:
-        # validate the values of the action
-        if param_action not in const.lock_actions:
-            raise errors.InvalidArgumentsError(
-                gettext('Invalid lock action "{}". Must be one of: {}').format(
-                    param_action, const.lock_actions)
-            )
-
-        data = {
-            'action': param_action
-        }
-        transaction = await commands.write(rack, board, device, data)
-        return transaction.to_json()
-
-    # if no request parameter is specified, this will translate to a
-    # read request.
-    else:
-        reading = await commands.read(rack, board, device)
-        return reading.to_json()
+    # FIXME - error out until a lock backend is actually implemented
+    return errors.SynseError('Endpoint not yet implemented.')
+    # await validate.validate_device_type(const.TYPE_LOCK, rack, board, device)
+    #
+    # param_action = request.raw_args.get('action')
+    #
+    # # if a request parameter is specified, this will translate to a
+    # # write request.
+    # if param_action is not None:
+    #     # validate the values of the action
+    #     if param_action not in const.lock_actions:
+    #         raise errors.InvalidArgumentsError(
+    #             gettext('Invalid lock action "{}". Must be one of: {}').format(
+    #                 param_action, const.lock_actions)
+    #         )
+    #
+    #     data = {
+    #         'action': param_action
+    #     }
+    #     transaction = await commands.write(rack, board, device, data)
+    #     return transaction.to_json()
+    #
+    # # if no request parameter is specified, this will translate to a
+    # # read request.
+    # else:
+    #     reading = await commands.read(rack, board, device)
+    #     return reading.to_json()
