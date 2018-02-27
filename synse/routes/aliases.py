@@ -40,10 +40,10 @@ async def led_route(request, rack, board, device):
         data = []
 
         if param_state:
-            if param_state not in (const.LED_ON, const.LED_OFF):
-                # FIXME - improve error message here. provide valid states.
+            if param_state not in const.led_states:
                 raise errors.InvalidArgumentsError(
-                    gettext('Invalid state: {}').format(param_state)
+                    gettext('Invalid state "{}". Must be one of {}').format(
+                        param_state, const.led_states)
                 )
 
             data.append({
@@ -52,10 +52,10 @@ async def led_route(request, rack, board, device):
             })
 
         if param_blink:
-            if param_blink not in (const.LED_BLINK, const.LED_STEADY):
-                # FIXME - improve error message here. provide valid states.
+            if param_blink not in const.led_blink_states:
                 raise errors.InvalidArgumentsError(
-                    gettext('Invalid blink state: {}').format(param_blink)
+                    gettext('Invalid blink state "{}". Must be one of: {}').format(
+                        param_blink, const.led_blink_states)
                 )
 
             data.append({
@@ -160,10 +160,10 @@ async def power_route(request, rack, board, device):
     # if a request parameter is specified, this will translate to a
     # write request.
     if param_state is not None:
-        if param_state not in (const.PWR_ON, const.PWR_OFF, const.PWR_CYCLE):
-            # FIXME - improve message, add valid states
+        if param_state not in const.power_actions:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid power state: {}').format(param_state)
+                gettext('Invalid power state "{}". Must be one of: {}').format(
+                    param_state, const.power_actions)
             )
 
         data = {
@@ -204,15 +204,59 @@ async def boot_target_route(request, rack, board, device):
     # if a request parameter is specified, this will translate to a
     # write request.
     if param_target is not None:
-        if param_target not in (const.BT_PXE, const.BT_HDD):
-            # FIXME - add valid targets to the error message..
+        if param_target not in const.boot_targets:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid boot target: {}').format(param_target)
+                gettext('Invalid boot target "{}". Must be one of: {}').format(
+                    param_target, const.boot_targets)
             )
 
         data = {
             'action': 'target',
             'raw': param_target
+        }
+        transaction = await commands.write(rack, board, device, data)
+        return transaction.to_json()
+
+    # if no request parameter is specified, this will translate to a
+    # read request.
+    else:
+        reading = await commands.read(rack, board, device)
+        return reading.to_json()
+
+
+@bp.route('/lock/<rack>/<board>/<device>')
+async def lock_route(request, rack, board, device):
+    """Endpoint to read/write lock device data.
+
+    If no lock action is specified through the request parameters,
+    this will translate to a device read. Otherwise, if a valid request
+    parameter is specified, this will translate to a device write.
+
+    Args:
+        request (sanic.request.Request): The incoming request.
+        rack (str): The rack which the lock resides on.
+        board (str): The board which the lock resides on.
+        device (str): The lock device.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
+    """
+    await validate.validate_device_type(const.TYPE_LOCK, rack, board, device)
+
+    param_action = request.raw_args.get('action')
+
+    # if a request parameter is specified, this will translate to a
+    # write request.
+    if param_action is not None:
+        # validate the values of the action
+        if param_action not in const.lock_actions:
+            raise errors.InvalidArgumentsError(
+                gettext('Invalid lock action "{}". Must be one of: {}').format(
+                    param_action, const.lock_actions)
+            )
+
+        data = {
+            'action': param_action
         }
         transaction = await commands.write(rack, board, device, data)
         return transaction.to_json()
