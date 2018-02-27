@@ -237,6 +237,41 @@ at the plugin level. An [example deployment][example-deployment] can be found in
 repository that shows how to run Synse Server with an external emulator container both via
 TCP and UNIX socket.
 
+### Health Check / Liveness Probe
+When deploying with Kubernetes, docker-compose, etc., you can set a "health check" (or liveness
+and readiness probe) for the service. While you can define your own, Synse Server comes with one
+build in at [bin/ok.sh](bin/ok.sh). This will check that the '/test' endpoint is reachable and
+returning a status of 'ok'.
+
+To illustrate, below is a simple compose file to run a Synse Server instance (with no
+plugins configured, in this case)
+`compose.yml`
+```yaml
+version: "3.4"
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server
+    ports:
+      - 5000:5000
+    healthcheck:
+      test: ["CMD", "bin/ok.sh"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+``` 
+
+This can be run with `docker-compose -f compose.yml up -d`. Then, checking the output of
+`docker ps`, you should see something similar to
+```bash
+CONTAINER ID        IMAGE                  COMMAND             CREATED              STATUS                        PORTS                    NAMES
+4dd14ab5b25a        vaporio/synse-server   "bin/synse.sh"      About a minute ago   Up About a minute (healthy)   0.0.0.0:5000->5000/tcp   synse-server
+```
+
+You can use `docker insepect <container>` to get more details on the health check. This is
+especially useful if the health check is failing or stuck.
+
 
 ## Development
 To develop Synse Server, you will first need to clone this repo

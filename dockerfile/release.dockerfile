@@ -5,7 +5,7 @@ COPY ./requirements.txt requirements.txt
 
 RUN set -e -x \
     && apk --update --no-cache add \
-        bash gcc \
+        bash gcc curl \
     && apk --update --no-cache --virtual .build-dep add \
         build-base \
     && pip install --upgrade pip \
