@@ -2,3 +2,4 @@ aiocache>=0.8.0
 grpcio>=1.8.6
 pyyaml>=3.12
 sanic>=0.7.0
+synse-plugin==0.0.3
