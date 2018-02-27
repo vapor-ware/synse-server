@@ -15,11 +15,5 @@ setup(
     author_email=synse.__author_email__,
     license='GPL v2.0',
     packages=find_packages(),
-    package_data={
-        'synse.emulator': [
-            'config/proto/*.yml',
-            'config/sensor/*.yml'
-        ]
-    },
     zip_safe=False
 )
