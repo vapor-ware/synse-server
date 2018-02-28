@@ -14,7 +14,7 @@ setup(
     author=synse.__author__,
     author_email=synse.__author_email__,
     license='GNU General Public License v2.0',
-    python_requires='3.6',
+    python_requires='==3.6',
     packages=find_packages(),
     zip_safe=False
 )

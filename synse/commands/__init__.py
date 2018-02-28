@@ -17,3 +17,6 @@ from .test import test
 from .transaction import check_transaction
 from .version import version
 from .write import write
+
+# FIXME - temporary for autofan support
+from .fan_sensors import fan_sensors
