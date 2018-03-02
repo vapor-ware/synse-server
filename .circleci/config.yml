@@ -1,13 +1,19 @@
 version: 2
 jobs:
-  build:
+
+  # Run tests and linting for Synse Server
+  test:
     working_directory: ~/synse-server
     docker:
       - image: circleci/python:3.6.4
     steps:
       - checkout
-
-      - setup_remote_docker
+      - run:
+          name: List tags (tmp)
+          command: |
+            for tag in $(make tags); do
+              echo "tag: ${tag}"
+            done
 
       - run:
           name: Install Dependencies
@@ -15,52 +21,65 @@ jobs:
             sudo chown -R circleci:circleci /usr/local/bin
             sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
             pip install tox>=2.9.0
-
       - restore_cache:
           keys:
             - v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
             - v1.4-tox-test-cache- # used if checksum fails
-
-# FIXME: for now, commenting this out here. This will move to the release bit of the workflow
-# once we move to a workflow pattern (next block of work after updates to testing)
-#      - run:
-#          name: Build Images
-#          command: |
-#            make docker
-#            docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
-#            docker push vaporio/synse-server
-
       - run:
           name: Unit Tests
           command: make test-unit
-
       - run:
           name: Integration Tests
           command: make test-integration
-
       - save_cache:
           key: v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/py36
-
       - restore_cache:
           keys:
             - v2.5-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
             - v2.5-tox-lint-cache- # used if checksum fails
-
       - run:
           name: Lint
           command: make lint
-
       - save_cache:
           key: v2.5-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/lint
-
       - store_artifacts:
           path: ./results
-
       - store_test_results:
           path: ./results/pytest
 
-# TODO - workflow for build/release
+  # Build and push the Synse Server docker image to DockerHub
+  build-push:
+    working_directory: ~/synse-server
+    docker:
+      - image: circleci/python:3.6.4
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Images
+          command: |
+            make docker
+      - run:
+          name: Push Images
+          command: |
+            docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
+            for tag in $(make tags); do
+              echo "tag: ${tag}"
+            done
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
+      - build-push:
+          requires:
+            - test
+          filters:
+            branches:
+              only: master
+
