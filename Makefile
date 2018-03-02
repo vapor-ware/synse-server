@@ -9,6 +9,10 @@ export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 
 
 HAS_PY36 := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
 
+# Docker Image tags
+DEFAULT_TAGS = ${IMG_NAME}:latest ${IMG_NAME}:${PKG_VER} ${IMG_NAME}:${GIT_VER}
+SLIM_TAGS = ${IMG_NAME}:slim ${IMG_NAME}:${PKG_VER}-slim
+
 
 # Packaging
 # Note: these are not documented via `make help` yet
@@ -32,6 +36,11 @@ pip-clean:
 
 # Helper Targets
 
+# list all the docker image tags for the current build
+.PHONY: tags
+tags:
+	@echo "${DEFAULT_TAGS} ${SLIM_TAGS}"
+
 # pycache-clean is used to clean out .pyc and .pyo files and the __pycache__
 # directories from the ./tests directory. This isn't always necessary, but
 # the cache will be incorrect if run via container and then locally or vice
@@ -44,19 +53,18 @@ pycache-clean:
 .PHONY: docker-slim
 docker-slim:
 	cp .dockerignore.slim .dockerignore
-	docker build -f dockerfile/release.dockerfile \
-		-t ${IMG_NAME}:slim \
-		-t ${IMG_NAME}:${PKG_VER}-slim .
+	tags="" ; \
+	for tag in $(SLIM_TAGS); do tags="$${tags} -t $${tag}"; done ; \
+	docker build -f dockerfile/release.dockerfile $${tags} .
 	rm .dockerignore
 
 # build the docker images of synse server with the emulator
 .PHONY: docker-default
 docker-default:
 	cp .dockerignore.default .dockerignore
-	docker build -f dockerfile/release.dockerfile \
-	    -t ${IMG_NAME}:latest \
-	    -t ${IMG_NAME}:${PKG_VER} \
-	    -t ${IMG_NAME}:${GIT_VER} .
+	tags="" ; \
+	for tag in $(DEFAULT_TAGS); do tags="$${tags} -t $${tag}"; done ; \
+	docker build -f dockerfile/release.dockerfile $${tags} .
 	rm .dockerignore
 
 
@@ -70,7 +78,7 @@ cover: test-unit ## Run unit tests and open the HTML coverage report
 docker: docker-default docker-slim ## Build the docker image for Synse Server locally
 
 .PHONY: api-doc
-api-doc:
+api-doc: ## Open the API doc HTML reference
 	open ./docs/index.html
 
 .PHONY: build-docs
