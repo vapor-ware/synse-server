@@ -9,13 +9,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: List tags (tmp)
-          command: |
-            for tag in $(make tags); do
-              echo "tag: ${tag}"
-            done
-
-      - run:
           name: Install Dependencies
           command: |
             sudo chown -R circleci:circleci /usr/local/bin
@@ -68,7 +61,7 @@ jobs:
           command: |
             docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
             for tag in $(make tags); do
-              echo "tag: ${tag}"
+              docker push ${tag}
             done
 
 workflows:
