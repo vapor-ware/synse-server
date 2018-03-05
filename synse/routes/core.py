@@ -7,6 +7,7 @@ from sanic import Blueprint
 from synse import commands, errors
 from synse.i18n import gettext
 from synse.log import logger
+from synse.response import json
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
@@ -161,3 +162,24 @@ async def plugins_route(request):
     """
     response = await commands.get_plugins()
     return response.to_json()
+
+
+# FIXME (etd) -- this is a temporary route that is being used for auto-fan for demo/
+# development. this functionality should be generalized and this specific endpoint
+# should be removed. this will only stay in for a short period of time, so use at
+# your own risk!
+@bp.route('/fan_sensors')
+async def fan_sensors(request):
+    """Get fan sensor data for autofan.
+
+    FIXME: this is a temporary route for autofan -- this should be generalized
+    and we can add it back into mainline synse server.
+
+    Args:
+        request:
+
+    Returns:
+
+    """
+    result = await commands.fan_sensors()
+    return json(result)
