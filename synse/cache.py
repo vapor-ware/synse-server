@@ -86,15 +86,14 @@ async def add_transaction(transaction_id, context, plugin_name):
     Returns:
         bool: True if successful; False otherwise.
     """
-    # TODO (etd): add TTL to the transactions. TBD where this timeout is
-    # defined. Likely check the config for a value - if not there, use some
-    # default. #397
+    ttl = config.options.get('cache', {}).get('transaction', {}).get('ttl', None)
     return await transaction_cache.set(
         transaction_id,
         {
             'plugin': plugin_name,
             'context': context
-        }
+        },
+        ttl=ttl
     )
 
 

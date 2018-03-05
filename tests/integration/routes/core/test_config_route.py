@@ -23,7 +23,7 @@ def test_config_endpoint_ok(app):
     assert data['locale'] == 'en_US'
     assert data['pretty_json'] == False
     assert data['logging'] == 'info'
-    assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 20}}
+    assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 300}}
     assert data['grpc'] == {'timeout': 3}
 
 
