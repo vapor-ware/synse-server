@@ -7,9 +7,8 @@ from sanic import Blueprint
 from synse import commands, errors
 from synse.i18n import gettext
 from synse.log import logger
-from synse.version import __api_version__
-
 from synse.response import json
+from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
 

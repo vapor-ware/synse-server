@@ -2,8 +2,8 @@
 """
 
 from synse import cache
-from synse.log import logger
 from synse.commands import read
+from synse.log import logger
 
 
 async def fan_sensors():
