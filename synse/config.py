@@ -120,7 +120,7 @@ def load_default_configs():
                 'ttl': 20
             },
             'transaction': {
-                'ttl': 20
+                'ttl': 300  # five minutes
             }
         },
         'grpc': {
