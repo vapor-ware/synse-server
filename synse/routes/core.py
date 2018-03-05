@@ -165,6 +165,10 @@ async def plugins_route(request):
     return response.to_json()
 
 
+# FIXME (etd) -- this is a temporary route that is being used for auto-fan for demo/
+# development. this functionality should be generalized and this specific endpoint
+# should be removed. this will only stay in for a short period of time, so use at
+# your own risk!
 @bp.route('/fan_sensors')
 async def fan_sensors(request):
     """Get fan sensor data for autofan.
