@@ -19,7 +19,7 @@ async def validate_device_type(device_type, rack, board, device):
         SynseError: The device does not match the given type.
         SynseError: The specified device is not found.
     """
-    device = await cache.get_device_meta(rack, board, device)
+    _, device = await cache.get_device_meta(rack, board, device)
     if device.type != device_type.lower():
         raise errors.InvalidDeviceType(
             gettext('Device ({}) is not of type {}').format(device.type, device_type)

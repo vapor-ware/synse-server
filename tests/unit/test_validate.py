@@ -8,8 +8,10 @@ from synse_plugin import api
 from synse import cache, errors, validate
 
 
-def make_metainfo_response(rack, board, device):
+async def make_metainfo_response(rack, board, device):
     """Helper method to make a new MetainfoResponse object."""
+    await cache._plugins_cache.set(cache.PLUGINS_CACHE_KEY, {device: 'test-plugin'})
+
     return api.MetainfoResponse(
         timestamp='october',
         uid=device,
@@ -42,10 +44,10 @@ def make_metainfo_response(rack, board, device):
 # --- Mock Methods ---
 
 
-def mock_get_metainfo_cache():
+async def mock_get_metainfo_cache():
     """Mock method for get_metainfo_cache - returns a single device."""
     return {
-        'rack-1-vec-12345': make_metainfo_response('rack-1', 'vec', '12345')
+        'rack-1-vec-12345': await make_metainfo_response('rack-1', 'vec', '12345')
     }
 
 

@@ -24,15 +24,15 @@ async def read(rack, board, device):
     logger.debug(gettext('>> READ cmd'))
 
     # lookup the known info for the specified device
-    dev = await cache.get_device_meta(rack, board, device)
+    plugin_name, dev = await cache.get_device_meta(rack, board, device)
     logger.debug(gettext('  |- got device: {}').format(dev))
 
     # get the plugin context for the device's specified protocol
-    _plugin = plugin.get_plugin(dev.protocol)
+    _plugin = plugin.get_plugin(plugin_name)
     logger.debug(gettext('  |- got plugin: {}').format(_plugin))
     if not _plugin:
         raise errors.PluginNotFoundError(
-            gettext('Unable to find plugin named "{}" to read.').format(dev.protocol)
+            gettext('Unable to find plugin named "{}" to read.').format(plugin_name)
         )
 
     try:
