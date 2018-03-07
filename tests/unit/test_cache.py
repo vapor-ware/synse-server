@@ -225,8 +225,11 @@ async def test_add_transaction_existing(clear_caches):
 @pytest.mark.asyncio
 async def test_get_device_meta_ok(patch_metainfo, clear_caches):
     """Get device metainfo."""
+    # add a plugin record to for the device
+    await cache._plugins_cache.set(cache.PLUGINS_CACHE_KEY, {'rack-1-vec-12345': 'test-plugin'})
 
-    dev = await cache.get_device_meta('rack-1', 'vec', '12345')
+    plugin_name, dev = await cache.get_device_meta('rack-1', 'vec', '12345')
+    assert plugin_name == 'test-plugin'
     assert isinstance(dev, api.MetainfoResponse)
     assert dev.uid == '12345'
     assert dev.location.rack == 'rack-1'

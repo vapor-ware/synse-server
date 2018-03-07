@@ -13,17 +13,20 @@ from synse.proto import util as putil
 # Define namespace for caches
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
+NS_PLUGINS = 'plugins'
 NS_SCAN = 'scan'
 NS_INFO = 'info'
 
 # Define cached key for caches
 META_CACHE_KEY = 'meta_cache_key'
+PLUGINS_CACHE_KEY = 'plugins_cache_key'
 SCAN_CACHE_KEY = 'scan_cache_key'
 INFO_CACHE_KEY = 'info_cache_key'
 
 # Create caches
 transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
 _meta_cache = aiocache.SimpleMemoryCache(namespace=NS_META)
+_plugins_cache = aiocache.SimpleMemoryCache(namespace=NS_PLUGINS)
 _scan_cache = aiocache.SimpleMemoryCache(namespace=NS_SCAN)
 _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 
@@ -51,7 +54,7 @@ async def clear_all_meta_caches():
     """Clear all caches which contain or are derived from meta-information
     collected from gRPC Metainfo requests.
     """
-    for ns in [NS_META, NS_INFO, NS_SCAN]:
+    for ns in [NS_META, NS_PLUGINS, NS_INFO, NS_SCAN]:
         await clear_cache(ns)
 
 
@@ -106,15 +109,18 @@ async def get_device_meta(rack, board, device):
         device (str): The ID of the device to get meta-info for.
 
     Returns:
-        MetainfoResponse: The meta information for the specified device.
+        tuple(str, MetainfoResponse): A tuple where the first item is
+            the name of the plugin that the device is associated with and
+            the second item is the meta information for that device.
 
     Raises:
         SynseError: The given rack-board-device combination does not
             correspond to a known device.
     """
     cid = utils.composite(rack, board, device)
-    _cache = await get_metainfo_cache()
 
+    # this also builds the plugins cache
+    _cache = await get_metainfo_cache()
     dev = _cache.get(cid)
 
     if dev is None:
@@ -122,7 +128,11 @@ async def get_device_meta(rack, board, device):
             gettext('{} does not correspond with a known device.').format(
                 '/'.join([rack, board, device]))
         )
-    return dev
+
+    # if the device exists, it will have come from a plugin, so we should
+    # always have the plugin name here.
+    pcache = await _plugins_cache.get(PLUGINS_CACHE_KEY)
+    return pcache.get(cid), dev
 
 
 async def get_metainfo_cache():
@@ -153,16 +163,18 @@ async def get_metainfo_cache():
     if value is not None:
         return value
 
-    metainfo = await _build_metainfo_cache()
+    metainfo, plugins = await _build_metainfo_cache()
 
     # If the metainfo data is empty when built, we don't want to cache an
     # empty dictionary, so we will set it to None. Future calls to get_metainfo_cache
     # will then attempt to rebuild the cache
-    value = metainfo if metainfo else None
+    meta_value = metainfo if metainfo else None
+    plugins_value = plugins if plugins else None
 
-    # get meta cache's ttl and update the cache
+    # get meta cache's ttl and update the cache. use the same ttl for the plugins
     ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
-    await _meta_cache.set(META_CACHE_KEY, value, ttl=ttl)
+    await _meta_cache.set(META_CACHE_KEY, meta_value, ttl=ttl)
+    await _plugins_cache.set(PLUGINS_CACHE_KEY, plugins_value, ttl=ttl)
 
     return metainfo
 
@@ -304,7 +316,7 @@ async def _build_metainfo_cache():
             and the value is the data associated with that device.
     """
     logger.debug(gettext('Building the metainfo cache.'))
-    metainfo = {}
+    metainfo, plugins = {}, {}
 
     # first, we want to iterate through all of the known plugins and
     # use the associated client to get the meta information provided by
@@ -327,6 +339,7 @@ async def _build_metainfo_cache():
             for device in plugin.client.metainfo():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
                 metainfo[_id] = device
+                plugins[_id] = name
 
         # we do not want to fail the scan if a single plugin fails to provide
         # meta-information.
@@ -349,7 +362,7 @@ async def _build_metainfo_cache():
             gettext('Failed to scan all plugins: {}').format(failures)
         )
 
-    return metainfo
+    return metainfo, plugins
 
 
 def _build_scan_cache(metainfo):

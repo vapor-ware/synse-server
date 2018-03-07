@@ -24,13 +24,13 @@ async def write(rack, board, device, data):
     """
 
     # lookup the known info for the specified device
-    dev = await cache.get_device_meta(rack, board, device)
+    plugin_name, _ = await cache.get_device_meta(rack, board, device)
 
     # get the plugin context for the device's specified protocol
-    _plugin = plugin.get_plugin(dev.protocol)
+    _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
         raise errors.PluginNotFoundError(
-            gettext('Unable to find plugin named "{}"').format(dev.protocol)
+            gettext('Unable to find plugin named "{}"').format(plugin_name)
         )
 
     # the data comes in as the POSTed dictionary which includes an 'action'
