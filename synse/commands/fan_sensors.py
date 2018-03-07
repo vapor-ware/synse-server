@@ -45,8 +45,7 @@ async def fan_sensors():
                 resp = await read(rack, board, device)
             except Exception as e:
                 logger.warning('Failed to get reading for {}-{}-{} for fan_sensors {}.'.format(
-                    rack, board, device, e)
-                )
+                    rack, board, device, e))
             else:
                 readings.append(resp.data)
 
