@@ -2,7 +2,7 @@
 """
 
 from synse import cache
-from synse.commands import read
+from synse.commands.read import read
 from synse.log import logger
 
 
@@ -41,7 +41,12 @@ async def fan_sensors():
             board = v.location.board
             device = v.uid
 
-            resp = await read(rack, board, device)
-            readings.append(resp.data)
+            try:
+                resp = await read(rack, board, device)
+            except Exception as e:
+                logger.warning('Failed to get reading for {}-{}-{} for fan_sensors {}.'.format(
+                    rack, board, device, e))
+            else:
+                readings.append(resp.data)
 
     return readings
