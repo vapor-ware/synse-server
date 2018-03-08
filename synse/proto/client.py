@@ -148,8 +148,8 @@ class SynseInternalClient(object):
             rack=rack
         )
 
-        config_timeout = config.options.get('grpc', {}).get('timeout', None)
-        resp = [r for r in self.stub.Read(req, timeout=config_timeout)]
+        timeout = config.options.get('grpc.timeout', None)
+        resp = [r for r in self.stub.Read(req, timeout=timeout)]
 
         return resp
 
@@ -174,8 +174,8 @@ class SynseInternalClient(object):
             board=board
         )
 
-        config_timeout = config.options.get('grpc', {}).get('timeout', None)
-        resp = [r for r in self.stub.Metainfo(req, timeout=config_timeout)]
+        timeout = config.options.get('grpc.timeout', None)
+        resp = [r for r in self.stub.Metainfo(req, timeout=timeout)]
 
         return resp
 
@@ -199,8 +199,8 @@ class SynseInternalClient(object):
             data=[d.to_grpc() for d in data]
         )
 
-        config_timeout = config.options.get('grpc', {}).get('timeout', None)
-        resp = self.stub.Write(req, timeout=config_timeout)
+        timeout = config.options.get('grpc.timeout', None)
+        resp = self.stub.Write(req, timeout=timeout)
         return resp
 
     def check_transaction(self, transaction_id):
@@ -217,8 +217,8 @@ class SynseInternalClient(object):
             id=transaction_id
         )
 
-        config_timeout = config.options.get('grpc', {}).get('timeout', None)
-        resp = self.stub.TransactionCheck(req, timeout=config_timeout)
+        timeout = config.options.get('grpc.timeout', None)
+        resp = self.stub.TransactionCheck(req, timeout=timeout)
         return resp
 
 

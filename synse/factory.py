@@ -10,7 +10,7 @@ from sanic.response import text
 from synse import config, errors
 from synse.cache import configure_cache
 from synse.i18n import init_gettext
-from synse.log import logger, setup_logger
+from synse.log import LOGGING, logger, setup_logger
 from synse.response import json
 from synse.routes import aliases, base, core
 
@@ -24,12 +24,21 @@ def make_app():
         Sanic: A Sanic application setup and configured to serve
             Synse Server routes.
     """
-    app = Sanic(__name__, log_config=config.LOGGING)
+    app = Sanic(__name__, log_config=LOGGING)
     app.config.LOGO = None
 
-    config.load()
+    # get the application configuration(s)
+    config.options.add_config_paths('.', '/synse/config')
+    config.options.env_prefix = 'SYNSE'
+    config.options.auto_env = True
 
+    config.options.parse()
+    config.options.validate()
+
+    # set up application logging
     setup_logger()
+
+    # set up localization/internationalization
     init_gettext()
 
     # register the blueprints
@@ -42,6 +51,7 @@ def make_app():
 
     configure_cache()
 
+    logger.info('Synse Configuration: {}'.format(config.options.config))
     return app
 
 

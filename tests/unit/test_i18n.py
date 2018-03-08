@@ -60,12 +60,12 @@ def test_i18n_init(clean_i18n):
 def test_get_language_none():
     """Tests that i18n._get_language() returns 'en_US' when config has None as locale key.
     """
-    config.options['locale'] = None
+    config.options.set('locale', None)
     assert i18n._get_language() == 'en_US'
 
 
 def test_get_language_str():
     """Tests that i18n._get_language() returns the correct config key.
     """
-    config.options['locale'] = 'this is a string'
+    config.options.set('locale', 'this is a string')
     assert i18n._get_language() == 'this is a string'

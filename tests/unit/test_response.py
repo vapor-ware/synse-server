@@ -16,7 +16,7 @@ def test_json():
 
 def test_json_pretty():
     """Test parsing dict to a pretty JSON string."""
-    config.options['pretty_json'] = True
+    config.options.set('pretty_json', True)
 
     data = {'test': 'value'}
     actual = response.json(data)

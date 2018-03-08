@@ -10,6 +10,16 @@ from synse.log import logger
 from synse.plugin import Plugin, get_plugins, register_plugins
 from synse.proto import util as putil
 
+# The aiocache configuration
+AIOCACHE = {
+    'default': {
+        'cache': 'aiocache.SimpleMemoryCache',
+        'serializer': {
+            'class': 'aiocache.serializers.NullSerializer'
+        }
+    }
+}
+
 # Define namespace for caches
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
@@ -33,8 +43,8 @@ _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 
 def configure_cache():
     """Set the configuration for the asynchronous cache used by Synse."""
-    logger.debug(gettext('CONFIGURING CACHE: {}').format(config.AIOCACHE))
-    aiocache.caches.set_config(config.AIOCACHE)
+    logger.debug(gettext('CONFIGURING CACHE: {}').format(AIOCACHE))
+    aiocache.caches.set_config(AIOCACHE)
 
 
 async def clear_cache(namespace):
@@ -89,7 +99,7 @@ async def add_transaction(transaction_id, context, plugin_name):
     Returns:
         bool: True if successful; False otherwise.
     """
-    ttl = config.options.get('cache', {}).get('transaction', {}).get('ttl', None)
+    ttl = config.options.get('cache.transaction.ttl', None)
     return await transaction_cache.set(
         transaction_id,
         {
@@ -172,7 +182,7 @@ async def get_metainfo_cache():
     plugins_value = plugins if plugins else None
 
     # get meta cache's ttl and update the cache. use the same ttl for the plugins
-    ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    ttl = config.options.get('cache.meta.ttl', None)
     await _meta_cache.set(META_CACHE_KEY, meta_value, ttl=ttl)
     await _plugins_cache.set(PLUGINS_CACHE_KEY, plugins_value, ttl=ttl)
 
@@ -229,7 +239,7 @@ async def get_scan_cache():
 
     # get the scan cache's ttl and update the cache. this should be the same
     # ttl that is used by the metainfo cache.
-    ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    ttl = config.options.get('cache.meta.ttl', None)
     await _meta_cache.set(SCAN_CACHE_KEY, value, ttl=ttl)
 
     return scan_cache
@@ -302,7 +312,7 @@ async def get_resource_info_cache():
 
     # get the info cache's ttl and update the cache. this should be the same
     # ttl that is used by the metainfo cache.
-    ttl = config.options.get('cache', {}).get('meta', {}).get('ttl', None)
+    ttl = config.options.get('cache.meta.ttl', None)
     await _meta_cache.set(INFO_CACHE_KEY, value, ttl=ttl)
 
     return info_cache

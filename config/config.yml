@@ -1,8 +1,0 @@
-# Make the json returned by endpoints pretty
-pretty_json: True
-
-
-# Set levels of logging
-# Options are corresponding to the logging package, which are:
-#   [ info | debug | warning | error | critical ]
-logging: debug

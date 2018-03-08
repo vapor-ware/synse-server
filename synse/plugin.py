@@ -197,7 +197,7 @@ def register_unix_plugins():
 
     # First, register any plugins that are defined in the Synse Server
     # configuration.
-    configured = config.options.get('plugin', {}).get('unix', {})
+    configured = config.options.get('plugin.unix', {})
     logger.debug('configured unix plugins: {}'.format(configured))
     if configured:
         for name, path in configured.items():
@@ -285,7 +285,7 @@ def register_tcp_plugins():
     """
     logger.debug(gettext('Registering plugins (tcp)'))
 
-    configured = config.options.get('plugin', {}).get('tcp', {})
+    configured = config.options.get('plugin.tcp', {})
     logger.debug('configured tcp plugins: {}'.format(configured))
     if not configured:
         logger.debug(gettext('found no plugins configured for tcp'))

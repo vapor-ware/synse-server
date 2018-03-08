@@ -342,13 +342,7 @@ def test_register_unix_plugin():
     assert len(plugin.Plugin.manager.plugins) == 0
 
     # set a configuration
-    config.options = {
-        'plugin': {
-            'unix': {
-                'foo': 'tmp'
-            }
-        }
-    }
+    config.options.set('plugin.unix.foo', 'tmp')
 
     registered = plugin.register_unix_plugins()
 
@@ -379,14 +373,8 @@ def test_register_unix_plugins():
     assert len(plugin.Plugin.manager.plugins) == 0
 
     # set configurations
-    config.options = {
-        'plugin': {
-            'unix': {
-                'foo': 'tmp',
-                'bar': 'tmp'
-            }
-        }
-    }
+    config.options.set('plugin.unix.foo', 'tmp')
+    config.options.set('plugin.unix.bar', 'tmp')
 
     registered = plugin.register_unix_plugins()
 
@@ -437,13 +425,7 @@ def test_register_unix_plugin_already_exists():
     assert len(plugin.Plugin.manager.plugins) == 1
 
     # set the same configuration
-    config.options = {
-        'plugin': {
-            'unix': {
-                'test': '{}'.format(data_dir),
-            }
-        }
-    }
+    config.options.set('plugin.unix.test', data_dir)
 
     registered = plugin.register_unix_plugins()
 
@@ -465,13 +447,7 @@ def test_register_unix_plugin_no_socket():
 
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options = {
-        'plugin': {
-            'unix': {
-                'foo': data_dir
-            }
-        }
-    }
+    config.options.set('plugin.unix.foo', data_dir)
 
     registered = plugin.register_unix_plugins()
 
@@ -484,13 +460,7 @@ def test_register_unix_plugin_no_socket_no_path():
     """Test registering unix plugin when the path does not exist"""
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options = {
-        'plugin': {
-            'unix': {
-                'foo': os.path.join(data_dir, 'some', 'other', 'path')
-            }
-        }
-    }
+    config.options.set('plugin.unix.foo', os.path.join(data_dir, 'some', 'other', 'path'))
 
     registered = plugin.register_unix_plugins()
 
@@ -508,13 +478,7 @@ def test_register_unix_plugin_no_config_path():
 
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options = {
-        'plugin': {
-            'unix': {
-                'foo': None
-            }
-        }
-    }
+    config.options.set('plugin.unix.foo', None)
 
     registered = plugin.register_unix_plugins()
 
@@ -546,13 +510,7 @@ def test_register_tcp_plugin():
     """Test registering TCP based plugin when a configuration is specified"""
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options = {
-        'plugin': {
-            'tcp': {
-                'foo': 'localhost:5000'
-            }
-        }
-    }
+    config.options.set('plugin.tcp.foo', 'localhost:5000')
 
     registered = plugin.register_tcp_plugins()
 
@@ -573,14 +531,8 @@ def test_register_tcp_plugins():
     """Test registering TCP based plugins when multiple configurations are specified"""
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options = {
-        'plugin': {
-            'tcp': {
-                'foo': 'localhost:5000',
-                'bar': 'localhost:5001',
-            }
-        }
-    }
+    config.options.set('plugin.tcp.foo', 'localhost:5000')
+    config.options.set('plugin.tcp.bar', 'localhost:5001')
 
     registered = plugin.register_tcp_plugins()
 
@@ -608,13 +560,7 @@ def test_register_tcp_plugin_already_exists():
     """Test registering TCP plugin when the plugin was already registered."""
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options = {
-        'plugin': {
-            'tcp': {
-                'foo': 'localhost:5000'
-            }
-        }
-    }
+    config.options.set('plugin.tcp.foo', 'localhost:5000')
 
     # register the first time
     registered = plugin.register_tcp_plugins()
@@ -652,7 +598,7 @@ def test_register_tcp_plugin_env():
     assert len(plugin.Plugin.manager.plugins) == 0
 
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
-    config.parse_env_vars()
+    config.options.parse()
 
     registered = plugin.register_tcp_plugins()
 
@@ -675,7 +621,7 @@ def test_register_tcp_plugins_env():
 
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
     os.environ['SYNSE_PLUGIN_TCP_BAR'] = 'localhost:5001'
-    config.parse_env_vars()
+    config.options.parse()
 
     registered = plugin.register_tcp_plugins()
 
@@ -705,7 +651,7 @@ def test_register_tcp_plugin_env_duplicate():
 
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5000'
     os.environ['SYNSE_PLUGIN_TCP_FOO'] = 'localhost:5001'
-    config.parse_env_vars()
+    config.options.parse()
 
     registered = plugin.register_tcp_plugins()
 

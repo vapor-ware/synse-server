@@ -22,4 +22,4 @@ class ConfigResponse(SynseResponse):
 
     def __init__(self):
         """Constructor for the ConfigResponse class."""
-        self.data = {k: v for k, v in config.options.items() if not k.startswith('_')}
+        self.data = {k: v for k, v in config.options.config.items() if not k.startswith('_')}
