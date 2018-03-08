@@ -16,8 +16,7 @@ jobs:
             pip install tox>=2.9.0
       - restore_cache:
           keys:
-            - v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
-            - v1.4-tox-test-cache- # used if checksum fails
+            - v1.5-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
       - run:
           name: Unit Tests
           command: make test-unit
@@ -25,18 +24,17 @@ jobs:
           name: Integration Tests
           command: make test-integration
       - save_cache:
-          key: v1.4-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          key: v1.5-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/py36
       - restore_cache:
           keys:
-            - v2.5-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
-            - v2.5-tox-lint-cache- # used if checksum fails
+            - v2.6-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
       - run:
           name: Lint
           command: make lint
       - save_cache:
-          key: v2.5-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          key: v2.6-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/lint
       - store_artifacts:
