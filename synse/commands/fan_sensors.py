@@ -28,10 +28,11 @@ async def fan_sensors():
 
     readings = []
 
+    logger.debug('--- FAN SENSORS start ---')
     for _, v in _cache.items():
 
         logger.debug('FAN SENSORS')
-        logger.info(v)
+        logger.info('fan_sensors cache item: {}'.format(v))
 
         is_temp = v.type.lower() == 'temperature' and v.model.lower() == 'max11610'
         is_pressure = v.type.lower() == 'differential_pressure' and v.model.lower() == 'sdp610'
@@ -47,6 +48,13 @@ async def fan_sensors():
                 logger.warning('Failed to get reading for {}-{}-{} for fan_sensors {}.'.format(
                     rack, board, device, e))
             else:
-                readings.append(resp.data)
+                single_reading = resp.data # Single sensor reading.
+                logger.debug('fan_sensors data: {}.'.format(single_reading))
+                # Wedge in the VEC name that we received this data from.
+                # That way auto_fan can map the data to a VEC.
+                single_reading['vec'] = rack
+                logger.debug('fan_sensors data with vec: {}.'.format(single_reading))
+                readings.append(single_reading)
 
+    logger.debug('--- FAN SENSORS end ---')
     return readings
