@@ -7,7 +7,7 @@ from synse.scheme.config import ConfigResponse
 
 def test_config_scheme():
     """Test that the config scheme matches the expected."""
-    config.options = {'debug': False, 'pretty_json': True, 'some_key': 1}
+    config.options._override = {'debug': False, 'pretty_json': True, 'some_key': 1}
 
     response_scheme = ConfigResponse()
 
@@ -22,7 +22,7 @@ def test_config_scheme():
 
 def test_config_scheme_hidden_value():
     """Test that the config scheme matches the expected when a value is marked as hidden."""
-    config.options = {'debug': False, 'pretty_json': True, '_some_key': 1}
+    config.options._override = {'debug': False, 'pretty_json': True, '_some_key': 1}
 
     response_scheme = ConfigResponse()
 

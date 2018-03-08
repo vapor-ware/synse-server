@@ -9,7 +9,7 @@ import grpc
 import pytest
 from synse_plugin import api
 
-from synse import cache, config, errors, plugin
+from synse import cache, errors, plugin
 from tests import data_dir
 
 # -- Helper Methods ---
@@ -98,11 +98,11 @@ def plugin_context():
 def test_configure_cache():
     """Configure the aiocache namespace."""
 
-    assert aiocache.caches._config != config.AIOCACHE
+    assert aiocache.caches._config != cache.AIOCACHE
 
     cache.configure_cache()
 
-    assert aiocache.caches._config == config.AIOCACHE
+    assert aiocache.caches._config == cache.AIOCACHE
     assert 'default' in aiocache.caches._config
 
 

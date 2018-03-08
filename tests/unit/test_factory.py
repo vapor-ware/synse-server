@@ -1,14 +1,28 @@
 """Test the 'synse.factory' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
+import os
+
+import pytest
 import ujson
+import yaml
 
 from synse import config, errors, factory
+from tests import data_dir
 
 
-def test_make_app():
+@pytest.fixture()
+def make_config():
+    """Fixture to make a simple config file in the datadir"""
+    # this file gets cleaned out via a fixture in conftest.py
+    with open(os.path.join(data_dir, 'config.yml'), 'w') as f:
+        yaml.dump({'log': 'debug'}, f)
+
+
+def test_make_app(make_config):
     """Create a new instance of the Synse Server app."""
-    config.options['locale'] = 'en_US'
+    config.options.set('locale', 'en_US')
+    config.options.add_config_paths(data_dir)
     app = factory.make_app()
 
     # check that the app we create has the expected blueprints registered

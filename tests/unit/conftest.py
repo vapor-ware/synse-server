@@ -2,36 +2,13 @@
 """
 
 import os
-import shutil
 
+import bison
 import pytest
 
 from synse import cache, config, const, plugin
 from synse.proto import client
 from tests import data_dir
-
-
-@pytest.fixture(scope='module', autouse=True)
-def tmp_dir():
-    """Fixture to create and remove the _tmp dir, used to hold test data."""
-    if not os.path.isdir(data_dir):
-        os.mkdir(data_dir)
-
-    yield
-    if os.path.isdir(data_dir):
-        shutil.rmtree(data_dir)
-
-
-@pytest.fixture(autouse=True)
-def clear_tmp_dir():
-    """Clear the _tmp directory of test data between tests."""
-    yield
-    for f in os.listdir(data_dir):
-        path = os.path.join(data_dir, f)
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-        else:
-            os.unlink(path)
 
 
 @pytest.fixture(autouse=True)
@@ -44,7 +21,9 @@ def reset_state():
     yield
 
     # reset configuration
-    config.options = {}
+    config.options = bison.Bison(config.scheme)
+    config.options.env_prefix = 'SYNSE'
+    config.options.auto_env = True
 
     # reset managed plugins
     plugin.Plugin.manager.plugins = {}

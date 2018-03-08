@@ -2,10 +2,14 @@
 """
 
 import logging
+import os
+import shutil
 
 import pytest
+import yaml
 
 from synse import config, factory
+from tests import data_dir
 
 _app = None
 
@@ -15,8 +19,34 @@ def app():
     """Fixture to get a Synse Server application instance."""
     global _app
     if _app is None:
+        with open(os.path.join(data_dir, 'config.yml'), 'w') as f:
+            yaml.dump({'log': 'debug'}, f)
+        config.options.add_config_paths(data_dir)
         _app = factory.make_app()
     return _app
+
+
+@pytest.fixture(scope='module', autouse=True)
+def tmp_dir():
+    """Fixture to create and remove the _tmp dir, used to hold test data."""
+    if not os.path.isdir(data_dir):
+        os.mkdir(data_dir)
+
+    yield
+    if os.path.isdir(data_dir):
+        shutil.rmtree(data_dir)
+
+
+@pytest.fixture(autouse=True)
+def clear_tmp_dir():
+    """Clear the _tmp directory of test data between tests."""
+    yield
+    for f in os.listdir(data_dir):
+        path = os.path.join(data_dir, f)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.unlink(path)
 
 
 @pytest.fixture(autouse=True)
@@ -30,7 +60,7 @@ def disable_logging():
 @pytest.fixture()
 def no_pretty_json():
     """Fixture to ensure basic JSON responses."""
-    config.options['pretty_json'] = False
+    config.options.set('pretty_json', False)
 
 
 @pytest.fixture(autouse=True)

@@ -15,9 +15,9 @@ RUN set -e -x \
 COPY . /synse
 WORKDIR /synse
 
-# the location where the bg processes will place their
-# unix sockets so the Synse app can communicate.
-RUN mkdir -p /tmp/synse/procs
+# create directories for plugin sockets and configuration
+RUN mkdir -p /tmp/synse/procs \
+    && mkdir -p /synse/config
 
 # install synse_server python package
 # TODO - since we are pretty much just using the package, what
