@@ -6,7 +6,7 @@ from bison import Bison, DictOption, Option, Scheme
 # The Synse Server configuration scheme
 scheme = Scheme(
     Option('logging', default='info', choices=['debug', 'info', 'warning', 'error']),
-    Option('pretty_json', default=False, field_type=bool),
+    Option('pretty_json', default=True, field_type=bool),
     Option('locale', default='en_US', field_type=str),
     DictOption('plugin', default={}, scheme=Scheme(
         DictOption('tcp', default={}, scheme=None, bind_env=True),
