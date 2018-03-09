@@ -32,7 +32,7 @@ def make_app():
     config.options.env_prefix = 'SYNSE'
     config.options.auto_env = True
 
-    config.options.parse()
+    config.options.parse(requires_cfg=False)
     config.options.validate()
 
     # set up application logging
