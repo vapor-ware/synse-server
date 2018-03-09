@@ -21,7 +21,7 @@ def test_config_endpoint_ok(app):
     assert 'grpc' in data
 
     assert data['locale'] == 'en_US'
-    assert data['pretty_json'] == False
+    assert data['pretty_json'] is True
     assert data['logging'] == 'info'
     assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 300}}
     assert data['grpc'] == {'timeout': 3}
