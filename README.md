@@ -240,10 +240,13 @@ plugin:
     plugin3: /tmp/run
 cache:
   meta: 
+    # time to live in seconds
     ttl: 20
   transaction:
+    # time to live in seconds
     ttl: 300
 grpc:
+  # timeout in seconds
   timeout: 5
 ```
 
