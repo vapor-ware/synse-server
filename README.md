@@ -27,8 +27,28 @@ able to put together complete monitoring and dashboard solution from the instruc
 Additional documentation may be found on the [Docs][docs] site.
 
 ### Architecture
-TODO - will need diagrams, will need a description of how plugins work/interface with
-Synse Server
+
+<p align="center"><img src="assets/arch.png" width="500" /></p>
+
+Synse Server is a micro-service that provides an HTTP interface for interaction and control
+of devices. Synse Server does not directly interface with the devices -- that job is left to
+the plugins that Synse Server can interface with. Plugins implement a given protocol to talk
+to a given collection of devices, whether that is a serial protocol for sensors, or an HTTP
+protocol for some external REST API is up to the plugin implementation.
+
+Synse Server really acts as the front-end interface for all the different protocols/devices.
+It gives a uniform API to the user, routes commands to the proper device (e.g. to the plugin
+that manages the referenced device), and does some aggregation, caching, and formatting of
+the response data.
+
+The general flow through Synse Server for a device read, for example, is:
+- get an incoming HTTP request
+- validate the specified device exists
+- lookup the device's managing plugin
+- dispatch a gRPC read request to the plugin for that device
+- await a response from the plugin
+- take the data returned from the plugin and format it into the JSON response scheme
+- return the data to the caller
 
 
 ## Getting Started
@@ -40,14 +60,14 @@ run it with its built-in emulator.
 ### Docker
 1. Get the Docker image from [DockerHub][synse-dockerhub]
 
-    ```
-    docker pull vaporio/synse-server
+    ```console
+    $ docker pull vaporio/synse-server
     ```
     
 1. Run the container with the default configurations, enabling the emulator
     
-    ```
-    docker run -d \
+    ```console
+    $ docker run -d \
         -p 5000:5000 \
         --name synse \
         vaporio/synse-server enable-emulator
@@ -55,7 +75,7 @@ run it with its built-in emulator.
 
 1. Verify that Synse Server is up and running and reachable
     
-    ```
+    ```console
     $ curl http://localhost:5000/synse/test
     {
       "status": "ok",
@@ -67,8 +87,8 @@ run it with its built-in emulator.
    Synse Server interacts with are made available by the Synse Plugin(s) it is interfacing
    with, which in this case is the [emulator][synse-emulator].
    
-    ```
-    curl http://localhost:5000/synse/2.0/scan
+    ```console
+    $ curl http://localhost:5000/synse/2.0/scan
     ```
 
 ### Python Package
@@ -196,7 +216,7 @@ cache:
   meta:
     ttl: 20
   transaction:
-    ttl: 20
+    ttl: 300
 grpc:
   timeout: 3
 ```
@@ -220,10 +240,13 @@ plugin:
     plugin3: /tmp/run
 cache:
   meta: 
+    # time to live in seconds
     ttl: 20
   transaction:
-    ttl: 20
+    # time to live in seconds
+    ttl: 300
 grpc:
+  # timeout in seconds
   timeout: 5
 ```
 
@@ -269,9 +292,10 @@ services:
       start_period: 5s
 ``` 
 
-This can be run with `docker-compose -f compose.yml up -d`. Then, checking the output of
-`docker ps`, you should see something similar to
-```bash
+This can be run with `docker-compose -f compose.yml up -d`. Then, checking the state, you should see
+something similar to
+```console
+$ docker ps
 CONTAINER ID        IMAGE                  COMMAND             CREATED              STATUS                        PORTS                    NAMES
 4dd14ab5b25a        vaporio/synse-server   "bin/synse.sh"      About a minute ago   Up About a minute (healthy)   0.0.0.0:5000->5000/tcp   synse-server
 ```
@@ -282,9 +306,9 @@ especially useful if the health check is failing or stuck.
 
 ## Development
 To develop Synse Server, you will first need to clone this repo
-```
-git clone https://github.com/vapor-ware/synse-server.git
-cd synse-server
+```console
+$ git clone https://github.com/vapor-ware/synse-server.git
+$ cd synse-server
 ```
 
 All work should be done in branches and pull requests made to merge the branch
