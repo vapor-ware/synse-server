@@ -102,8 +102,9 @@ async def write_route(request, rack, board, device):
     return response.to_json()
 
 
+@bp.route('/transaction')
 @bp.route('/transaction/<transaction_id>')
-async def transaction_route(request, transaction_id):
+async def transaction_route(request, transaction_id=None):
     """Check the status of a write transaction.
 
     Args:
