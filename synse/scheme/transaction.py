@@ -48,3 +48,23 @@ class TransactionResponse(SynseResponse):
             'updated': write_response.updated,
             'message': write_response.message
         }
+
+
+class TransactionListResponse(SynseResponse):
+    """A TransactionListResponse is the response data for Synse Server's
+    'list transactions' action.
+
+    Response Example:
+        [
+            "b7jl0b2un4a154rn9u4g",
+            "b7jl0b2un4a154rn9u5a",
+            "b7jl0b2un4a154rn9ib2",
+        ]
+
+    Args:
+        transactions (list[str]): A list of the transaction ids.
+    """
+
+    def __init__(self, transactions):
+        """Constructor for the TransactionListResponse class."""
+        self.data = transactions

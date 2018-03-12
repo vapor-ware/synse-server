@@ -11,7 +11,8 @@ import synse.cache
 from synse import errors, plugin
 from synse.commands.transaction import check_transaction
 from synse.proto.client import SynseInternalClient
-from synse.scheme.transaction import TransactionResponse
+from synse.scheme.transaction import (TransactionListResponse,
+                                      TransactionResponse)
 
 
 def mockgettransaction(transaction):
@@ -76,7 +77,6 @@ def make_plugin():
 
     if 'foo' in plugin.Plugin.manager.plugins:
         del plugin.Plugin.manager.plugins['foo']
-
 
 @pytest.mark.asyncio
 async def test_transaction_command_no_plugin_name(mock_get_transaction):
@@ -145,3 +145,25 @@ async def test_transaction_command(mock_get_transaction, mock_client_transaction
         'updated': 'november',
         'message': ''
     }
+
+
+@pytest.mark.asyncio
+async def test_transaction_none(clear_caches):
+    """Pass None to the transaction command when no transactions exist."""
+
+    resp = await check_transaction(None)
+    assert isinstance(resp, TransactionListResponse)
+    assert len(resp.data) == 0
+
+
+@pytest.mark.asyncio
+async def test_transaction_none2(clear_caches):
+    """Pass None to the transaction command when transactions exist."""
+
+    ok = await synse.cache.add_transaction('abc123', {'some': 'ctx'}, 'test-plugin')
+    assert ok
+
+    resp = await check_transaction(None)
+    assert isinstance(resp, TransactionListResponse)
+    assert len(resp.data) == 1
+    assert 'abc123' in resp.data

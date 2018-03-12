@@ -2,7 +2,8 @@
 
 from synse_plugin import api
 
-from synse.scheme.transaction import TransactionResponse
+from synse.scheme.transaction import (TransactionListResponse,
+                                      TransactionResponse)
 
 
 def test_transaction_scheme():
@@ -31,3 +32,17 @@ def test_transaction_scheme():
         'updated': 'november',
         'message': ''
     }
+
+
+def test_transaction_list_scheme():
+    """Test that the transaction list scheme matches the expected."""
+    ids = [
+        'abcdefg',
+        'hijklmn',
+        'opqrstu',
+        'vwxyz',
+        '12345'
+    ]
+
+    response_scheme = TransactionListResponse(ids)
+    assert response_scheme.data == ids
