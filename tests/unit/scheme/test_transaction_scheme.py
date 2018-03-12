@@ -35,7 +35,12 @@ def test_transaction_scheme():
 
 
 def test_transaction_list_scheme():
-    """Test that the transaction list scheme matches the expected."""
+    """Test that the transaction list scheme matches the expected.
+
+    Here, the TransactionListResponse just sets the data its given
+    (a list of string) to its `data` field, so we just check that
+    the data field is set.
+    """
     ids = [
         'abcdefg',
         'hijklmn',
