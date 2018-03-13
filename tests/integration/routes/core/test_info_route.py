@@ -14,7 +14,7 @@ invalid_device_info_url = '{}/invalid-device'.format(invalid_board_info_url)
 def test_rack_info_endpoint_invalid(app):
     """Issue a request for a nonexistent rack."""
     _, response = app.test_client.get(invalid_rack_info_url)
-    utils.test_error_json(response, errors.RACK_NOT_FOUND)
+    utils.test_error_json(response, errors.RACK_NOT_FOUND, 404)
 
 
 def test_rack_info_endpoint_post_not_allowed(app):
@@ -60,7 +60,7 @@ def test_board_info_endpoint_invalid(app):
     error because of the lookup order.
     """
     _, response = app.test_client.get(invalid_board_info_url)
-    utils.test_error_json(response, errors.RACK_NOT_FOUND)
+    utils.test_error_json(response, errors.RACK_NOT_FOUND, 404)
 
 
 def test_board_info_endpoint_post_not_allowed(app):
@@ -106,7 +106,7 @@ def test_device_info_endpoint_invalid(app):
     error because of the lookup order.
     """
     _, response = app.test_client.get(invalid_device_info_url)
-    utils.test_error_json(response, errors.RACK_NOT_FOUND)
+    utils.test_error_json(response, errors.RACK_NOT_FOUND, 404)
 
 
 def test_device_info_endpoint_post_not_allowed(app):

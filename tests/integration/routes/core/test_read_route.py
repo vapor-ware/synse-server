@@ -16,7 +16,7 @@ def test_read_endpoint_invalid(app):
     one component is wrong, the ID composite device ID is wrong.
     """
     _, response = app.test_client.get(invalid_read_url)
-    utils.test_error_json(response, errors.DEVICE_NOT_FOUND)
+    utils.test_error_json(response, errors.DEVICE_NOT_FOUND, 404)
 
 
 def test_read_endpoint_post_not_allowed(app):

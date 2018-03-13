@@ -11,7 +11,7 @@ invalid_transaction_url = '/synse/{}/transaction/invalid-id'.format(__api_versio
 def test_transaction_endpoint_invalid(app):
     """Test getting a invalid transaction response."""
     _, response = app.test_client.get(invalid_transaction_url)
-    utils.test_error_json(response, errors.TRANSACTION_NOT_FOUND)
+    utils.test_error_json(response, errors.TRANSACTION_NOT_FOUND, 404)
 
 
 def test_transaction_endpoint_post_not_allowed(app):
