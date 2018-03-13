@@ -113,8 +113,12 @@ class ReadResponse(SynseResponse):
             logger.debug(gettext('  Precision: {}').format(precision))
             value = reading.value
 
-            # Handle empty string.
-            if value == '':
+            # Handle cases where no data was read. Currently, we consider the reading
+            # to have no data if:
+            #   - the ReadResponse value comes back as an empty string (e.g. "")
+            #   - the ReadResponse value comes back as the string "null".
+            if value == '' or value == 'null':
+                logger.debug('reading value for {} came back as empty/null'.format(rt))
                 value = None
 
             else:
