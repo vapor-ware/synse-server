@@ -38,7 +38,6 @@ async def read(rack, board, device):
 
     try:
         # perform a gRPC read on the device's managing plugin
-        # FIXME (etd) - do we need to iterate here? the client already does this...
         read_data = [r for r in _plugin.client.read(rack, board, device)]
     except grpc.RpcError as ex:
 
