@@ -8,7 +8,7 @@ import shutil
 import pytest
 import yaml
 
-from synse import config, factory
+from synse import config, const, factory
 from tests import data_dir
 
 _app = None
@@ -18,6 +18,14 @@ _app = None
 def app():
     """Fixture to get a Synse Server application instance."""
     global _app
+
+    # override the default config directory location for testing. this is
+    # to prevent collision with anything in the local default socket directory,
+    # which could be the case if you are running plugins locally directly
+    # on the host (e.g. for development)
+    const.SOCKET_DIR = os.path.join(data_dir, 'socks')
+
+    # if the app doesn't exist, create it
     if _app is None:
         with open(os.path.join(data_dir, 'config.yml'), 'w') as f:
             yaml.dump({'log': 'debug'}, f)
