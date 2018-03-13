@@ -4,7 +4,7 @@
 import datetime
 
 from sanic import Sanic
-from sanic.exceptions import NotFound, ServerError
+from sanic.exceptions import InvalidUsage, NotFound, ServerError
 from sanic.response import text
 
 from synse import config, errors
@@ -80,19 +80,16 @@ def _register_error_handling(app):
         logger.error('Exception for request: {}'.format(request))
         logger.exception(exception)
 
-        err = {
-            'http_code': 404,
-            'error_id': errors.URL_NOT_FOUND,
-            'description': errors.codes[errors.URL_NOT_FOUND],
-            'timestamp': str(datetime.datetime.utcnow()),
-            'context': str(exception)
-        }
+        if hasattr(exception, 'error_id'):
+            error_id = exception.error_id
+        else:
+            error_id = errors.URL_NOT_FOUND
 
-        return json(err, status=404)
+        return _make_error(error_id, exception)
 
-    @app.exception(ServerError)
+    @app.exception(ServerError, InvalidUsage)
     def err_500(request, exception):
-        """Handler for a 500 error."""
+        """Handler for a 500 and 400 error."""
         logger.error('Exception for request: {}'.format(request))
         logger.exception(exception)
 
@@ -101,12 +98,17 @@ def _register_error_handling(app):
         else:
             error_id = errors.UNKNOWN
 
-        err = {
-            'http_code': 500,
-            'error_id': error_id,
-            'description': errors.codes[error_id],
-            'timestamp': str(datetime.datetime.utcnow()),
-            'context': str(exception)
-        }
+        return _make_error(error_id, exception)
 
-        return json(err, status=500)
+
+def _make_error(error_id, exception):
+    """Make a JSON error response."""
+    error = {
+        'http_code': exception.status_code,
+        'error_id': error_id,
+        'description': errors.codes[error_id],
+        'timestamp': str(datetime.datetime.utcnow()),
+        'context': str(exception)
+
+    }
+    return json(error, status=exception.status_code)

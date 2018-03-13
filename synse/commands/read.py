@@ -1,7 +1,11 @@
 """Command handler for the `read` route.
 """
+# pylint: disable=line-too-long
+
+from datetime import datetime, timezone
 
 import grpc
+from synse_plugin import api
 
 from synse import cache, errors, plugin
 from synse.i18n import gettext
@@ -20,16 +24,13 @@ async def read(rack, board, device):
     Returns:
         ReadResponse: The "read" response scheme model.
     """
-    # FIXME: clean up logging
-    logger.debug(gettext('>> READ cmd'))
-
     # lookup the known info for the specified device
     plugin_name, dev = await cache.get_device_meta(rack, board, device)
-    logger.debug(gettext('  |- got device: {}').format(dev))
+    logger.debug(gettext('Device {} is managed by plugin {}').format(device, plugin_name))
 
     # get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)
-    logger.debug(gettext('  |- got plugin: {}').format(_plugin))
+    logger.debug(gettext('Got plugin: {}').format(_plugin))
     if not _plugin:
         raise errors.PluginNotFoundError(
             gettext('Unable to find plugin named "{}" to read.').format(plugin_name)
@@ -39,9 +40,61 @@ async def read(rack, board, device):
         # perform a gRPC read on the device's managing plugin
         read_data = [r for r in _plugin.client.read(rack, board, device)]
     except grpc.RpcError as ex:
-        raise errors.FailedReadCommandError(str(ex)) from ex
 
-    logger.debug(gettext('  |- read results: {}').format(read_data))
+        # FIXME (etd) - this isn't the nicest way of doing this check.
+        # this string is returned from the SDK, and its not likely to change
+        # anytime soon, so this is "safe" for now, but we should see if there
+        # is a better way to check this other than comparing strings..
+        if hasattr(ex, 'code') and hasattr(ex, 'details'):
+            if grpc.StatusCode.NOT_FOUND == ex.code() and 'no readings found' in ex.details().lower():
+
+                # Currently, in the SDK, there are three different behaviors for
+                # devices that do not have readings. Either (a). "null" is returned,
+                # (b). an empty string ("") is returned, or (c). a gRPC error is
+                # returned with the NOT_FOUND status code. Cases (a) and (b) are
+                # handled in the ReadResponse initialization (below). This block
+                # handles case (c).
+                #
+                # The reason for the difference between (a) and (b) is just one
+                # of implementation. The empty string is the default value for the
+                # gRPC read response, but sometimes it is useful to have an explict
+                # value set to make things easier to read.
+                #
+                # The difference between those and (c) is more distinct. (c) should
+                # only happen when a configured device is not being read from at all.
+                # Essentially, (c) is the fallback for when device-specific handlers
+                # fail to read a configured device.
+                #
+                # To summarize:
+                #   (a), (b)
+                #       A device is configured and the plugin's device handlers
+                #       can operate on the device. This indicates that the plugin
+                #       is working, but the device could be failing or disconnected.
+                #
+                #   (c)
+                #       A device is configured, but the plugin's device handler
+                #       can not (or is not) able to operate on the device. This
+                #       could indicate either a plugin configuration error or
+                #       an error with the plugin logic itself.
+
+                # Create empty readings for each of the device's readings.
+                logger.warning(
+                    'Read for {}/{}/{} returned gRPC "no readings found". Will '
+                    'apply None as reading value. Note that this response might '
+                    'indicate plugin error/misconfiguration.'.format(rack, board, device))
+                read_data = []
+                local_time = datetime.now(timezone.utc).astimezone()
+                for output in dev.output:
+                    read_data.append(
+                        api.ReadResponse(
+                            timestamp=local_time.isoformat(),
+                            type=output.type,
+                            value='',
+                        )
+                    )
+        else:
+            raise errors.FailedReadCommandError(str(ex)) from ex
+
     return ReadResponse(
         device=dev,
         readings=read_data

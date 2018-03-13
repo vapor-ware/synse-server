@@ -11,7 +11,7 @@ invalid_led_route_url = '/synse/{}/led/invalid-rack/invalid-board/invalid-device
 def test_led_endpoint_invalid(app):
     """Get LED info for a nonexistent device."""
     _, response = app.test_client.get(invalid_led_route_url)
-    utils.test_error_json(response, errors.DEVICE_NOT_FOUND)
+    utils.test_error_json(response, errors.DEVICE_NOT_FOUND, 404)
 
 
 def test_led_endpoint_post_not_allowed(app):
