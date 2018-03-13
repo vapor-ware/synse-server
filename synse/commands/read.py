@@ -37,7 +37,7 @@ async def read(rack, board, device):
 
     try:
         # perform a gRPC read on the device's managing plugin
-        read_data = [r for r in _plugin.client.read(rack, board, device)]
+        read_data = _plugin.client.read(rack, board, device)
     except grpc.RpcError as ex:
         raise errors.FailedReadCommandError(str(ex)) from ex
 
