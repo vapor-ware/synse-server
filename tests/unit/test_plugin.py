@@ -186,7 +186,14 @@ def test_register_plugins_ok():
 
     assert len(plugin.Plugin.manager.plugins) == 0
 
+    # the plugin is not yet in the config
+    assert config.options.get('plugin.unix') is None
+
     plugin.register_plugins()
+
+    # the plugin has been added to the config (because it was
+    # in the default socket directory)
+    assert 'test' in config.options.get('plugin.unix')
 
     assert len(plugin.Plugin.manager.plugins) == 1
     assert 'test' in plugin.Plugin.manager.plugins

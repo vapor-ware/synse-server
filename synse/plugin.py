@@ -264,6 +264,15 @@ def register_unix_plugins():
                     # a new plugin gets added to the manager on initialization.
                     plugin = Plugin(name=name, address=fqn, mode='unix')
                     logger.debug(gettext('Created new plugin (unix): {}').format(plugin))
+
+                    # add the plugin to the Synse Server configuration. this will
+                    # allow a caller of the '/config' endpoint to see what plugins
+                    # are configured. further, it can help with other processing that
+                    # might need the list of configured plugins.
+                    #
+                    # The value of `None` is used to indicate the default directory.
+                    config.options.set('plugin.unix.{}'.format(name), None)
+
                 else:
                     logger.info(
                         gettext('plugin "{}" already exists - will not re-register (unix)')
