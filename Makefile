@@ -102,7 +102,7 @@ endif
 
 .PHONY: run
 run: docker ## Build and run Synse Server locally (localhost:5000) with emulator
-	docker run -d -p 5000:5000 --name synse -e SYNSE_DEBUG=true ${IMG_NAME} enable-emulator
+	docker run -d -p 5000:5000 --name synse -e SYNSE_LOGGING=debug ${IMG_NAME} enable-emulator
 
 .PHONY: test
 test: pycache-clean test-unit test-integration test-end-to-end ## Run all tests
