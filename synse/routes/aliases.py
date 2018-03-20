@@ -112,24 +112,50 @@ async def fan_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
 
-    param_speed = request.raw_args.get('speed')
+    param_percent = request.raw_args.get('percent')
+    param_rpm = request.raw_args.get('rpm')
 
-    # if a request parameter is specified, this will translate to a
-    # write request.
-    if param_speed is not None:
-        # FIXME - is the below true? could we check against the device prototype's
-        #   "range.min" and "range.max" fields for this?
-        # no validation is done on the fan speed. valid fan speeds vary based on
-        # fan make/model, so it is up to the underlying implementation to do the
-        # validation.
-        data = {
-            'action': 'speed',
-            'raw': param_speed
-        }
-        transaction = await commands.write(rack, board, device, data)
-        return transaction.to_json()
+    # if any of the parameters are specified, then this will be a
+    # write request for those parameters that are specified.
+    if any((param_percent, param_rpm)):
+        data = []
 
-    # if no request parameter is specified, this will translate to a
+        if param_rpm:
+            # FIXME - could we check against the device prototype's
+            #   "range.min" and "range.max" fields for this?
+            # no validation is done on the fan speed. valid fan speeds vary based on
+            # fan make/model, so it is up to the underlying implementation to do the
+            # validation.
+            data.append({
+                'action': 'rpm',
+                'raw': param_rpm
+            })
+
+        if param_percent:
+            try:
+                assert 0 <= int(param_percent) <= 100
+            except Exception as e:
+                raise errors.InvalidArgumentsError(
+                    gettext('Invalid percentage value ({}). Must be a value '
+                            'between 0 and 100.').format(param_percent)
+                ) from e
+
+            data.append({
+                'action': 'percent',
+                'raw': param_percent
+            })
+
+        transactions = None
+        for d in data:
+            t = await commands.write(rack, board, device, d)
+            if not transactions:
+                transactions = t
+            else:
+                transactions.data.extend(t.data)
+
+        return transactions.to_json()
+
+    # if no request parameters are specified, this will translate to a
     # read request.
     else:
         reading = await commands.read(rack, board, device)
