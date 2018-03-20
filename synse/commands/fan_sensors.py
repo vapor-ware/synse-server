@@ -52,7 +52,11 @@ async def fan_sensors():
                 logger.debug('fan_sensors data: {}.'.format(single_reading))
                 # Wedge in the VEC name that we received this data from.
                 # That way auto_fan can map the data to a VEC.
-                single_reading['vec'] = rack
+                single_reading['location'] = {
+                    'rack': rack,
+                    'board': board,
+                    'device': device
+                }
                 logger.debug('fan_sensors data with vec: {}.'.format(single_reading))
                 readings.append(single_reading)
 
