@@ -35,7 +35,7 @@ async def fan_sensors():
         logger.info('fan_sensors cache item: {}'.format(v))
 
         is_temp = v.type.lower() == 'temperature' and v.model.lower() == 'max11610'
-        is_pressure = v.type.lower() == 'differential_pressure' and v.model.lower() == 'sdp610'
+        is_pressure = v.type.lower() == 'pressure' and v.model.lower() == 'sdp610'
 
         if is_temp or is_pressure:
             rack = v.location.rack
