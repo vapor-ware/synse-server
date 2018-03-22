@@ -1,0 +1,20 @@
+#
+# compose/synse.yml
+#
+# Compose file to run a simple instance of Synse Server where debug
+# logging is enabled and the emulator backend is running. This is
+# useful for manual testing and development.
+#
+version: "3"
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server:local
+    build:
+      context: ..
+      dockerfile: dockerfile/release.dockerfile
+    environment:
+      - SYNSE_LOGGING=debug
+    ports:
+      - 5000:5000
+    command: enable-emulator

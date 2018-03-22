@@ -1,40 +1,39 @@
 """Synse Server's End to End Tests"""
 # pylint: disable=redefined-outer-name,unused-argument
 
+import os
 import time
 
 import requests
 
-from synse import __version__, errors
-from synse.version import __api_version__
+from synse import errors
+from synse.version import __api_version__, __version__
 
-host        = 'synse:5000'
-url_prefix  = 'synse'
-version     = __version__
-api_version = __api_version__
+# get the host information via ENV, or use the default of localhost
+host = os.environ.get('SYNSE_TEST_HOST', 'localhost')
 
-base_blueprint = 'http://{}/{}'.format(host, url_prefix)
-core_blueprint = 'http://{}/{}/{}'.format(host, url_prefix, api_version)
+url_unversioned = 'http://{}:5000/synse'.format(host)
+url = 'http://{}:5000/synse/{}'.format(host, __api_version__)
 
 
 def test_route():
     """Check whether the service is up and reachable"""
-    route_req = requests.get('{}/test'.format(base_blueprint))
+    route_req = requests.get('{}/test'.format(url_unversioned))
     assert route_req.status_code == 200
     assert route_req.json().get('status') == 'ok'
 
 
 def test_version():
     """Check whether the version is up to date"""
-    version_req = requests.get('{}/version'.format(base_blueprint))
+    version_req = requests.get('{}/version'.format(url_unversioned))
     assert version_req.status_code == 200
-    assert version_req.json().get('version') == version
-    assert version_req.json().get('api_version') == api_version
+    assert version_req.json().get('version') == __version__
+    assert version_req.json().get('api_version') == __api_version__
 
 
 def test_config():
     """Get all configuration options"""
-    config_req = requests.get('{}/config'.format(core_blueprint))
+    config_req = requests.get('{}/config'.format(url))
     assert config_req.status_code == 200
 
     # These are default configuration options
@@ -49,7 +48,7 @@ def test_plugins():
     """Get all configured plugins"""
     # The /plugins endpoint should register plugins, so we expect the emulator
     # plugin to exist.
-    req = requests.get('{}/plugins'.format(core_blueprint))
+    req = requests.get('{}/plugins'.format(url))
     assert req.status_code == 200
 
     assert len(req.json()) == 1
@@ -63,8 +62,8 @@ def test_plugins():
 def test_end_to_end():
     """Main entry point for all the tests"""
     # Perform a general scan
-    scan_req = requests.get('{}/scan'.format(core_blueprint))
-    assert scan_req.status_code == 200 
+    scan_req = requests.get('{}/scan'.format(url))
+    assert scan_req.status_code == 200
 
     racks = scan_req.json().get('racks')
     assert len(racks) != 0
@@ -112,7 +111,7 @@ def check_rack_scan(rack, rack_id):
         rack (dict): Rack object from the general scan
         rack_id (str): Rack's unique ID
     """
-    rack_scan_req = requests.get('{}/scan/{}'.format(core_blueprint, rack_id))
+    rack_scan_req = requests.get('{}/scan/{}'.format(url, rack_id))
     assert rack_scan_req.status_code == 200
     assert rack_scan_req.json().get('id') == rack_id
     assert rack_scan_req.json() == rack
@@ -125,7 +124,7 @@ def check_rack_info(boards_ids, rack_id):
         boards_ids (list): List of boards' IDs from the general scan
         rack_id (str): Rack's unique ID
     """
-    rack_info_req = requests.get('{}/info/{}'.format(core_blueprint, rack_id))
+    rack_info_req = requests.get('{}/info/{}'.format(url, rack_id))
     assert rack_info_req.status_code == 200
     assert rack_info_req.json().get('rack') == rack_id
     assert rack_info_req.json().get('boards') == boards_ids
@@ -139,7 +138,7 @@ def check_board_scan(board, rack_id, board_id):
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
     """
-    board_info_req = requests.get('{}/scan/{}/{}'.format(core_blueprint, rack_id, board_id))
+    board_info_req = requests.get('{}/scan/{}/{}'.format(url, rack_id, board_id))
     assert board_info_req.status_code == 200
     assert board_info_req.json().get('id') == board_id
     assert board_info_req.json() == board
@@ -147,13 +146,13 @@ def check_board_scan(board, rack_id, board_id):
 
 def check_board_info(devices_ids, rack_id, board_id):
     """Check an info request for a given board and rack
-    
+
     Args:
         devices_ids (list): List of devices's IDs from the general scan
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
     """
-    board_info_req = requests.get('{}/info/{}/{}'.format(core_blueprint, rack_id, board_id))
+    board_info_req = requests.get('{}/info/{}/{}'.format(url, rack_id, board_id))
     assert board_info_req.status_code == 200
     assert board_info_req.json().get('board') == board_id
     assert board_info_req.json().get('location').get('rack') == rack_id
@@ -162,18 +161,18 @@ def check_board_info(devices_ids, rack_id, board_id):
 
 def check_device_scan(rack_id, board_id, device_id):
     """Check a scan request for a given device, board and rack
-    
+
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
 
     Details:
-        There is no available endpoint for this. 
+        There is no available endpoint for this.
         Should return 404 HTTP code and URL_NOT_FOUND error.
     """
     device_scan_req = requests.get(
-        '{}/scan/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id)
+        '{}/scan/{}/{}/{}'.format(url, rack_id, board_id, device_id)
     )
     assert device_scan_req.status_code == 404
     assert device_scan_req.json().get('http_code') == 404
@@ -187,10 +186,10 @@ def check_device_info(rack_id, board_id, device_id, device_type):
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
-        device_type (str): Type of device 
+        device_type (str): Type of device
     """
     device_info_req = requests.get(
-        '{}/info/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id)
+        '{}/info/{}/{}/{}'.format(url, rack_id, board_id, device_id)
     )
     assert device_info_req.status_code == 200
     assert device_info_req.json().get('type') == device_type
@@ -205,15 +204,15 @@ def check_device_info(rack_id, board_id, device_id, device_type):
 
 def check_device_read(rack_id, board_id, device_id, device_type):
     """Check a read request for a given device, board and rack
-    
+
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
-        device_type (str): Type of device 
+        device_type (str): Type of device
     """
     device_read_req = requests.get(
-        '{}/read/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id)
+        '{}/read/{}/{}/{}'.format(url, rack_id, board_id, device_id)
     )
     assert device_read_req.status_code == 200
     assert device_read_req.json().get('type') == device_type
@@ -233,7 +232,7 @@ def check_device_read(rack_id, board_id, device_id, device_type):
 
 def check_device_write(rack_id, board_id, device_id, device_type):
     """Check a write request for a given device, board and rack
-    
+
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
@@ -333,6 +332,74 @@ def check_led_write(rack_id, board_id, device_id):
             'action': 'invalid',
             'raw': 'invalid'
         },
+    }
+
+    # Options that return 200 status codes and their transactions' states are error
+    code_200_state_error = {
+        # Case: 2 keys are correct, action value is valid
+        'state_invalid_raw_value': {
+            'action': 'state',
+            'raw': 'invalid'
+        },
+
+        # LED color write isn't validated so the test fail
+        'color_invalid_value': {
+            'action': 'color',
+            'raw': 'invalid'
+        },
+        'blink_invalid_value': {
+            'action': 'blink',
+            'raw': 'invalid'
+        },
+
+        # Case: 1 key is correct / action is correct, action's value is not valid
+        # Because raw is incorrect, raw's value can be anything even if it's valid
+        'correct_action_invalid_value': {
+            'action': 'invalid',
+            'incorrect_raw': 'on/off/ffffff/blink'
+        },
+
+        # Case: 1 key is absence / raw is absence, action's value is not valid
+        # If the value is valid, see synse-emulator-plugin's issue #2
+        'absence_raw_invalid_action_value': {
+            'action': 'invalid'
+        },
+
+        # Case: 1 key is correct / action is correct, action's value is valid
+        # It returns 200 status code and break the program.
+        'state_incorrect_raw': {
+            'action': 'state',
+            'incorrect_raw': 'on'
+        },
+        'color_incorrect_raw': {
+            'action': 'color',
+            'incorrect_raw': '000000'
+        },
+        'blink_incorrect_raw': {
+            'action': 'blink',
+            'incorrect_raw': 'blink blink'
+        },
+
+        # Case: 1 key is absence / raw is absence, action's value is valid
+        'state_absence_raw': {
+            'action': 'state'
+        },
+        'color_absence_raw': {
+            'action': 'color'
+        },
+        'blink_absence_raw': {
+            'action': 'blink'
+        }
+    }
+
+    # Options that return 500 status codes
+    code_400 = {
+        # Case: 2 keys are not correct
+        # Because both keys are wrong, their value can be anything
+        'incorrect_keys': {
+            'incorrect_action': 'state/color/blink',
+            'incorrect_raw': 'on/000000/blink'
+        },
 
         # Case: 1 key is correct / raw is correct, raw's value is valid
         # Because action is incorrect, action's value can be anything
@@ -353,78 +420,6 @@ def check_led_write(rack_id, board_id, device_id):
         # Because action is absence, raw's value can be anything, even if it's valid
         'absence_action': {
             'raw': 'valid/invalid'
-        }
-    }
-
-    # Options that return 200 status codes and their transactions' states are error
-    code_200_state_error = {
-        # Case: 2 keys are correct, action value is valid
-        'state_invalid_raw_value': {
-            'action': 'state',
-            'raw': 'invalid'
-        },
-
-        # FIXME: synse-emulator-plugin's issue #1. 
-        # LED color write isn't validated so the test fail
-        # Comment out until fixed.
-        # 'color_invalid_value': {
-        #     'action': 'color',
-        #     'raw': 'invalid'
-        # }
-        'blink_invalid_value': {
-            'action': 'blink',
-            'raw': 'invalid'
-        },
-
-        # Case: 1 key is correct / action is correct, action's value is not valid
-        # Because raw is incorrect, raw's value can be anything even if it's valid
-        'correct_action_invalid_value': {
-            'action': 'invalid',
-            'incorrect_raw': 'on/off/ffffff/blink'
-        },
-
-        # Case: 1 key is absence / raw is absence, action's value is not valid
-        # If the value is valid, see synse-emulator-plugin's issue #2 
-        'absence_raw_invalid_action_value': {
-            'action': 'invalid'
-        }
-
-        # Case: 1 key is correct / action is correct, action's value is valid
-        # FIXME: synse-emulator-plugin's issue #2
-        # It returns 200 status code and break the program.
-        # Comment out until fixed.
-        # 'state_incorrect_raw': {
-        #     'action': 'state',
-        #     'incorrect_raw': 'on'
-        # },
-        # 'color_incorrect_raw': {
-        #     'action': 'color',
-        #     'incorrect_raw': '000000'
-        # },
-        # 'blink_incorrect_raw': {
-        #     'action': 'blink',
-        #     'incorrect_raw': 'blink blink'
-        # },
-
-        # Case: 1 key is absence / raw is absence, action's value is valid
-        # 'state_absence_raw': {
-        #     'action': 'state'
-        # },
-        # 'color_absence_raw': {
-        #     'action': 'color'
-        # },
-        # 'blink_absence_raw': {
-        #     'action': 'blink'
-        # }
-    }
-
-    # Options that return 500 status codes
-    code_500 = {
-        # Case: 2 keys are not correct
-        # Because both keys are wrong, their value can be anything
-        'incorrect_keys': {
-            'incorrect_action': 'state/color/blink',
-            'incorrect_raw': 'on/000000/blink'
         },
 
         # Case: 2 keys are absence
@@ -442,7 +437,7 @@ def check_led_write(rack_id, board_id, device_id):
     # it is only possible to write one value at a time
     for case, payload in code_200_state_ok.items():
         write_req = requests.post(
-            '{}/write/{}/{}/{}'.format(core_blueprint, rack_id,board_id, device_id),
+            '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
             json=payload
         )
         assert write_req.status_code == 200
@@ -454,7 +449,7 @@ def check_led_write(rack_id, board_id, device_id):
 
     for case, payload in code_200_state_error.items():
         write_req = requests.post(
-            '{}/write/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id),
+            '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
             json=payload
         )
         assert write_req.status_code == 200
@@ -466,31 +461,31 @@ def check_led_write(rack_id, board_id, device_id):
 
     # For requests that return 500 status code, there are no transactions have made
     # Only check for its status code
-    for case, payload in code_500.items():
+    for case, payload in code_400.items():
         write_req = requests.post(
-            '{}/write/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id),
+            '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
             json=payload
         )
-        assert write_req.status_code == 500
+        assert write_req.status_code == 400
 
     # After making write requests and having all the transaction ids needed
     # Check if transactions ids' states are correct
     for case in tx_code_200_state_ok:
         check_transaction(case['case'], case['id'], 'ok')
- 
+
     for case in tx_code_200_state_error:
         check_transaction(case['case'], case['id'], 'error')
 
 
 def check_transaction(case, transaction_id, expected_state):
     """Check a transaction request for a given transaction id and state
-    
+
     Args:
         case(str): Transaction's checking case
         transaction_id (str): Transaction's unique ID
         expected_state (str): Expected state of the transaction
     """
-    r = requests.get('{}/transaction/{}'.format(core_blueprint, transaction_id))
+    r = requests.get('{}/transaction/{}'.format(url, transaction_id))
     assert r.status_code == 200
 
     # If a transaction is done processing, check if it match the expected state
@@ -500,7 +495,7 @@ def check_transaction(case, transaction_id, expected_state):
     else:
         time.sleep(0.1)
         check_transaction(case, transaction_id, expected_state)
-    
+
 
 def check_fan_write(rack_id, board_id, device_id):
     """Check a write request for a given fan device
@@ -527,22 +522,22 @@ def check_temperature_write(rack_id, board_id, device_id):
         Should return 500 HTTP code and INVALID_ARGUMENTS error.
     """
     temperature_write_req = requests.post(
-        '{}/write/{}/{}/{}'.format(core_blueprint, rack_id, board_id, device_id),
+        '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
         json={}
     )
-    assert temperature_write_req.status_code == 500
-    assert temperature_write_req.json().get('http_code') == 500
+    assert temperature_write_req.status_code == 400
+    assert temperature_write_req.json().get('http_code') == 400
     assert temperature_write_req.json().get('error_id') == errors.INVALID_ARGUMENTS
 
 
 def check_device_alias(rack_id, board_id, device_id, device_type):
     """Check a alias request for a given device, device type, board, rack
-    
+
     Args:
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
-        device_type (str): Type of device 
+        device_type (str): Type of device
     """
     check_alias_no_query_param(rack_id, board_id, device_id, device_type)
     check_alias_query_param(rack_id, board_id, device_id, device_type)
@@ -555,7 +550,7 @@ def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
-        device_type (str): Type of device 
+        device_type (str): Type of device
 
     Details:
         Without query parameter, it acts like a read request.
@@ -563,7 +558,7 @@ def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
         Should return 404 HTTP code and URL_NOT_FOUND error.
     """
     alias_req = requests.get(
-        '{}/{}/{}/{}/{}'.format(core_blueprint, device_type, rack_id, board_id, device_id)
+        '{}/{}/{}/{}/{}'.format(url, device_type, rack_id, board_id, device_id)
     )
     if device_type in ['led', 'fan', 'power', 'boot_target']:
         assert alias_req.status_code == 200
@@ -582,7 +577,7 @@ def check_alias_query_param(rack_id, board_id, device_id, device_type):
         rack_id (str): Rack's unique ID
         board_id (str): Board's unique ID
         device_id (str): Device's unique ID
-        device_type (str): Type of device 
+        device_type (str): Type of device
 
     Details:
         It acts like a write request if and only if query parameter(s) is valid.
@@ -639,15 +634,15 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         'color_min_max': 'color=000000&color=FFFFFF',
         'blink_blink_steady': 'blink=blink&blink=steady',
 
-        # Case: Multiple query parameters / same correct keys, 
+        # Case: Multiple query parameters / same correct keys,
         # 1 invalid value after 1 valid value
         'state_valid_invalid': 'state=on&state=invalid',
         'color_valid_invalid': 'color=000000&color=invalid',
         'blink_valid_invalid': 'blink=steady&blink=invalid'
     }
 
-    # Options that return 500 status code
-    code_500 = {
+    # Options that return 400 status code
+    code_400 = {
         # Case: Single query parameter / correct key and invalid value
         'invalid_state': 'state=invalid',
         'invalid_color': 'color=invalid',
@@ -687,7 +682,7 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
     # For every post request, get its transaction id(s) and append to the corresponding list
     for case, param in code_200_state_ok.items():
         alias_req = requests.get(
-            '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
+            '{}/led/{}/{}/{}?{}'.format(url, rack_id, board_id, device_id, param)
         )
         assert alias_req.status_code == 200
 
@@ -703,18 +698,18 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
 
     # For requests that return 500 status code, there are no transactions have made
     # Only check for its status code
-    for case, param in code_500.items():
+    for case, param in code_400.items():
         alias_req = requests.get(
-            '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
+            '{}/led/{}/{}/{}?{}'.format(url, rack_id, board_id, device_id, param)
         )
-        assert alias_req.status_code == 500
-        assert alias_req.json().get('http_code') == 500
+        assert alias_req.status_code == 400
+        assert alias_req.json().get('http_code') == 400
         assert alias_req.json().get('error_id') == errors.INVALID_ARGUMENTS
 
     # For requests that return just like read requests, simply check for its type and data
     for case, param in return_like_read.items():
         alias_req = requests.get(
-            '{}/led/{}/{}/{}?{}'.format(core_blueprint, rack_id, board_id, device_id, param)
+            '{}/led/{}/{}/{}?{}'.format(url, rack_id, board_id, device_id, param)
         )
         assert alias_req.status_code == 200
         assert alias_req.json().get('type') == 'led'

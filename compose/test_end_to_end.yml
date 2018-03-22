@@ -1,0 +1,32 @@
+#
+# compose/test_end_to_end.yml
+#
+# Compose file for running Synse Server end-to-end tests. This is
+# used by the Makefile (`make test-end-to-end`) to run end-to-end
+# tests for Synse Server if Python 3.6 is not found to be installed
+# locally.
+#
+# Running tests locally is much faster than running them via
+# docker compose, so that should be the preferred method.
+#
+# This compose file should be called as an override to the
+# `compose/test.yml` file, e.g.
+#    docker-compose -f test.yml -f test_integration.yml up
+#
+# It also requires Synse Server (running the emulator plugin) in
+# order for tests to pass.
+#
+version: "3"
+services:
+  synse-server:
+    environment:
+      # for end-to-end tests, effectively disable synse logging
+      # by default so the test output is cleaner.
+      - SYNSE_LOGGING=critical
+
+  synse-test:
+    command: tests/end_to_end
+    links:
+      - synse-server:synse-server
+    environment:
+      - SYNSE_TEST_HOST=synse-server

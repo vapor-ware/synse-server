@@ -76,6 +76,7 @@ levels = dict(
     info=logging.INFO,
     warning=logging.WARNING,
     error=logging.ERROR,
+    critical=logging.CRITICAL
 )
 
 

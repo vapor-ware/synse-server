@@ -1,5 +1,4 @@
-"""Utility functions for Synse Server tests.
-"""
+"""Utility functions for Synse Server tests."""
 
 import ujson
 from sanic.request import Request

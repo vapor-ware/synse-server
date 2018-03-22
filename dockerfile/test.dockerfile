@@ -10,4 +10,4 @@ RUN pip install tox
 
 WORKDIR /code
 
-CMD ["bin/run_tests.sh"]
+ENTRYPOINT ["bin/run_tests.sh"]

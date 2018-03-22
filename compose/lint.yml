@@ -1,13 +1,22 @@
+#
+# compose/lint.yml
+#
+# Compose file for linting Synse Server source code. This is
+# used by the Makefile (`make lint`) to run the linting tools
+# against Synse Server if Python 3.6 is not found to be installed
+# locally.
+#
+# Running linting locally is much faster than running it via
+# docker compose, so that should be the preferred method.
+#
+# This compose file should be called as an override to the
+# `compose/test.yml` file, e.g.
+#    docker-compose -f test.yml -f lint.yml up
+#
 version: "3"
 services:
-  synse-lint:
-    container_name: synse-lint
-    image: vaporio/synse-server:${GIT_VER}
-    build:
-      context: ..
-      dockerfile: dockerfile/test.dockerfile
-    volumes:
-      - ..:/code
+  synse-test:
+    entrypoint: []
     command: tox -e lint
 
 

@@ -359,6 +359,20 @@ Synse Server source code and test code is linted with isort and pylint to keep i
 make lint
 ```
 
+### Gotchas
+#### Switching between local testing and container testing
+If you are switching between testing in a container and testing locally (possible if either the
+Makefile is modified to not check for py36 or tests are not always run via the Makefile), you might
+see an error similar to:
+```
+ERROR: Error processing tar file(exit status 1): open /.tox/lint/include/python3.6m/Python-ast.h: no such file or directory
+```
+
+If this is the case, you will need to remove the `.tox` directory (`rm -rf .tox`). When the tests are
+re-run, the `.tox` directory will be rebuilt and should include the necessary pieces. This only seems
+to happen when switching between the two modes of testing.
+
+
 ## License
 Synse is released under GPLv2 - see [LICENSE](LICENSE) for more information.
 

@@ -94,10 +94,10 @@ ifdef HAS_PY36
 	tox -e lint
 else
 	@echo "\033[33mpython3.6 not found locally - running linting in container\033[0m"
-	docker-compose -f compose/lint.yml up \
+	docker-compose -f compose/test.yml -f compose/lint.yml up \
 	    --build \
 	    --abort-on-container-exit \
-	    --exit-code-from synse-lint
+	    --exit-code-from synse-test
 endif
 
 .PHONY: run
@@ -113,7 +113,7 @@ ifdef HAS_PY36
 	tox tests/unit
 else
 	@echo "\033[33mpython3.6 not found locally - running tests in container\033[0m"
-	docker-compose -f compose/unit_test.yml up \
+	docker-compose -f compose/test.yml -f compose/test_unit.yml up \
 	    --build \
 	    --abort-on-container-exit \
 	    --exit-code-from synse-test
@@ -125,7 +125,7 @@ ifdef HAS_PY36
 	tox tests/integration
 else
 	@echo "\033[33mpython3.6 not found locally - running tests in container\033[0m"
-	docker-compose -f compose/integration_test.yml up \
+	docker-compose -f compose/test.yml -f compose/test_integration.yml up \
 	    --build \
 	    --abort-on-container-exit \
 	    --exit-code-from synse-test
@@ -133,10 +133,17 @@ endif
 
 .PHONY: test-end-to-end
 test-end-to-end: pycache-clean ## Run end to end tests
-	docker-compose -f compose/end-to-end_test.yml up \
+ifdef HAS_PY36
+	docker-compose -f compose/synse.yml up -d --build
+	tox tests/end_to_end
+	docker-compose -f compose/synse.yml down
+else
+	docker-compose -f compose/test.yml -f compose/synse.yml -f compose/test_end_to_end.yml up \
 	    --build \
 	    --abort-on-container-exit \
 	    --exit-code-from synse-test
+	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
+endif
 
 .PHONY: version
 version: ## Print the version of Synse Server
