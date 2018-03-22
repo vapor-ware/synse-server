@@ -1,5 +1,4 @@
-"""Test configuration for Synse Server for all tests.
-"""
+"""Test configuration for Synse Server for all tests."""
 
 import logging
 import os
