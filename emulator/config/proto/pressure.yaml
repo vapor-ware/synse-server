@@ -1,6 +1,6 @@
 version: 1.0
 prototypes:
-  - type: differential_pressure
+  - type: pressure
     model: emul8-pressure
     manufacturer: Vapor IO
     protocol: emulator
