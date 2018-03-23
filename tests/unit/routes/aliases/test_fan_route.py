@@ -74,62 +74,23 @@ async def test_synse_fan_read(mock_validate_device_type, mock_read, no_pretty_js
 async def test_synse_fan_write_invalid(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing fan speed with an invalid speed specified."""
 
-    r = utils.make_request('/synse/fan?rpm=test')
+    r = utils.make_request('/synse/fan?speed=test')
 
     try:
         await fan_route(r, 'rack-1', 'vec', '123456')
     except errors.SynseError as e:
         assert e.error_id == errors.INVALID_ARGUMENTS
         assert 'test' in e.args[0]
-
-
-@pytest.mark.asyncio
-async def test_synse_fan_write_invalid2(mock_validate_device_type, mock_write, no_pretty_json):
-    """Test writing fan speed with an invalid speed specified."""
-
-    r = utils.make_request('/synse/fan?percent=test')
-
-    try:
-        await fan_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'test' in e.args[0]
-
-
-@pytest.mark.asyncio
-async def test_synse_fan_write_invalid3(mock_validate_device_type, mock_write, no_pretty_json):
-    """Test writing fan speed with an invalid speed specified."""
-
-    r = utils.make_request('/synse/fan?percent=1000')
-
-    try:
-        await fan_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'invalid percentage' in e.args[0].lower()
 
 
 @pytest.mark.asyncio
 async def test_synse_fan_write_valid(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing fan speed with a valid target specified."""
 
-    r = utils.make_request('/synse/fan?rpm=500')
+    r = utils.make_request('/synse/fan?speed=500')
 
     result = await fan_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'{"data":{"action":"rpm","raw":"500"}}'
-    assert result.status == 200
-
-
-@pytest.mark.asyncio
-async def test_synse_fan_write_valid2(mock_validate_device_type, mock_write, no_pretty_json):
-    """Test writing fan speed with a valid target specified."""
-
-    r = utils.make_request('/synse/fan?percent=50')
-
-    result = await fan_route(r, 'rack-1', 'vec', '123456')
-
-    assert isinstance(result, HTTPResponse)
-    assert result.body == b'{"data":{"action":"percent","raw":"50"}}'
+    assert result.body == b'{"data":{"action":"speed","raw":"500"}}'
     assert result.status == 200
