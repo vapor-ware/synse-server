@@ -13,37 +13,44 @@ search: true
 
 # Overview
 
-Synse Server provides a simple JSON API to monitor and control data center and IT equipment. More
-generally, it provides a uniform interface for back-ends implementing various protocols, such as
-RS485 and I2C. The Synse Server API makes it easy to read from and write to devices, gather device
-information, and scan for configured devices through a curl-able interface.
+Synse Server provides a simple JSON API to monitor and control physical and virtual devices, such as
+data center and IT equipment. More generally, it provides a uniform interface for back-ends implementing
+various protocols, such as RS485 and I2C. The Synse Server API makes it easy to read from and write
+to devices, gather device information, and scan for configured devices through a curl-able interface.
 
 
 # Errors
 
 ```json
 {
-  "http_code": 500,
+  "http_code": 404,
   "error_id": 4000,
   "description": "device not found",
   "timestamp": "2018-01-24 19:54:37.382551",
-  "context": "rack-1\/vec\/f52d29fecf05a195af13f14c73065252d does not correspond with a known device."
+  "context": "rack-1\/board-1\/f52d29fecf05a195af13f14c73065252d does not correspond with a known device."
 }
 ```
 
-Synse Server will return a JSON response with 500 and 404 errors. This JSON is used to provide
-context around the error.
+Synse Server will return a JSON response with 400, 404, or 500 code errors. The returned JSON is used
+to provide context around the error. An example of the response JSON for an error is shown here.
 
-An example of a 500 response error JSON is provided here. The fields for the error response
-are:
+In general,
+
+- **400 responses** relate to invalid user input. This can range from invalid JSON, unsupported
+  query parameters, or invalid resource types.
+- **404 responses** relate to either the specified URL not being valid or the specified
+  resource was not found.
+- **500 responses** relate to server-side processing errors.
+
+The fields for the error response are:
 
 | Field | Description |
 | ----- | ----------- |
-| http_code | The HTTP code corresponding to the the error (e.g. 500, 404). |
-| error_id | The Synse Server defined error ID. This is used to identify the type of error. |
-| description | A short description for the error type, as defined by the `error_id`. |
-| timestamp | The time at which the error occurred. |
-| context | Any message associated with the error to provide information on the root cause of the error. |
+| *http_code* | The HTTP code corresponding to the the error (e.g. 400, 404, 500). |
+| *error_id* | The Synse Server defined error ID. This is used to identify the type of error. |
+| *description* | A short description for the error type, as defined by the `error_id`. |
+| *timestamp* | The time at which the error occurred. |
+| *context* | Any message associated with the error to provide information on the root cause of the error. |
 
 
 The currently defined error IDs follow.
@@ -67,6 +74,20 @@ The currently defined error IDs follow.
 | 5004 | Failed write command |
 | 6000 | Internal API failure |
 | 6500 | Plugin state error |
+
+
+# Device Types
+Devices in Synse Server are all associated with "type" information (For the full set of information
+associated with a device, see the [info](#info) endpoint). While the device types are defined by the
+plugin which manages the device, common device types in Synse include:
+
+- airflow
+- fan
+- humidity
+- led
+- pressure
+- temperature
+
 
 # Endpoints
 
@@ -98,6 +119,11 @@ with the described JSON response. If the test endpoint is unreachable or otherwi
 a 500 response. The test endpoint does not have any internal dependencies, so a failure would indicate
 Synse Server not being up and serving.
 
+<aside class="notice">
+    Note that a 500 response from this endpoint would likely <b>not</b> include any JSON context,
+    as a 500 here generally means Synse Server is either not yet running or otherwise unreachable.
+</aside>
+
 ### HTTP Request
 
 `GET http://host:5000/synse/test`
@@ -106,8 +132,8 @@ Synse Server not being up and serving.
 
 | Field | Description |
 | ----- | ----------- |
-| status | "ok" if the endpoint returns successfully. |
-| timestamp | The time at which the status was tested. |
+| *status* | "ok" if the endpoint returns successfully. |
+| *timestamp* | The time at which the status was tested. |
 
 
 
@@ -144,8 +170,8 @@ should be used in subsequent requests.
 
 | Field | Description |
 | ----- | ----------- |
-| version | The full version (major.minor.micro) of the Synse Server instance. |
-| api_version | The API version (major.minor) that can be used to construct subsequent API requests. |
+| *version* | The full version (major.minor.micro) of the Synse Server instance. |
+| *api_version* | The API version (major.minor) that can be used to construct subsequent API requests. |
 
 
 
@@ -165,28 +191,36 @@ response = requests.get('http://host:5000/synse/2.0/config')
 
 ```json
 {
-  "locale": "en_US",
-  "pretty_json": true,
   "logging": "debug",
+  "pretty_json": true,
+  "locale": "en_US",
+  "plugin": {
+    "unix": {
+      "emulator": null
+    }
+  },
   "cache": {
     "meta": {
       "ttl": 20
     },
     "transaction": {
-      "ttl": 20
+      "ttl": 300
     }
   },
   "grpc": {
-    "timeout": 20
+    "timeout": 3
   }
 }
 ```
 
-Get the configuration for the Synse Server instance.
+Get the unified configuration of the Synse Server instance.
 
 This endpoint is added as a convenience to make it easier to determine what configuration Synse Server
-is running with. The Synse Server configuration can be made up of default, file, and environment
-configurations. This endpoint provides the final joined configuration.
+is running with. The Synse Server configuration is made up of default, file, environment, and override
+configuration components. This endpoint provides the final joined configuration that Synse Server
+ultimately runs with.
+
+For more information on how to configure Synse Server, see the user [documentation](). (TODO)
 
 ### HTTP Request
 
@@ -194,11 +228,8 @@ configurations. This endpoint provides the final joined configuration.
 
 ### Response
 
-The response to the `config` endpoint should be the unified configuration for Synse Server. The 
-unified config is the three layers of merged configuration (default, file, environment).
-
-See [the Synse Server configuration documentation]() for more info on how to configure Synse Server
-as well as what the JSON response for this endpoint will look like.
+The response to the `config` endpoint is the unified configuration for Synse Server. See the
+[documentation]() for more info on what the configuration scheme looks like.
 
 
 
@@ -218,19 +249,20 @@ response = requests.get('http://host:5000/synse/2.0/plugins')
 
 ```json
 [
-    {
-        "name": "emulator",
-        "network": "unix",
-        "address": "/tmp/synse/procs/emulator.sock"
-    }
+  {
+    "name": "emulator",
+    "network": "unix",
+    "address": "\/tmp\/synse\/procs\/emulator.sock"
+  }
 ]
 ```
 
 Get all the plugins that are currently registered with Synse Server. 
 
-This endpoint is added as a convenience to make it easier to determine what plugins Synse Server
-is running with. The Synse Server plugins' configurations can be made up of default, file, and environment
-configurations. This endpoint provides the final configured plugins.
+This endpoint is added as a convenience to make it easier to determine which plugins Synse Server
+is running with. Plugins can be registers with Synse Server in a variety of ways, including
+file and environment configurations. See the [documentation]() for more on how to register plugins
+with Synse Server. This endpoint shows the unified view of all registered plugins.
 
 ### HTTP Request
 
@@ -240,9 +272,9 @@ configurations. This endpoint provides the final configured plugins.
 
 | Field | Description |
 | ----- | ----------- |
-| name | The name of plugin |
-| network | The plugin's network can either be a unix socket for communication or TCP |
-| address | The configuration filepath of the plugin |
+| *name* | The name of plugin. |
+| *network* | The plugin's network mode. (unix, tcp)|
+| *address* | The address of the plugin. (unix socket path, tcp address) |
 
 
 
@@ -312,36 +344,47 @@ response = requests.get('http://host:5000/synse/2.0/scan')
 }
 ```
 
-Enumerate all known devices that are accessible by Synse Server, grouped by rack and board.
+Enumerate all known devices that Synse Server can access via its plugins, grouped by rack and board.
 
-The `scan` endpoint provides an aggregated view of the devices, along with their rack and board
-locations, which are made known to Synse Server by each of the configured plugin back-ends. The
+The `scan` endpoint provides an aggregated view of the devices, organized by their rack and board
+locations, which are made known to Synse Server by each of the registered plugin back-ends. The
 `scan` response provides a high-level view of what exists and how to route to it. This routing
 information (e.g. rack ID, board ID, device ID) can be used in subsequent commands such as [read](#read),
 [write](#write), and [info](#info).
 
+By default, `scan` will enumerate all devices on all boards on all racks. The `rack` and `board` URI
+parameters, defined below, can be used to refine the scan to return devices only within the scope of
+the given rack or board.
+
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/scan`
+`GET http://host:5000/synse/2.0/scan[/{rack}[/{board}]]`
+
+### URI Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *rack*    | no       | The id of the rack to scan. *Required only if specifying board.* |
+| *board*   | no       | The id of the board to scan. |
 
 ### Query Parameters
 
 | Parameter | Default | Description |
 | --------- | ------- | ----------- |
-| force     | false   | Force a re-scan of all known devices. This invalidates the existing cache, causing it to be rebuilt. *Valid values:* `true` |
+| *force*   | false   | Force a re-scan of all known devices. This invalidates the existing cache, causing it to be rebuilt. *Valid values:* `true` |
 
 ### Response Fields
 
 | Field | Description |
 | ----- | ----------- |
-| racks | A list of objects which represent a rack. |
-| {rack}.id | The primary identifier for the rack. |
-| {rack}.boards | A list of board object which belong to the rack. |
-| {board}.id | The primary identifier for the board. |
-| {board}.devices | A list of device objects which belong to the board. |
-| {device}.id | The primary identifier for the device. |
-| {device}.info | Any notational information associated with the device to help identify it in a more human-readable way. |
-| {device}.type | The type of the device. |
+| *racks* | A list of objects which represent a rack. |
+| *{rack}.id* | The primary identifier for the rack. |
+| *{rack}.boards* | A list of board object which belong to the rack. |
+| *{board}.id* | The primary identifier for the board. |
+| *{board}.devices* | A list of device objects which belong to the board. |
+| *{device}.id* | The primary identifier for the device. |
+| *{device}.info* | Any notational information associated with the device to help identify it in a more human-readable way. Note that this is not guaranteed to be unique across devices. |
+| *{device}.type* | The [type](#device-types) of the device. |
 
 
 
@@ -365,7 +408,7 @@ response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0
   "data": {
     "temperature": {
       "value": 20.3,
-      "timestamp": "2018-02-01 13:47:40.395939895 +0000 UTC m=+719.678352123",
+      "timestamp": "2018-02-01T13:47:40.395939895Z",
       "unit": {
         "symbol": "C",
         "name": "degrees celsius"
@@ -383,17 +426,17 @@ response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0
   "data": {
     "state": {
       "value": "off",
-      "timestamp": "2018-02-01 13:48:59.573898829 +0000 UTC m=+798.856304661",
+      "timestamp": "2018-02-01T13:48:59.573898829Z",
       "unit": null
     },
     "color": {
       "value": "000000",
-      "timestamp": "2018-02-01 13:48:59.573898829 +0000 UTC m=+798.856304661",
+      "timestamp": "2018-02-01T13:48:59.573898829Z",
       "unit": null
     },
     "blink": {
       "value": "steady",
-      "timestamp": "2018-02-01 13:48:59.573898829 +0000 UTC m=+798.856304661",
+      "timestamp": "2018-02-01T13:48:59.573898829Z",
       "unit": null
     }
   }
@@ -406,7 +449,7 @@ Devices may not necessarily support reading, and the reading values for one devi
 may not match those of a different device with the same type. That is to say, the read behavior for
 a device is defined at the plugin level, and may differ from plugin to plugin or device to device.
 
-If a read is not supported, a 500 error will be returned with a JSON response specifying the cause
+If a read is not supported, an error will be returned with the JSON response specifying the cause
 as reads not permitted.
 
 ### HTTP Request
@@ -417,9 +460,9 @@ as reads not permitted.
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| rack      | yes      | The id of the rack containing the device to read. |
-| board     | yes      | The id of the board containing the device to read. |
-| device    | yes      | The id of the device to read. |
+| *rack*    | yes      | The id of the rack containing the device to read. |
+| *board*   | yes      | The id of the board containing the device to read. |
+| *device*  | yes      | The id of the device to read. |
 
 These values can be found via the [scan](#scan) command.
 
@@ -427,13 +470,13 @@ These values can be found via the [scan](#scan) command.
 
 | Field | Description |
 | ----- | ----------- |
-| type  | The type of the device that was read. |
-| data  | An object where the keys specify the reading type and the values are corresponding reading objects. |
-| {reading}.value | The value for the given reading type. |
-| {reading}.timestamp | The time at which the reading was taken. |
-| {reading}.unit | The unit of measure for the reading. If the reading has no unit, this will be `null`. |
-| {unit}.name | The long name of the unit. *(e.g. "acceleration")* |
-| {unit}.symbol | The symbol (or short name) of the unit. *(e.g. m/s^2)* |
+| *type*  | The type of the device that was read. See [Device Types](#device-types) for more info. |
+| *data*  | An object where the keys specify the *reading type* and the values are the corresponding reading objects. Note that a reading type is not the same as the device type. |
+| *{reading}.value* | The value for the given reading type. |
+| *{reading}.timestamp* | The time at which the reading was taken. |
+| *{reading}.unit* | The unit of measure for the reading. If the reading has no unit, this will be `null`. |
+| *{unit}.name* | The long name of the unit. *(e.g. "acceleration")* |
+| *{unit}.symbol* | The symbol (or short name) of the unit. *(e.g. "m/s^2")* |
 
 
 ## Write
@@ -482,8 +525,17 @@ Devices may not necessarily support writing, and the write actions for one devic
 may not match those of a different device with the same type. That is to say, the write behavior for
 a device is defined at the plugin level, and may differ from plugin to plugin or device to device.
 
-If a write is not supported, a 500 error will be returned with a JSON response specifying the cause
+If a write is not supported, an error will be returned with the JSON response specifying the cause
 as writes not permitted.
+
+The `write` endpoint does not do any data validation upfront, as it is intended to be a generalized
+write command. Some "alias" routes exists which allow writing to a specific device type. For those
+routes ([led](#led), [fan](#fan)), validation is done on the provided data, to the best extent it
+can be.
+
+The data POSTed for a write consists of two peices: an `action`, and `raw` data. The values for these
+change based on the device type/plugin, but in general the `action` specifies what will change and
+`raw` is the data needed to make that change. See below for more details.
 
 ### HTTP Request
 
@@ -493,9 +545,9 @@ as writes not permitted.
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| rack      | yes      | The id of the rack containing the device to write to. |
-| board     | yes      | The id of the board containing the device to write to. |
-| device    | yes      | The id of the device to write to. |
+| *rack*    | yes      | The id of the rack containing the device to write to. |
+| *board*   | yes      | The id of the board containing the device to write to. |
+| *device*  | yes      | The id of the device to write to. |
 
 These values can be found via the [scan](#scan) command.
 
@@ -514,12 +566,12 @@ The post body requires an "action" and "raw" to be specified, e.g.
 
 | Field | Description |
 | ----- | ----------- |
-| action | The write action to perform. This is device-specific. |
-| raw | The data associated with the given action. |
+| *action* | The write action to perform. This is device-specific. |
+| *raw* | The data associated with the given action. |
 
-The valid values and requirements for `action` and `raw` are dependent on the device type. For
-example, an `LED` device supports the actions: `color`, `state`, `blink`; a `fan` device supports
-`speed`. 
+The valid values and requirements for `action` and `raw` are dependent on the device type/plugin
+implementation. For example, an `LED` device supports the actions: `color`, `state`, `blink`; a
+`fan` device supports `speed`. 
 
 Some devices may only need an `action` specified. Some may need both `action` and `raw` specified.
 While it is up to the underlying plugin to determine what are valid values for a device, generally,
@@ -529,9 +581,8 @@ the `action` should be the attribute to set and `raw` should be the value to set
 
 | Field | Description |
 | ----- | ----------- |
-| context | The write payload that was POSTed. This is included to help make transactions more identifiable. |
-| timestamp | The time at which the write transaction was issued. |
-| transaction | The ID of the write transaction. Each write will have its own ID. The status of a transaction can be checked with the [transaction](#transaction) command. |
+| *context* | The write payload that was POSTed. This is included to help make transactions more identifiable. |
+| *transaction* | The ID of the write transaction. Each write will have its own ID. The status of a transaction can be checked with the [transaction](#transaction) command. |
 
 
 
@@ -560,35 +611,61 @@ response = requests.get('http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vm
   },
   "state": "ok",
   "status": "done",
-  "created": "2018-02-01 15:00:51.132823149 +0000 UTC m=+4819.558707806",
-  "updated": "2018-02-01 15:00:51.132823149 +0000 UTC m=+4819.558707806",
+  "created": "2018-02-01T15:00:51.132823149Z",
+  "updated": "2018-02-01T15:00:51.132823149Z",
   "message": ""
 }
 ```
 
+> To list all cached transactions:
+
+```shell
+curl "http://host:5000/synse/2.0/transaction"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.0/transaction')
+```
+
+> The response JSON would be structured as:
+
+```json
+[
+  "b9pin8ofmg5g01vmt77g",
+  "baqgsm0if78g01rr9vqg"
+]
+```
+
+
 Check the state and status of a write transaction.
+
+If no transaction ID is given, a list of all cached transaction IDs is returned. The length
+of time that a transaction is cached for is configurable. See the Synse Server configuration
+[documentation]() for more.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/transaction/{transaction id}`
+`GET http://host:5000/synse/2.0/transaction[/{transaction id}]`
 
 ### URI Parameters
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| transaction id | yes | The ID of the write transaction to get the status of. This is given by the corresponding [write](#write). |
+| *transaction id* | no | The ID of the write transaction to get the status of. This is given by the corresponding [write](#write). |
 
 ### Response Fields
 
 | Field | Description |
 | ----- | ----------- |
-| id      | The ID of the transaction. |
-| context | The POSTed write data for the given write transaction. |
-| state   | The current state of the transaction. *Valid values:* (`ok`,`error`) |
-| status  | The current status of the transaction. *Valid values:* (`unknown`,`pending`,`writing`,`done`)|
-| created | The time at which the transaction was created (e.g. the write issued). |
-| updated | The last time the state or status was updated for the transaction. If the transaction has state `ok` and status `done`, no further updates will occur. |
-| message | Any context information for the transaction relating to its error state. |
+| *id*      | The ID of the transaction. |
+| *context* | The POSTed write data for the given write transaction. |
+| *state*   | The current state of the transaction. *Valid values:* (`ok`, `error`) |
+| *status*  | The current status of the transaction. *Valid values:* (`unknown`, `pending`, `writing`, `done`)|
+| *created* | The time at which the transaction was created (e.g. the write issued). |
+| *updated* | The last time the state or status was updated for the transaction. If the transaction has state `ok` and status `done`, no further updates will occur. |
+| *message* | Any context information for the transaction relating to its error state. If there is no error, this will be an empty string. |
 
 
 ## Info
@@ -666,7 +743,7 @@ response = requests.get('http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9
 
 ```json
 {
-  "timestamp": "2018-02-01 15:29:31.934013127 +0000 UTC m=+6540.359897686",
+  "timestamp": "2018-02-01T15:29:31.934013127Z",
   "uid": "db1e5deb43d9d0af6d80885e74362913",
   "type": "temperature",
   "model": "emul8-temp",
@@ -700,15 +777,15 @@ Get the available information for the specified resource.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/info/{rack}/{board}/{device}`
+`GET http://host:5000/synse/2.0/info/{rack}[/{board}[/{device}]]`
 
 ### URI Parameters
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| rack      | yes      | The id of the rack to get info for. |
-| board     | no       | The id of the board to get info for. *Required only if specifying device.* |
-| device    | no       | The id of the device to get info for. |
+| *rack*    | yes      | The id of the rack to get info for. |
+| *board*   | no       | The id of the board to get info for. *Required only if specifying device.* |
+| *device*  | no       | The id of the device to get info for. |
 
 ### Response Fields
 
@@ -716,37 +793,37 @@ Get the available information for the specified resource.
 
 | Field | Description |
 | ----- | ----------- |
-| rack  | The ID of the rack. |
-| boards | A list of IDs for boards that belong to the rack. |
+| *rack* | The ID of the rack. |
+| *boards* | A list of IDs for boards that belong to the rack. |
 
 ***Board Level Response***
 
 | Field | Description |
 | ----- | ----------- |
-| board | The ID of the board. |
-| location | An object which provides information on its hierarchical parents (e.g. rack). |
-| devices | A list of IDs for devices that belong to the board. |
+| *board* | The ID of the board. |
+| *location* | An object which provides information on its hierarchical parents (e.g. rack). |
+| *devices* | A list of IDs for devices that belong to the board. |
 
 ***Device Level Response***
 
 | Field | Description |
 | ----- | ----------- |
-| timestamp | The time at which the device info was last retrieved. |
-| uid | The unique (per board) ID of the device. |
-| type | The type of the device. |
-| model | The model of the device, as set in the plugin prototype configuration. |
-| manufacturer | The manufacturer of the device, as set in the plugin prototype configuration. |
-| protocol | The protocol by which we interface with the device. |
-| info | Any human-readable information set to help identify the given device. |
-| comment | Any additional comment set for the given device. |
-| location | An object which provides information on its hierarchical parents (e.g. rack, board). |
-| output | The specification for how the device's reading(s) should be output. |
+| *timestamp* | The time at which the device info was last retrieved. |
+| *uid* | The unique (per board) ID of the device. |
+| *type* | The type of the device. (see [Device Types](#device-types) for more.) |
+| *model* | The model of the device, as set in the plugin prototype configuration. |
+| *manufacturer* | The manufacturer of the device, as set in the plugin prototype configuration. |
+| *protocol* | The protocol by which we interface with the device. |
+| *info* | Any human-readable information set to help identify the given device. |
+| *comment* | Any additional comment set for the given device. |
+| *location* | An object which provides information on its hierarchical parents (e.g. rack, board). |
+| *output* | The specification for how the device's reading(s) should be output. |
 
 
 
 ## LED
 
-> If no query parameters are specified, this will **read** from the LED device.
+> If no *valid* query parameters are specified, this will **read** from the LED device.
 
 ```shell
 curl "http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
@@ -766,24 +843,24 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
   "data": {
     "state": {
       "value": "off",
-      "timestamp": "2018-02-01 16:16:04.884816422 +0000 UTC m=+8757.873875085",
+      "timestamp": "2018-02-01T16:16:04.884816422Z",
       "unit": null
     },
     "color": {
       "value": "f38ac2",
-      "timestamp": "2018-02-01 16:16:04.884816422 +0000 UTC m=+8757.873875085",
+      "timestamp": "2018-02-01T16:16:04.884816422Z",
       "unit": null
     },
     "blink": {
       "value": "steady",
-      "timestamp": "2018-02-01 16:16:04.884816422 +0000 UTC m=+8757.873875085",
+      "timestamp": "2018-02-01T16:16:04.884816422Z",
       "unit": null
     }
   }
 }
 ```
 
-> If any valid query parameters are specified, this will **write** to the LED device.
+> If any *valid* query parameters are specified, this will **write** to the LED device.
 
 ```shell
 curl "http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
@@ -821,15 +898,15 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
 ```
 
 
-Read from or write to a known LED device.
+An alias to `read` from or `write` to a known LED device.
 
 While an LED device can be read directly via the [read](#read) route or written to directly from the
 [write](#write) route, this route provides some additional checks and validation before dispatching to
 the appropriate plugin handler. In particular, it checks if the specified device is an LED device and
-that the given query parameter values (if any) are permissible.
+that the given query parameter value(s), if any, are permissible.
 
-If no query parameters are specified, this endpoint will read the specified device. If any number of valid
-query parameters are specified, the endpoint will write to the specified device.
+If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.
 
 ### HTTP Request
 
@@ -839,19 +916,19 @@ query parameters are specified, the endpoint will write to the specified device.
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| rack      | yes      | The id of the rack containing the device to read from/write to. |
-| board     | yes      | The id of the board containing the device to read from/write to. |
-| device    | yes      | The id of the device to read from/write to. |
+| *rack*    | yes      | The id of the rack containing the LED device to read from/write to. |
+| *board*   | yes      | The id of the board containing the LED device to read from/write to. |
+| *device*  | yes      | The id of the LED device to read from/write to. |
 
 ### Query Parameters
 
 | Parameter | Description |
 | --------- | ----------- |
-| state     | The state of the LED. *Valid values:* (`on`,`off`) |
-| blink     | The blink state of the LED. *Valid values:* (`blink`,`steady`) |
-| color     | The color of the LED. This must be an RGB hexadecimal color string. |
+| *state*   | The state of the LED. *Valid values:* (`on`, `off`) |
+| *blink*   | The blink state of the LED. *Valid values:* (`blink`, `steady`) |
+| *color*   | The color of the LED. This must be an RGB hexadecimal color string. |
 
-<aside class="notice">
+<aside class="warning">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>LED</i> instances may result in error.
 </aside>
@@ -863,7 +940,7 @@ See the responses for [read](#read) and [write](#write).
 
 ## Fan
 
-> If no query parameters are specified, this will **read** from the fan device.
+> If no *valid* query parameters are specified, this will **read** from the fan device.
 
 ```shell
 curl "http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
@@ -883,7 +960,7 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
   "data": {
     "fan_speed": {
       "value": 0,
-      "timestamp": "2018-02-01 17:07:18.113960446 +0000 UTC m=+11831.103017007",
+      "timestamp": "2018-02-01T17:07:18.113960446Z",
       "unit": {
         "symbol": "RPM",
         "name": "revolutions per minute"
@@ -893,7 +970,7 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
 }
 ```
 
-> If any valid query parameters are specified, this will **write** to the fan device.
+> If any *valid* query parameters are specified, this will **write** to the fan device.
 
 ```shell
 curl "http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
@@ -921,15 +998,15 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
 ]
 ```
 
-Read from or write to a known fan device.
+An alias to `read` from or `write` to a known fan device.
 
 While a fan device can be read directly via the [read](#read) route or written to directly from the
 [write](#write) route, this route provides some additional checks and validation before dispatching to
 the appropriate plugin handler. In particular, it checks if the specified device is a fan device and
-that the given query parameter values (if any) are permissible.
+that the given query parameter value(s), if any, are permissible.
 
-If no query parameters are specified, this endpoint will read the specified device. If any number of valid
-query parameters are specified, the endpoint will write to the specified device.
+If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.
 
 ### HTTP Request
 
@@ -939,17 +1016,21 @@ query parameters are specified, the endpoint will write to the specified device.
 
 | Parameter | Required | Description |
 | --------- | -------- | ----------- |
-| rack      | yes      | The id of the rack containing the device to read from/write to. |
-| board     | yes      | The id of the board containing the device to read from/write to. |
-| device    | yes      | The id of the device to read from/write to. |
+| *rack*    | yes      | The id of the rack containing the fan device to read from/write to. |
+| *board*   | yes      | The id of the board containing the fan device to read from/write to. |
+| *device*  | yes      | The id of the fan device to read from/write to. |
 
 ### Query Parameters
 
 | Parameter | Description |
 | --------- | ----------- |
-| speed | The speed to set the fan to. |
+| *speed* | The speed (in RPM) to set the fan to. |
 
 <aside class="notice">
+ In the future, the fan route will support <i>rpm</i> and <i>percent</i> parameters for setting fan speed.
+</aside>
+
+<aside class="warning">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>fan</i> instances may result in error.
 </aside>

@@ -359,6 +359,16 @@ Synse Server source code and test code is linted with isort and pylint to keep i
 make lint
 ```
 
+### Documentation
+The API documentation can be built with
+```
+make build-docs
+```
+and can then be viewed with
+```
+make api-doc
+```
+
 ### Gotchas
 #### Switching between local testing and container testing
 If you are switching between testing in a container and testing locally (possible if either the
