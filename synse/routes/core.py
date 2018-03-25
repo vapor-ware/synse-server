@@ -4,7 +4,7 @@
 
 from sanic import Blueprint
 
-from synse import commands, errors
+from synse import commands, errors, validate
 from synse.i18n import gettext
 from synse.log import logger
 from synse.response import json
@@ -40,7 +40,9 @@ async def scan_route(request, rack=None, board=None):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    param_force = request.raw_args.get('force')
+    qparams = validate.validate_query_params(request.raw_args, 'force')
+
+    param_force = qparams.get('force')
     if param_force is not None:
         force = param_force.lower() == 'true'
         logger.debug(gettext('forcing re-scan? {}').format(force))

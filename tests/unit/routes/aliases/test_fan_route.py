@@ -94,3 +94,13 @@ async def test_synse_fan_write_valid(mock_validate_device_type, mock_write, no_p
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"data":{"action":"speed","raw":"500"}}'
     assert result.status == 200
+
+
+@pytest.mark.asyncio
+async def test_synse_fan_route_bad_param(mock_validate_device_type, mock_write, no_pretty_json):
+    """Test setting fan, passing an unsupported query param."""
+
+    r = utils.make_request('/synse/fan?unsupported=true')
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await fan_route(r, 'rack-1', 'vec', '123456')

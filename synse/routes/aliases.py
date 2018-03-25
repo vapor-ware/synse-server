@@ -30,9 +30,14 @@ async def led_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_LED, rack, board, device)
 
-    param_state = request.raw_args.get('state')
-    param_blink = request.raw_args.get('blink')
-    param_color = request.raw_args.get('color')
+    qparams = validate.validate_query_params(
+        request.raw_args,
+        'state', 'blink', 'color'
+    )
+
+    param_state = qparams.get('state')
+    param_blink = qparams.get('blink')
+    param_color = qparams.get('color')
 
     # if any of the parameters are specified, then this will be
     # a write request for those parameters that are specified.
@@ -112,7 +117,12 @@ async def fan_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
 
-    param_speed = request.raw_args.get('speed')
+    qparams = validate.validate_query_params(
+        request.raw_args,
+        'speed'
+    )
+
+    param_speed = qparams.get('speed')
 
     # if a request parameter is specified, this will translate to a
     # write request.
@@ -155,7 +165,12 @@ async def power_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_POWER, rack, board, device)
 
-    param_state = request.raw_args.get('state')
+    qparams = validate.validate_query_params(
+        request.raw_args,
+        'state'
+    )
+
+    param_state = qparams.get('state')
 
     # if a request parameter is specified, this will translate to a
     # write request.
@@ -199,7 +214,12 @@ async def boot_target_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_SYSTEM, rack, board, device)
 
-    param_target = request.raw_args.get('target')
+    qparams = validate.validate_query_params(
+        request.raw_args,
+        'target'
+    )
+
+    param_target = qparams.get('target')
 
     # if a request parameter is specified, this will translate to a
     # write request.
@@ -245,7 +265,12 @@ async def lock_route(request, rack, board, device): # pylint: disable=unused-arg
     return errors.SynseError('Endpoint not yet implemented.')
     # await validate.validate_device_type(const.TYPE_LOCK, rack, board, device)
     #
-    # param_action = request.raw_args.get('action')
+    # qparams = validate.validate_query_params(
+    #     request.raw_args,
+    #     'action'
+    # )
+    #
+    # param_action = qparams.get('action')
     #
     # # if a request parameter is specified, this will translate to a
     # # write request.
