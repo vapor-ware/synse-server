@@ -1,13 +1,11 @@
 """Factory for creating Synse Server Sanic application instances."""
 # pylint: disable=unused-variable,unused-argument
 
-import datetime
-
 from sanic import Sanic
 from sanic.exceptions import InvalidUsage, NotFound, ServerError
 from sanic.response import text
 
-from synse import config, errors
+from synse import config, errors, utils
 from synse.cache import configure_cache
 from synse.i18n import init_gettext
 from synse.log import LOGGING, logger, setup_logger
@@ -107,7 +105,7 @@ def _make_error(error_id, exception):
         'http_code': exception.status_code,
         'error_id': error_id,
         'description': errors.codes[error_id],
-        'timestamp': str(datetime.datetime.utcnow()),
+        'timestamp': utils.rfc3339now(),
         'context': str(exception)
 
     }

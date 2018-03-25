@@ -2,12 +2,10 @@
 """
 # pylint: disable=line-too-long
 
-from datetime import datetime, timezone
-
 import grpc
 from synse_plugin import api
 
-from synse import cache, errors, plugin
+from synse import cache, errors, plugin, utils
 from synse.i18n import gettext
 from synse.log import logger
 from synse.scheme import ReadResponse
@@ -36,6 +34,7 @@ async def read(rack, board, device):
             gettext('Unable to find plugin named "{}" to read.').format(plugin_name)
         )
 
+    read_data = []
     try:
         # perform a gRPC read on the device's managing plugin
         read_data = _plugin.client.read(rack, board, device)
@@ -83,11 +82,10 @@ async def read(rack, board, device):
                     'apply None as reading value. Note that this response might '
                     'indicate plugin error/misconfiguration.'.format(rack, board, device))
                 read_data = []
-                local_time = datetime.now(timezone.utc).astimezone()
                 for output in dev.output:
                     read_data.append(
                         api.ReadResponse(
-                            timestamp=local_time.isoformat(),
+                            timestamp=utils.rfc3339now(),
                             type=output.type,
                             value='',
                         )

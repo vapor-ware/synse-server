@@ -1,8 +1,7 @@
 """Response scheme for the `test` endpoint.
 """
 
-import datetime
-
+from synse import utils
 from synse.scheme.base_response import SynseResponse
 
 
@@ -41,4 +40,4 @@ class TestResponse(SynseResponse):
 
     def __init__(self):
         """Constructor for the TestResponse class."""
-        self.data['timestamp'] = str(datetime.datetime.utcnow())
+        self.data['timestamp'] = utils.rfc3339now()
