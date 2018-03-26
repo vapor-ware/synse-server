@@ -1,6 +1,22 @@
 """Synse Server utility and convenience methods.
 """
 
+import datetime
+
+
+def rfc3339now():
+    """Create an RFC3339 formatted timestamp for the current
+    UTC time.
+
+    See Also:
+        https://stackoverflow.com/a/8556555
+
+    Returns:
+        str: The RFC3339 formatted timestamp.
+    """
+    now = datetime.datetime.utcnow()
+    return now.isoformat('T') + 'Z'
+
 
 def composite(rack, board, device):
     """Create a composite string out of a rack, board, and device.
