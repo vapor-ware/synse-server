@@ -214,7 +214,7 @@ def register_unix_plugins():
                 path = const.SOCKET_DIR
 
             # Check for both 'plugin_name' and 'plugin_name.sock'
-            sock_path = os.path.join(path, name, '.sock')
+            sock_path = os.path.join(path, name + '.sock')
             logger.debug('checking for socket: {}'.format(sock_path))
             if not os.path.exists(sock_path):
                 logger.debug('checking for socket: {}'.format(sock_path))
