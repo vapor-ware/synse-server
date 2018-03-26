@@ -22,4 +22,4 @@ def test_json_pretty():
     actual = response.json(data)
 
     assert isinstance(actual, HTTPResponse)
-    assert actual.body == b'{\n  "test":"value"\n}'
+    assert actual.body == b'{\n  "test":"value"\n}\n'
