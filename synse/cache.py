@@ -480,6 +480,9 @@ def _build_scan_cache(metainfo):
             ref['rack']['boards'] = list(ref['boards'].values())
             scan_cache['racks'].append(ref['rack'])
 
+        # Sort the scan cache by racks['id']
+        scan_cache['racks'] = sorted(scan_cache['racks'], key=lambda rck: rck['id'])
+
     return scan_cache
 
 
