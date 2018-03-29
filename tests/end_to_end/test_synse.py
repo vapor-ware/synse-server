@@ -223,7 +223,6 @@ def check_device_read(rack_id, board_id, device_id, device_type):
     if device_type == 'led':
         assert 'state' in data
         assert 'color' in data
-        assert 'blink' in data
     elif device_type == 'fan':
         assert 'fan_speed' in data
     elif device_type == 'temperature':
@@ -302,6 +301,10 @@ def check_led_write(rack_id, board_id, device_id):
             'action': 'state',
             'raw': 'off'
         },
+        'state_blink': {
+            'action': 'state',
+            'raw': 'blink'
+        },
         'color_min': {
             'action': 'color',
             'raw': '000000'
@@ -309,14 +312,6 @@ def check_led_write(rack_id, board_id, device_id):
         'color_max': {
             'action': 'color',
             'raw': 'FFFFFF'
-        },
-        'blink_blink': {
-            'action': 'blink',
-            'raw': 'blink'
-        },
-        'blink_steady': {
-            'action': 'blink',
-            'raw': 'steady'
         },
 
         # Case: 2 keys are correct, raw's value is valid
@@ -347,16 +342,12 @@ def check_led_write(rack_id, board_id, device_id):
             'action': 'color',
             'raw': 'invalid'
         },
-        'blink_invalid_value': {
-            'action': 'blink',
-            'raw': 'invalid'
-        },
 
         # Case: 1 key is correct / action is correct, action's value is not valid
         # Because raw is incorrect, raw's value can be anything even if it's valid
         'correct_action_invalid_value': {
             'action': 'invalid',
-            'incorrect_raw': 'on/off/ffffff/blink'
+            'incorrect_raw': 'on/off/blink/ffffff'
         },
 
         # Case: 1 key is absence / raw is absence, action's value is not valid
@@ -375,10 +366,6 @@ def check_led_write(rack_id, board_id, device_id):
             'action': 'color',
             'incorrect_raw': '000000'
         },
-        'blink_incorrect_raw': {
-            'action': 'blink',
-            'incorrect_raw': 'blink blink'
-        },
 
         # Case: 1 key is absence / raw is absence, action's value is valid
         'state_absence_raw': {
@@ -386,9 +373,6 @@ def check_led_write(rack_id, board_id, device_id):
         },
         'color_absence_raw': {
             'action': 'color'
-        },
-        'blink_absence_raw': {
-            'action': 'blink'
         }
     }
 
@@ -397,22 +381,22 @@ def check_led_write(rack_id, board_id, device_id):
         # Case: 2 keys are not correct
         # Because both keys are wrong, their value can be anything
         'incorrect_keys': {
-            'incorrect_action': 'state/color/blink',
-            'incorrect_raw': 'on/000000/blink'
+            'incorrect_action': 'state/color',
+            'incorrect_raw': 'on/000000'
         },
 
         # Case: 1 key is correct / raw is correct, raw's value is valid
         # Because action is incorrect, action's value can be anything
-        # Therefore, no need to check for a specific state, color or blink
+        # Therefore, no need to check for a specific state or color
         'correct_raw_valid_value': {
-            'incorrect_action': 'state/color/blink',
+            'incorrect_action': 'state/color',
             'raw': 'on'
         },
 
         # Case: 1 key is correct / raw is correct, raw's value is not valid
         # Similarly, action is incorrect, no need to check for a specific value
         'correct_raw_invalid_value': {
-            'incorrect_action': 'state/color/blink',
+            'incorrect_action': 'state/color',
             'raw': 'invalid'
         },
 
@@ -486,6 +470,8 @@ def check_transaction(case, transaction_id, expected_state):
         expected_state (str): Expected state of the transaction
     """
     r = requests.get('{}/transaction/{}'.format(url, transaction_id))
+    if r.status_code != 200:
+        print(r.json())
     assert r.status_code == 200
 
     # If a transaction is done processing, check if it match the expected state
@@ -619,26 +605,22 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         # Case: Single query parameter / correct key and valid value
         'state_on': 'state=on',
         'state_off': 'state=off',
+        'state_blink': 'state=blink',
         'color_min': 'color=000000',
         'color_max': 'color=FFFFFF',
-        'blink_blink': 'blink=blink',
-        'blink_steady': 'blink=steady',
 
         # Case: Multiple query parameters / different correct keys
         'state_on_color_max': 'state=on&color=FFFFFF',
-        'color_max_blink_steady': 'color=FFFFFF&blink=steady',
-        'blink_steady_state_on': 'blink=steady&state=on',
+        'color_max_state_blink': 'color=FFFFFF&state=blink',
 
         # Case: Multiple query parameters / same correct keys, valid values
-        'state_off_on': 'state=off&state=on',
+        'state_off_on_blink': 'state=off&state=on&state=blink',
         'color_min_max': 'color=000000&color=FFFFFF',
-        'blink_blink_steady': 'blink=blink&blink=steady',
 
         # Case: Multiple query parameters / same correct keys,
         # 1 invalid value after 1 valid value
         'state_valid_invalid': 'state=on&state=invalid',
         'color_valid_invalid': 'color=000000&color=invalid',
-        'blink_valid_invalid': 'blink=steady&blink=invalid'
     }
 
     # Options that return 400 status code
@@ -646,21 +628,17 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         # Case: Single query parameter / correct key and invalid value
         'invalid_state': 'state=invalid',
         'invalid_color': 'color=invalid',
-        'invalid_blink': 'blink=invalid',
 
         # Case: Multiple query parameters / correct keys, 1 invalid value
         'state_valid_color_invalid': 'state=on&color=invalid',
         'state_invalid_color_valid': 'state=invalid&color=FFFFFF',
-        'color_valid_blink_invalid': 'color=FFFFFF&blink=invalid',
-        'color_invalid_blink_valid': 'color=invalid&blink=steady',
-        'blink_valid_state_invalid': 'blink=steady&state=invalid',
-        'blink_invalid_state_valid': 'blink=invalid&state=on',
+        'color_valid_state_invalid': 'color=FFFFFF&state=invalid',
+        'color_invalid_state_valid': 'color=invalid&state=on',
 
         # Case: Multiple query parameters / same correct keys,
         # 1 valid value after 1 invalid value
         'state_invalid_valid': 'state=invalid&state=on',
         'color_invalid_valid': 'color=invalid&color=FFFFFF',
-        'blink_invalid_valid': 'blink=invalid&blink=steady'
     }
 
     # Options that return like read requests
@@ -669,10 +647,8 @@ def check_alias_led_query_param(rack_id, board_id, device_id):
         'invalid_key': 'invalid',
         'absence_state_value': 'state=',
         'absence_color_value': 'color=',
-        'absence_blink_value': 'blink=',
         'absence_state_value_no_equal_sign': 'state',
         'absence_color_value_no_equal_sign': 'color',
-        'absence_blink_value_no_equal_sign': 'blink',
     }
 
     # List of transactions objects for requests that return 200 status codes

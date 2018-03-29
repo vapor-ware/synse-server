@@ -19,8 +19,8 @@ class TransactionResponse(SynseResponse):
         {
           "id": "b7jl0b2un4a154rn9u4g",
           "context": {
-            "action": "blink",
-            "raw": ["steady"]
+            "action": "state",
+            "raw": ["on"]
           },
           "state": "ok",
           "status": "pending",

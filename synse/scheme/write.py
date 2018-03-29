@@ -17,8 +17,8 @@ class WriteResponse(SynseResponse):
         [
           {
             "context": {
-              "action": "blink",
-              "raw": ["steady"]
+              "action": "state",
+              "raw": ["on"]
             },
             "timestamp": "2017-11-08 14:01:53",
             "transaction": "b7jl0b2un4a154rn9u4g"

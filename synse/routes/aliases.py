@@ -15,7 +15,7 @@ bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
 async def led_route(request, rack, board, device):
     """Endpoint to read/write LED device data.
 
-    If no state, color, or blink is specified through request parameters,
+    If no state or color is specified through request parameters,
     this will translate to a device read. Otherwise, if any valid request
     parameter is specified, this will translate to a device write.
 
@@ -31,12 +31,11 @@ async def led_route(request, rack, board, device):
     await validate.validate_device_type(const.TYPE_LED, rack, board, device)
 
     param_state = request.raw_args.get('state')
-    param_blink = request.raw_args.get('blink')
     param_color = request.raw_args.get('color')
 
     # if any of the parameters are specified, then this will be
     # a write request for those parameters that are specified.
-    if any((param_state, param_blink, param_color)):
+    if any((param_state, param_color)):
         data = []
 
         if param_state:
@@ -49,18 +48,6 @@ async def led_route(request, rack, board, device):
             data.append({
                 'action': 'state',
                 'raw': param_state
-            })
-
-        if param_blink:
-            if param_blink not in const.led_blink_states:
-                raise errors.InvalidArgumentsError(
-                    gettext('Invalid blink state "{}". Must be one of: {}').format(
-                        param_blink, const.led_blink_states)
-                )
-
-            data.append({
-                'action': 'blink',
-                'raw': param_blink
             })
 
         if param_color:

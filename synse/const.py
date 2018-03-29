@@ -16,18 +16,12 @@ TYPE_LOCK = 'lock'
 LED_ON = 'on'
 LED_OFF = 'off'
 LED_BLINK = 'blink'
-LED_STEADY = 'steady'
 
 # all LED states
 led_states = (
     LED_ON,
-    LED_OFF
-)
-
-# all LED blink states
-led_blink_states = (
-    LED_BLINK,
-    LED_STEADY
+    LED_OFF,
+    LED_BLINK
 )
 
 
