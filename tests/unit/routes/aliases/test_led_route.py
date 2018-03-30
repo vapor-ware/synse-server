@@ -239,3 +239,13 @@ async def test_synse_led_write_valid_6(mock_validate_device_type, mock_write, no
     assert isinstance(result, HTTPResponse)
     assert result.body == expected_json.encode('ascii')
     assert result.status == 200
+
+
+@pytest.mark.asyncio
+async def test_synse_led_route_bad_param(mock_validate_device_type, mock_write, no_pretty_json):
+    """Test setting led, passing an unsupported query param."""
+
+    r = utils.make_request('/synse/led?unsupported=true')
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await led_route(r, 'rack-1', 'vec', '123456')

@@ -6,6 +6,7 @@ import pytest
 from sanic.response import HTTPResponse
 
 import synse.commands
+from synse import errors
 from synse.routes.core import scan_route
 from synse.scheme.base_response import SynseResponse
 from tests import utils
@@ -89,3 +90,13 @@ async def test_synse_scan_route_forced_2(mock_scan, no_pretty_json):
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"r":null,"b":null,"forced":false}'
     assert result.status == 200
+
+
+@pytest.mark.asyncio
+async def test_synse_scan_route_bad_param(mock_scan, no_pretty_json):
+    """Test scanning, passing an unsupported query param."""
+
+    r = utils.make_request('/synse/scan?unsupported=true')
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await scan_route(r)
