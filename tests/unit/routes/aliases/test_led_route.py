@@ -94,7 +94,7 @@ async def test_synse_led_write_invalid_1(mock_validate_device_type, mock_write, 
 async def test_synse_led_write_invalid_2(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
-    r = utils.make_request('/synse/led?blink=foo')
+    r = utils.make_request('/synse/led?state=foo')
 
     try:
         await led_route(r, 'rack-1', 'vec', '123456')
@@ -120,7 +120,7 @@ async def test_synse_led_write_invalid_3(mock_validate_device_type, mock_write, 
 async def test_synse_led_write_invalid_4(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with an invalid state specified."""
 
-    r = utils.make_request('/synse/led?state=on&color=ff0044&blink=bar')
+    r = utils.make_request('/synse/led?state=on&color=bar')
 
     try:
         await led_route(r, 'rack-1', 'vec', '123456')
@@ -185,25 +185,12 @@ async def test_synse_led_write_valid_2(mock_validate_device_type, mock_write, no
 async def test_synse_led_write_valid_3(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
-    r = utils.make_request('/synse/led?blink=blink')
+    r = utils.make_request('/synse/led?state=blink')
 
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"blink","raw":["blink"]},"transaction":"rack-1-vec-123456"}]'
-    assert result.status == 200
-
-
-@pytest.mark.asyncio
-async def test_synse_led_write_valid_4(mock_validate_device_type, mock_write, no_pretty_json):
-    """Test writing LED state with a valid state specified."""
-
-    r = utils.make_request('/synse/led?blink=steady')
-
-    result = await led_route(r, 'rack-1', 'vec', '123456')
-
-    assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"blink","raw":["steady"]},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == b'[{"context":{"action":"state","raw":["blink"]},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -224,13 +211,12 @@ async def test_synse_led_write_valid_5(mock_validate_device_type, mock_write, no
 async def test_synse_led_write_valid_6(mock_validate_device_type, mock_write, no_pretty_json):
     """Test writing LED state with a valid state specified."""
 
-    r = utils.make_request('/synse/led?color=ffffff&state=on&blink=steady')
+    r = utils.make_request('/synse/led?color=ffffff&state=on')
 
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     expected = [
         {'context': {'action': 'state', 'raw': [b'on']}, 'transaction': 'rack-1-vec-123456'},
-        {'context': {'action': 'blink', 'raw': [b'steady']}, 'transaction': 'rack-1-vec-123456'},
         {'context': {'action': 'color', 'raw': [b'ffffff']}, 'transaction': 'rack-1-vec-123456'}
     ]
 

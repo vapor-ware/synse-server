@@ -433,11 +433,6 @@ response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0
       "value": "000000",
       "timestamp": "2018-02-01T13:48:59.573898829Z",
       "unit": null
-    },
-    "blink": {
-      "value": "steady",
-      "timestamp": "2018-02-01T13:48:59.573898829Z",
-      "unit": null
     }
   }
 }
@@ -570,7 +565,7 @@ The post body requires an "action" and "raw" to be specified, e.g.
 | *raw* | The data associated with the given action. |
 
 The valid values and requirements for `action` and `raw` are dependent on the device type/plugin
-implementation. For example, an `LED` device supports the actions: `color`, `state`, `blink`; a
+implementation. For example, an `LED` device supports the actions: `color`, `state`; a
 `fan` device supports `speed`. 
 
 Some devices may only need an `action` specified. Some may need both `action` and `raw` specified.
@@ -850,11 +845,6 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
       "value": "f38ac2",
       "timestamp": "2018-02-01T16:16:04.884816422Z",
       "unit": null
-    },
-    "blink": {
-      "value": "steady",
-      "timestamp": "2018-02-01T16:16:04.884816422Z",
-      "unit": null
     }
   }
 }
@@ -924,8 +914,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 
 | Parameter | Description |
 | --------- | ----------- |
-| *state*   | The state of the LED. *Valid values:* (`on`, `off`) |
-| *blink*   | The blink state of the LED. *Valid values:* (`blink`, `steady`) |
+| *state*   | The state of the LED. *Valid values:* (`on`, `off`, `blink`) |
 | *color*   | The color of the LED. This must be an RGB hexadecimal color string. |
 
 <aside class="warning">
