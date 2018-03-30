@@ -120,3 +120,13 @@ async def test_synse_power_write_valid_3(mock_validate_device_type, mock_write, 
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"data":{"action":"state","raw":"cycle"}}'
     assert result.status == 200
+
+
+@pytest.mark.asyncio
+async def test_synse_power_route_bad_param(mock_validate_device_type, mock_write, no_pretty_json):
+    """Test setting power, passing an unsupported query param."""
+
+    r = utils.make_request('/synse/power?unsupported=true')
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await power_route(r, 'rack-1', 'vec', '123456')
