@@ -44,6 +44,7 @@ that manages the referenced device), and does some aggregation, caching, and for
 the response data.
 
 The general flow through Synse Server for a device read, for example, is:
+
 - get an incoming HTTP request
 - validate the specified device exists
 - lookup the device's managing plugin
@@ -52,24 +53,58 @@ The general flow through Synse Server for a device read, for example, is:
 - take the data returned from the plugin and format it into the JSON response scheme
 - return the data to the caller
 
+Related Components
+------------------
+
+Synse Server is only one part of the "Synse ecosystem". Other components of the Synse
+ecosystem include:
+
+- `Synse SDK <https://github.com/vapor-ware/synse-sdk>`_ : The GoLang SDK used to write Synse Plugins.
+- `Synse GraphQL <https://github.com/vapor-ware/synse-graphql>`_ : A GraphQL frontend for Synse Server.
+- `Synse CLI <https://github.com/vapor-ware/synse-cli>`_ : A command line tool to interface with Synse Server and Plugins.
+- `Synse gRPC <https://github.com/vapor-ware/synse-server-grpc>`_ : The internal gRPC API used by Synse Server and Plugins.
+
+
 User Guide
 ----------
 
-This part of the documentation describes how to get Synse Server, set it up, and how
-to start using it.
+The official guide for using Synse Server. This section goes over various topics
+useful to the user, from getting it to deploying it. With this information, you should
+be able to make the most out of Synse Server however you decide to use it.
 
 .. toctree::
    :maxdepth: 2
 
    user/getting
    user/quickstart
+   user/configuration
+   user/api
+
+Community Guide
+---------------
+
+Learn about the Synse Server ecosystem and community. This section outlines the
+community guidelines, provides license info, and details how to contribute to
+Synse Server.
+
+.. toctree::
+   :maxdepth: 2
+
+   community/license
+   community/contributing
+   community/release_process
 
 
 Development
 -----------
 
-This part of the documentation describes how to develop with Synse Server and how to
-contribute to the project.
+Learn about the development process for Synse Server. If you want to contribute to,
+play around with, or fork Synse Server, this section will familiarize you with the
+development workflow, testing practices, and debugging process.
 
 .. toctree::
    :maxdepth: 2
+
+   dev/setup
+   dev/testing
+   dev/debugging
