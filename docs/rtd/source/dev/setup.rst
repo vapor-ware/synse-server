@@ -29,3 +29,49 @@ Other tools and components that are used in development:
 
 Workflow
 --------
+To aid in the developer workflow, Makefile targets are provided for common development
+tasks. To see what targets are provided, see the project ``Makefile``, or run ``make help``
+out of the project repo root.
+
+.. code-block:: console
+
+    $ make help
+    api-doc          Open the API doc HTML reference
+    build-docs       Generate the API docs for Synse Server
+    cover            Run unit tests and open the HTML coverage report
+    docker           Build the docker image for Synse Server locally
+    help             Print Make usage information
+    lint             Lint the Synse Server source code
+    run              Build and run Synse Server locally (localhost:5000) with emulator
+    test             Run all tests
+    test-end-to-end  Run end to end tests
+    test-integration Run integration tests
+    test-unit        Run unit tests
+    version          Print the version of Synse Server
+
+In general, when developing, tests should be run (e.g. ``make test-unit``) and the code
+should be linted (e.g. ``make lint``). This ensures that the code works and is consistent
+and readable. Tests should also be added or updated as appropriate (see the Testing section).
+
+Other actions that are useful when developing:
+
+- **build the docker image**: To build a new docker image with the default tags
+  (Synse Server version, etc.): ``make docker``
+- **test coverage report**: To get a coverage report for the unit tests: ``make cover``
+- **documentation**: To build the documentation: ``make build-docs``. To view the
+  API docs locally: ``make api-doc``.
+
+CI
+---
+All commits and pull requests to Synse Server trigger a build in `Circle CI <https://circleci.com/gh/vapor-ware/synse-server>`_.
+The CI configuration can be found in the repo's ``.circleci/config.yml`` file. In summary,
+a build triggered by a commit will:
+
+- Run unit tests
+- Run integration tests
+- Run linting
+
+In addition to the above, a build triggered by a pull request merge will:
+
+- Build the docker image
+- Push new images out to DockerHub

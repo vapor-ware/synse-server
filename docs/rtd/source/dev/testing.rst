@@ -76,6 +76,31 @@ Or, each group of tests can be run individually,
 
 The test output will be displayed in the console. Test artifacts will also be generated.
 
+Gotchas
+~~~~~~~
+
+Switching between local testing and container testing
+.....................................................
+
+If you are switching between testing in a container and testing locally (possible if either the
+Makefile is modified to not check for py36 or tests are not always run via the Makefile), you might
+see an error similar to:
+
+.. code-block:: none
+
+    ERROR: Error processing tar file(exit status 1): open /.tox/lint/include/python3.6m/Python-ast.h: no such file or directory
+
+If this is the case, you will need to remove the ``.tox`` directory (``rm -rf .tox``). When the tests are
+re-run, the ``.tox`` directory will be rebuilt and should include the necessary pieces. This only seems
+to happen when switching between the two modes of testing.
+
 
 Test Artifacts
 --------------
+A number of test artifacts are generated when tests are run. These are output to the ``results``
+subdirectory.
+
+- *cov-html* - contains the test coverage HTML reports. These can be viewed by opening
+  ``index.html``.
+- *prof* - contains the profiling results for the tests.
+- *pytest* - contains reports (HTML, XML) of the test results that were output to console.
