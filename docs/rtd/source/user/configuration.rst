@@ -144,14 +144,14 @@ variable, ``SYNSE_LOGGING=error``.
     The logging level for Synse Server to use.
 
     | *default*: ``info``
-    | *valid values*: ``debug``, ``info``, ``warning``, ``error``, ``critical``
+    | *supported*: ``debug``, ``info``, ``warning``, ``error``, ``critical``
 
 :pretty_json:
     Output the API response JSON so it is pretty and human readable.
     This adds spacing and newlines to the JSON output.
 
     | *default*: ``false``
-    | *valid values*: ``true``, ``false``
+    | *supported*: ``true``, ``false``
 
 :locale:
     The locale to use for logging and error output.
@@ -253,3 +253,115 @@ Below is a valid (if contrived) and complete example configuration file.
     grpc:
       # timeout in seconds
       timeout: 5
+
+
+Configuring Synse Server
+------------------------
+By now, you should have a good understanding of the configuration options for
+Synse Server as well as the different ways it can take configuration. Now, lets
+look at how to actually pass custom configurations to Synse Server.
+
+Specifying a Custom Config File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Synse Server looks for a YAML file (``.yml`` or ``.yaml`` extension) named ``config``
+in the current working directory, ``./``, and within the ``synse/config`` directory.
+If the configuration file (``config.{yaml|yml}``) is not found in either of those
+locations, no config file is used and the Synse Server configuration will be built
+off of the defaults and whatever values are specified in the environment.
+
+When running Synse Server as a Docker image, you would either have to:
+
+- volume mount the custom configuration
+- build a custom Synse Server image that includes your configuration
+
+The first option is obviously the most flexible, thus preferable.
+
+To mount a custom configuration file, you must first have a configuration file.
+For this example, consider the YAML below to be contained within ``custom-config.yml``.
+
+.. code-block:: yaml
+
+    logging: debug
+    pretty_json: true
+    plugin:
+      tcp:
+        emulator: localhost:5001
+
+We can mount this into the Synse Server container with ``docker run``, e.g.
+
+.. code-block:: bash
+
+    docker run -d \
+        -p 5000:5000 \
+        -v $PWD/custom_config.yml:/synse/config/config.yml \
+        --name synse-server \
+        vaporio/synse-server
+
+Assuming the configuration is correct and Synse Server comes up, you should be able
+to verify that the config was picked up either by looking at the Synse Server logs,
+or by hitting the ``/config`` endpoint
+
+.. code-block:: bash
+
+    curl localhost:5000/synse/2.0/config
+
+Configurations can also be mounted in via ``docker-compose``
+
+.. code-block:: yaml
+
+    version: "3"
+    services:
+      synse-server:
+        container_name: synse-server
+        image: vaporio/synse-server
+        ports:
+          - 5000:5000
+        volumes:
+          - ./custom_config.yml:/synse/config/config.yml
+
+
+Specifying Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+As mentioned earlier, all of the configuration options, except for the ``plugin``
+configuration, can be set by environment variable as well. This is done by joining
+the configuration key path with an underscore, upper casing, and appending to the
+``SYNSE_`` prefix. That is to say, for a config ``{'foo': {'bar': 20}}``, to set
+the value of *bar* to 30, you would set ``SYNSE_FOO_BAR=30``.
+
+A more real example is to set the logging level to debug and to change the transaction
+cache TTL.
+
+.. code-block:: bash
+
+    docker run -d \
+        -p 5000:5000 \
+        -e SYNSE_LOGGING=debug \
+        -e SYNSE_CACHE_TRANSACTION_TTL=500 \
+        --name synse-server \
+        vaporio/synse-server
+
+This can also be done via ``docker-compose``
+
+.. code-block:: yaml
+
+    version: "3"
+    services:
+      synse-server:
+        container_name: synse-server
+        image: vaporio/synse-server
+        ports:
+          - 5000:5000
+        environment:
+          - SYNSE_LOGGING=debug
+          - SYNSE_CACHE_TRANSACTION_TTL=500
+
+A combination of both config file and environment configs can be provided, but
+as mentioned earlier, environment variable based configuration takes precedence
+over file based configuration.
+
+Specify Plugins via Environment
+...............................
+Plugin configurations can be specified via environment variable, but how this
+is done differs slightly from the other configuration options. See the
+`Plugin Communication Modes`_ section for more on how to specify TCP and Unix
+socket plugin configuration via the environment.
