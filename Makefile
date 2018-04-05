@@ -79,13 +79,13 @@ docker: docker-default docker-slim ## Build the docker image for Synse Server lo
 
 .PHONY: api-doc
 api-doc: ## Open the API doc HTML reference
-	open ./docs/index.html
+	open ./docs/api/build/index.html
 
 .PHONY: docs
-build-docs: ## Generate the Synse Server documentation locally
+docs: ## Generate the Synse Server documentation locally
 	docker build -f docs/Dockerfile -t vaporio/slate-docs docs
 	docker run --name slate-docs -v `pwd`/docs/api:/source vaporio/slate-docs
-	docker cp slate-docs:/slate/build/. docs/source/api
+	docker cp slate-docs:/slate/build/. docs/api/build
 	docker rm slate-docs
 
 .PHONY: lint
