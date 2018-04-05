@@ -79,13 +79,14 @@ docker: docker-default docker-slim ## Build the docker image for Synse Server lo
 
 .PHONY: api-doc
 api-doc: ## Open the API doc HTML reference
-	open ./docs/index.html
+	open ./docs/api/build/index.html
 
-.PHONY: build-docs
-build-docs: ## Generate the API docs for Synse Server
-	docker build -f docs/build/Dockerfile -t vaporio/slate-docs docs/build
-	docker run --name slate-docs -v `pwd`/docs/build/src:/source vaporio/slate-docs
-	docker cp slate-docs:/slate/build/. docs
+.PHONY: docs
+docs: ## Generate the Synse Server documentation locally
+	docker build -f docs/Dockerfile -t vaporio/slate-docs docs
+	@if [ -d "docs/api/build" ]; then rm -rf docs/api/build; fi;
+	docker run --name slate-docs -v `pwd`/docs/api:/source vaporio/slate-docs
+	docker cp slate-docs:/slate/build/. docs/api/build
 	docker rm slate-docs
 
 .PHONY: lint
@@ -151,6 +152,6 @@ version: ## Print the version of Synse Server
 
 .PHONY: help
 help:  ## Print Make usage information
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
 .DEFAULT_GOAL := help

@@ -79,4 +79,4 @@ ENV/
 *.rpm
 *.deb
 
-!docs/*
+docs/build
