@@ -1,0 +1,1 @@
+recursive-include synse/locale *.mo

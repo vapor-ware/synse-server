@@ -1,34 +1,78 @@
 version: 2
 jobs:
-  build:
+
+  # Run tests and linting for Synse Server
+  test:
+    working_directory: ~/synse-server
     docker:
-      - image: python
-    working_directory: /synse-server
-    environment:
-      - DOCKER_VERSION=17.09.1-ce
-      - COMPOSE_VERSION=1.18.0
+      - image: circleci/python:3.6.4
     steps:
       - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo chown -R circleci:circleci /usr/local/bin
+            sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+            pip install tox>=2.9.0
+      - restore_cache:
+          keys:
+            - v1.5-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+      - run:
+          name: Unit Tests
+          command: make test-unit
+      - run:
+          name: Integration Tests
+          command: make test-integration
+      - save_cache:
+          key: v1.5-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          paths:
+            - .tox/py36
+      - restore_cache:
+          keys:
+            - v2.6-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+      - run:
+          name: Lint
+          command: make lint
+      - save_cache:
+          key: v2.6-tox-lint-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
+          paths:
+            - .tox/lint
+      - store_artifacts:
+          path: ./results
+      - store_test_results:
+          path: ./results/pytest
 
+  # Build and push the Synse Server docker image to DockerHub
+  build-push:
+    working_directory: ~/synse-server
+    docker:
+      - image: circleci/python:3.6.4
+    steps:
+      - checkout
       - setup_remote_docker
+      - run:
+          name: Build Images
+          command: |
+            make docker
+      - run:
+          name: Push Images
+          command: |
+            docker login -u ${DOCKER_USER} -p ${DOCKER_PS}
+            for tag in $(make tags); do
+              docker push ${tag}
+            done
 
-      - run:
-          name: Install Docker Client
-          command: |
-            set -x
-            curl -L -o /tmp/docker-${DOCKER_VERSION}.tgz https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz
-            tar -xz -C /tmp -f /tmp/docker-${DOCKER_VERSION}.tgz
-            mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker compose
-          command: |
-            set -x
-            curl -L https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-            chmod +x /usr/local/bin/docker-compose
-      - run:
-          name: Docker Compose Build
-          command: docker-compose -f compose/release.yml build
-      - run:
-          name: Run tests
-          command: |
-            make test
+workflows:
+  version: 2
+  build:
+    jobs:
+      - test
+      - build-push:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - master
+                - v2.0-dev
+

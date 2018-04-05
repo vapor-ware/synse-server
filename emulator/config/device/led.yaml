@@ -1,0 +1,15 @@
+version: 1.0
+locations:
+  r1vec:
+    rack: rack-1
+    board: vec
+devices:
+  - type: led
+    model: emul8-led
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse LED
+      - id: "2"
+        location: r1vec
+        info: Synse backup LED

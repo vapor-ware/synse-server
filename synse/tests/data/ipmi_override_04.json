@@ -1,9 +1,0 @@
-{
-  "devices": {
-    "ipmi": {
-      "device_initializer_threads": 1,
-      "scan_on_init": false,
-      "from_config": "/synse/synse/tests/data/bmc_config/bmc_config004.json"
-    }
-  }
-}

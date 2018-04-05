@@ -1,0 +1,269 @@
+# Copyright (C) Vapor.io
+# Matt Jones mattjones@vapor.io, 2018.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: synse-server v2.0-dev\n"
+"POT-Creation-Date: 2018-01-08 13:16-0500\n"
+"Last-Translator: Matt Jones <mattjones@vapor.io>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+#: synse/cache.py:26
+msgid "CONFIGURING CACHE: {}"
+msgstr ""
+
+#: synse/cache.py:113
+msgid "{} does not correspond with a known device."
+msgstr ""
+
+#: synse/cache.py:148
+msgid "plugins to scan: {}"
+msgstr ""
+
+#: synse/cache.py:172
+msgid "Failed to get metainfo for plugin: {}"
+msgstr ""
+
+#: synse/cache.py:178
+msgid "Failed to scan all plugins: {}"
+msgstr ""
+
+#: synse/cache.py:182
+msgid "Got metainfo cache!"
+msgstr ""
+
+#: synse/cache.py:222
+msgid "Getting scan metainfo cache for scancache"
+msgstr ""
+
+#: synse/cache.py:224
+msgid "Building scan cache."
+msgstr ""
+
+#: synse/commands/info.py:22
+msgid "No rack specified when issuing info command."
+msgstr ""
+
+#: synse/commands/info.py:84
+msgid "Unable to find rack \"{}\" in info cache."
+msgstr ""
+
+#: synse/commands/info.py:91
+msgid "Unable to find board \"{}\" in info cache."
+msgstr ""
+
+#: synse/commands/info.py:98
+msgid "Unable to find device \"{}\" in info cache."
+msgstr ""
+
+#: synse/commands/read.py:22
+msgid ">> READ cmd"
+msgstr ""
+
+#: synse/commands/read.py:26
+msgid "  |- got device: {}"
+msgstr ""
+
+#: synse/commands/read.py:30
+msgid "  |- got plugin: {}"
+msgstr ""
+
+#: synse/commands/read.py:33 synse/commands/transaction.py:40
+msgid "Unable to find plugin named \"{}\" to read."
+msgstr ""
+
+#: synse/commands/read.py:41
+msgid "  |- (error): {}"
+msgstr ""
+
+#: synse/commands/read.py:43
+msgid "Failed to issue a read request."
+msgstr ""
+
+#: synse/commands/read.py:46
+msgid "  |- read results: {}"
+msgstr ""
+
+#: synse/commands/scan.py:29
+msgid "Re-registering plugins."
+msgstr ""
+
+#: synse/commands/scan.py:32
+msgid "Running \"scan\" command."
+msgstr ""
+
+#: synse/commands/scan.py:42
+msgid "Rack \"{}\" not found in scan results."
+msgstr ""
+
+#: synse/commands/scan.py:53
+msgid "Board \"{}\" not found in scan results."
+msgstr ""
+
+#: synse/commands/scan.py:57
+msgid "Making \"scan\" response."
+msgstr ""
+
+#: synse/commands/transaction.py:33
+msgid "Unable to determine process for the given transaction."
+msgstr ""
+
+#: synse/commands/transaction.py:48
+msgid "Failed to issue a transaction check request."
+msgstr ""
+
+#: synse/commands/write.py:32
+msgid "Unable to find plugin named \"{}\" to write to."
+msgstr ""
+
+#: synse/commands/write.py:52
+msgid "Failed to issue a write request."
+msgstr ""
+
+#: synse/commands/write.py:64
+msgid "Failed to add transaction {} to the cache."
+msgstr ""
+
+#: synse/plugin.py:41
+msgid "Only Plugin instances can be added to the manager."
+msgstr ""
+
+#: synse/plugin.py:47
+msgid "The given Plugin (\"{}\") already exists in the managed dictionary."
+msgstr ""
+
+#: synse/plugin.py:64
+msgid "\"{}\" is not known to PluginManager - will not remove."
+msgstr ""
+
+#: synse/plugin.py:79
+msgid "PluginManager purged: {}"
+msgstr ""
+
+#: synse/plugin.py:117
+msgid "The given mode must be \"tcp\" or \"unix\" but was {}"
+msgstr ""
+
+#: synse/plugin.py:123
+msgid "The given unix socket ({}) must exist."
+msgstr ""
+
+#: synse/plugin.py:171
+msgid "Plugins to be removed from manager: {}"
+msgstr ""
+
+#: synse/plugin.py:174
+msgid "done registering plugins"
+msgstr ""
+
+#: synse/plugin.py:183
+msgid "Registering plugins (unix)"
+msgstr ""
+
+#: synse/plugin.py:186
+msgid "{} does not exist - unable to get unix plugin sockets."
+msgstr ""
+
+#: synse/plugin.py:190
+msgid "socket dir exists"
+msgstr ""
+
+#: synse/plugin.py:211
+msgid "Created new plugin (unix): {}"
+msgstr ""
+
+#: synse/plugin.py:214
+msgid "plugin \"{}\" already exists - will not re-register (unix)"
+msgstr ""
+
+#: synse/plugin.py:218
+msgid "file is not a socket.. {}"
+msgstr ""
+
+#: synse/plugin.py:229
+msgid "Registering plugins (tcp)"
+msgstr ""
+
+#: synse/plugin.py:233
+msgid "found no plugins configured for tcp"
+msgstr ""
+
+#: synse/plugin.py:251
+msgid "Created new plugin (tcp): {}"
+msgstr ""
+
+#: synse/plugin.py:254
+msgid "plugin \"{}\" already exists - will not re-register (tcp)"
+msgstr ""
+
+#: synse/proto/client.py:82
+msgid "Invalid mode: {}"
+msgstr ""
+
+#: synse/proto/client.py:121
+msgid "Registered Client:"
+msgstr ""
+
+#: synse/proto/client.py:123
+msgid "  mode:    {}"
+msgstr ""
+
+#: synse/proto/client.py:124
+msgid "  address: {}"
+msgstr ""
+
+#: synse/proto/client.py:125
+msgid "  channel: {}"
+msgstr ""
+
+#: synse/proto/client.py:126
+msgid "  stub:    {}"
+msgstr ""
+
+#: synse/routes/aliases.py:42
+msgid "Invalid state: {}"
+msgstr ""
+
+#: synse/routes/aliases.py:54
+msgid "Invalid blink state: {}"
+msgstr ""
+
+#: synse/routes/aliases.py:150
+msgid "Invalid power state: {}"
+msgstr ""
+
+#: synse/routes/aliases.py:192
+msgid "Invalid boot target: {}"
+msgstr ""
+
+#: synse/routes/core.py:44
+msgid "forcing re-scan? {}"
+msgstr ""
+
+#: synse/routes/core.py:87
+msgid "WRITE -> json: {}"
+msgstr ""
+
+#: synse/routes/core.py:91
+msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\"."
+msgstr ""
+
+#: synse/scheme/read.py:64
+msgid "Making read response"
+msgstr ""
+
+#: synse/scheme/read.py:77
+msgid "device output: {}"
+msgstr ""
+
+#: synse/scheme/read.py:92
+msgid "Found unexpected reading type \"{}\" for device {}"
+msgstr ""
+
+#: synse/scheme/read.py:97
+msgid "  Precision: {}"
+msgstr ""

@@ -1,8 +1,0 @@
-{
-  "devices": {
-    "i2c": {
-      "from_config": "/synse/synse/tests/data/i2c_emulator/i2c_emulator_config-001.json",
-      "altitude": 0
-    }
-  }
-}

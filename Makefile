@@ -1,141 +1,156 @@
-# ------------------------------------------------------------------------
-#  \\//
-#   \/aporIO - Synse
 #
-#  Build Vapor Synse docker images from the current directory.
+# Synse Server
 #
-#  Author: Andrew Cencini (andrew@vapor.io)
-#  Date:   01 Sept 2016
-# ------------------------------------------------------------------------
-
-include mk/docker.makefile
-include mk/lint.makefile
-include mk/package.makefile
-
-
+PKG_NAME := synse
+IMG_NAME := vaporio/synse-server
 PKG_VER := $(shell python synse/__init__.py)
-GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
+export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 
+HAS_PY36 := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
 
-run: build
-	docker-compose -f compose/emulator.yml up -d
-
-down:
-	docker-compose -f compose/emulator.yml -f compose/release.yml down --remove-orphans
-
-# -----------------------------------------------
-# Build
-# -----------------------------------------------
-
-build:  ## Build the Synse Server image
-	docker build -f dockerfile/release.dockerfile \
-		-t vaporio/synse-server:latest \
-		-t vaporio/synse-server:$(PKG_VER) \
-		-t vaporio/synse-server:$(GIT_VER) .
+# Docker Image tags
+DEFAULT_TAGS = ${IMG_NAME}:latest ${IMG_NAME}:${PKG_VER} ${IMG_NAME}:${GIT_VER}
+SLIM_TAGS = ${IMG_NAME}:slim ${IMG_NAME}:${PKG_VER}-slim
 
 
-# -----------------------------------------------
-#  Variables / functions.
-# -----------------------------------------------
+# Packaging
+# Note: these are not documented via `make help` yet
 
-# This gets the exit code for a docker container named test-container
-# that has exited. No evaluation is done, it just hands out the exit code.
-TEST_CONTAINER_EXIT_CODE=$(docker ps -a | grep test-container-x64 | \
-						 awk '{print $1}' | \
-						 xargs docker inspect --format='{{ .State.ExitCode }}')
+.PHONY: pip-package
+pip-package:
+	python setup.py sdist
 
-# This starts the test container with the yml file given at $(1), waits for the
-# test container to exit, then gets the container exit code and exits make if
-# the exit code is non-zero.
-START_TEST_CONTAINER =                                                 \
-	docker-compose -f $(1) up --build test-container-x64 ;             \
-	if [ "$(value TEST_CONTAINER_EXIT_CODE)" != "0" ] ;                \
-		then exit $(value TEST_CONTAINER_EXIT_CODE) ;                  \
-	fi
+.PHONY: pip-install
+pip-install:
+	pip install --no-deps -I -e .
 
+.PHONY: pip-uninstall
+pip-uninstall:
+	pip uninstall -y ${PKG_NAME}
 
-# convenience method for running general tests. these tests do not
-# require any sense of "trust"
-define run_test
-	make delete-containers
-	$(call START_TEST_CONTAINER,synse/tests/_composefiles/x64/$(1).yml)
-	docker-compose -f synse/tests/_composefiles/x64/$(1).yml kill
-endef
+.PHONY: pip-clean
+pip-clean:
+	rm -rf dist ${PKG_NAME}.egg-info
 
 
-# -----------------------------------------------
-#  x64
-# -----------------------------------------------
+# Helper Targets
 
-test-%:
-	$(call run_test,$@)
+# list all the docker image tags for the current build
+.PHONY: tags
+tags:
+	@echo "${DEFAULT_TAGS} ${SLIM_TAGS}"
 
-# SUITES
-# ....................
+# pycache-clean is used to clean out .pyc and .pyo files and the __pycache__
+# directories from the ./tests directory. This isn't always necessary, but
+# the cache will be incorrect if run via container and then locally or vice
+# versa. To be safe, we can just clean up with this.
+.PHONY: pycache-clean
+pycache-clean:
+	@find ./tests | grep -E "(__pycache__|\.pyc|\.pyo$$)" | xargs rm -rf
 
-plc-tests: \
-	test-plc-endpoints \
-	test-plc-scanall \
-	test-plc-endurance \
-	test-plc-emulator \
-	test-plc-bad-scan \
-	test-plc-devicebus
+# build the docker images of synse server without the emulator
+.PHONY: docker-slim
+docker-slim:
+	cp .dockerignore.slim .dockerignore
+	tags="" ; \
+	for tag in $(SLIM_TAGS); do tags="$${tags} -t $${tag}"; done ; \
+	docker build -f dockerfile/release.dockerfile $${tags} .
+	rm .dockerignore
 
-ipmi-tests: \
-	test-ipmi-endpoints \
-	test-ipmi-emulator-throughput \
-	test-ipmi-no-init-scan \
-	test-ipmi-device-registration \
-	test-ipmi-scan-cache-registration \
-	test-ipmi-emulator
-
-rs485-tests: \
-	test-rs485-endpoints \
-	test-rs485-emulator
-
-i2c-tests: \
-	test-i2c-endpoints \
-	test-i2c-devices
-
-snmp-tests: \
-	test-snmp-emulator \
-	test-snmp-device-registration \
-	test-snmp-device-kills \
-	test-snmp-device-kills-force-scan
-
-redfish-tests: \
-	test-redfish-endpoints \
-	test-redfish-endurance \
-	test-redfish-emulator
-
-general-tests: \
-	test-utils \
-	test-location \
-	test-device-supported-commands \
-	test-endpoint-utils
+# build the docker images of synse server with the emulator
+.PHONY: docker-default
+docker-default:
+	cp .dockerignore.default .dockerignore
+	tags="" ; \
+	for tag in $(DEFAULT_TAGS); do tags="$${tags} -t $${tag}"; done ; \
+	docker build -f dockerfile/release.dockerfile $${tags} .
+	rm .dockerignore
 
 
-test: \
-	plc-tests \
-	ipmi-tests \
-	rs485-tests \
-	i2c-tests \
-	snmp-tests \
-	redfish-tests \
-	general-tests
+# Targets
 
-dev: run
-	-docker exec -it synse-server /bin/bash
+.PHONY: cover
+cover: test-unit ## Run unit tests and open the HTML coverage report
+	open ./results/cov-html/index.html
 
-dev-ipmi dev-plc dev-i2c dev-redfish dev-rs485 dev-snmp:
-	docker-compose -f compose/$@.yml up -d && docker exec -it synse-server-dev /bin/bash
+.PHONY: docker
+docker: docker-default docker-slim ## Build the docker image for Synse Server locally
 
+.PHONY: api-doc
+api-doc: ## Open the API doc HTML reference
+	open ./docs/index.html
 
+.PHONY: build-docs
+build-docs: ## Generate the API docs for Synse Server
+	docker build -f docs/build/Dockerfile -t vaporio/slate-docs docs/build
+	docker run --name slate-docs -v `pwd`/docs/build/src:/source vaporio/slate-docs
+	docker cp slate-docs:/slate/build/. docs
+	docker rm slate-docs
+
+.PHONY: lint
+lint: ## Lint the Synse Server source code
+ifdef HAS_PY36
+	tox -e lint
+else
+	@echo "\033[33mpython3.6 not found locally - running linting in container\033[0m"
+	docker-compose -f compose/test.yml -f compose/lint.yml up \
+	    --build \
+	    --abort-on-container-exit \
+	    --exit-code-from synse-test
+endif
+
+.PHONY: run
+run: docker ## Build and run Synse Server locally (localhost:5000) with emulator
+	docker run -d -p 5000:5000 --name synse -e SYNSE_LOGGING=debug ${IMG_NAME} enable-emulator
+
+.PHONY: test
+test: pycache-clean test-unit test-integration test-end-to-end ## Run all tests
+
+.PHONY: test-unit
+test-unit: pycache-clean ## Run unit tests
+ifdef HAS_PY36
+	tox tests/unit
+else
+	@echo "\033[33mpython3.6 not found locally - running tests in container\033[0m"
+	docker-compose -f compose/test.yml -f compose/test_unit.yml up \
+	    --build \
+	    --abort-on-container-exit \
+	    --exit-code-from synse-test
+endif
+
+.PHONY: test-integration
+test-integration: pycache-clean ## Run integration tests
+ifdef HAS_PY36
+	tox tests/integration
+else
+	@echo "\033[33mpython3.6 not found locally - running tests in container\033[0m"
+	docker-compose -f compose/test.yml -f compose/test_integration.yml up \
+	    --build \
+	    --abort-on-container-exit \
+	    --exit-code-from synse-test
+endif
+
+.PHONY: test-end-to-end
+test-end-to-end: pycache-clean ## Run end to end tests
+ifdef HAS_PY36
+	docker-compose -f compose/synse.yml up -d --build
+	tox tests/end_to_end
+	docker-compose -f compose/synse.yml down
+else
+	docker-compose -f compose/test.yml -f compose/synse.yml -f compose/test_end_to_end.yml up \
+	    --build \
+	    --abort-on-container-exit \
+	    --exit-code-from synse-test
+	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
+endif
+
+.PHONY: version
+version: ## Print the version of Synse Server
+	@echo "$(PKG_VER)"
 
 .PHONY: help
-help:  ## Print usage information
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
-
+help:  ## Print Make usage information
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
 .DEFAULT_GOAL := help

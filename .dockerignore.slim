@@ -1,0 +1,61 @@
+#
+# .dockerignore.slim
+#
+# The dockerignore file used for slim Synse Server image builds.
+# The slim build of Synse Server does not include the emulator.
+# For a version of Synse Server with the emulator, use the standard
+# build.
+#
+
+# Emulator
+emulator/
+
+# JetBrains (PyCharm, WebStorm, etc.)
+.idea
+*.iws
+.idea_modules
+
+# Linux
+*~
+.directory
+.Trash-*
+**/packages
+
+# OSX
+.DS_Store
+._*
+.TemporaryItems
+.Trashes
+
+# Vagrant
+.vagrant
+
+# Git
+.git
+.gitignore
+
+# Python
+*.py[cod]
+**/__pycache__
+**/.tox
+.pep8
+
+# Logs
+logs/
+*.log
+
+# Docker
+Dockerfile.*
+**/*.dockerfile
+
+# Docs
+docs/
+**/*.md
+**/*.rst
+
+# Images
+**/*.png
+
+# Test Artifacts
+prof/
+results/

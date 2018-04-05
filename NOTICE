@@ -1,7 +1,7 @@
 NOTICE
 
-Synse v1
-Copyright (c) 2015-2017 Vapor IO, Inc. and Synse contributors.
+Synse v2.0
+Copyright (c) 2015-2018 Vapor IO, Inc. and Synse contributors.
 
 The following is courtesy of our legal counsel:
 
@@ -51,10 +51,6 @@ developed at the uWSGI Project and licensed under the GNU General
 Public License, Version 2, Linking Exception.  Copyright (c) 2012-2016
 uWSGI.
 
-This product contains software (https://github.com/swig/swig) developed
-by the Swig Developers under the GNU General Public License, Version 3.
-Copyright (c) 1995-2011 The SWIG Developers.
-
 This product contains software (http://flask.pocoo.org) developed at
 the Flask Project and licensed under the BSD License.  Copyright (c)
 2010-2017 by Armin Ronacher and various contributors.  Some rights
@@ -100,6 +96,15 @@ This product contains software (https://github.com/DMTF/Redfish-Profile-Simulato
 licensed under the BSD 3-clause license. Copyright (c) 2016 Distributed Management
 Task Force, Inc. All rights reserved.
 
+This product contains software (https://github.com/graphql-python/flask-graphql)
+licensed under the MIT license. Copyright (c) 2015 Syrus Akbary.
+
+This product contains software (https://github.com/graphql-python/graphene)
+licensed under the MIT license. Copyright (c) 2015-present Syrus Akbary.
+
+This product contains software (https://github.com/jpvanhal/inflection)
+licensed under the MIT license. Copyright (c) 2012-2015 Janne Vanhala.
+
 This product contains software (https://github.com/bw2/ConfigArgParse)
 licensed under the MIT license. Copyright (c) 2015 bw2.
 
@@ -129,27 +134,6 @@ under the MIT license. Copyright (c) 2012-2014 Daniel Holth and contributors.
 
 This product contains software (https://github.com/tox-dev/tox) licensed
 under the MIT license. Copyright (c) 2015, Holger Krekel and others.
-
-This product contains software (https://github.com/crsmithdev/arrow/) licensed
-under the Apache License, Version 2. Copyright (c) 2013 Chris Smith.
-
-This product contains software (https://curl.haxx.se/) licensed under the
-MIT license. Copyright (c) 1996-2017 Daniel Stenberg and others.
-
-This product contains software (https://www.intra2net.com/en/developer/libftdi/)
-licensed under the LGPL 2.1 license. Copyright (c) 2017 Intra2net AG
-
-This product contains software (https://github.com/docker/docker-py) licensed
-under the Apache v2.0 license. Copyright (c) 2016 Docker, Inc.
-
-This product contains software (https://github.com/timothycrosley/isort)
-licensed under the MIT license. Copyright (c) 2013 Timothy Edmund Crosley.
-
-This product contains software (https://github.com/PyCQA/pylint) licensed under
-the GNU General Public License v2. Copyright (c) 2017 PyCQA and pylint contributors.
-
-This product contains software (https://github.com/edaniszewski/pylint-quotes)
-licensed under the MIT license. Copyright (c) 2017 Erick Daniszewski.
 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

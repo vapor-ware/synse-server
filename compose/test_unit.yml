@@ -1,0 +1,19 @@
+#
+# compose/test_unit.yml
+#
+# Compose file for running Synse Server unit tests. This is
+# used by the Makefile (`make test-unit`) to run unit tests
+# for Synse Server if Python 3.6 is not found to be installed
+# locally.
+#
+# Running tests locally is much faster than running them via
+# docker compose, so that should be the preferred method.
+#
+# This compose file should be called as an override to the
+# `compose/test.yml` file, e.g.
+#    docker-compose -f test.yml -f test_unit.yml up
+#
+version: "3"
+services:
+  synse-test:
+    command: tests/unit

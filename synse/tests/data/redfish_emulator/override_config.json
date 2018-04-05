@@ -1,9 +1,0 @@
-{
-  "devices": {
-    "redfish": {
-      "scan_on_init": true,
-      "device_initializer_threads": 1,
-      "from_config": "/synse/synse/tests/data/redfish_emulator/redfish_config.json"
-    }
-  }
-}
