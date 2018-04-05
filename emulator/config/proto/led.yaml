@@ -9,5 +9,3 @@ prototypes:
         data_type: string
       - type: color
         data_type: string
-      - type: blink
-        data_type: string

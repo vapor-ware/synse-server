@@ -107,3 +107,13 @@ async def test_synse_boot_target_write_valid_2(mock_validate_device_type, mock_w
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"data":{"action":"target","raw":"hdd"}}'
     assert result.status == 200
+
+
+@pytest.mark.asyncio
+async def test_synse_boot_target_route_bad_param(mock_validate_device_type, mock_write, no_pretty_json):
+    """Test setting boot target, passing an unsupported query param."""
+
+    r = utils.make_request('/synse/boot_target?unsupported=true')
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await boot_target_route(r, 'rack-1', 'vec', '123456')
