@@ -84,6 +84,7 @@ api-doc: ## Open the API doc HTML reference
 .PHONY: docs
 docs: ## Generate the Synse Server documentation locally
 	docker build -f docs/Dockerfile -t vaporio/slate-docs docs
+	@if [ -d "docs/api/build" ]; then rm -rf docs/api/build; fi;
 	docker run --name slate-docs -v `pwd`/docs/api:/source vaporio/slate-docs
 	docker cp slate-docs:/slate/build/. docs/api/build
 	docker rm slate-docs
