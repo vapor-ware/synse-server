@@ -24,7 +24,7 @@ that lets you perform aggregations/operations over multiple devices easily.
 If you're looking for an integration, check out [synse-prometheus][prometheus]. You'll be
 able to put together complete monitoring and dashboard solution from the instructions there.
 
-Additional documentation may be found on the [Docs][docs] site.
+For more information, see the [API Documentation][api-docs] or the [User Guide][user-guide].
 
 ### Architecture
 
@@ -386,8 +386,8 @@ to happen when switching between the two modes of testing.
 ## License
 Synse is released under GPLv2 - see [LICENSE](LICENSE) for more information.
 
-
-[docs]: http://opendcre.com
+[api-docs]: https://vapor-ware.github.io/synse-server/
+[user-guide]: http://synse-server.readthedocs.io/en/latest/
 [cli]: https://github.com/vapor-ware/synse-cli
 [prometheus]: https://github.com/vapor-ware/synse-prometheus
 [graphql]: https://github.com/vapor-ware/synse-graphql
