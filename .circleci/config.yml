@@ -13,13 +13,16 @@ jobs:
           command: |
             sudo chown -R circleci:circleci /usr/local/bin
             sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
-            pip install tox>=2.9.0
+            pip install tox>=2.9.0 codecov>=1.4.0
       - restore_cache:
           keys:
             - v1.5-tox-test-cache-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
       - run:
           name: Unit Tests
           command: make test-unit
+      - run:
+          name: Unit Test Coverage
+          command: codecov
       - run:
           name: Integration Tests
           command: make test-integration
