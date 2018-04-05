@@ -1,6 +1,7 @@
 <p align="center"><img src="assets/logo.png" width="360"></p>
 <p align="center">
     <a href="https://circleci.com/gh/vapor-ware/synse-server"><img src="https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield"></a>
+    <a href="https://codecov.io/gh/vapor-ware/synse-server"><img src="https://codecov.io/gh/vapor-ware/synse-server/branch/master/graph/badge.svg" /></a>
         
 <h1 align="center">Synse Server</h1>
 </p>
