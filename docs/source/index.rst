@@ -78,6 +78,7 @@ be able to make the most out of Synse Server however you decide to use it.
    user/getting
    user/quickstart
    user/configuration
+   user/advanced
    user/deployment
    user/api
 
