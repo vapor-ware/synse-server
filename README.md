@@ -107,8 +107,8 @@ See the [API Documentation][synse-api] to learn what else Synse Server is capabl
 ## Feedback
 Feedback for Synse Server or any component of the Synse ecosystem is greatly appreciated!
 If you experience any issues, find the documentation unclear, have requests for features,
-or just have questions about it, we'd love to know. Feel free to open an issue describing
-what did, want to do, or wonder.
+or just have questions about it, we'd love to know. Feel free to open an issue for any
+feedback you may have.
 
 ## Contributing
 We welcome contributions to the project. The project maintainers actively manage the issues
