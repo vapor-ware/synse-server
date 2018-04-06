@@ -10,7 +10,7 @@ with Synse Server and plugins.
 Deploying with Docker Compose
 -----------------------------
 For a complete set of examples for deploying with ``docker compose``, see the
-`emulator example deployment <https://github.com/vapor-ware/synse-emulator-plugin/tree/master/deploy/docker>`_.
+emulator example deployments in the ``deploy`` directory of the Synse Server source.
 This section goes into detail on how to deploy Synse Server with an externally
 running emulator plugin configured for TCP communication.
 
@@ -89,7 +89,8 @@ For our plugin config, we have the following ``config.yml``,
 
 Instance configurations can be much larger, as there may be many devices. For simplicity
 here, we will define a handful of temperature device instances in a file named ``devices.yml``.
-For a more complete example, see the `emulator example deployment <https://github.com/vapor-ware/synse-emulator-plugin/tree/master/deploy/docker>`_.
+For a more complete example, see the emulator example deployments in the ``deploy`` directory
+of the Synse Server source repo.
 
 .. code-block:: yaml
 

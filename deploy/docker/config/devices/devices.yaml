@@ -1,0 +1,71 @@
+version: 1.0
+locations:
+  r1vec:
+    rack: rack-1
+    board: vec
+devices:
+  # -- temperature devices --
+  - type: temperature
+    model: emul8-temp
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Temperature Sensor 1
+      - id: "2"
+        location: r1vec
+        info: Synse Temperature Sensor 2
+      - id: "3"
+        location: r1vec
+        info: Synse Temperature Sensor 3
+      - id: "4"
+        location: r1vec
+        info: Synse Temperature Sensor 4
+      - id: "5"
+        location: r1vec
+        info: Synse Temperature Sensor 5
+
+  # -- pressure devices --
+  - type: pressure
+    model: emul8-pressure
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Pressure Sensor 1
+      - id: "2"
+        location: r1vec
+        info: Synse Pressure Sensor 2
+
+  # -- led devices --
+  - type: led
+    model: emul8-led
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse LED
+      - id: "2"
+        location: r1vec
+        info: Synse backup LED
+
+  # -- humidity devices --
+  - type: humidity
+    model: emul8-humidity
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Humidity Sensor
+
+  # -- fan devices --
+  - type: fan
+    model: emul8-fan
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Fan
+
+  # -- airflow devices --
+  - type: airflow
+    model: emul8-air
+    instances:
+      - id: "1"
+        location: r1vec
+        info: Synse Airflow Sensor
