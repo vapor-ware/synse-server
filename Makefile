@@ -146,6 +146,10 @@ else
 	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
 endif
 
+.PHONY: translations
+translations:  ## (Re)generate the translations.
+	tox -e translations
+
 .PHONY: version
 version: ## Print the version of Synse Server
 	@echo "$(PKG_VER)"
