@@ -78,8 +78,11 @@ function -v {
 #   start the background process emulator using the emulator
 #   configurations found in /synse/synse/emulator/config
 function enable-emulator {
-    if [ -d emulator ]; then
-        (cd emulator ; PLUGIN_DEVICE_CONFIG=config ./emulator 1>&2 &)
+    if [ "$(which emulator)" ]; then
+        # the emulator binary is downloaded and installed into /usr/local/bin
+        # in the dockerfile. the configs for it are set via ENV variable in
+        # the dockerfile as well.
+        emulator 1>&2 &
     else
         echo "This Synse Server image does not contain the emulator."
         echo "Try using a non 'slim' Synse Server image for emulator"
