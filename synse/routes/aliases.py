@@ -6,6 +6,7 @@ from sanic import Blueprint
 
 from synse import commands, const, errors, validate
 from synse.i18n import gettext
+from synse.log import logger
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
@@ -102,33 +103,62 @@ async def fan_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    logger.info('fan_route. request: {}, request.raw_args: {}'.format(request, request.raw_args))
+
     await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
 
     qparams = validate.validate_query_params(
         request.raw_args,
-        'speed'
+        'speed',  # speed in rpm
+        'speed_percent'  # speed of 0 (off) or 10% to 100%
     )
 
-    param_speed = qparams.get('speed')
+    param_speed_rpm = qparams.get('speed')
+    param_speed_percent = qparams.get('speed_percent')
 
-    # if a request parameter is specified, this will translate to a
-    # write request.
-    if param_speed is not None:
-        # FIXME - is the below true? could we check against the device prototype's
-        #   "range.min" and "range.max" fields for this?
-        # no validation is done on the fan speed. valid fan speeds vary based on
-        # fan make/model, so it is up to the underlying implementation to do the
-        # validation.
-        data = {
-            'action': 'speed',
-            'raw': param_speed
-        }
-        transaction = await commands.write(rack, board, device, data)
-        return transaction.to_json()
+    # Only one of 'speed' and 'speed_percent' can be specified at a time.
+    # Make sure that is the case.
+    # TODO: this could be generalized and incorporated into the validation
+    # call above, e.g. validate_query_params(request.raw_args, OneOf(['speed', 'speed_percent']))
+    if param_speed_rpm is not None and param_speed_percent is not None:
+        raise errors.InvalidArgumentsError(
+            gettext('Invalid query params: Can only specify one of "speed" and '
+                    '"speed_percent, but both were given.')
+        )
 
-    # if no request parameter is specified, this will translate to a
-    # read request.
+    # If any of the parameters are specified, then this will be
+    # a write request for those parameters that are specified.
+    if any((param_speed_rpm, param_speed_percent)):
+        logger.debug('Fan Route: writing (query params detected: {})'.format(qparams))
+
+        # Set the fan speed by RPM. No validation is done on fan speed
+        # here, as it is up to the underlying implementation to validate
+        # and fail as needed. The max and min speeds vary by fan motor.
+        if param_speed_rpm:
+            logger.debug('Setting fan speed by RPM: {}'.format(param_speed_rpm))
+            data = {
+                'action': 'speed',
+                'raw': param_speed_rpm,
+            }
+            transaction = await commands.write(rack, board, device, data)
+            return transaction.to_json()
+
+        # Set the fan speed by percent (duty cycle). No validation is done
+        # on fan speed here, as it is up to the underlying implementation
+        # to validate and fail as needed. The max and min speeds vary by
+        # fan motor.
+        if param_speed_percent:
+            logger.debug('Setting fan speed by percent: {}'.format(param_speed_percent))
+            data = {
+                'action': 'speed_percent',
+                'raw': param_speed_percent,
+            }
+            transaction = await commands.write(rack, board, device, data)
+            return transaction.to_json()
+
+    # Otherwise, we just read from the device
     else:
+        logger.debug('Fan Route: reading (no query params detected)')
         reading = await commands.read(rack, board, device)
         return reading.to_json()
 
