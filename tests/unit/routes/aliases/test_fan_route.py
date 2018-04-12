@@ -85,7 +85,7 @@ async def test_synse_fan_write_invalid(mock_validate_device_type, mock_write, no
 
 @pytest.mark.asyncio
 async def test_synse_fan_write_valid(mock_validate_device_type, mock_write, no_pretty_json):
-    """Test writing fan speed with a valid target specified."""
+    """Test writing fan speed (rpm) with a valid target specified."""
 
     r = utils.make_request('/synse/fan?speed=500')
 
@@ -101,6 +101,30 @@ async def test_synse_fan_route_bad_param(mock_validate_device_type, mock_write, 
     """Test setting fan, passing an unsupported query param."""
 
     r = utils.make_request('/synse/fan?unsupported=true')
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await fan_route(r, 'rack-1', 'vec', '123456')
+
+
+@pytest.mark.asyncio
+async def test_synse_fan_route_by_percent(mock_validate_device_type, mock_write, no_pretty_json):
+    """Test writing fan speed (percent) with a valid target specified."""
+
+    r = utils.make_request('/synse/fan?speed_percent=50')
+
+    result = await fan_route(r, 'rack-1', 'vec', '123456')
+
+    assert isinstance(result, HTTPResponse)
+    assert result.body == b'{"data":{"action":"speed_percent","raw":"50"}}'
+    assert result.status == 200
+
+
+@pytest.mark.asyncio
+async def test_synse_fan_route_bad_params(mock_validate_device_type, mock_write, no_pretty_json):
+    """Test setting fan, passing both 'speed' and 'speed_percent' params,
+    which is not supported."""
+
+    r = utils.make_request('/synse/fan?speed=100&speed_percent=50')
 
     with pytest.raises(errors.InvalidArgumentsError):
         await fan_route(r, 'rack-1', 'vec', '123456')
