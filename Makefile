@@ -82,12 +82,20 @@ api-doc: ## Open the API doc HTML reference
 	open ./docs/api/build/index.html
 
 .PHONY: docs
-docs: ## Generate the Synse Server documentation locally
+docs: clean-docs ## Generate the Synse Server User and API documentation locally
+	# User Guide Documentation (see docs/build/html/index.html for output)
+	(cd docs; make html)
+	# API Documentation (see docs/index.html for output)
 	docker build -f docs/Dockerfile -t vaporio/slate-docs docs
 	@if [ -d "docs/api/build" ]; then rm -rf docs/api/build; fi;
 	docker run --name slate-docs -v `pwd`/docs/api:/source vaporio/slate-docs
 	docker cp slate-docs:/slate/build/. docs/api/build
 	docker rm slate-docs
+	mv docs/api/build/** docs/
+
+.PHONY: clean-docs
+clean-docs:  ## Clean all documentation build artifacts
+	bin/clean_docs.sh
 
 .PHONY: lint
 lint: ## Lint the Synse Server source code
