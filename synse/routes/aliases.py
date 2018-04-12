@@ -113,9 +113,16 @@ async def fan_route(request, rack, board, device):
         'speed_percent' # speed of 0 (off) or 10% to 100%
     )
 
-    # This sucks. Get the first key in request.raw_args. Example: request.raw_args: {'speed': '0'}
+    # If there are no query parameters, this is a read request.
+    if len(request.raw_args) == 0:
+        logger.info('fan_route. Read request')
+        reading = await commands.read(rack, board, device)
+        return reading.to_json()
+
+    # Get the first key in request.raw_args. Example: request.raw_args: {'speed': '0'}
     if len(request.raw_args) == 1:
 
+        # Set fan speed by rpm.
         if list(request.raw_args)[0] == 'speed':
             param_speed = qparams.get('speed')
             logger.info(
@@ -125,13 +132,9 @@ async def fan_route(request, rack, board, device):
             # if a request parameter is specified, this will translate to a
             # write request.
             if param_speed is not None:
-                # FIXME - is the below true? could we check against the device prototype's
-                #   "range.min" and "range.max" fields for this?
-                # no validation is done on the fan speed. valid fan speeds vary based on
-                # fan make/model, so it is up to the underlying implementation to do the
-                # validation.
-                # ^ mhink - Yes it absolutely is and the underlying code should fail as needed.
-                # Also max and min speeds vary by the fan motor, not the controller. (the device)
+                # Fan speed in rpm verification is done in fan controller code.
+                # It varies by the motor attached to the controller, so no need
+                # to try to verify here in this context.
                 data = {
                     'action': 'speed',
                     'raw': param_speed,
@@ -139,42 +142,32 @@ async def fan_route(request, rack, board, device):
                 transaction = await commands.write(rack, board, device, data)
                 return transaction.to_json()
 
-        # If a request parameter is specified, this will translate to a
-        # write request.
+        # Set fan speed by percent (0 or 10 to 100 normally)
         elif list(request.raw_args)[0] == 'speed_percent':
             param_speed_percent = qparams.get('speed_percent')
             logger.info(
                 'fan_route. set speed: request {}, raw_args {}'.format(
                     request, request.raw_args))
 
-            # elif param_speed_percent is not None:
-            # FIXME - is the below true? could we check against the device prototype's
-            #   "range.min" and "range.max" fields for this?
-            # no validation is done on the fan speed. valid fan speeds vary based on
-            # fan make/model, so it is up to the underlying implementation to do the
-            # validation.
-            # ^ mhink - Yes it absolutely is and the underlying code should fail as needed.
-            # Also max and min speeds vary by the fan motor, not the controller. (the device)
+            # Percentage verification is done on a lower level below here, so
+            # just pass the parameters on.
             data = {
                 'action': 'speed_percent',
                 'raw': param_speed_percent,
             }
             transaction = await commands.write(rack, board, device, data)
             return transaction.to_json()
-        # If no request parameter is specified, this will translate to a
-        # read request.
-        else:
-            # TODO: This is dodgy.
-            logger.info('fan_route. defaulting to read request')
-            reading = await commands.read(rack, board, device)
-            return reading.to_json()
 
-    # If no request parameter is specified, this will translate to a
-    # read request. Why this makes sense I can't say. This is side effect code.
+        else:
+            raise errors.InvalidArgumentsError(
+                gettext('Invalid query param: {} (valid params: {})').format(
+                    list(request.raw_args)[0], qparams))
+
+    # This has to be an error.
     else:
-        logger.info('fan_route. defaulting to read request')
-        reading = await commands.read(rack, board, device)
-        return reading.to_json()
+        raise errors.InvalidArgumentsError(
+            gettext('Invalid query param: {} (valid params: {})').format(
+                list(request.raw_args), qparams))
 
 
 @bp.route('/power/<rack>/<board>/<device>')
