@@ -21,11 +21,6 @@ if os.path.exists('README.md'):
     with open('README.md', 'r') as f:
         readme = f.read()
 
-# Load the requirements
-with open('requirements.txt', 'r') as f:
-    requirements = f.read().split('\n')
-
-
 setup(
     name=pkg['__title__'],
     version=pkg['__version__'],
@@ -38,7 +33,14 @@ setup(
     include_package_data=True,
     package_data={'': ['LICENSE']},
     python_requires='==3.6',
-    install_requires=requirements,
+    install_requires=[
+        'aiocache',
+        'grpcio',
+        'pyyaml',
+        'sanic',
+        'synse-plugin',
+        'bison>=0.0.5'
+    ],
     zip_safe=False,
     classifiers=[
         'Natural Language :: English',
