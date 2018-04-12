@@ -22,6 +22,10 @@ async def write(rack, board, device, data):
     Returns:
         WriteResponse: The "write" response scheme model.
     """
+    # Log what we are writing at info, the default logging level, so that we
+    # can tell what we are doing.
+    logger.info('write. rack: {}, board: {}, device: {}, data: {}'.format(
+        rack, board, device, data))
 
     # lookup the known info for the specified device
     plugin_name, _ = await cache.get_device_meta(rack, board, device)
@@ -51,6 +55,10 @@ async def write(rack, board, device, data):
             )
         raw = [str.encode(raw)]
 
+    # Log what we are writing at info, the default logging level, so that we
+    # can tell what we are doing.
+    logger.info('write. action: {}, raw: {}'.format(
+        action, raw))
     wd = WriteData(action=action, raw=raw)
 
     # perform a gRPC write on the device's managing plugin
