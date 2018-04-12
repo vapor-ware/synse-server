@@ -6,6 +6,7 @@ from sanic import Blueprint
 
 from synse import commands, const, errors, validate
 from synse.i18n import gettext
+from synse.log import logger
 from synse.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
@@ -102,33 +103,76 @@ async def fan_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
+    logger.info('fan_route. request: {}, request.raw_args: {}'.format(request, request.raw_args))
+
     await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
 
     qparams = validate.validate_query_params(
         request.raw_args,
-        'speed'
+        'speed', # speed in rpm
+        'speed_percent' # speed of 0 (off) or 10% to 100%
     )
 
-    param_speed = qparams.get('speed')
+    # This sucks. Get the first key in request.raw_args. Example: request.raw_args: {'speed': '0'}
+    if len(request.raw_args) == 1:
 
-    # if a request parameter is specified, this will translate to a
-    # write request.
-    if param_speed is not None:
-        # FIXME - is the below true? could we check against the device prototype's
-        #   "range.min" and "range.max" fields for this?
-        # no validation is done on the fan speed. valid fan speeds vary based on
-        # fan make/model, so it is up to the underlying implementation to do the
-        # validation.
-        data = {
-            'action': 'speed',
-            'raw': param_speed
-        }
-        transaction = await commands.write(rack, board, device, data)
-        return transaction.to_json()
+        if list(request.raw_args)[0] == 'speed':
+            param_speed = qparams.get('speed')
+            logger.info(
+                'fan_route. set speed: request {}, raw_args {}'.format(
+                    request, request.raw_args))
 
-    # if no request parameter is specified, this will translate to a
-    # read request.
+            # if a request parameter is specified, this will translate to a
+            # write request.
+            if param_speed is not None:
+                # FIXME - is the below true? could we check against the device prototype's
+                #   "range.min" and "range.max" fields for this?
+                # no validation is done on the fan speed. valid fan speeds vary based on
+                # fan make/model, so it is up to the underlying implementation to do the
+                # validation.
+                # ^ mhink - Yes it absolutely is and the underlying code should fail as needed.
+                # Also max and min speeds vary by the fan motor, not the controller. (the device)
+                data = {
+                    'action': 'speed',
+                    'raw': param_speed,
+                }
+                transaction = await commands.write(rack, board, device, data)
+                return transaction.to_json()
+
+        # If a request parameter is specified, this will translate to a
+        # write request.
+        elif list(request.raw_args)[0] == 'speed_percent':
+            param_speed_percent = qparams.get('speed_percent')
+            logger.info(
+                'fan_route. set speed: request {}, raw_args {}'.format(
+                    request, request.raw_args))
+
+            # elif param_speed_percent is not None:
+            # FIXME - is the below true? could we check against the device prototype's
+            #   "range.min" and "range.max" fields for this?
+            # no validation is done on the fan speed. valid fan speeds vary based on
+            # fan make/model, so it is up to the underlying implementation to do the
+            # validation.
+            # ^ mhink - Yes it absolutely is and the underlying code should fail as needed.
+            # Also max and min speeds vary by the fan motor, not the controller. (the device)
+            data = {
+                'action': 'speed_percent',
+                'raw': param_speed_percent,
+            }
+            transaction = await commands.write(rack, board, device, data)
+            return transaction.to_json()
+        # If no request parameter is specified, this will translate to a
+        # read request.
+        else:
+            # TODO: This is dodgy.
+            logger.info('fan_route. defaulting to read request')
+            reading = await commands.read(rack, board, device)
+            return reading.to_json()
+
+    # If no request parameter is specified, this will translate to a
+    # read request. Why this makes sense I can't say. This is side effect code.
     else:
+        logger.info('fan_route. defaulting to read request')
         reading = await commands.read(rack, board, device)
         return reading.to_json()
 
