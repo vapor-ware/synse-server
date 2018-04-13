@@ -54,6 +54,7 @@ async def scan_route(request, rack=None, board=None):
 
 
 @bp.route('/read/<rack>/<board>/<device>')
+@validate.no_query_params()
 async def read_route(request, rack, board, device):
     """Read data from a known device.
 
@@ -71,6 +72,7 @@ async def read_route(request, rack, board, device):
 
 
 @bp.route('/write/<rack>/<board>/<device>', methods=['POST'])
+@validate.no_query_params()
 async def write_route(request, rack, board, device):
     """Write data to a known device.
 
@@ -106,6 +108,7 @@ async def write_route(request, rack, board, device):
 
 @bp.route('/transaction')
 @bp.route('/transaction/<transaction_id>')
+@validate.no_query_params()
 async def transaction_route(request, transaction_id=None):
     """Check the status of a write transaction.
 
@@ -123,6 +126,7 @@ async def transaction_route(request, transaction_id=None):
 @bp.route('/info/<rack>')
 @bp.route('/info/<rack>/<board>')
 @bp.route('/info/<rack>/<board>/<device>')
+@validate.no_query_params()
 async def info_route(request, rack, board=None, device=None):
     """Get any known information on the specified resource.
 
@@ -140,6 +144,7 @@ async def info_route(request, rack, board=None, device=None):
 
 
 @bp.route('/config')
+@validate.no_query_params()
 async def config_route(request):
     """Get the current Synse Server configuration.
 
@@ -154,6 +159,7 @@ async def config_route(request):
 
 
 @bp.route('/plugins')
+@validate.no_query_params()
 async def plugins_route(request):
     """Get the plugins that are currently configured with Synse Server.
 
@@ -172,6 +178,7 @@ async def plugins_route(request):
 # should be removed. this will only stay in for a short period of time, so use at
 # your own risk!
 @bp.route('/fan_sensors')
+@validate.no_query_params()
 async def fan_sensors(request):
     """Get fan sensor data for autofan.
 

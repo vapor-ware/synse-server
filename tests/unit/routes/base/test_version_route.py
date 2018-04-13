@@ -7,13 +7,14 @@ from sanic.response import HTTPResponse
 
 from synse import version
 from synse.routes.base import version_route
+from tests import utils
 
 
 @pytest.mark.asyncio
 async def test_synse_version_route():
     """Test successfully hitting the version route."""
 
-    result = await version_route(None)
+    result = await version_route(utils.make_request('/synse/version'))
 
     assert isinstance(result, HTTPResponse)
     assert result.status == 200

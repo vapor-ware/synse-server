@@ -1,6 +1,8 @@
 """Synse Server utility and convenience methods.
 """
 
+from functools import wraps
+
 from synse import cache, errors
 from synse.i18n import gettext
 
@@ -51,3 +53,26 @@ def validate_query_params(raw_args, *valid_params):
             )
         params[k] = v
     return params
+
+
+def no_query_params():
+    """Decorator to validate that the incoming request has no query parameters.
+
+    This check is largely to ensure that the API is being used correctly
+    and params aren't accidentally being passed where they don't belong.
+
+    Raises:
+        errors.InvalidArgumentsError: Query parameters were found with
+            the request.
+    """
+    def decorator(f):  # pylint: disable=missing-docstring
+        @wraps(f)
+        async def inner(request, *args, **kwargs):  # pylint: disable=missing-docstring
+            if len(request.raw_args) != 0:
+                raise errors.InvalidArgumentsError(
+                    gettext('Endpoint does not support query parameters but got: {}').format(
+                        request.raw_args)
+                )
+            return await f(request, *args, **kwargs)
+        return inner
+    return decorator
