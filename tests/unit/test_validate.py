@@ -60,16 +60,17 @@ def patch_metainfo(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_validate_device_type(patch_metainfo, clear_caches):
-    """Test successfully validating a device."""
-    cases = [
+@pytest.mark.parametrize(
+    'device_type', [
         'thermistor',
         'Thermistor',
-        'THERMISTOR'
+        'THERMISTOR',
+        'ThErMiStOr',
     ]
-
-    for case in cases:
-        await validate.validate_device_type(case, 'rack-1', 'vec', '12345')
+)
+async def test_validate_device_type(patch_metainfo, clear_caches, device_type):
+    """Test successfully validating a device."""
+    await validate.validate_device_type(device_type, 'rack-1', 'vec', '12345')
 
 
 @pytest.mark.asyncio
@@ -86,25 +87,27 @@ async def test_validate_device_type_no_match(patch_metainfo, clear_caches):
         await validate.validate_device_type('led', 'rack-1', 'vec', '12345')
 
 
-def test_validate_query_params():
-    """Test validating query parameters are valid when no params are given."""
-    res = validate.validate_query_params({}, 'test')
-    assert res == {}
+@pytest.mark.parametrize(
+    'params,valid,expected', [
+        ({}, ['test'], {}),
+        ({'test': 'value'}, ['test'], {'test': 'value'}),
+        ({'test': 'value'}, ['test', 'other'], {'test': 'value'}),
+        ({'test': 'value', 'other': 1}, ['test', 'other'], {'test': 'value', 'other': 1}),
+    ]
+)
+def test_validate_query_params(params, valid, expected):
+    """Test validating query parameters successfully."""
+    assert validate.validate_query_params(params, *valid) == expected
 
 
-def test_validate_query_params2():
-    """Test validating query parameters are valid when a valid param is given."""
-    res = validate.validate_query_params({'test': 'value'}, 'test')
-    assert res == {'test': 'value'}
-
-
-def test_validate_query_params3():
-    """Test validating query parameters are valid when a valid and invalid param are given."""
+@pytest.mark.parametrize(
+    'params,valid', [
+        ({'test': 'value'}, ['other']),
+        ({'test': 'value', 'other': 1}, ['other']),
+        ({'a': 1, 'b': 2, 'c': 3}, ['a', 'b', 'd']),
+    ]
+)
+def test_validate_query_params_invalid(params, valid):
+    """Test validating query parameters when invalid parameters are given."""
     with pytest.raises(errors.InvalidArgumentsError):
-        validate.validate_query_params({'test': 'value', 'other': 'something'}, 'test')
-
-
-def test_validate_query_params4():
-    """Test validating query parameters are valid when an invalid param is given."""
-    with pytest.raises(errors.InvalidArgumentsError):
-        validate.validate_query_params({'other': 'something'}, 'test')
+        validate.validate_query_params(params, *valid)

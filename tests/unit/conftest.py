@@ -1,5 +1,4 @@
-"""Test configuration for Synse Server unit tests.
-"""
+"""Test configuration for Synse Server unit tests."""
 
 import os
 
