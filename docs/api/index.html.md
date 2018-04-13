@@ -1017,10 +1017,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 | Parameter | Description |
 | --------- | ----------- |
 | *speed* | The speed (in RPM) to set the fan to. |
-
-<aside class="notice">
- In the future, the fan route will support <i>rpm</i> and <i>percent</i> parameters for setting fan speed.
-</aside>
+| *speed_percent* | The speed (in percent) to set the fan to. |
 
 <aside class="warning">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
