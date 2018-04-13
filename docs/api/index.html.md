@@ -220,7 +220,8 @@ is running with. The Synse Server configuration is made up of default, file, env
 configuration components. This endpoint provides the final joined configuration that Synse Server
 ultimately runs with.
 
-For more information on how to configure Synse Server, see the user [documentation](). (TODO)
+See the [Configuration Documentation](http://synse-server.readthedocs.io/en/latest/user/configuration.html)
+for more information.
 
 ### HTTP Request
 
@@ -228,8 +229,9 @@ For more information on how to configure Synse Server, see the user [documentati
 
 ### Response
 
-The response to the `config` endpoint is the unified configuration for Synse Server. See the
-[documentation]() for more info on what the configuration scheme looks like.
+The response to the `config` endpoint is the unified configuration for Synse Server. The
+[Configuration Documentation](http://synse-server.readthedocs.io/en/latest/user/configuration.html)
+describes the configuration scheme in more detail.
 
 
 
@@ -261,8 +263,8 @@ Get all the plugins that are currently registered with Synse Server.
 
 This endpoint is added as a convenience to make it easier to determine which plugins Synse Server
 is running with. Plugins can be registers with Synse Server in a variety of ways, including
-file and environment configurations. See the [documentation]() for more on how to register plugins
-with Synse Server. This endpoint shows the unified view of all registered plugins.
+file and environment configurations. See the [User Guide](http://synse-server.readthedocs.io/en/latest/index.html)
+for more on how to register plugins with Synse Server. This endpoint shows the unified view of all registered plugins.
 
 ### HTTP Request
 
@@ -638,7 +640,8 @@ Check the state and status of a write transaction.
 
 If no transaction ID is given, a list of all cached transaction IDs is returned. The length
 of time that a transaction is cached for is configurable. See the Synse Server configuration
-[documentation]() for more.
+[Configuration Documentation](http://synse-server.readthedocs.io/en/latest/user/configuration.html)
+for more.
 
 ### HTTP Request
 
@@ -1014,10 +1017,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 | Parameter | Description |
 | --------- | ----------- |
 | *speed* | The speed (in RPM) to set the fan to. |
-
-<aside class="notice">
- In the future, the fan route will support <i>rpm</i> and <i>percent</i> parameters for setting fan speed.
-</aside>
+| *speed_percent* | The speed (in percent) to set the fan to. |
 
 <aside class="warning">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
