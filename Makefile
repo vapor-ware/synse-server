@@ -3,7 +3,7 @@
 #
 PKG_NAME := synse
 IMG_NAME := vaporio/synse-server
-PKG_VER := $(shell python synse/__init__.py)
+PKG_VER := $(shell python -c "import synse ; print(synse.__version__)")
 export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 
@@ -149,6 +149,10 @@ else
 	    --exit-code-from synse-test
 	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
 endif
+
+.PHONY: translations
+translations:  ## (Re)generate the translations.
+	tox -e translations
 
 .PHONY: version
 version: ## Print the version of Synse Server

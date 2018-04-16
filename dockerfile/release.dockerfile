@@ -22,7 +22,7 @@ RUN set -e -x \
         bash libstdc++ \
     && apk --update --no-cache --virtual .build-dep add \
         curl build-base jq \
-    && pip install --upgrade pip \
+    && pip install --upgrade pip babel \
     && pip install -r requirements.txt \
     && bin_url=$(curl -s https://api.github.com/repos/${EMULATOR_REPO}/releases/latest | jq '.assets[] | select(.name == env.EMULATOR_BIN) | .url' | tr -d '"') \
     && curl -L -H "Accept: application/octet-stream" -o $EMULATOR_BIN $bin_url \
@@ -38,10 +38,6 @@ RUN mkdir -p /tmp/synse/procs \
     && mkdir -p /synse/config
 
 # install synse_server python package
-# TODO - since we are pretty much just using the package, what
-# if on build, we just pass in the tarball for synse_server.. then
-# we don't have to also include the source code which isn't actually
-# used (other than some of the configurations and runserver.py
 RUN python setup.py install
 
 ENTRYPOINT ["bin/synse.sh"]
