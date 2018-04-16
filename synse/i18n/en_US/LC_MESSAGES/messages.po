@@ -1,14 +1,14 @@
-# English (United States) translations for synse.
+# English (United States) translations for PROJECT.
 # Copyright (C) 2018 ORGANIZATION
-# This file is distributed under the same license as the synse project.
+# This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: synse 2.0.0\n"
+"Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-04-16 09:13-0400\n"
-"PO-Revision-Date: 2018-04-16 09:13-0400\n"
+"POT-Creation-Date: 2018-04-16 11:31-0400\n"
+"PO-Revision-Date: 2018-04-16 11:31-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -126,12 +126,16 @@ msgstr ""
 msgid "plugin \"{}\" already exists - will not re-register (tcp)"
 msgstr ""
 
-#: synse/validate.py:25
+#: synse/validate.py:27
 msgid "Device ({}) is not of type {}"
 msgstr ""
 
-#: synse/routes/aliases.py:163 synse/routes/aliases.py:169 synse/validate.py:50
+#: synse/routes/aliases.py:163 synse/routes/aliases.py:169 synse/validate.py:52
 msgid "Invalid query param: {} (valid params: {})"
+msgstr ""
+
+#: synse/validate.py:73
+msgid "Endpoint does not support query parameters but got: {}"
 msgstr ""
 
 #: synse/commands/info.py:23
@@ -264,15 +268,15 @@ msgstr ""
 msgid "forcing re-scan? {}"
 msgstr ""
 
-#: synse/routes/core.py:93
+#: synse/routes/core.py:95
 msgid "Invalid JSON specified: {}"
 msgstr ""
 
-#: synse/routes/core.py:96
+#: synse/routes/core.py:98
 msgid "WRITE -> json: {}"
 msgstr ""
 
-#: synse/routes/core.py:100
+#: synse/routes/core.py:102
 msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\"."
 msgstr ""
 
