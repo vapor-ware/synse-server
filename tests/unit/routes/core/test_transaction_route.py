@@ -8,6 +8,7 @@ from sanic.response import HTTPResponse
 import synse.commands
 from synse.routes.core import transaction_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockreturn(transaction):
@@ -38,7 +39,7 @@ async def test_synse_transaction_route(mock_transaction, no_pretty_json):
 
     for case in cases:
 
-        result = await transaction_route(None, case)
+        result = await transaction_route(utils.make_request('/synse/transaction'), case)
         expected = '{{"id":"{0}"}}'.format(case)
 
         assert isinstance(result, HTTPResponse)

@@ -8,6 +8,7 @@ from sanic.response import HTTPResponse
 import synse.commands
 from synse.routes.core import read_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockreturn(rack, board, device):
@@ -29,7 +30,10 @@ def mock_read(monkeypatch):
 async def test_synse_read_route(mock_read, no_pretty_json):
     """Test a successful read."""
 
-    result = await read_route(None, 'rack-1', 'vec', '123456')
+    result = await read_route(
+        utils.make_request('/synse/read'),
+        'rack-1', 'vec', '123456'
+    )
 
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"value":1}'

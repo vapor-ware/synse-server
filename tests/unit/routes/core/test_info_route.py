@@ -8,6 +8,7 @@ from sanic.response import HTTPResponse
 import synse.commands
 from synse.routes.core import info_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockreturn(rack, board, device):
@@ -29,7 +30,10 @@ def mock_info(monkeypatch):
 async def test_synse_info_route(mock_info, no_pretty_json):
     """Test successfully getting the info."""
 
-    result = await info_route(None, 'rack1', 'board1', 'device1')
+    result = await info_route(
+        utils.make_request('/synse/info'),
+        'rack1', 'board1', 'device1'
+    )
 
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"r":"rack1","b":"board1","d":"device1"}'
@@ -40,7 +44,10 @@ async def test_synse_info_route(mock_info, no_pretty_json):
 async def test_synse_info_route_no_optional(mock_info, no_pretty_json):
     """Test successfully getting the info without optional params specified."""
 
-    result = await info_route(None, 'rack1')
+    result = await info_route(
+        utils.make_request('/synse/info'),
+        'rack1'
+    )
 
     assert isinstance(result, HTTPResponse)
     assert result.body == b'{"r":"rack1","b":null,"d":null}'

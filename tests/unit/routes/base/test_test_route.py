@@ -6,13 +6,14 @@ import ujson
 from sanic.response import HTTPResponse
 
 from synse.routes.base import test_route as synse_test_route
+from tests import utils
 
 
 @pytest.mark.asyncio
 async def test_synse_test_route():
     """Test successfully hitting the test route."""
 
-    result = await synse_test_route(None)
+    result = await synse_test_route(utils.make_request('/synse/test'))
 
     assert isinstance(result, HTTPResponse)
     assert result.status == 200
