@@ -17,7 +17,7 @@ This makes it possible to read from, write to, get metainfo, and scan for device
 multiple back-ends all through a cURL-able interface.
 
 For more detailed information on Synse Server, its API, and how to develop with it, see
-the [User Guide][user-guide].
+the [User Guide][user-guide] and the [API Documentation][synse-api].
 
 ## The Synse Ecosystem
 Synse Server is one component of the greater Synse Ecosystem.
@@ -118,7 +118,7 @@ issue or open a new one. This project follows the typical [GitHub Workflow][gh-w
 Synse Server is released under the [GPL-2.0](LICENSE) license.
 
 
-[synse-api]: http://synse-server.readthedocs.io/en/latest/user/api.html
+[synse-api]: https://vapor-ware.github.io/synse-server/
 [synse-cli]: https://github.com/vapor-ware/synse-cli
 [synse-dockerhub]: https://hub.docker.com/r/vaporio/synse-server/
 [synse-emulator]: https://github.com/vapor-ware/synse-emulator-plugin

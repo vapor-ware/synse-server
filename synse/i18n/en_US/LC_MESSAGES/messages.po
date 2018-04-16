@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: synse 2.0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-04-11 18:54-0400\n"
-"PO-Revision-Date: 2018-04-11 18:54-0400\n"
+"POT-Creation-Date: 2018-04-16 09:13-0400\n"
+"PO-Revision-Date: 2018-04-16 09:13-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -130,7 +130,7 @@ msgstr ""
 msgid "Device ({}) is not of type {}"
 msgstr ""
 
-#: synse/validate.py:50
+#: synse/routes/aliases.py:163 synse/routes/aliases.py:169 synse/validate.py:50
 msgid "Invalid query param: {} (valid params: {})"
 msgstr ""
 
@@ -198,19 +198,19 @@ msgstr ""
 msgid "Unable to find plugin \"{}\"."
 msgstr ""
 
-#: synse/commands/write.py:33
+#: synse/commands/write.py:37
 msgid "Unable to find plugin named \"{}\""
 msgstr ""
 
-#: synse/commands/write.py:42
+#: synse/commands/write.py:46
 msgid "\"action\" value must be a string, but was {}"
 msgstr ""
 
-#: synse/commands/write.py:50
+#: synse/commands/write.py:54
 msgid "\"raw\" value must be a string, but was {}"
 msgstr ""
 
-#: synse/commands/write.py:71
+#: synse/commands/write.py:79
 msgid "Failed to add transaction {} to the cache."
 msgstr ""
 
@@ -242,21 +242,21 @@ msgstr ""
 msgid "  stub:    {}"
 msgstr ""
 
-#: synse/routes/aliases.py:49
+#: synse/routes/aliases.py:50
 msgid "Invalid state \"{}\". Must be one of {}"
 msgstr ""
 
-#: synse/routes/aliases.py:63
+#: synse/routes/aliases.py:64
 msgid ""
 "Invalid color value ({}). Must be a hexadecimal string between 000000 and"
 " FFFFFF."
 msgstr ""
 
-#: synse/routes/aliases.py:167
+#: synse/routes/aliases.py:204
 msgid "Invalid power state \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse/routes/aliases.py:216
+#: synse/routes/aliases.py:253
 msgid "Invalid boot target \"{}\". Must be one of: {}"
 msgstr ""
 
