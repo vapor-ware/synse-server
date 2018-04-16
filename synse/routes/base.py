@@ -4,12 +4,13 @@
 
 from sanic import Blueprint
 
-from synse import commands
+from synse import commands, validate
 
 bp = Blueprint(__name__, url_prefix='/synse')
 
 
 @bp.route('/test')
+@validate.no_query_params()
 async def test_route(request):
     """ Endpoint to test whether the service is up and reachable.
 
@@ -24,6 +25,7 @@ async def test_route(request):
 
 
 @bp.route('/version')
+@validate.no_query_params()
 async def version_route(request):
     """ Endpoint to get the API version of the service.
 

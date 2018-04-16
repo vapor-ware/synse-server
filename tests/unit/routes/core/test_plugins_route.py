@@ -8,6 +8,7 @@ from sanic.response import HTTPResponse
 import synse.commands
 from synse.routes.core import plugins_route
 from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 def mockreturn():
@@ -29,7 +30,7 @@ def mock_plugins(monkeypatch):
 async def test_synse_config_route(mock_plugins, no_pretty_json):
     """Test successfully getting the plugins."""
 
-    result = await plugins_route(None)
+    result = await plugins_route(utils.make_request('/synse/plugins'))
 
     assert isinstance(result, HTTPResponse)
     assert result.body == b'[]'

@@ -6,6 +6,7 @@ import pytest
 from synse_plugin import api
 
 from synse import cache, errors, validate
+from tests import utils
 
 
 async def make_metainfo_response(rack, board, device):
@@ -108,3 +109,32 @@ def test_validate_query_params4():
     """Test validating query parameters are valid when an invalid param is given."""
     with pytest.raises(errors.InvalidArgumentsError):
         validate.validate_query_params({'other': 'something'}, 'test')
+
+
+@pytest.mark.asyncio
+async def test_validate_no_query_params():
+    """Test validating that an incoming request has no query params, when there
+    are no query params.
+    """
+
+    @validate.no_query_params()
+    async def test_fn(request, *args, **kwargs):
+        """Dummy function for testing the decorator."""
+        return request
+
+    await test_fn(utils.make_request('/synse/endpoint'))
+
+
+@pytest.mark.asyncio
+async def test_validate_no_query_params2():
+    """Test validating that an incoming request has no query params, when there
+    are query params. In this case, we expect an error.
+    """
+
+    @validate.no_query_params()
+    async def test_fn(request, *args, **kwargs):
+        """Dummy function for testing the decorator."""
+        return request
+
+    with pytest.raises(errors.InvalidArgumentsError):
+        await test_fn(utils.make_request('/synse/endpoint?test=param'))
