@@ -1,4 +1,13 @@
-"""Synse Server's End to End Tests"""
+"""End to end tests for Synse Server.
+
+These tests are designed to run against an instance of
+Synse Server with an emulator plugin backing configured.
+
+The goal of this test is to provide end-to-end validation
+of all components. They do not care about the values that
+are returned as much as that the responses/schemes return
+as expected.
+"""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import os
