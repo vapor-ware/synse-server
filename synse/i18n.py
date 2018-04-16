@@ -15,7 +15,7 @@ def _get_locale_dir():
     otherwise raises an IOError.
     """
     # TODO This is not the most robust method of finding the locale file.
-    locale_dir = '{}/locale'.format(os.path.dirname(os.path.realpath(__file__)))
+    locale_dir = '{}/i18n'.format(os.path.dirname(os.path.realpath(__file__)))
     if os.path.isdir(locale_dir):
         return locale_dir
     else:

@@ -3,7 +3,7 @@
 #
 PKG_NAME := synse
 IMG_NAME := vaporio/synse-server
-PKG_VER := $(shell python synse/__init__.py)
+PKG_VER := $(shell python -c "import synse ; print(synse.__version__)")
 export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 
@@ -52,20 +52,16 @@ pycache-clean:
 # build the docker images of synse server without the emulator
 .PHONY: docker-slim
 docker-slim:
-	cp .dockerignore.slim .dockerignore
 	tags="" ; \
 	for tag in $(SLIM_TAGS); do tags="$${tags} -t $${tag}"; done ; \
-	docker build -f dockerfile/release.dockerfile $${tags} .
-	rm .dockerignore
+	docker build -f dockerfile/slim.dockerfile $${tags} .
 
 # build the docker images of synse server with the emulator
 .PHONY: docker-default
 docker-default:
-	cp .dockerignore.default .dockerignore
 	tags="" ; \
 	for tag in $(DEFAULT_TAGS); do tags="$${tags} -t $${tag}"; done ; \
 	docker build -f dockerfile/release.dockerfile $${tags} .
-	rm .dockerignore
 
 
 # Targets
@@ -153,6 +149,10 @@ else
 	    --exit-code-from synse-test
 	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
 endif
+
+.PHONY: translations
+translations:  ## (Re)generate the translations.
+	tox -e translations
 
 .PHONY: version
 version: ## Print the version of Synse Server
