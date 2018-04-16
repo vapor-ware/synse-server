@@ -22,7 +22,7 @@ RUN set -e -x \
         bash libstdc++ \
     && apk --update --no-cache --virtual .build-dep add \
         curl build-base jq \
-    && pip install --upgrade pip babel \
+    && pip install --upgrade pip \
     && pip install -r requirements.txt \
     && bin_url=$(curl -s https://api.github.com/repos/${EMULATOR_REPO}/releases/latest | jq '.assets[] | select(.name == env.EMULATOR_BIN) | .url' | tr -d '"') \
     && curl -L -H "Accept: application/octet-stream" -o $EMULATOR_BIN $bin_url \

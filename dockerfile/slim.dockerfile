@@ -8,7 +8,7 @@ RUN set -e -x \
         bash libstdc++ \
     && apk --update --no-cache --virtual .build-dep add \
         build-base \
-    && pip install --upgrade pip babel \
+    && pip install --upgrade pip \
     && pip install -r requirements.txt \
     && apk del .build-dep
 

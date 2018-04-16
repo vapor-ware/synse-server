@@ -4,7 +4,6 @@
 
 import os
 
-from babel.messages import frontend as babel
 from setuptools import find_packages, setup
 
 
@@ -49,10 +48,5 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
-    ],
-    cmdclass={
-        'compile_catalog': babel.compile_catalog,
-        'extract_messages': babel.extract_messages,
-        'init_catalog': babel.init_catalog,
-    }
+    ]
 )
