@@ -1,1 +1,1 @@
-recursive-include synse/locale *.mo
+recursive-include synse/i18n *.mo

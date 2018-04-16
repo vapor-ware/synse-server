@@ -13,6 +13,7 @@ as expected.
 import os
 import time
 
+import pytest
 import requests
 
 from synse import errors
@@ -21,53 +22,484 @@ from synse.version import __api_version__, __version__
 # get the host information via ENV, or use the default of localhost
 host = os.environ.get('SYNSE_TEST_HOST', 'localhost')
 
-url_unversioned = 'http://{}:5000/synse'.format(host)
-url = 'http://{}:5000/synse/{}'.format(host, __api_version__)
+
+# -------------------------------
+# Test Utilities
+# -------------------------------
+
+class EmulatorDevices(object):
+    """EmulatorDevices is a container that defines the well-known device
+    IDs for the emulator devices. Since the emulator is configured the
+    same way for these tests, it should always produce the same device
+    IDs.
+
+    Note that if the emulator configuration changes, these IDs may need
+    to be changed, updated, or added to.
+    """
+    airflow = [
+        '29d1a03e8cddfbf1cf68e14e60e5f5cc'
+    ]
+
+    temperature = [
+        '329a91c6781ce92370a3c38ba9bf35b2',
+        '83cc1efe7e596e4ab6769e0c6e3edf88',
+        'db1e5deb43d9d0af6d80885e74362913',
+        'eb100067acb0c054cf877759db376b03',
+        'f97f284037b04badb6bb7aacd9654a4e'
+    ]
+
+    pressure = [
+        '5b2ce651ad91715c96ec71f4096c5d0e',
+        'f3dd2a56b588f181c5c782f45467b214'
+    ]
+
+    humidity = [
+        'bbadeee4d96ca38ffbcaabb3d8837526'
+    ]
+
+    led = [
+        'd29e0bd113a484dc48fd55bd3abad6bb',
+        'f52d29fecf05a195af13f14c7306cfed'
+    ]
+
+    fan = [
+        'eb9a56f95b5bd6d9b51996ccd0f2329c'
+    ]
+
+    all = airflow + temperature + pressure + humidity + led + fan
 
 
-def test_route():
-    """Check whether the service is up and reachable"""
-    route_req = requests.get('{}/test'.format(url_unversioned))
-    assert route_req.status_code == 200
-    assert route_req.json().get('status') == 'ok'
+def url_unversioned(uri):
+    """Create the unversioned URL for Synse Server with the given URI."""
+    return 'http://{}:5000/synse/{}'.format(host, uri)
 
 
-def test_version():
-    """Check whether the version is up to date"""
-    version_req = requests.get('{}/version'.format(url_unversioned))
-    assert version_req.status_code == 200
-    assert version_req.json().get('version') == __version__
-    assert version_req.json().get('api_version') == __api_version__
+def url(uri):
+    """Create the versioned URL for Synse Server with the given URI."""
+    return 'http://{}:5000/synse/{}/{}'.format(host, __api_version__, uri)
 
 
-def test_config():
-    """Get all configuration options"""
-    config_req = requests.get('{}/config'.format(url))
-    assert config_req.status_code == 200
+def validate_write_ok(data):
+    """"""
+    assert isinstance(data, list)
 
-    # These are default configuration options
-    expected_keys = ['locale', 'pretty_json', 'logging', 'cache', 'grpc']
+    for item in data:
+        assert 'context' in item
+        assert 'transaction' in item
 
-    req_json = config_req.json()
-    for key in expected_keys:
-        assert key in req_json
+        context = item['context']
+        transaction = item['transaction']
 
+        assert isinstance(context, dict)
+        assert isinstance(transaction, str)
 
-def test_plugins():
-    """Get all configured plugins"""
-    # The /plugins endpoint should register plugins, so we expect the emulator
-    # plugin to exist.
-    req = requests.get('{}/plugins'.format(url))
-    assert req.status_code == 200
-
-    assert len(req.json()) == 1
-
-    for plugin in req.json():
-        assert 'name' in plugin
-        assert 'network' in plugin
-        assert 'address' in plugin
+        assert 'action' in context
+        assert 'raw' in context
 
 
+def validate_transaction_ok(data):
+    """"""
+    # FIXME -- wait until status is DONE or we are in ERROR state..
+    assert isinstance(data, dict)
+
+    assert 'id' in data
+    assert 'context' in data
+    assert 'state' in data
+    assert 'status' in data
+    assert 'created' in data
+    assert 'updated' in data
+    assert 'message' in data
+
+    _id = data['id']
+    context = data['context']
+    state = data['state']
+    status = data['status']
+    created = data['created']
+    updated = data['updated']
+    message = data['message']
+
+    assert isinstance(_id, str)
+    assert isinstance(context, dict)
+    assert isinstance(state, str)
+    assert isinstance(status, str)
+    assert isinstance(created, str)
+    assert isinstance(updated, str)
+    assert isinstance(message, str)
+
+    assert state == 'ok'
+    assert status in ['unknown', 'pending', 'writing', 'done']
+
+
+def validate_read(data):
+    """"""
+    assert isinstance(data, dict)
+
+    assert 'type' in data
+    assert 'data' in data
+
+
+def validate_error_response(data, http_code, error_code):
+    """"""
+    assert isinstance(data, dict)
+
+    assert 'http_code' in data
+    assert 'error_id' in data
+    assert 'description' in data
+    assert 'timestamp' in data
+    assert 'context' in data
+
+    assert isinstance(data['http_code'], int)
+    assert isinstance(data['error_id'], int)
+    assert isinstance(data['description'], str)
+    assert isinstance(data['timestamp'], str)
+    assert isinstance(data['context'], str)
+
+    assert data['http_code'] == http_code
+    assert data['error_id'] == error_code
+
+
+# -------------------------------
+# Test Cases
+# -------------------------------
+
+def test_status_ok():
+    """Test Synse Server's 'test' route."""
+    response = requests.get(url_unversioned('test'))
+    assert response.status_code == 200
+
+    data = response.json()
+    assert 'status' in data
+    assert 'timestamp' in data
+    assert data['status'] == 'ok'
+
+
+def test_version_ok():
+    """Test Synse Server's 'version' route."""
+    response = requests.get(url_unversioned('version'))
+    assert response.status_code == 200
+
+    data = response.json()
+    assert 'version' in data
+    assert 'api_version' in data
+    assert data['version'] == __version__
+    assert data['api_version'] == __api_version__
+
+
+def test_config_ok():
+    """Test Synse Server's 'config' route."""
+    response = requests.get(url('config'))
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # the expected configuration keys (default config)
+    expected = {
+        'cache': {
+            'meta': {'ttl': 20},
+            'transaction': {'ttl': 300}
+        },
+        'grpc': {'timeout': 3},
+        'locale': 'en_US',
+        'logging': 'debug',
+        'plugin': {'tcp': {}, 'unix': {}},
+        'pretty_json': True
+    }
+
+    assert expected == data
+
+
+def test_plugins_ok():
+    """Test Synse Server's 'plugins' route.
+
+    Since this test runs against a Synse Server instance with an emulator
+    instance configured, we expect that emulator to be the only plugin
+    present here.
+    """
+    response = requests.get(url('plugins'))
+    assert response.status_code == 200
+
+    data = response.json()
+
+    # we expect to have only the emulator plugin configured
+    assert isinstance(data, list)
+    assert len(data) == 1
+    plugin = data[0]
+
+    assert 'name' in plugin
+    assert 'network' in plugin
+    assert 'address' in plugin
+
+    assert plugin['name'] == 'emulator'
+    assert plugin['network'] == 'unix'
+    assert plugin['address'] == '/tmp/synse/procs/emulator.sock'
+
+
+@pytest.mark.parametrize(
+    'params', [
+        {},
+        {'force': 'true'},
+        {'force': 'TRUE'},
+        {'force': 'True'},
+        {'force': 'tRuE'},
+        {'force': 'false'},
+        {'force': 'FALSE'},
+        {'force': 'False'},
+        {'force': 'fAlSe'},
+    ]
+)
+def test_scan_ok(params):
+    """Test Synse Server's 'scan' route."""
+    response = requests.get(url('scan'), params=params)
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert isinstance(data, dict)
+    assert 'racks' in data
+
+    racks = data['racks']
+    assert isinstance(racks, list)
+    assert len(racks) == 1
+
+    rack = racks[0]
+    assert isinstance(rack, dict)
+    assert 'id' in rack
+    assert 'boards' in rack
+    assert rack['id'] == 'rack-1'  # as per the emulator config for the tests
+
+    boards = rack['boards']
+    assert isinstance(boards, list)
+    assert len(boards) == 1
+
+    board = boards[0]
+    assert isinstance(board, dict)
+    assert 'id' in board
+    assert 'devices' in board
+    assert board['id'] == 'vec'  # as per the emulator config for the tests
+
+    devices = board['devices']
+    assert isinstance(devices, list)
+    assert len(devices) == len(EmulatorDevices.all)
+
+    for device in devices:
+        assert isinstance(device, dict)
+        assert 'id' in device
+        assert 'info' in device
+        assert 'type' in device
+
+        _id = device['id']
+        assert _id in EmulatorDevices.all
+        if _id in EmulatorDevices.led:
+            assert device['type'] == 'led'
+        elif _id in EmulatorDevices.humidity:
+            assert device['type'] == 'humidity'
+        elif _id in EmulatorDevices.pressure:
+            assert device['type'] == 'pressure'
+        elif _id in EmulatorDevices.temperature:
+            assert device['type'] == 'temperature'
+        elif _id in EmulatorDevices.airflow:
+            assert device['type'] == 'airflow'
+        elif _id in EmulatorDevices.fan:
+            assert device['type'] == 'fan'
+        else:
+            raise ValueError('Unexpected device type: {}'.format(device))
+
+
+@pytest.mark.parametrize(
+    'params', [
+        {'force': 'true', 'invalid': 'param'},
+        {'foo': 'bar'},
+    ]
+)
+def test_scan_bad_params(params):
+    """Test Synse Server's 'scan' route while passing in invalid query parameters."""
+    response = requests.get(url('scan'), params=params)
+    assert response.status_code == 400
+
+    error = response.json()
+    validate_error_response(error, 400, errors.INVALID_ARGUMENTS)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.all
+)
+def test_read_ok(device):
+    """"""
+    response = requests.get(url('read/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 200
+
+    data = response.json()
+    validate_read(data)
+
+
+@pytest.mark.parametrize(
+    'rack,board,device,error_id', [
+        ('rack-1', 'vec', 'abcdefg', errors.DEVICE_NOT_FOUND),
+        ('rack-1', 'no-such-board', '29d1a03e8cddfbf1cf68e14e60e5f5cc', errors.BOARD_NOT_FOUND),
+        ('rack-none', 'vec', '29d1a03e8cddfbf1cf68e14e60e5f5cc', errors.RACK_NOT_FOUND),
+    ]
+)
+def test_read_bad_info(rack, board, device, error_id):
+    """"""
+    response = requests.get(url('read/{}/{}/{}'.format(rack, board, device)))
+    assert response.status_code == 404
+
+    data = response.json()
+    validate_error_response(data, 404, error_id)
+
+
+def test_read_bad_query_params():
+    """"""
+    response = requests.get(url('read/rack-1/vec/29d1a03e8cddfbf1cf68e14e60e5f5cc'), params={'foo': 'bar'})
+    assert response.status_code == 400
+
+    data = response.json()
+    validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.led
+)
+def test_led_read_ok(device):
+    """"""
+    response = requests.get(url('led/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 200
+
+    data = response.json()
+    validate_read(data)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.led
+)
+def test_led_write_ok(device):
+    """"""
+    response = requests.get(url('led/rack-1/vec/{}'.format(device)), args={'color': 'ff00ff'})
+    assert response.status_code == 200
+
+    data = response.json()
+    validate_write_ok(data)
+
+    transaction_id = data['transaction']
+    # TODO - validate transaction
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.led
+)
+def test_led_write_multi_ok(device):
+    """"""
+    response = requests.get(url('led/rack-1/vec/{}'.format(device)), args={'color': '00ffff', 'state': 'on'})
+    assert response.status_code == 200
+
+    data = response.json()
+    validate_write_ok(data)
+
+    transaction_id = data['transaction']
+    # TODO - validate transaction
+
+
+@pytest.mark.parametrize(
+    'device', filter(lambda x: x not in EmulatorDevices.led, EmulatorDevices.all)
+)
+def test_led_read_bad_device(device):
+    """"""
+    response = requests.get(url('led/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 400
+
+    data = response.json()
+    validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+
+@pytest.mark.parametrize(
+    'device', filter(lambda x: x not in EmulatorDevices.led, EmulatorDevices.all)
+)
+def test_led_write_bad_device(device):
+    """"""
+    response = requests.get(url('led/rack-1/vec/{}'.format(device)), params={'color': 'ff0000'})
+    assert response.status_code == 400
+
+    data = response.json()
+    validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.led
+)
+def test_led_write_bad_params(device):
+    """"""
+    # TODO -- add qparams to the parametrize
+    response = requests.get(url('led/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 400
+
+    data = response.json()
+    validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.fan
+)
+def test_fan_read_ok(device):
+    """"""
+    response = requests.get(url('fan/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 200
+
+    data = response.json()
+    validate_read(data)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.fan
+)
+def test_fan_write_ok(device):
+    """"""
+    response = requests.get(url('fan/rack-1/vec/{}'.format(device)), params={'speed': '50'})
+    assert response.status_code == 200
+
+    data = response.json()
+    validate_write_ok(data)
+
+    transaction_id = data['transaction']
+    # TODO - validate transaction
+
+
+@pytest.mark.parametrize(
+    'device', filter(lambda x: x not in EmulatorDevices.fan, EmulatorDevices.all)
+)
+def test_fan_read_bad_device(device):
+    """"""
+    response = requests.get(url('fan/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 400
+
+    data = response.json()
+    validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+
+@pytest.mark.parametrize(
+    'device', filter(lambda x: x not in EmulatorDevices.fan, EmulatorDevices.all)
+)
+def test_fan_write_bad_device(device):
+    """"""
+    response = requests.get(url('fan/rack-1/vec/{}'.format(device)), params={'speed': '30'})
+    assert response.status_code == 400
+
+    data = response.json()
+    validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+
+@pytest.mark.parametrize(
+    'device', EmulatorDevices.fan
+)
+def test_fan_write_bad_params(device):
+    """"""
+    # TODO - params in parametrize
+    response = requests.get(url('fan/rack-1/vec/{}'.format(device)))
+    assert response.status_code == 400
+
+    data = response.json()
+
+
+'''
 def test_end_to_end():
     """Main entry point for all the tests"""
     # Perform a general scan
@@ -111,7 +543,7 @@ def test_end_to_end():
                 check_device_read(rack_id, board_id, device_id, device_type)
                 check_device_write(rack_id, board_id, device_id, device_type)
                 check_device_alias(rack_id, board_id, device_id, device_type)
-
+'''
 
 def check_rack_scan(rack, rack_id):
     """Check a scan request for given rack
