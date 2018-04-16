@@ -533,12 +533,14 @@ is running with. The Synse Server configuration is made up of default, file, env
 configuration components. This endpoint provides the final joined configuration that Synse Server
 ultimately runs with.</p>
 
-<p>For more information on how to configure Synse Server, see the user <a href="#">documentation</a>. (TODO)</p>
+<p>See the <a href="http://synse-server.readthedocs.io/en/latest/user/configuration.html">Configuration Documentation</a>
+for more information.</p>
 <h3 id='http-request-3'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/config</code></p>
 <h3 id='response'>Response</h3>
-<p>The response to the <code>config</code> endpoint is the unified configuration for Synse Server. See the
-<a href="#">documentation</a> for more info on what the configuration scheme looks like.</p>
+<p>The response to the <code>config</code> endpoint is the unified configuration for Synse Server. The
+<a href="http://synse-server.readthedocs.io/en/latest/user/configuration.html">Configuration Documentation</a>
+describes the configuration scheme in more detail.</p>
 <h2 id='plugins'>Plugins</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/plugins"</span>
 </code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
 
@@ -559,8 +561,8 @@ ultimately runs with.</p>
 
 <p>This endpoint is added as a convenience to make it easier to determine which plugins Synse Server
 is running with. Plugins can be registers with Synse Server in a variety of ways, including
-file and environment configurations. See the <a href="#">documentation</a> for more on how to register plugins
-with Synse Server. This endpoint shows the unified view of all registered plugins.</p>
+file and environment configurations. See the <a href="http://synse-server.readthedocs.io/en/latest/index.html">User Guide</a>
+for more on how to register plugins with Synse Server. This endpoint shows the unified view of all registered plugins.</p>
 <h3 id='http-request-4'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/plugins</code></p>
 <h3 id='response-2'>Response</h3>
@@ -1010,7 +1012,8 @@ the <code>action</code> should be the attribute to set and <code>raw</code> shou
 
 <p>If no transaction ID is given, a list of all cached transaction IDs is returned. The length
 of time that a transaction is cached for is configurable. See the Synse Server configuration
-<a href="#">documentation</a> for more.</p>
+<a href="http://synse-server.readthedocs.io/en/latest/user/configuration.html">Configuration Documentation</a>
+for more.</p>
 <h3 id='http-request-8'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/transaction[/{transaction id}]</code></p>
 <h3 id='uri-parameters-4'>URI Parameters</h3>
@@ -1482,11 +1485,11 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <td><em>speed</em></td>
 <td>The speed (in RPM) to set the fan to.</td>
 </tr>
+<tr>
+<td><em>speed_percent</em></td>
+<td>The speed (in percent) to set the fan to.</td>
+</tr>
 </tbody></table>
-
-<aside class="notice">
- In the future, the fan route will support <i>rpm</i> and <i>percent</i> parameters for setting fan speed.
-</aside>
 
 <aside class="warning">
  While Synse Server supports the listed Query Parameters, not all devices will support the 

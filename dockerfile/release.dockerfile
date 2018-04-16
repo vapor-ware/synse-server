@@ -1,29 +1,43 @@
 FROM python:3.6-alpine
 MAINTAINER Vapor IO <vapor@vapor.io>
 
+# Environment variables for downloading the emulator plugin
+ENV EMULATOR_REPO vapor-ware/synse-emulator-plugin
+ENV EMULATOR_BIN  emulator_linux_amd64
+
+# Environment variables for built-in emulator configuration.
+ENV PLUGIN_DEVICE_CONFIG /synse/emulator/config
+ENV PLUGIN_CONFIG /synse/emulator
+
 COPY ./requirements.txt requirements.txt
+
+# The linux_amd64 emulator binary is built with libc, not muslc, it
+# will not work here. The musl and glibc so files are compatible, so
+# we can make a symlink to fix the missing dependency:
+# https://stackoverflow.com/a/35613430
+RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
 
 RUN set -e -x \
     && apk --update --no-cache add \
-        bash gcc curl \
+        bash libstdc++ \
     && apk --update --no-cache --virtual .build-dep add \
-        build-base \
-    && pip install --upgrade pip \
+        curl build-base jq \
+    && pip install --upgrade pip babel \
     && pip install -r requirements.txt \
+    && bin_url=$(curl -s https://api.github.com/repos/${EMULATOR_REPO}/releases/latest | jq '.assets[] | select(.name == env.EMULATOR_BIN) | .url' | tr -d '"') \
+    && curl -L -H "Accept: application/octet-stream" -o $EMULATOR_BIN $bin_url \
+    && chmod +x $EMULATOR_BIN \
+    && mv $EMULATOR_BIN /usr/local/bin/emulator \
     && apk del .build-dep
 
 COPY . /synse
 WORKDIR /synse
 
-# create directories for plugin sockets and configuration
+# Create directories for plugin sockets and configuration
 RUN mkdir -p /tmp/synse/procs \
     && mkdir -p /synse/config
 
 # install synse_server python package
-# TODO - since we are pretty much just using the package, what
-# if on build, we just pass in the tarball for synse_server.. then
-# we don't have to also include the source code which isn't actually
-# used (other than some of the configurations and runserver.py
 RUN python setup.py install
 
 ENTRYPOINT ["bin/synse.sh"]

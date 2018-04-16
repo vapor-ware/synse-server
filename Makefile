@@ -3,11 +3,12 @@
 #
 PKG_NAME := synse
 IMG_NAME := vaporio/synse-server
-PKG_VER := $(shell python synse/__init__.py)
+PKG_VER := $(shell python -c "import synse ; print(synse.__version__)")
 export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 
 HAS_PY36 := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
+HAS_PIP_COMPILE := $(shell which pip-compile)
 
 # Docker Image tags
 DEFAULT_TAGS = ${IMG_NAME}:latest ${IMG_NAME}:${PKG_VER} ${IMG_NAME}:${GIT_VER}
@@ -52,20 +53,16 @@ pycache-clean:
 # build the docker images of synse server without the emulator
 .PHONY: docker-slim
 docker-slim:
-	cp .dockerignore.slim .dockerignore
 	tags="" ; \
 	for tag in $(SLIM_TAGS); do tags="$${tags} -t $${tag}"; done ; \
-	docker build -f dockerfile/release.dockerfile $${tags} .
-	rm .dockerignore
+	docker build -f dockerfile/slim.dockerfile $${tags} .
 
 # build the docker images of synse server with the emulator
 .PHONY: docker-default
 docker-default:
-	cp .dockerignore.default .dockerignore
 	tags="" ; \
 	for tag in $(DEFAULT_TAGS); do tags="$${tags} -t $${tag}"; done ; \
 	docker build -f dockerfile/release.dockerfile $${tags} .
-	rm .dockerignore
 
 
 # Targets
@@ -153,6 +150,17 @@ else
 	    --exit-code-from synse-test
 	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
 endif
+
+.PHONY: update-deps
+update-deps:  ## Update the frozen pip dependencies (requirements.txt)
+ifndef HAS_PIP_COMPILE
+	pip install pip-tools
+endif
+	pip-compile --output-file requirements.txt setup.py
+
+.PHONY: translations
+translations:  ## (Re)generate the translations.
+	tox -e translations
 
 .PHONY: version
 version: ## Print the version of Synse Server
