@@ -65,6 +65,58 @@ jobs:
               docker push ${tag}
             done
 
+  # Create a new release draft when a tag is pushed
+  release:
+    working_directory: ~/synse-server
+    docker:
+      - image: circleci/golang:latest
+    steps:
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - checkout
+      - run:
+          name: Check version matches tag
+          command: |
+            version=$(make version)
+            if [ "${version}" != "${CIRCLE_TAG}" ]; then
+              echo "Version ${version} does not match Tag ${CIRCLE_TAG}"
+              exit 1
+            else
+              echo "Versions match: ${version}"
+            fi
+      - run:
+          name: Get GHR Distributor
+          command: |
+            go get -v github.com/tcnksm/ghr
+      - run:
+          name: Generate Changelog
+          command: |
+            docker pull timfallmk/github-changelog-generator
+            docker run --name changelog timfallmk/github-changelog-generator \
+              -u vapor-ware \
+              -p synse-server \
+              --since-tag $(git describe --abbrev=0 --tags `git rev-list --tags --skip=1 --max-count=1`) \
+              -t ${GITHUB_TOKEN}
+            docker cp changelog:/usr/local/src/your-app/CHANGELOG.md ./
+      - run:
+          name: Create Release
+          command: |
+            # ghr needs a path to artifacts specified to upload. since
+            # we have none right now, we'll just create an empty directory
+            mkdir build
+            if git describe --exact-match --tags HEAD; then
+              CIRCLE_TAG=$(git describe --exact-match --tags HEAD)
+            fi
+            ghr \
+              -u ${GITHUB_USER} \
+              -t ${GITHUB_TOKEN} \
+              -b "$(cat ./CHANGELOG.md)" \
+              -replace \
+              -draft \
+              ${CIRCLE_TAG} build/
+
+
+
 workflows:
   version: 2
   build:
@@ -77,5 +129,9 @@ workflows:
             branches:
               only:
                 - master
-                - v2.0-dev
-
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v?[0-9]*(\.[0-9]*)*(-rc[0-9]*)?$/
