@@ -8,6 +8,7 @@ export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 
 
 
 HAS_PY36 := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
+HAS_PIP_COMPILE := $(shell which pip-compile)
 
 # Docker Image tags
 DEFAULT_TAGS = ${IMG_NAME}:latest ${IMG_NAME}:${PKG_VER} ${IMG_NAME}:${GIT_VER}
@@ -149,6 +150,13 @@ else
 	    --exit-code-from synse-test
 	docker-compose -f compose/synse.yml -f compose/test.yml -f compose/test_end_to_end.yml down
 endif
+
+.PHONY: update-deps
+update-deps:  ## Update the frozen pip dependencies (requirements.txt)
+ifndef HAS_PIP_COMPILE
+	pip install pip-tools
+endif
+	pip-compile --output-file requirements.txt setup.py
 
 .PHONY: translations
 translations:  ## (Re)generate the translations.
