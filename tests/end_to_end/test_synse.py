@@ -1,10 +1,21 @@
-"""Synse Server's End to End Tests"""
-# pylint: disable=redefined-outer-name,unused-argument
+"""End to end tests for Synse Server.
+
+These tests are designed to run against an instance of
+Synse Server with an emulator plugin backing configured.
+
+The goal of this test is to provide end-to-end validation
+of all components. They do not care about the values that
+are returned as much as that the responses/schemes return
+as expected.
+"""
+# pylint: disable=line-too-long
 
 import os
 import time
 
+import pytest
 import requests
+import ujson
 
 from synse import errors
 from synse.version import __api_version__, __version__
@@ -12,686 +23,892 @@ from synse.version import __api_version__, __version__
 # get the host information via ENV, or use the default of localhost
 host = os.environ.get('SYNSE_TEST_HOST', 'localhost')
 
-url_unversioned = 'http://{}:5000/synse'.format(host)
-url = 'http://{}:5000/synse/{}'.format(host, __api_version__)
+
+# -------------------------------
+# Test Utilities
+# -------------------------------
+
+class EmulatorDevices(object):
+    """EmulatorDevices is a container that defines the well-known device
+    IDs for the emulator devices. Since the emulator is configured the
+    same way for these tests, it should always produce the same device
+    IDs.
+
+    Note that if the emulator configuration changes, these IDs may need
+    to be changed, updated, or added to.
+    """
+    airflow = [
+        '29d1a03e8cddfbf1cf68e14e60e5f5cc'
+    ]
+
+    temperature = [
+        '329a91c6781ce92370a3c38ba9bf35b2',
+        '83cc1efe7e596e4ab6769e0c6e3edf88',
+        'db1e5deb43d9d0af6d80885e74362913',
+        'eb100067acb0c054cf877759db376b03',
+        'f97f284037b04badb6bb7aacd9654a4e'
+    ]
+
+    pressure = [
+        '5b2ce651ad91715c96ec71f4096c5d0e',
+        'f3dd2a56b588f181c5c782f45467b214'
+    ]
+
+    humidity = [
+        'bbadeee4d96ca38ffbcaabb3d8837526'
+    ]
+
+    led = [
+        'd29e0bd113a484dc48fd55bd3abad6bb',
+        'f52d29fecf05a195af13f14c7306cfed'
+    ]
+
+    fan = [
+        'eb9a56f95b5bd6d9b51996ccd0f2329c'
+    ]
+
+    all = airflow + temperature + pressure + humidity + led + fan
+
+    @classmethod
+    def is_airflow(cls, device):
+        """Check if the device ID corresponds to an airflow type device."""
+        return device in cls.airflow
+
+    @classmethod
+    def is_temperature(cls, device):
+        """Check if the device ID corresponds to a temperature type device."""
+        return device in cls.temperature
+
+    @classmethod
+    def is_pressure(cls, device):
+        """Check if the device ID corresponds to a pressure type device."""
+        return device in cls.pressure
+
+    @classmethod
+    def is_humidity(cls, device):
+        """Check if the device ID corresponds to a humidity type device."""
+        return device in cls.humidity
+
+    @classmethod
+    def is_led(cls, device):
+        """Check if the device ID corresponds to an LED type device."""
+        return device in cls.led
+
+    @classmethod
+    def is_fan(cls, device):
+        """Check if the device ID corresponds to a fan type device."""
+        return device in cls.fan
 
 
-def test_route():
-    """Check whether the service is up and reachable"""
-    route_req = requests.get('{}/test'.format(url_unversioned))
-    assert route_req.status_code == 200
-    assert route_req.json().get('status') == 'ok'
+def url_unversioned(uri):
+    """Create the unversioned URL for Synse Server with the given URI."""
+    return 'http://{}:5000/synse/{}'.format(host, uri)
 
 
-def test_version():
-    """Check whether the version is up to date"""
-    version_req = requests.get('{}/version'.format(url_unversioned))
-    assert version_req.status_code == 200
-    assert version_req.json().get('version') == __version__
-    assert version_req.json().get('api_version') == __api_version__
+def url(uri):
+    """Create the versioned URL for Synse Server with the given URI."""
+    return 'http://{}:5000/synse/{}/{}'.format(host, __api_version__, uri)
 
 
-def test_config():
-    """Get all configuration options"""
-    config_req = requests.get('{}/config'.format(url))
-    assert config_req.status_code == 200
+def validate_write_ok(data, size):
+    """Helper to validate that write response schemes are correct."""
+    assert isinstance(data, list)
+    assert len(data) == size
 
-    # These are default configuration options
-    expected_keys = ['locale', 'pretty_json', 'logging', 'cache', 'grpc']
+    for item in data:
+        assert 'context' in item
+        assert 'transaction' in item
 
-    req_json = config_req.json()
-    for key in expected_keys:
-        assert key in req_json
+        context = item['context']
+        transaction = item['transaction']
+
+        assert isinstance(context, dict)
+        assert isinstance(transaction, str)
+
+        assert 'action' in context
+        assert 'raw' in context
 
 
-def test_plugins():
-    """Get all configured plugins"""
-    # The /plugins endpoint should register plugins, so we expect the emulator
-    # plugin to exist.
-    req = requests.get('{}/plugins'.format(url))
-    assert req.status_code == 200
+def wait_for_transaction(transaction_id):
+    """Helper to check the transaction state. This will wait until
+    the transaction is in a done state, or 5 seconds.
+    """
+    start = time.time()
+    while True:
+        now = time.time()
+        if now - start > 5:
+            pytest.fail('Failed to resolve transaction state (timeout)')
 
-    assert len(req.json()) == 1
+        response = requests.get(url('transaction/{}'.format(transaction_id)))
+        assert response.status_code == 200
 
-    for plugin in req.json():
+        data = response.json()
+        validate_transaction(data)
+
+        state = data['state']
+        status = data['status']
+
+        if (state == 'ok' and status == 'done') or (state == 'error'):
+            return data
+
+        time.sleep(0.1)
+
+
+def validate_transaction(data):
+    """Helper to validate that transaction check response schemes are correct."""
+    assert isinstance(data, dict)
+
+    assert 'id' in data
+    assert 'context' in data
+    assert 'state' in data
+    assert 'status' in data
+    assert 'created' in data
+    assert 'updated' in data
+    assert 'message' in data
+
+    _id = data['id']
+    context = data['context']
+    state = data['state']
+    status = data['status']
+    created = data['created']
+    updated = data['updated']
+    message = data['message']
+
+    assert isinstance(_id, str)
+    assert isinstance(context, dict)
+    assert isinstance(state, str)
+    assert isinstance(status, str)
+    assert isinstance(created, str)
+    assert isinstance(updated, str)
+    assert isinstance(message, str)
+
+    assert state in ['ok', 'error']
+    assert status in ['unknown', 'pending', 'writing', 'done']
+
+
+def validate_read(data):
+    """Helper to validate that read response schemes are correct."""
+    assert isinstance(data, dict)
+
+    assert 'type' in data
+    assert 'data' in data
+
+    t = data['type']
+    d = data['data']
+
+    # lookup maps the reading type to the fields that reading type should provide
+    lookup = {
+        'temperature': ['temperature'],
+        'led': ['color', 'state'],
+        'fan': ['fan_speed'],
+        'airflow': ['airflow'],
+        'pressure': ['pressure'],
+        'humidity': ['temperature', 'humidity']
+    }
+
+    keys = lookup.get(t)
+    if keys is None:
+        pytest.fail('Reading type unknown: {}'.format(data))
+
+    assert isinstance(d, dict)
+    for k in keys:
+        assert k in d
+
+
+def validate_error_response(data, http_code, error_code):
+    """Helper to validate that error response schemes are correct."""
+    assert isinstance(data, dict)
+
+    assert 'http_code' in data
+    assert 'error_id' in data
+    assert 'description' in data
+    assert 'timestamp' in data
+    assert 'context' in data
+
+    assert isinstance(data['http_code'], int)
+    assert isinstance(data['error_id'], int)
+    assert isinstance(data['description'], str)
+    assert isinstance(data['timestamp'], str)
+    assert isinstance(data['context'], str)
+
+    assert data['http_code'] == http_code
+    assert data['error_id'] == error_code
+
+
+def validate_scan(data):
+    """Helper to validate that scan response schemes are correct."""
+    assert isinstance(data, dict)
+    assert 'racks' in data
+
+    racks = data['racks']
+    assert isinstance(racks, list)
+    assert len(racks) == 1  # as per the emulator config for the tests
+
+    for rack in racks:
+        validate_scan_rack(rack)
+
+
+def validate_scan_rack(rack):
+    """Validate the data for a rack scan result."""
+    assert isinstance(rack, dict)
+    assert 'id' in rack
+    assert 'boards' in rack
+    assert rack['id'] == 'rack-1'  # as per the emulator config for the tests
+
+    boards = rack['boards']
+    assert isinstance(boards, list)
+    assert len(boards) == 1  # as per the emulator config for the tests
+
+    for board in boards:
+        validate_scan_board(board)
+
+
+def validate_scan_board(board):
+    """Validate the data for a board scan result."""
+    assert isinstance(board, dict)
+    assert 'id' in board
+    assert 'devices' in board
+    assert board['id'] == 'vec'  # as per the emulator config for the tests
+
+    devices = board['devices']
+    assert isinstance(devices, list)
+    assert len(devices) == len(EmulatorDevices.all)
+
+    for device in devices:
+        assert isinstance(device, dict)
+        assert 'id' in device
+        assert 'info' in device
+        assert 'type' in device
+
+        _id = device['id']
+        assert _id in EmulatorDevices.all
+        if EmulatorDevices.is_led(_id):
+            assert device['type'] == 'led'
+        elif EmulatorDevices.is_humidity(_id):
+            assert device['type'] == 'humidity'
+        elif EmulatorDevices.is_pressure(_id):
+            assert device['type'] == 'pressure'
+        elif EmulatorDevices.is_temperature(_id):
+            assert device['type'] == 'temperature'
+        elif EmulatorDevices.is_airflow(_id):
+            assert device['type'] == 'airflow'
+        elif EmulatorDevices.is_fan(_id):
+            assert device['type'] == 'fan'
+        else:
+            pytest.fail('Unexpected device type: {}'.format(device))
+
+
+# -------------------------------
+# Test Cases
+# -------------------------------
+
+#
+# Status
+#
+
+class TestStatus(object):
+    """Tests for the 'test' route."""
+
+    def test_status_ok(self):
+        """Test Synse Server's 'test' route."""
+        response = requests.get(url_unversioned('test'))
+        assert response.status_code == 200
+
+        data = response.json()
+        assert 'status' in data
+        assert 'timestamp' in data
+        assert data['status'] == 'ok'
+
+
+#
+# Version
+#
+
+class TestVersion(object):
+    """Tests for the 'version' route."""
+
+    def test_version_ok(self):
+        """Test Synse Server's 'version' route."""
+        response = requests.get(url_unversioned('version'))
+        assert response.status_code == 200
+
+        data = response.json()
+        assert 'version' in data
+        assert 'api_version' in data
+        assert data['version'] == __version__
+        assert data['api_version'] == __api_version__
+
+
+#
+# Config
+#
+
+class TestConfig(object):
+    """Tests for the 'config' route."""
+
+    def test_config_ok(self):
+        """Test Synse Server's 'config' route."""
+        response = requests.get(url('config'))
+        assert response.status_code == 200
+
+        data = response.json()
+
+        # the expected configuration keys (default config)
+        expected = {
+            'cache': {
+                'meta': {'ttl': 20},
+                'transaction': {'ttl': 300}
+            },
+            'grpc': {'timeout': 3},
+            'locale': 'en_US',
+            'logging': 'debug',
+            'plugin': {'tcp': {}, 'unix': {}},
+            'pretty_json': True
+        }
+
+        assert expected == data
+
+
+#
+# Plugins
+#
+
+class TestPlugins(object):
+    """Tests for the 'plugins' route."""
+
+    def test_plugins_ok(self):
+        """Test Synse Server's 'plugins' route.
+
+        Since this test runs against a Synse Server instance with an emulator
+        instance configured, we expect that emulator to be the only plugin
+        present here.
+        """
+        response = requests.get(url('plugins'))
+        assert response.status_code == 200
+
+        data = response.json()
+
+        # we expect to have only the emulator plugin configured
+        assert isinstance(data, list)
+        assert len(data) == 1
+        plugin = data[0]
+
         assert 'name' in plugin
         assert 'network' in plugin
         assert 'address' in plugin
 
-
-def test_end_to_end():
-    """Main entry point for all the tests"""
-    # Perform a general scan
-    scan_req = requests.get('{}/scan'.format(url))
-    assert scan_req.status_code == 200
-
-    racks = scan_req.json().get('racks')
-    assert len(racks) != 0
-
-    # Iterate through the results and execute other tests
-    # Rack Level
-    for rack in racks:
-        rack_id = rack.get('id')
-        check_rack_scan(rack, rack_id)
-
-        boards = rack.get('boards')
-        assert len(boards) != 0
-
-        # Collect all boards ids to check if they match with rack info request
-        boards_ids = [board.get('id') for board in boards]
-        check_rack_info(boards_ids, rack_id)
-
-        # Board Level
-        for board in boards:
-            board_id = board.get('id')
-            check_board_scan(board, rack_id, board_id)
-
-            devices = board.get('devices')
-            assert len(devices) != 0
-
-            # Collect all devices ids to check if they match with board info request
-            devices_ids = [device.get('id') for device in devices]
-            check_board_info(devices_ids, rack_id, board_id)
-
-            # Device Level
-            for device in devices:
-                device_id = device.get('id')
-                device_type = device.get('type')
-                check_device_scan(rack_id, board_id, device_id)
-                check_device_info(rack_id, board_id, device_id, device_type)
-                check_device_read(rack_id, board_id, device_id, device_type)
-                check_device_write(rack_id, board_id, device_id, device_type)
-                check_device_alias(rack_id, board_id, device_id, device_type)
+        assert plugin['name'] == 'emulator'
+        assert plugin['network'] == 'unix'
+        assert plugin['address'] == '/tmp/synse/procs/emulator.sock'
 
 
-def check_rack_scan(rack, rack_id):
-    """Check a scan request for given rack
+#
+# Scan
+#
 
-    Args:
-        rack (dict): Rack object from the general scan
-        rack_id (str): Rack's unique ID
-    """
-    rack_scan_req = requests.get('{}/scan/{}'.format(url, rack_id))
-    assert rack_scan_req.status_code == 200
-    assert rack_scan_req.json().get('id') == rack_id
-    assert rack_scan_req.json() == rack
+class TestScan(object):
+    """Tests for the 'scan' route."""
 
-
-def check_rack_info(boards_ids, rack_id):
-    """Check an info request for a given rack
-
-    Args:
-        boards_ids (list): List of boards' IDs from the general scan
-        rack_id (str): Rack's unique ID
-    """
-    rack_info_req = requests.get('{}/info/{}'.format(url, rack_id))
-    assert rack_info_req.status_code == 200
-    assert rack_info_req.json().get('rack') == rack_id
-    assert rack_info_req.json().get('boards') == boards_ids
-
-
-def check_board_scan(board, rack_id, board_id):
-    """Check a scan request for a given board and rack
-
-    Args:
-        board (dict): Board object from the general scan
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-    """
-    board_info_req = requests.get('{}/scan/{}/{}'.format(url, rack_id, board_id))
-    assert board_info_req.status_code == 200
-    assert board_info_req.json().get('id') == board_id
-    assert board_info_req.json() == board
-
-
-def check_board_info(devices_ids, rack_id, board_id):
-    """Check an info request for a given board and rack
-
-    Args:
-        devices_ids (list): List of devices's IDs from the general scan
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-    """
-    board_info_req = requests.get('{}/info/{}/{}'.format(url, rack_id, board_id))
-    assert board_info_req.status_code == 200
-    assert board_info_req.json().get('board') == board_id
-    assert board_info_req.json().get('location').get('rack') == rack_id
-    assert board_info_req.json().get('devices') == devices_ids
-
-
-def check_device_scan(rack_id, board_id, device_id):
-    """Check a scan request for a given device, board and rack
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-
-    Details:
-        There is no available endpoint for this.
-        Should return 404 HTTP code and URL_NOT_FOUND error.
-    """
-    device_scan_req = requests.get(
-        '{}/scan/{}/{}/{}'.format(url, rack_id, board_id, device_id)
+    @pytest.mark.parametrize(
+        'params', [
+            {},
+            {'force': 'true'},
+            {'force': 'TRUE'},
+            {'force': 'True'},
+            {'force': 'tRuE'},
+            {'force': 'false'},
+            {'force': 'FALSE'},
+            {'force': 'False'},
+            {'force': 'fAlSe'},
+        ]
     )
-    assert device_scan_req.status_code == 404
-    assert device_scan_req.json().get('http_code') == 404
-    assert device_scan_req.json().get('error_id') == errors.URL_NOT_FOUND
+    def test_scan_ok(self, params):
+        """Test Synse Server's 'scan' route."""
+        response = requests.get(url('scan'), params=params)
+        assert response.status_code == 200
 
+        data = response.json()
+        validate_scan(data)
 
-def check_device_info(rack_id, board_id, device_id, device_type):
-    """Check an info request for a given device, board and rack
+    def test_scan_rack_ok(self):
+        """Test Synse Server's 'scan' route, at rack resolution."""
+        response = requests.get(url('scan/rack-1'))
+        assert response.status_code == 200
 
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-        device_type (str): Type of device
-    """
-    device_info_req = requests.get(
-        '{}/info/{}/{}/{}'.format(url, rack_id, board_id, device_id)
+        data = response.json()
+        validate_scan_rack(data)
+
+    def test_scan_rack_error(self):
+        """Test Synse Server's 'scan' route, at rack resolution, when the rack does not exist."""
+        response = requests.get(url('scan/unknown-rack'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.RACK_NOT_FOUND)
+
+    def test_scan_board_ok(self):
+        """Test Synse Server's 'scan' route, at board resolution."""
+        response = requests.get(url('scan/rack-1/vec'))
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_scan_board(data)
+
+    def test_scan_board_error(self):
+        """Test Synse Server's 'scan' route, at board resolution, when the board does not exist."""
+        response = requests.get(url('scan/rack-1/unknown-board'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.BOARD_NOT_FOUND)
+
+    def test_scan_device_error(self):
+        """Test Synse Server's 'scan' route, at device resolution. This is not supported
+        so we expect it to fail.
+        """
+        response = requests.get(url('scan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.URL_NOT_FOUND)
+
+    @pytest.mark.parametrize(
+        'params', [
+            {'force': 'true', 'invalid': 'param'},
+            {'foo': 'bar'},
+        ]
     )
-    assert device_info_req.status_code == 200
-    assert device_info_req.json().get('type') == device_type
+    def test_scan_bad_params(self, params):
+        """Test Synse Server's 'scan' route while passing in invalid query parameters."""
+        response = requests.get(url('scan'), params=params)
+        assert response.status_code == 400
 
-    expected_keys = ['timestamp', 'uid', 'type', 'model',
-                     'manufacturer', 'info', 'comment', 'location', 'output']
-
-    req_json = device_info_req.json()
-    for key in expected_keys:
-        assert key in req_json
+        error = response.json()
+        validate_error_response(error, 400, errors.INVALID_ARGUMENTS)
 
 
-def check_device_read(rack_id, board_id, device_id, device_type):
-    """Check a read request for a given device, board and rack
+#
+# Read
+#
 
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-        device_type (str): Type of device
-    """
-    device_read_req = requests.get(
-        '{}/read/{}/{}/{}'.format(url, rack_id, board_id, device_id)
+class TestRead(object):
+    """Tests for the 'read' route."""
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.all
     )
-    assert device_read_req.status_code == 200
-    assert device_read_req.json().get('type') == device_type
+    def test_read_ok(self, device):
+        """Test Synse Server's 'read' route while passing in valid devices to be
+        read from.
+        """
+        response = requests.get(url('read/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 200
 
-    data = device_read_req.json().get('data')
-    assert data is not None
+        data = response.json()
+        validate_read(data)
 
-    if device_type == 'led':
-        assert 'state' in data
-        assert 'color' in data
-    elif device_type == 'fan':
-        assert 'fan_speed' in data
-    elif device_type == 'temperature':
-        assert 'temperature' in data
-
-
-def check_device_write(rack_id, board_id, device_id, device_type):
-    """Check a write request for a given device, board and rack
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-        device_type (str): Type of device
-    """
-    if device_type == 'led':
-        check_led_write(rack_id, board_id, device_id)
-    elif device_type == 'fan':
-        check_fan_write(rack_id, board_id, device_id)
-    elif device_type == 'temperature':
-        check_temperature_write(rack_id, board_id, device_id)
-
-
-def check_led_write(rack_id, board_id, device_id):
-    """Check a write request for a given led device
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-
-    Details:
-        This is the list for all the cases that need to be check.
-        On the left side are cases and sub-cases.
-        On the right side are expected return values.
-        Return values contains 2 components: status code and transaction state
-
-        Cases,                                                      Status code,
-        Subcases                                                    Transaction state
-        ------------------------------------------------------------------------------
-        Key's correctness
-            2 keys are correct
-                2 values are valid                                  -> 200, ok
-                1 value is valid
-                    action's value is valid                         -> 200, error
-                    raw's value is valid                            -> 200, ok
-                2 values are not valid                              -> 200, ok
-            1 key is correct
-                action is correct
-                    action's value is valid                         -> break
-                    action's value is not valid                     -> 200, error
-                raw is correct
-                    raw's value is valid                            -> 200, ok
-                    raw's value is not valid                        -> 200, ok
-            2 keys are not correct                                  -> 500
-
-        Key's absence
-            2 keys are absence                                      -> 500
-            1 key is absence
-                action is absence
-                    raw's value is valid                            -> 200, ok
-                    raw's value is not valid                        -> 200, ok
-                raw is absence
-                    action's value is valid                         -> break
-                    action's value is not valid                     -> 200, error
-    """
-    # Options that return 200 status codes and their transactions' states are ok
-    code_200_state_ok = {
-        # Case: 2 keys are correct, 2 values are valid
-        # These options should overwrite the existing values
-        'state_on': {
-            'action': 'state',
-            'raw': 'on'
-        },
-        'state_off': {
-            'action': 'state',
-            'raw': 'off'
-        },
-        'state_blink': {
-            'action': 'state',
-            'raw': 'blink'
-        },
-        'color_min': {
-            'action': 'color',
-            'raw': '000000'
-        },
-        'color_max': {
-            'action': 'color',
-            'raw': 'FFFFFF'
-        },
-
-        # Case: 2 keys are correct, raw's value is valid
-        # Because action's value is invalid, it can be anything
-        # Therefore, no need to check for a specific state, color or blink
-        'invalid_action_value': {
-            'action': 'invalid',
-            'raw': 'on'
-        },
-
-        # Case: 2 keys are correct, 2 values are not valid
-        'invalid_values': {
-            'action': 'invalid',
-            'raw': 'invalid'
-        },
-    }
-
-    # Options that return 200 status codes and their transactions' states are error
-    code_200_state_error = {
-        # Case: 2 keys are correct, action value is valid
-        'state_invalid_raw_value': {
-            'action': 'state',
-            'raw': 'invalid'
-        },
-
-        # LED color write isn't validated so the test fail
-        'color_invalid_value': {
-            'action': 'color',
-            'raw': 'invalid'
-        },
-
-        # Case: 1 key is correct / action is correct, action's value is not valid
-        # Because raw is incorrect, raw's value can be anything even if it's valid
-        'correct_action_invalid_value': {
-            'action': 'invalid',
-            'incorrect_raw': 'on/off/blink/ffffff'
-        },
-
-        # Case: 1 key is absence / raw is absence, action's value is not valid
-        # If the value is valid, see synse-emulator-plugin's issue #2
-        'absence_raw_invalid_action_value': {
-            'action': 'invalid'
-        },
-
-        # Case: 1 key is correct / action is correct, action's value is valid
-        # It returns 200 status code and break the program.
-        'state_incorrect_raw': {
-            'action': 'state',
-            'incorrect_raw': 'on'
-        },
-        'color_incorrect_raw': {
-            'action': 'color',
-            'incorrect_raw': '000000'
-        },
-
-        # Case: 1 key is absence / raw is absence, action's value is valid
-        'state_absence_raw': {
-            'action': 'state'
-        },
-        'color_absence_raw': {
-            'action': 'color'
-        }
-    }
-
-    # Options that return 500 status codes
-    code_400 = {
-        # Case: 2 keys are not correct
-        # Because both keys are wrong, their value can be anything
-        'incorrect_keys': {
-            'incorrect_action': 'state/color',
-            'incorrect_raw': 'on/000000'
-        },
-
-        # Case: 1 key is correct / raw is correct, raw's value is valid
-        # Because action is incorrect, action's value can be anything
-        # Therefore, no need to check for a specific state or color
-        'correct_raw_valid_value': {
-            'incorrect_action': 'state/color',
-            'raw': 'on'
-        },
-
-        # Case: 1 key is correct / raw is correct, raw's value is not valid
-        # Similarly, action is incorrect, no need to check for a specific value
-        'correct_raw_invalid_value': {
-            'incorrect_action': 'state/color',
-            'raw': 'invalid'
-        },
-
-        # Case: 1 key is absence / action is absence, raw's value is valid
-        # Because action is absence, raw's value can be anything, even if it's valid
-        'absence_action': {
-            'raw': 'valid/invalid'
-        },
-
-        # Case: 2 keys are absence
-        'no_keys': {}
-    }
-
-    # List of transactions objects for requests that return 200 status codes
-    # Each transaction object have its checking case, inherited from these cases above, and its id
-    tx_code_200_state_ok = []
-    tx_code_200_state_error = []
-
-    # For every post request, get its transaction id and append to the corresponding list
-    # along with its checking case
-    # We only append the first returned transaction because at the moment,
-    # it is only possible to write one value at a time
-    for case, payload in code_200_state_ok.items():
-        write_req = requests.post(
-            '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
-            json=payload
-        )
-        assert write_req.status_code == 200
-
-        tx_code_200_state_ok.append({
-            'case': case,
-            'id': write_req.json()[0].get('transaction')
-        })
-
-    for case, payload in code_200_state_error.items():
-        write_req = requests.post(
-            '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
-            json=payload
-        )
-        assert write_req.status_code == 200
-
-        tx_code_200_state_error.append({
-            'case': case,
-            'id': write_req.json()[0].get('transaction')
-        })
-
-    # For requests that return 500 status code, there are no transactions have made
-    # Only check for its status code
-    for case, payload in code_400.items():
-        write_req = requests.post(
-            '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
-            json=payload
-        )
-        assert write_req.status_code == 400
-
-    # After making write requests and having all the transaction ids needed
-    # Check if transactions ids' states are correct
-    for case in tx_code_200_state_ok:
-        check_transaction(case['case'], case['id'], 'ok')
-
-    for case in tx_code_200_state_error:
-        check_transaction(case['case'], case['id'], 'error')
-
-
-def check_transaction(case, transaction_id, expected_state):
-    """Check a transaction request for a given transaction id and state
-
-    Args:
-        case(str): Transaction's checking case
-        transaction_id (str): Transaction's unique ID
-        expected_state (str): Expected state of the transaction
-    """
-    r = requests.get('{}/transaction/{}'.format(url, transaction_id))
-    if r.status_code != 200:
-        print(r.json())
-    assert r.status_code == 200
-
-    # If a transaction is done processing, check if it match the expected state
-    # Otherwise, sleep for some time and check again
-    if r.json().get('status') == 'done':
-        assert r.json().get('state') == expected_state
-    else:
-        time.sleep(0.1)
-        check_transaction(case, transaction_id, expected_state)
-
-
-def check_fan_write(rack_id, board_id, device_id):
-    """Check a write request for a given fan device
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-    """
-    # TODO: Fill in when API documentation is ready
-    pass
-
-
-def check_temperature_write(rack_id, board_id, device_id):
-    """Check a write request for a given temperature device
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-
-    Details:
-        Temperature device don't support write.
-        Should return 500 HTTP code and INVALID_ARGUMENTS error.
-    """
-    temperature_write_req = requests.post(
-        '{}/write/{}/{}/{}'.format(url, rack_id, board_id, device_id),
-        json={}
+    @pytest.mark.parametrize(
+        'rack,board,device', [
+            ('rack-1', 'vec', 'abcdefg'),
+            ('rack-1', 'no-such-board', '29d1a03e8cddfbf1cf68e14e60e5f5cc'),
+            ('rack-none', 'vec', '29d1a03e8cddfbf1cf68e14e60e5f5cc'),
+        ]
     )
-    assert temperature_write_req.status_code == 400
-    assert temperature_write_req.json().get('http_code') == 400
-    assert temperature_write_req.json().get('error_id') == errors.INVALID_ARGUMENTS
+    def test_read_bad_info(self, rack, board, device):
+        """Test Synse Server's 'read' route will passing in invalid rack, board,
+        and device info to read from.
+        """
+        response = requests.get(url('read/{}/{}/{}'.format(rack, board, device)))
+        assert response.status_code == 404
+
+        data = response.json()
+        # all of these errors should be device not found - this may seem strange
+        # since we have invalid rack and invalid board here, but we expect device
+        # not found because it comes from the check for device resolution.
+        validate_error_response(data, 404, errors.DEVICE_NOT_FOUND)
+
+    def test_read_bad_query_params(self):
+        """Test Synse Server's 'read' route, passing in query parameters.
+
+        The read route does not support query parameters, so it should return
+        a 400 error.
+        """
+        response = requests.get(
+            url('read/rack-1/vec/29d1a03e8cddfbf1cf68e14e60e5f5cc'),
+            params={'foo': 'bar'}
+        )
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
 
 
-def check_device_alias(rack_id, board_id, device_id, device_type):
-    """Check a alias request for a given device, device type, board, rack
+#
+# Write
+#
 
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-        device_type (str): Type of device
-    """
-    check_alias_no_query_param(rack_id, board_id, device_id, device_type)
-    check_alias_query_param(rack_id, board_id, device_id, device_type)
+class TestWrite(object):
+    """Tests for the 'write' route."""
 
-
-def check_alias_no_query_param(rack_id, board_id, device_id, device_type):
-    """Check a alias request using no query parameter
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-        device_type (str): Type of device
-
-    Details:
-        Without query parameter, it acts like a read request.
-        If a device type is not in the supported list, there is no endpoint for that device.
-        Should return 404 HTTP code and URL_NOT_FOUND error.
-    """
-    alias_req = requests.get(
-        '{}/{}/{}/{}/{}'.format(url, device_type, rack_id, board_id, device_id)
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.led
     )
-    if device_type in ['led', 'fan', 'power', 'boot_target']:
-        assert alias_req.status_code == 200
-        assert alias_req.json().get('type') == device_type
-        assert 'data' in alias_req.json()
-    else:
-        assert alias_req.status_code == 404
-        assert alias_req.json().get('http_code') == 404
-        assert alias_req.json().get('error_id') == errors.URL_NOT_FOUND
-
-
-def check_alias_query_param(rack_id, board_id, device_id, device_type):
-    """Check a alias request using query parameters
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-        device_type (str): Type of device
-
-    Details:
-        It acts like a write request if and only if query parameter(s) is valid.
-        Otherwise, it acts like a read request.
-    """
-    if device_type == 'led':
-        check_alias_led_query_param(rack_id, board_id, device_id)
-    elif device_type == 'fan':
-        # TODO: Fill in when API documentation is ready
-        pass
-    elif device_type == 'boot':
-        # TODO: Fill in when API documentation is ready
-        pass
-    elif device_type == 'boot_target':
-        # TODO: Fill in when API documentation is ready
-        pass
-    else:
-        # TODO: Fill in when API documentation is ready
-        pass
-
-
-def check_alias_led_query_param(rack_id, board_id, device_id):
-    """Check a alias led request using query parameters
-
-    Args:
-        rack_id (str): Rack's unique ID
-        board_id (str): Board's unique ID
-        device_id (str): Device's unique ID
-
-    Details:
-        There are 3 cases:
-        - status code is 200, state is ok
-        - state code is 500
-        - doesn't write anything, return like read request
-        Each case, except the last one, will check for both single and query parameters.
-    """
-    # Options that return 200 status code and their transactions states are ok
-    code_200_state_ok = {
-        # Case: Single query parameter / correct key and valid value
-        'state_on': 'state=on',
-        'state_off': 'state=off',
-        'state_blink': 'state=blink',
-        'color_min': 'color=000000',
-        'color_max': 'color=FFFFFF',
-
-        # Case: Multiple query parameters / different correct keys
-        'state_on_color_max': 'state=on&color=FFFFFF',
-        'color_max_state_blink': 'color=FFFFFF&state=blink',
-
-        # Case: Multiple query parameters / same correct keys, valid values
-        'state_off_on_blink': 'state=off&state=on&state=blink',
-        'color_min_max': 'color=000000&color=FFFFFF',
-
-        # Case: Multiple query parameters / same correct keys,
-        # 1 invalid value after 1 valid value
-        'state_valid_invalid': 'state=on&state=invalid',
-        'color_valid_invalid': 'color=000000&color=invalid',
-    }
-
-    # Options that return 400 status code
-    code_400 = {
-        # Case: Single query parameter / correct key and invalid value
-        'invalid_state': 'state=invalid',
-        'invalid_color': 'color=invalid',
-
-        # Case: Multiple query parameters / correct keys, 1 invalid value
-        'state_valid_color_invalid': 'state=on&color=invalid',
-        'state_invalid_color_valid': 'state=invalid&color=FFFFFF',
-        'color_valid_state_invalid': 'color=FFFFFF&state=invalid',
-        'color_invalid_state_valid': 'color=invalid&state=on',
-
-        # Case: Multiple query parameters / same correct keys,
-        # 1 valid value after 1 invalid value
-        'state_invalid_valid': 'state=invalid&state=on',
-        'color_invalid_valid': 'color=invalid&color=FFFFFF',
-    }
-
-    # Options that return like read requests
-    return_like_read = {
-        'absence_key': '',
-        'invalid_key': 'invalid',
-        'absence_state_value': 'state=',
-        'absence_color_value': 'color=',
-        'absence_state_value_no_equal_sign': 'state',
-        'absence_color_value_no_equal_sign': 'color',
-    }
-
-    # List of transactions objects for requests that return 200 status codes
-    # Similar to checking write request, each transaction object has its checking case and id
-    tx_code_200_state_ok = []
-
-    # For every post request, get its transaction id(s) and append to the corresponding list
-    for case, param in code_200_state_ok.items():
-        alias_req = requests.get(
-            '{}/led/{}/{}/{}?{}'.format(url, rack_id, board_id, device_id, param)
+    def test_write_ok(self, device):
+        """Test Synse Server's 'write' route, specifying writeable devices."""
+        response = requests.post(
+            url('write/rack-1/vec/{}'.format(device)),
+            data=ujson.dumps({'action': 'color', 'raw': 'ff00ff'})
         )
-        assert alias_req.status_code == 200
+        assert response.status_code == 200
 
-        # Using alias route, we can write multiple values for a device
-        # Each successful write has its own transaction id
-        # Therefore, unlike the write request, we need to append all the returned
-        # transactions to the list, instead of just the first one
-        for transaction in alias_req.json():
-            tx_code_200_state_ok.append({
-                'case': case,
-                'id': transaction.get('transaction')
-            })
+        data = response.json()
+        validate_write_ok(data, 1)
 
-    # For requests that return 500 status code, there are no transactions have made
-    # Only check for its status code
-    for case, param in code_400.items():
-        alias_req = requests.get(
-            '{}/led/{}/{}/{}?{}'.format(url, rack_id, board_id, device_id, param)
+        for t in data:
+            transaction_id = t['transaction']
+            transaction = wait_for_transaction(transaction_id)
+
+            assert transaction['state'] == 'ok'
+            assert transaction['status'] == 'done'
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.fan + EmulatorDevices.led, EmulatorDevices.all)
+    )
+    def test_write_error(self, device):
+        """Test Synse Server's 'write' route, specifying non-writable devices."""
+        response = requests.post(
+            url('write/rack-1/vec/{}'.format(device)),
+            data=ujson.dumps({'action': 'foo', 'raw': 'bar'})
         )
-        assert alias_req.status_code == 400
-        assert alias_req.json().get('http_code') == 400
-        assert alias_req.json().get('error_id') == errors.INVALID_ARGUMENTS
+        assert response.status_code == 500
 
-    # For requests that return just like read requests, simply check for its type and data
-    for case, param in return_like_read.items():
-        alias_req = requests.get(
-            '{}/led/{}/{}/{}?{}'.format(url, rack_id, board_id, device_id, param)
+        data = response.json()
+        validate_error_response(data, 500, errors.FAILED_WRITE_COMMAND)
+
+    @pytest.mark.parametrize(
+        'data', [
+            {},
+            {'raw': 'bar'},
+            {'foo': 'bar'}
+        ]
+    )
+    def test_write_bad_args(self, data):
+        """Test Synse Server's 'write' route, passing in bad write data."""
+        device = EmulatorDevices.led[0]
+
+        response = requests.post(url('write/rack-1/vec/{}'.format(device)), data=ujson.dumps(data))
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+
+    @pytest.mark.parametrize(
+        'data', [
+            {'action': 'foo'},
+            {'action': 'state', 'raw': 'value'},
+            {'action': 'color'},
+            {'action': 'color', 'raw': 'not-a-color'}
+        ]
+    )
+    def test_write_invalid_json(self, data):
+        """Test Synse Server's 'write' route, passing in bad data to the plugin."""
+        device = EmulatorDevices.led[0]
+
+        response = requests.post(url('write/rack-1/vec/{}'.format(device)), data=ujson.dumps(data))
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_write_ok(data, 1)
+
+        for t in data:
+            transaction_id = t['transaction']
+            transaction = wait_for_transaction(transaction_id)
+
+            assert transaction['state'] == 'error'
+            assert transaction['status'] == 'done'
+
+
+#
+# Info
+#
+
+class TestInfo(object):
+    """Tests for the 'info' route."""
+
+    def test_rack_info_no_ctx(self):
+        """Test Synse Server's 'info' route providing no context. This
+        should result in a test failure.
+        """
+        response = requests.get(url('info'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.URL_NOT_FOUND)
+
+    def test_rack_info_ok(self):
+        """Test Synse Server's 'info' route at the rack level."""
+        response = requests.get(url('info/rack-1'))
+        assert response.status_code == 200
+
+        data = response.json()
+        assert isinstance(data, dict)
+        assert 'rack' in data
+        assert 'boards' in data
+
+        assert data['rack'] == 'rack-1'
+        assert isinstance(data['boards'], list)
+        assert len(data['boards']) == 1
+        assert data['boards'][0] == 'vec'
+
+    def test_rack_info_error(self):
+        """Test Synse Server's 'info' route at the rack level, when the
+        rack does not exist.
+        """
+        response = requests.get(url('info/invalid-rack'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.RACK_NOT_FOUND)
+
+    def test_board_info_ok(self):
+        """Test Synse Server's 'info' route at the board level."""
+        response = requests.get(url('info/rack-1/vec'))
+        assert response.status_code == 200
+
+        data = response.json()
+        assert isinstance(data, dict)
+        assert 'board' in data
+        assert data['board'] == 'vec'
+
+        assert 'location' in data
+        assert isinstance(data['location'], dict)
+        assert 'rack' in data['location']
+        assert data['location']['rack'] == 'rack-1'
+
+        assert 'devices' in data
+        assert isinstance(data['devices'], list)
+        assert len(data['devices']) == len(EmulatorDevices.all)
+        for device in data['devices']:
+            assert device in EmulatorDevices.all
+
+    def test_board_info_error(self):
+        """Test Synse Server's 'info' route at the board level, when the
+        board does not exist.
+        """
+        response = requests.get(url('info/rack-1/invalid-board'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.BOARD_NOT_FOUND)
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.all
+    )
+    def test_device_info_ok(self, device):
+        """Test Synse Server's 'info' route at the device level."""
+        response = requests.get(url('info/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 200
+
+        data = response.json()
+        assert isinstance(data, dict)
+        assert 'timestamp' in data
+        assert 'uid' in data
+        assert 'type' in data
+        assert 'model' in data
+        assert 'manufacturer' in data
+        assert 'protocol' in data
+        assert 'info' in data
+        assert 'comment' in data
+        assert 'location' in data
+        assert 'output' in data
+
+        assert isinstance(data['location'], dict)
+        assert 'rack' in data['location']
+        assert 'board' in data['location']
+        assert data['location']['rack'] == 'rack-1'
+        assert data['location']['board'] == 'vec'
+
+    def test_device_info_error(self):
+        """Test Synse Server's 'info' route at the device level, when the
+        device does not exist.
+        """
+        response = requests.get(url('info/rack-1/vec/invalid-device'))
+        assert response.status_code == 404
+
+        data = response.json()
+        validate_error_response(data, 404, errors.DEVICE_NOT_FOUND)
+
+
+#
+# LED
+#
+
+class TestLED(object):
+    """Tests for the 'led' route."""
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.led
+    )
+    def test_led_read_ok(self, device):
+        """Test Synse Server's 'led' route, specifying valid LED devices to read from."""
+        response = requests.get(url('led/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_read(data)
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.led
+    )
+    def test_led_write_ok(self, device):
+        """Test Synse Server's 'led' route, specifying valid LED devices to write to
+        for a single writing value.
+        """
+        response = requests.get(url('led/rack-1/vec/{}'.format(device)), params={'color': 'ff00ff'})
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_write_ok(data, 1)
+
+        for t in data:
+            transaction_id = t['transaction']
+            transaction = wait_for_transaction(transaction_id)
+
+            assert transaction['state'] == 'ok'
+            assert transaction['status'] == 'done'
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.led
+    )
+    def test_led_write_multi_ok(self, device):
+        """Test Synse Server's 'led' route, specifying valid LED devices to write to
+        for multiple writing values.
+        """
+        response = requests.get(
+            url('led/rack-1/vec/{}'.format(device)),
+            params={'color': '00ffff', 'state': 'on'}
         )
-        assert alias_req.status_code == 200
-        assert alias_req.json().get('type') == 'led'
-        assert 'data' in alias_req.json()
+        assert response.status_code == 200
 
-    # After making requests and having all the transaction ids needed
-    # Check if transactions ids' states are correct
-    for case in tx_code_200_state_ok:
-        check_transaction(case['case'], case['id'], 'ok')
+        data = response.json()
+        validate_write_ok(data, 2)
+
+        for t in data:
+            transaction_id = t['transaction']
+            transaction = wait_for_transaction(transaction_id)
+
+            assert transaction['state'] == 'ok'
+            assert transaction['status'] == 'done'
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.led, EmulatorDevices.all)
+    )
+    def test_led_read_bad_device(self, device):
+        """Test Synse Server's 'led' route, specifying a non-LED device to read from."""
+        response = requests.get(url('led/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.led, EmulatorDevices.all)
+    )
+    def test_led_write_bad_device(self, device):
+        """Test Synse Server's 'led' route, specifying a non-LED device to write to."""
+        response = requests.get(url('led/rack-1/vec/{}'.format(device)), params={'color': 'ff0000'})
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+    @pytest.mark.parametrize(
+        'device,params', [(device, params) for params in [
+            {'foo': 'bar'},
+            {'color': '00ff00', 'foo': 'bar'},
+            {'color': 'this is not a color'},
+            {'state': 'on', 'foo': 'bar'},
+            {'state': 'invalid-state'}
+        ] for device in EmulatorDevices.led]
+    )
+    def test_led_write_bad_params(self, device, params):
+        """Test Synse Server's 'led' route, specifying invalid query parameters for write."""
+        response = requests.get(url('led/rack-1/vec/{}'.format(device)), params=params)
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+
+
+#
+# Fan
+#
+
+class TestFan(object):
+    """Tests for the 'fan' route."""
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.fan
+    )
+    def test_fan_read_ok(self, device):
+        """Test Synse Server's 'fan' route, specifying valid fan devices to read from."""
+        response = requests.get(url('fan/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_read(data)
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.fan
+    )
+    def test_fan_write_ok(self, device):
+        """Test Synse Server's 'fan' route, specifying valid fan devices to write to."""
+        response = requests.get(url('fan/rack-1/vec/{}'.format(device)), params={'speed': '50'})
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_write_ok(data, 1)
+
+        for t in data:
+            transaction_id = t['transaction']
+            transaction = wait_for_transaction(transaction_id)
+
+            assert transaction['state'] == 'ok'
+            assert transaction['status'] == 'done'
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.fan, EmulatorDevices.all)
+    )
+    def test_fan_read_bad_device(self, device):
+        """Test Synse Server's 'fan' route, specifying non-fan devices to read from."""
+        response = requests.get(url('fan/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.fan, EmulatorDevices.all)
+    )
+    def test_fan_write_bad_device(self, device):
+        """Test Synse Server's 'fan' route, specifying non-fan devices to write to."""
+        response = requests.get(url('fan/rack-1/vec/{}'.format(device)), params={'speed': '30'})
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+    @pytest.mark.parametrize(
+        'device,params', [(device, params) for params in [
+            {'foo': 'bar'},
+            {'speed': '50', 'foo': 'bar'},
+            {'speed_percent': '50', 'speed': '10'}
+        ] for device in EmulatorDevices.fan]
+    )
+    def test_fan_write_bad_params(self, device, params):
+        """Test Synse Server's 'fan' route, specifying invalid query parameters for write."""
+        response = requests.get(url('fan/rack-1/vec/{}'.format(device)), params=params)
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)

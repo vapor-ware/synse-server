@@ -40,6 +40,13 @@ setup(
         'synse-plugin',
         'bison>=0.0.5'
     ],
+    tests_require=[
+        'aiohttp',
+        'asynctest',
+        'pytest',
+        'pytest-asyncio',
+        'pytest-mock'
+    ],
     zip_safe=False,
     classifiers=[
         'Natural Language :: English',

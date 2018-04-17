@@ -5,84 +5,85 @@ import pytest
 from synse import utils
 
 
-def test_composite():
+@pytest.mark.parametrize(
+    'params,expected', [
+        (('r', 'b', 'd'), 'r-b-d'),
+        (('0', '1', '2'), '0-1-2'),
+        (('abcdefghijk', '', '1234567890'), 'abcdefghijk--1234567890'),
+        (('-', '-', '-'), '-----'),
+    ]
+)
+def test_composite(params, expected):
     """Test successfully composing various string combinations."""
-    cases = {
-        'r-b-d': ('r', 'b', 'd'),
-        '0-1-2': ('0', '1', '2'),
-        'abcdefghijk--1234567890': ('abcdefghijk', '', '1234567890')
-    }
-
-    for expected, params in cases.items():
-        actual = utils.composite(params[0], params[1], params[2])
-        assert expected == actual
+    actual = utils.composite(*params)
+    assert expected == actual
 
 
-def test_s_to_bool():
+@pytest.mark.parametrize(
+    'val,expected', [
+        ('true', True),
+        ('True', True),
+        ('TRUE', True),
+        ('tRuE', True),
+        ('false', False),
+        ('False', False),
+        ('FALSE', False),
+        ('fAlSe', False),
+    ]
+)
+def test_s_to_bool(val, expected):
     """Test successfully converting from string to bool."""
-    cases = {
-        'true': True,
-        'True': True,
-        'TRUE': True,
-        'tRuE': True,
-        'false': False,
-        'False': False,
-        'FALSE': False,
-        'fAlSe': False
-    }
-
-    for case, expected in cases.items():
-        actual = utils.s_to_bool(case)
-        assert actual == expected
+    actual = utils.s_to_bool(val)
+    assert expected == actual
 
 
-def test_s_to_bool_invalid():
-    """Test unsuccessfully converting from string to bool."""
-    cases = [
+@pytest.mark.parametrize(
+    'val', [
         'a',
         '',
         '1',
         '0',
         'yes',
-        'no'
+        'no',
     ]
+)
+def test_s_to_bool_invalid(val):
+    """Test unsuccessfully converting from string to bool."""
+    with pytest.raises(ValueError):
+        utils.s_to_bool(val)
 
-    for case in cases:
-        with pytest.raises(ValueError):
-            utils.s_to_bool(case)
 
-
-def test_s_to_int():
+@pytest.mark.parametrize(
+    'val,expected', [
+        ('0', 0),
+        ('2', 2),
+        ('256', 256),
+        ('9999999', 9999999),
+        ('-1', -1),
+        ('-2953', -2953),
+        ('0.0', 0),
+        ('0.1', 0),
+        ('12.5', 12),
+        ('-5.0', -5),
+        ('-12.5', -12),
+    ]
+)
+def test_s_to_int(val, expected):
     """Test successfully converting from string to int"""
-    cases = {
-        '0': 0,
-        '2': 2,
-        '256': 256,
-        '9999999': 9999999,
-        '-1': -1,
-        '-2953': -2953,
-        '0.0': 0,
-        '0.1': 0,
-        '12.5': 12,
-        '-5.0': -5,
-        '-12.5': -12
-    }
-
-    for case, expected in cases.items():
-        actual = utils.s_to_int(case)
-        assert actual == expected
+    actual = utils.s_to_int(val)
+    assert expected == actual
 
 
-def test_s_to_int_invalid():
-    """Test unsuccessfully converting from string to int"""
-    cases = [
+@pytest.mark.parametrize(
+    'val', [
         'abc',
         '...',
         'true',
         'false',
-        'e^2'
+        'e^2',
     ]
-
-    for case in cases:
-        with pytest.raises(ValueError):
-            utils.s_to_int(case)
+)
+def test_s_to_int_invalid(val):
+    """Test unsuccessfully converting from string to int"""
+    with pytest.raises(ValueError):
+        utils.s_to_int(val)
