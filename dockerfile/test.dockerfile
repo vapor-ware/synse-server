@@ -1,5 +1,6 @@
 FROM python:3.6-alpine
-MAINTAINER Vapor IO <vapor@vapor.io>
+
+LABEL maintainer="vapor@vapor.io"
 
 RUN apk add --update \
   alpine-sdk \
