@@ -1,5 +1,4 @@
-"""Response scheme for the `write` endpoint.
-"""
+"""Response scheme for the `write` endpoint."""
 
 from synse.scheme.base_response import SynseResponse
 

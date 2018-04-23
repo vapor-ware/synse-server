@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# synse.sh
+#
+# This script is the entrypoint script for the Synse Server docker
+# images. It is used to start Synse Server and to optionally start
+# an instance of the emulator plugin alongside it.
+#
 # ---------------------------------------------------------------------
 # Copyright (C) 2015-18  Vapor IO
 #
@@ -99,4 +106,4 @@ do
 done
 
 # start synse
-python /synse/runserver.py
+python synse

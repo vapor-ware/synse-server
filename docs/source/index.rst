@@ -36,7 +36,7 @@ the plugins that Synse Server can interface with. Plugins implement a given prot
 to a given collection of devices, whether that is a serial protocol for sensors, or an HTTP
 protocol for some external REST API is up to the plugin implementation.
 
-.. image:: _static/arch.png
+.. image:: _static/arch.svg
 
 Synse Server really acts as the front-end interface for all the different protocols/devices.
 It gives a uniform API to the user, routes commands to the proper device (e.g. to the plugin
@@ -110,3 +110,4 @@ development workflow, testing practices, and debugging process.
    dev/setup
    dev/testing
    dev/debugging
+   dev/i18n.rst

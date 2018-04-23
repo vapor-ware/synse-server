@@ -42,7 +42,7 @@ Synse Server is one component of the greater Synse Ecosystem.
 
 ## Architecture Overview
 
-<p align="center"><img src="assets/arch.png" width="500" /></p>
+<p align="center"><img src="assets/arch.svg" width="500" /></p>
 
 Synse Server is a micro-service that provides an HTTP interface for interaction and control
 of devices. Synse Server does not directly interface with the devices -- that job is left to

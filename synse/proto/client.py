@@ -1,5 +1,4 @@
-"""Synse Server python client for communicating to plugins via the gRPC API.
-"""
+"""Synse Server python client for communicating to plugins via the gRPC API."""
 
 import os
 
@@ -9,7 +8,7 @@ from synse_plugin import grpc as synse_grpc
 
 from synse import config, errors
 from synse.const import SOCKET_DIR
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 
 
@@ -82,7 +81,7 @@ class SynseInternalClient(object):
             target = self.addr
         else:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid gRPC client mode: {}').format(self.mode)
+                _('Invalid gRPC client mode: {}').format(self.mode)
             )
 
         return grpc.insecure_channel(target)
@@ -122,12 +121,12 @@ class SynseInternalClient(object):
         SynseInternalClient(name, addr, mode)
         cli = cls._client_stubs[name]
 
-        logger.debug(gettext('Registered Client:'))
-        logger.debug(gettext('  name:    {}').format(cli.name))
-        logger.debug(gettext('  mode:    {}').format(cli.mode))
-        logger.debug(gettext('  address: {}').format(cli.addr))
-        logger.debug(gettext('  channel: {}').format(cli.channel))
-        logger.debug(gettext('  stub:    {}').format(cli.stub))
+        logger.debug(_('Registered Client:'))
+        logger.debug(_('  name:    {}').format(cli.name))
+        logger.debug(_('  mode:    {}').format(cli.mode))
+        logger.debug(_('  address: {}').format(cli.addr))
+        logger.debug(_('  channel: {}').format(cli.channel))
+        logger.debug(_('  stub:    {}').format(cli.stub))
         return cli
 
     def read(self, rack, board, device):

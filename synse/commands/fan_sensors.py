@@ -1,5 +1,4 @@
-"""Command handler for the `fan sensor` route.
-"""
+"""Command handler for the `fan sensor` route."""
 
 import datetime
 from collections import OrderedDict

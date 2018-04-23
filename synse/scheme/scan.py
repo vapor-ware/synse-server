@@ -1,5 +1,4 @@
-"""Response scheme for the `scan` endpoint.
-"""
+"""Response scheme for the `scan` endpoint."""
 
 from synse.scheme.base_response import SynseResponse
 

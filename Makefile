@@ -1,6 +1,7 @@
 #
 # Synse Server
 #
+
 PKG_NAME := synse
 IMG_NAME := vaporio/synse-server
 PKG_VER  := $(shell python -c "import synse ; print(synse.__version__)")
@@ -8,12 +9,24 @@ DATE     := $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 
+HAS_TRANSLATIONS := $(shell find synse -name '*.mo')
 HAS_PY36 := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
 HAS_PIP_COMPILE := $(shell which pip-compile)
 
 # Docker Image tags
 DEFAULT_TAGS = ${IMG_NAME}:latest ${IMG_NAME}:${PKG_VER} ${IMG_NAME}:${GIT_VER}
 SLIM_TAGS = ${IMG_NAME}:slim ${IMG_NAME}:${PKG_VER}-slim
+
+
+# Targets to enforce requirements. These are undocumented by `help` as
+# they should only be called as target dependencies.
+
+# requires translation files (.mo) to be present
+.PHONY: req-translations
+req-translations:
+ifndef HAS_TRANSLATIONS
+	make i18n-compile
+endif
 
 
 # Packaging
@@ -81,7 +94,7 @@ cover: test-unit ## Run unit tests and open the HTML coverage report
 	open ./results/cov-html/index.html
 
 .PHONY: docker
-docker: docker-default docker-slim ## Build the docker image for Synse Server locally
+docker: req-translations docker-default docker-slim ## Build the docker image for Synse Server locally
 
 .PHONY: api-doc
 api-doc: ## Open the API doc HTML reference
@@ -123,7 +136,7 @@ run: docker ## Build and run Synse Server locally (localhost:5000) with emulator
 test: pycache-clean test-unit test-integration test-end-to-end ## Run all tests
 
 .PHONY: test-unit
-test-unit: pycache-clean ## Run unit tests
+test-unit: pycache-clean req-translations ## Run unit tests
 ifdef HAS_PY36
 	tox tests/unit
 else
@@ -135,7 +148,7 @@ else
 endif
 
 .PHONY: test-integration
-test-integration: pycache-clean ## Run integration tests
+test-integration: pycache-clean req-translations ## Run integration tests
 ifdef HAS_PY36
 	tox tests/integration
 else
@@ -147,7 +160,7 @@ else
 endif
 
 .PHONY: test-end-to-end
-test-end-to-end: pycache-clean ## Run end to end tests
+test-end-to-end: pycache-clean req-translations ## Run end to end tests
 ifdef HAS_PY36
 	docker-compose -f compose/synse.yml up -d --build
 	tox tests/end_to_end
@@ -167,9 +180,21 @@ ifndef HAS_PIP_COMPILE
 endif
 	pip-compile --output-file requirements.txt setup.py
 
-.PHONY: translations
-translations:  ## (Re)generate the translations.
-	tox -e translations
+.PHONY: i18n-extract
+i18n-extract:  ## Extract localizable messages from Synse Server source files
+	tox -e i18n-extract
+
+.PHONY: i18n-init
+i18n-init: i18n-extract  ## Create a new translations catalog
+	tox -e i18n-init
+
+.PHONY: i18n-update
+i18n-update: i18n-extract  ## Update an existing translations catalog
+	tox -e i18n-update
+
+.PHONY: i18n-compile
+i18n-compile:  ## Compile translations catalogs into a binary .mo file
+	tox -e i18n-compile
 
 .PHONY: version
 version: ## Print the version of Synse Server
@@ -177,6 +202,6 @@ version: ## Print the version of Synse Server
 
 .PHONY: help
 help:  ## Print Make usage information
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
 .DEFAULT_GOAL := help

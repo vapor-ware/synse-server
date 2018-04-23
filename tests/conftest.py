@@ -68,17 +68,3 @@ def disable_logging():
 def no_pretty_json():
     """Fixture to ensure basic JSON responses."""
     config.options.set('pretty_json', False)
-
-
-@pytest.fixture(autouse=True)
-def i18n_passthrough():
-    """Sets i18n.trans_func, just like if i18n.init_gettext was called."""
-    from synse import i18n
-    old_trans_func = i18n.trans_func
-    i18n.old_trans_func = old_trans_func
-    trans = lambda s: s
-    i18n.trans_func = trans
-
-    yield
-
-    i18n.trans_func = old_trans_func

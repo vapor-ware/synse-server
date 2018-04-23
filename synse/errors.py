@@ -1,5 +1,4 @@
-"""Error definitions for Synse Server.
-"""
+"""Error definitions for Synse Server."""
 
 from sanic.exceptions import InvalidUsage, NotFound, ServerError
 

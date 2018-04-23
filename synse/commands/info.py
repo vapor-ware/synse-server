@@ -1,8 +1,7 @@
-"""Command handler for the `info` route.
-"""
+"""Command handler for the `info` route."""
 
 from synse import cache, errors
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.scheme.info import InfoResponse
 
@@ -20,7 +19,7 @@ async def info(rack, board=None, device=None):
     """
     if rack is None:
         raise errors.InvalidArgumentsError(
-            gettext('No rack specified when issuing info command.')
+            _('No rack specified when issuing info command.')
         )
 
     _cache = await cache.get_resource_info_cache()
@@ -82,21 +81,21 @@ def get_resources(info_cache, rack=None, board=None, device=None):
         r = info_cache.get(rack)
         if not r:
             raise errors.RackNotFoundError(
-                gettext('Unable to find rack "{}" in info cache.').format(rack)
+                _('Unable to find rack "{}" in info cache.').format(rack)
             )
 
     if board is not None:
         b = r['boards'].get(board)
         if not b:
             raise errors.BoardNotFoundError(
-                gettext('Unable to find board "{}" in info cache.').format(board)
+                _('Unable to find board "{}" in info cache.').format(board)
             )
 
     if device is not None:
         d = b['devices'].get(device)
         if not d:
             raise errors.DeviceNotFoundError(
-                gettext('Unable to find device "{}" in info cache.').format(device)
+                _('Unable to find device "{}" in info cache.').format(device)
             )
 
     return r, b, d

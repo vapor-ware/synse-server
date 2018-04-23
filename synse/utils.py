@@ -1,5 +1,4 @@
-"""Synse Server utility and convenience methods.
-"""
+"""Synse Server utility and convenience methods."""
 
 import datetime
 

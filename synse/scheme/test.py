@@ -1,5 +1,4 @@
-"""Response scheme for the `test` endpoint.
-"""
+"""Response scheme for the `test` endpoint."""
 
 from synse import utils
 from synse.scheme.base_response import SynseResponse

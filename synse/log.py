@@ -1,5 +1,4 @@
-"""Synse Server application logging.
-"""
+"""Synse Server application logging."""
 
 import logging
 import sys

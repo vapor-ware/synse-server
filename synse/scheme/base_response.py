@@ -1,5 +1,4 @@
-"""Base response model for all Synse Server response schemes.
-"""
+"""Base response model for all Synse Server response schemes."""
 
 from synse.response import json
 

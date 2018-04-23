@@ -1,8 +1,7 @@
-"""Response scheme for the `read` endpoint.
-"""
+"""Response scheme for the `read` endpoint."""
 
 from synse import utils
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.scheme.base_response import SynseResponse
 
@@ -70,7 +69,7 @@ class ReadResponse(SynseResponse):
         Returns:
             dict: A properly formatted Read response.
         """
-        logger.debug(gettext('Making read response'))
+        logger.debug(_('Making read response'))
         formatted = {}
 
         dev_output = self.device.output
@@ -83,7 +82,7 @@ class ReadResponse(SynseResponse):
             precision = None
             data_type = None
 
-            logger.debug(gettext('device output: {}').format(dev_output))
+            logger.debug(_('device output: {}').format(dev_output))
             found = False
             for out in dev_output:
                 if out.type == rt:
@@ -105,12 +104,12 @@ class ReadResponse(SynseResponse):
             # return it, and instead will just just skip over it.
             if not found:
                 logger.warning(
-                    gettext('Found unexpected reading type "{}" for device {}')
+                    _('Found unexpected reading type "{}" for device {}')
                     .format(rt, self.device)
                 )
                 continue
 
-            logger.debug(gettext('  Precision: {}').format(precision))
+            logger.debug(_('  Precision: {}').format(precision))
             value = reading.value
 
             # Handle cases where no data was read. Currently, we consider the reading
@@ -128,14 +127,14 @@ class ReadResponse(SynseResponse):
                         value = str(round(float(value), precision))
                     except ValueError:
                         logger.warning(
-                            gettext('Invalid value for {}: "{}"').format(data_type, value)
+                            _('Invalid value for {}: "{}"').format(data_type, value)
                         )
 
                 # cast to the specified type
                 try:
                     value = self._data_types.get(data_type, str)(value)
                 except ValueError:
-                    logger.warning(gettext('Failed to convert "{}" to {}').format(value, data_type))
+                    logger.warning(_('Failed to convert "{}" to {}').format(value, data_type))
 
             formatted[rt] = {
                 'value': value,

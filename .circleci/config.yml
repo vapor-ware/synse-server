@@ -54,6 +54,12 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Install Dependencies
+          command: |
+            sudo chown -R circleci:circleci /usr/local/bin
+            sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+            pip install tox>=2.9.0
+      - run:
           name: Build Images
           command: |
             make docker
@@ -114,7 +120,6 @@ jobs:
               -replace \
               -draft \
               ${CIRCLE_TAG} build/
-
 
 
 workflows:

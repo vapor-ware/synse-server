@@ -1,10 +1,9 @@
-"""Command handler for the `write` route.
-"""
+"""Command handler for the `write` route."""
 
 import grpc
 
 from synse import cache, errors, plugin
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.proto.client import WriteData
 from synse.scheme.write import WriteResponse
@@ -28,13 +27,13 @@ async def write(rack, board, device, data):
         rack, board, device, data))
 
     # lookup the known info for the specified device
-    plugin_name, _ = await cache.get_device_meta(rack, board, device)
+    plugin_name, __ = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
 
     # get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
         raise errors.PluginNotFoundError(
-            gettext('Unable to find plugin named "{}"').format(plugin_name)
+            _('Unable to find plugin named "{}"').format(plugin_name)
         )
 
     # the data comes in as the POSTed dictionary which includes an 'action'
@@ -43,7 +42,7 @@ async def write(rack, board, device, data):
     action = data.get('action')
     if not isinstance(action, str):
         raise errors.InvalidArgumentsError(
-            gettext('"action" value must be a string, but was {}'.format(type(action)))
+            _('"action" value must be a string, but was {}'.format(type(action)))
         )
 
     raw = data.get('raw')
@@ -51,7 +50,7 @@ async def write(rack, board, device, data):
         # raw should be a string - we need to convert to bytes
         if not isinstance(raw, str):
             raise errors.InvalidArgumentsError(
-                gettext('"raw" value must be a string, but was {}'.format(type(raw)))
+                _('"raw" value must be a string, but was {}'.format(type(raw)))
             )
         raw = [str.encode(raw)]
 
@@ -76,7 +75,7 @@ async def write(rack, board, device, data):
         }
         ok = await cache.add_transaction(_id, context, _plugin.name)
         if not ok:
-            logger.error(gettext('Failed to add transaction {} to the cache.').format(_id))
+            logger.error(_('Failed to add transaction {} to the cache.').format(_id))
 
     return WriteResponse(
         transactions=t.transactions

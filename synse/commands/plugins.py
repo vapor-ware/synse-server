@@ -1,5 +1,4 @@
-"""Command handler for the `plugins` route.
-"""
+"""Command handler for the `plugins` route."""
 
 from synse import plugin
 from synse.scheme.plugins import PluginsResponse

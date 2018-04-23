@@ -1,5 +1,4 @@
-"""Utilities for application responses.
-"""
+"""Utilities for application responses."""
 
 import ujson
 from sanic.response import json as sjson

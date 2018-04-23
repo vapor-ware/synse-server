@@ -1,5 +1,4 @@
-"""Command handler for the `config` route.
-"""
+"""Command handler for the `config` route."""
 
 from synse.scheme.config import ConfigResponse
 

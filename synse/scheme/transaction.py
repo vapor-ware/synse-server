@@ -1,5 +1,4 @@
-"""Response scheme for the `transaction` endpoint.
-"""
+"""Response scheme for the `transaction` endpoint."""
 
 from synse.proto import util as putil
 from synse.scheme.base_response import SynseResponse

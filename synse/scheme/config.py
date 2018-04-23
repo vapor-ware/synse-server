@@ -1,5 +1,4 @@
-"""Response scheme for the `config` endpoint.
-"""
+"""Response scheme for the `config` endpoint."""
 
 from synse import config
 from synse.scheme.base_response import SynseResponse

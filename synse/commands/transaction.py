@@ -1,10 +1,9 @@
-"""Command handler for the `transaction` route.
-"""
+"""Command handler for the `transaction` route."""
 
 import grpc
 
 from synse import cache, errors, plugin
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.scheme import transaction as scheme
 
 
@@ -32,7 +31,7 @@ async def check_transaction(transaction_id):
     transaction = await cache.get_transaction(transaction_id)
     if not transaction:
         raise errors.TransactionNotFoundError(
-            gettext('Transaction with id "{}" not found').format(transaction_id)
+            _('Transaction with id "{}" not found').format(transaction_id)
         )
 
     plugin_name = transaction.get('plugin')
@@ -47,14 +46,14 @@ async def check_transaction(transaction_id):
         #   alternatively, we could think about having an internal api command to
         #   essentially dump the active transactions so that we can rebuild the cache.
         raise errors.TransactionNotFoundError(
-            gettext('Unable to determine managing plugin for transaction {}.')
+            _('Unable to determine managing plugin for transaction {}.')
             .format(transaction_id)
         )
 
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
         raise errors.PluginNotFoundError(
-            gettext('Unable to find plugin "{}".').format(plugin_name)
+            _('Unable to find plugin "{}".').format(plugin_name)
         )
 
     try:
