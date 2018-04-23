@@ -1,10 +1,9 @@
-"""Synse Server utility and convenience methods.
-"""
+"""Synse Server utility and convenience methods."""
 
 from functools import wraps
 
 from synse import cache, errors
-from synse.i18n import gettext
+from synse.i18n import _
 
 
 async def validate_device_type(device_type, rack, board, device):
@@ -24,7 +23,7 @@ async def validate_device_type(device_type, rack, board, device):
     _, device = await cache.get_device_meta(rack, board, device)
     if device.type != device_type.lower():
         raise errors.InvalidDeviceType(
-            gettext('Device ({}) is not of type {}').format(device.type, device_type)
+            _('Device ({}) is not of type {}').format(device.type, device_type)
         )
 
 
@@ -49,7 +48,7 @@ def validate_query_params(raw_args, *valid_params):
     for k, v in raw_args.items():
         if k not in valid_params:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid query param: {} (valid params: {})').format(k, valid_params)
+                _('Invalid query param: {} (valid params: {})').format(k, valid_params)
             )
         params[k] = v
     return params
@@ -70,7 +69,7 @@ def no_query_params():
         async def inner(request, *args, **kwargs):  # pylint: disable=missing-docstring
             if len(request.raw_args) != 0:
                 raise errors.InvalidArgumentsError(
-                    gettext('Endpoint does not support query parameters but got: {}').format(
+                    _('Endpoint does not support query parameters but got: {}').format(
                         request.raw_args)
                 )
             return await f(request, *args, **kwargs)

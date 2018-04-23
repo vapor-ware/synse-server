@@ -1,6 +1,7 @@
 #
 # Synse Server
 #
+
 PKG_NAME := synse
 IMG_NAME := vaporio/synse-server
 PKG_VER := $(shell python -c "import synse ; print(synse.__version__)")
@@ -158,9 +159,21 @@ ifndef HAS_PIP_COMPILE
 endif
 	pip-compile --output-file requirements.txt setup.py
 
-.PHONY: translations
-translations:  ## (Re)generate the translations.
-	tox -e translations
+.PHONY: i18n-extract
+i18n-extract:  ## Extract localizable messages from Synse Server source files
+	tox -e i18n-extract
+
+.PHONY: i18n-init
+i18n-init: i18n-extract  ## Create a new translations catalog
+	tox -e i18n-init
+
+.PHONY: i18n-update
+i18n-update: i18n-extract  ## Update an existing translations catalog
+	tox -e i18n-update
+
+.PHONY: i18n-compile
+i18n-compile:  ## Compile translations catalogs into a binary .mo file
+	tox -e i18n-compile
 
 .PHONY: version
 version: ## Print the version of Synse Server
@@ -168,6 +181,6 @@ version: ## Print the version of Synse Server
 
 .PHONY: help
 help:  ## Print Make usage information
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
 .DEFAULT_GOAL := help

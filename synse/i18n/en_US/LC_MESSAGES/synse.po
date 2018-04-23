@@ -1,14 +1,15 @@
-# English (United States) translations for PROJECT.
-# Copyright (C) 2018 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
+# English (United States) translations for Synse Server.
+# Copyright (C) 2018 Vapor IO
+# This file is distributed under the same license as the Synse Server
+# project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-04-16 11:31-0400\n"
-"PO-Revision-Date: 2018-04-16 11:31-0400\n"
+"POT-Creation-Date: 2018-04-23 14:33-0400\n"
+"PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -18,289 +19,289 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
 
-#: synse/cache.py:46
+#: synse/cache.py:45
 msgid "CONFIGURING CACHE: {}"
 msgstr ""
 
-#: synse/cache.py:138
+#: synse/cache.py:137
 msgid "{} does not correspond with a known device."
 msgstr ""
 
-#: synse/cache.py:328
+#: synse/cache.py:327
 msgid "Building the metainfo cache."
 msgstr ""
 
-#: synse/cache.py:336
+#: synse/cache.py:335
 msgid "Manager has no plugins - registering plugins."
 msgstr ""
 
-#: synse/cache.py:340
+#: synse/cache.py:339
 msgid "plugins to scan: {}"
 msgstr ""
 
-#: synse/cache.py:365
+#: synse/cache.py:364
 msgid "Failed to get metainfo for plugin: {}"
 msgstr ""
 
-#: synse/cache.py:372
+#: synse/cache.py:371
 msgid "Failed to scan all plugins: {}"
 msgstr ""
 
-#: synse/cache.py:390
+#: synse/cache.py:389
 msgid "Building the scan cache."
 msgstr ""
 
-#: synse/cache.py:501
+#: synse/cache.py:500
 msgid "Building the info cache."
 msgstr ""
 
-#: synse/plugin.py:42
+#: synse/plugin.py:41
 msgid "Only Plugin instances can be added to the manager."
 msgstr ""
 
-#: synse/plugin.py:48
+#: synse/plugin.py:47
 msgid "Plugin (\"{}\") already exists in the manager."
 msgstr ""
 
-#: synse/plugin.py:64
+#: synse/plugin.py:63
 msgid "\"{}\" is not known to PluginManager - nothing to remove."
 msgstr ""
 
-#: synse/plugin.py:79
+#: synse/plugin.py:78
 msgid "PluginManager purged: {}"
 msgstr ""
 
-#: synse/plugin.py:117
+#: synse/plugin.py:116
 msgid "The given mode ({}) must be one of: tcp, unix"
 msgstr ""
 
-#: synse/plugin.py:123
+#: synse/plugin.py:122
 msgid "Unix socket ({}) does not exist."
 msgstr ""
 
-#: synse/plugin.py:171
+#: synse/plugin.py:170
 msgid "Plugins to be removed from manager: {}"
 msgstr ""
 
-#: synse/plugin.py:174
+#: synse/plugin.py:173
 msgid "done registering plugins"
 msgstr ""
 
-#: synse/plugin.py:191
+#: synse/plugin.py:190
 msgid "Registering plugins (unix)"
 msgstr ""
 
-#: synse/plugin.py:235 synse/plugin.py:266
+#: synse/plugin.py:234 synse/plugin.py:265
 msgid "Created new plugin (unix): {}"
 msgstr ""
 
-#: synse/plugin.py:238 synse/plugin.py:278
+#: synse/plugin.py:237 synse/plugin.py:277
 msgid "plugin \"{}\" already exists - will not re-register (unix)"
 msgstr ""
 
-#: synse/plugin.py:247
+#: synse/plugin.py:246
 msgid "default socket path does not exist, no plugins registered from {}"
 msgstr ""
 
-#: synse/plugin.py:252
+#: synse/plugin.py:251
 msgid "socket dir exists"
 msgstr ""
 
-#: synse/plugin.py:284
+#: synse/plugin.py:283
 msgid "file is not a socket.. {}"
 msgstr ""
 
-#: synse/plugin.py:295
+#: synse/plugin.py:294
 msgid "Registering plugins (tcp)"
 msgstr ""
 
-#: synse/plugin.py:300
+#: synse/plugin.py:299
 msgid "found no plugins configured for tcp"
 msgstr ""
 
-#: synse/plugin.py:313
+#: synse/plugin.py:312
 msgid "Created new plugin (tcp): {}"
 msgstr ""
 
-#: synse/plugin.py:316
+#: synse/plugin.py:315
 msgid "plugin \"{}\" already exists - will not re-register (tcp)"
 msgstr ""
 
-#: synse/validate.py:27
+#: synse/validate.py:26
 msgid "Device ({}) is not of type {}"
 msgstr ""
 
-#: synse/routes/aliases.py:163 synse/routes/aliases.py:169 synse/validate.py:52
+#: synse/routes/aliases.py:162 synse/routes/aliases.py:168 synse/validate.py:51
 msgid "Invalid query param: {} (valid params: {})"
 msgstr ""
 
-#: synse/validate.py:73
+#: synse/validate.py:72
 msgid "Endpoint does not support query parameters but got: {}"
 msgstr ""
 
-#: synse/commands/info.py:23
+#: synse/commands/info.py:22
 msgid "No rack specified when issuing info command."
 msgstr ""
 
-#: synse/commands/info.py:85
+#: synse/commands/info.py:84
 msgid "Unable to find rack \"{}\" in info cache."
 msgstr ""
 
-#: synse/commands/info.py:92
+#: synse/commands/info.py:91
 msgid "Unable to find board \"{}\" in info cache."
 msgstr ""
 
-#: synse/commands/info.py:99
+#: synse/commands/info.py:98
 msgid "Unable to find device \"{}\" in info cache."
 msgstr ""
 
-#: synse/commands/read.py:27
+#: synse/commands/read.py:26
 msgid "Device {} is managed by plugin {}"
 msgstr ""
 
-#: synse/commands/read.py:31
+#: synse/commands/read.py:30
 msgid "Got plugin: {}"
 msgstr ""
 
-#: synse/commands/read.py:34
+#: synse/commands/read.py:33
 msgid "Unable to find plugin named \"{}\" to read."
 msgstr ""
 
-#: synse/commands/scan.py:30
+#: synse/commands/scan.py:29
 msgid "Re-registering plugins."
 msgstr ""
 
-#: synse/commands/scan.py:33
+#: synse/commands/scan.py:32
 msgid "Running \"scan\" command."
 msgstr ""
 
-#: synse/commands/scan.py:39
+#: synse/commands/scan.py:38
 msgid "Unable to filter by resource - no scan results returned."
 msgstr ""
 
-#: synse/commands/scan.py:48
+#: synse/commands/scan.py:47
 msgid "Rack \"{}\" not found in scan results."
 msgstr ""
 
-#: synse/commands/scan.py:58
+#: synse/commands/scan.py:57
 msgid "Board \"{}\" not found in scan results."
 msgstr ""
 
-#: synse/commands/scan.py:61
+#: synse/commands/scan.py:60
 msgid "Making \"scan\" response."
 msgstr ""
 
-#: synse/commands/transaction.py:35
+#: synse/commands/transaction.py:34
 msgid "Transaction with id \"{}\" not found"
 msgstr ""
 
-#: synse/commands/transaction.py:50
+#: synse/commands/transaction.py:49
 msgid "Unable to determine managing plugin for transaction {}."
 msgstr ""
 
-#: synse/commands/transaction.py:57
+#: synse/commands/transaction.py:56
 msgid "Unable to find plugin \"{}\"."
 msgstr ""
 
-#: synse/commands/write.py:37
+#: synse/commands/write.py:36
 msgid "Unable to find plugin named \"{}\""
 msgstr ""
 
-#: synse/commands/write.py:46
+#: synse/commands/write.py:45
 msgid "\"action\" value must be a string, but was {}"
 msgstr ""
 
-#: synse/commands/write.py:54
+#: synse/commands/write.py:53
 msgid "\"raw\" value must be a string, but was {}"
 msgstr ""
 
-#: synse/commands/write.py:79
+#: synse/commands/write.py:78
 msgid "Failed to add transaction {} to the cache."
 msgstr ""
 
-#: synse/proto/client.py:85
+#: synse/proto/client.py:84
 msgid "Invalid gRPC client mode: {}"
 msgstr ""
 
-#: synse/proto/client.py:125
+#: synse/proto/client.py:124
 msgid "Registered Client:"
 msgstr ""
 
-#: synse/proto/client.py:126
+#: synse/proto/client.py:125
 msgid "  name:    {}"
 msgstr ""
 
-#: synse/proto/client.py:127
+#: synse/proto/client.py:126
 msgid "  mode:    {}"
 msgstr ""
 
-#: synse/proto/client.py:128
+#: synse/proto/client.py:127
 msgid "  address: {}"
 msgstr ""
 
-#: synse/proto/client.py:129
+#: synse/proto/client.py:128
 msgid "  channel: {}"
 msgstr ""
 
-#: synse/proto/client.py:130
+#: synse/proto/client.py:129
 msgid "  stub:    {}"
 msgstr ""
 
-#: synse/routes/aliases.py:50
+#: synse/routes/aliases.py:49
 msgid "Invalid state \"{}\". Must be one of {}"
 msgstr ""
 
-#: synse/routes/aliases.py:64
+#: synse/routes/aliases.py:63
 msgid ""
 "Invalid color value ({}). Must be a hexadecimal string between 000000 and"
 " FFFFFF."
 msgstr ""
 
-#: synse/routes/aliases.py:204
+#: synse/routes/aliases.py:203
 msgid "Invalid power state \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse/routes/aliases.py:253
+#: synse/routes/aliases.py:252
 msgid "Invalid boot target \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse/routes/core.py:48
+#: synse/routes/core.py:47
 msgid "forcing re-scan? {}"
 msgstr ""
 
-#: synse/routes/core.py:95
+#: synse/routes/core.py:94
 msgid "Invalid JSON specified: {}"
 msgstr ""
 
-#: synse/routes/core.py:98
+#: synse/routes/core.py:97
 msgid "WRITE -> json: {}"
 msgstr ""
 
-#: synse/routes/core.py:102
+#: synse/routes/core.py:101
 msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\"."
 msgstr ""
 
-#: synse/scheme/read.py:73
+#: synse/scheme/read.py:72
 msgid "Making read response"
 msgstr ""
 
-#: synse/scheme/read.py:86
+#: synse/scheme/read.py:85
 msgid "device output: {}"
 msgstr ""
 
-#: synse/scheme/read.py:108
+#: synse/scheme/read.py:107
 msgid "Found unexpected reading type \"{}\" for device {}"
 msgstr ""
 
-#: synse/scheme/read.py:113
+#: synse/scheme/read.py:112
 msgid "  Precision: {}"
 msgstr ""
 
-#: synse/scheme/read.py:131
+#: synse/scheme/read.py:130
 msgid "Invalid value for {}: \"{}\""
 msgstr ""
 
-#: synse/scheme/read.py:138
+#: synse/scheme/read.py:137
 msgid "Failed to convert \"{}\" to {}"
 msgstr ""
 

@@ -1,5 +1,4 @@
-"""The base routes that make up the Synse Server JSON API.
-"""
+"""The base routes that make up the Synse Server HTTP API."""
 # pylint: disable=unused-argument
 
 from sanic import Blueprint

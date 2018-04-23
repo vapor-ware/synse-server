@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# clean_docs.sh
+#
+# This script is used to clean out local documentation artifacts
+# generated from previous builds. In general, this should always
+# be done before re-generating the documentation.
+#
+
 # -------------------------------------------------------
 # API Documentation build artifacts (generated via Slate)
 # -------------------------------------------------------

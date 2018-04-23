@@ -1,5 +1,4 @@
-"""Response scheme for the `plugins` endpoint.
-"""
+"""Response scheme for the `plugins` endpoint."""
 
 from synse.scheme.base_response import SynseResponse
 

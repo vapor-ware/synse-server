@@ -35,6 +35,10 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Translations
+*.mo
+*.pot
+
 # Unit test / coverage reports
 htmlcov/
 .tox/

@@ -1,5 +1,4 @@
-"""Utilities around the Synse Server gRPC API.
-"""
+"""Utilities around the Synse Server gRPC API."""
 
 from synse_plugin import api
 

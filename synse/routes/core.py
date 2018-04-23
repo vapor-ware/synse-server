@@ -1,11 +1,10 @@
-"""The core routes that make up the Synse Server JSON API.
-"""
+"""The core routes that make up the Synse Server HTTP API."""
 # pylint: disable=unused-argument
 
 from sanic import Blueprint
 
 from synse import commands, errors, validate
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.response import json
 from synse.version import __api_version__
@@ -45,7 +44,7 @@ async def scan_route(request, rack=None, board=None):
     param_force = qparams.get('force')
     if param_force is not None:
         force = param_force.lower() == 'true'
-        logger.debug(gettext('forcing re-scan? {}').format(force))
+        logger.debug(_('forcing re-scan? {}').format(force))
     else:
         force = False
 
@@ -92,14 +91,14 @@ async def write_route(request, rack, board, device):
         data = request.json
     except Exception as e:
         raise errors.InvalidJsonError(
-            gettext('Invalid JSON specified: {}').format(request.body)
+            _('Invalid JSON specified: {}').format(request.body)
         ) from e
 
-    logger.debug(gettext('WRITE -> json: {}').format(data))
+    logger.debug(_('WRITE -> json: {}').format(data))
 
     if not any([x in data for x in ['action', 'raw']]):
         raise errors.InvalidArgumentsError(
-            gettext('Invalid data POSTed for write. Must contain "action" and/or "raw".')
+            _('Invalid data POSTed for write. Must contain "action" and/or "raw".')
         )
 
     response = await commands.write(rack, board, device, data)

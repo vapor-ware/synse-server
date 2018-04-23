@@ -1,11 +1,10 @@
-"""The aliased routes that make up the Synse Server JSON API.
-"""
+"""The aliased routes that make up the Synse Server HTTP API."""
 # pylint: disable=no-else-return
 
 from sanic import Blueprint
 
 from synse import commands, const, errors, validate
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.version import __api_version__
 
@@ -47,7 +46,7 @@ async def led_route(request, rack, board, device):
         if param_state:
             if param_state not in const.led_states:
                 raise errors.InvalidArgumentsError(
-                    gettext('Invalid state "{}". Must be one of {}').format(
+                    _('Invalid state "{}". Must be one of {}').format(
                         param_state, const.led_states)
                 )
 
@@ -61,7 +60,7 @@ async def led_route(request, rack, board, device):
                 assert 0x000000 <= int(param_color, 16) <= 0xFFFFFF
             except Exception as e:
                 raise errors.InvalidArgumentsError(
-                    gettext('Invalid color value ({}). Must be a hexadecimal '
+                    _('Invalid color value ({}). Must be a hexadecimal '
                             'string between 000000 and FFFFFF.').format(param_color)
                 ) from e
 
@@ -160,13 +159,13 @@ async def fan_route(request, rack, board, device):
 
         else:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid query param: {} (valid params: {})').format(
+                _('Invalid query param: {} (valid params: {})').format(
                     list(request.raw_args)[0], qparams))
 
     # This has to be an error.
     else:
         raise errors.InvalidArgumentsError(
-            gettext('Invalid query param: {} (valid params: {})').format(
+            _('Invalid query param: {} (valid params: {})').format(
                 list(request.raw_args), qparams))
 
 
@@ -201,7 +200,7 @@ async def power_route(request, rack, board, device):
     if param_state is not None:
         if param_state not in const.power_actions:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid power state "{}". Must be one of: {}').format(
+                _('Invalid power state "{}". Must be one of: {}').format(
                     param_state, const.power_actions)
             )
 
@@ -250,7 +249,7 @@ async def boot_target_route(request, rack, board, device):
     if param_target is not None:
         if param_target not in const.boot_targets:
             raise errors.InvalidArgumentsError(
-                gettext('Invalid boot target "{}". Must be one of: {}').format(
+                _('Invalid boot target "{}". Must be one of: {}').format(
                     param_target, const.boot_targets)
             )
 

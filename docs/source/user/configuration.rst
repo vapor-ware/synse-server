@@ -130,6 +130,7 @@ this tell Synse Server to look for it in the default location.
       unix:
         foobar:
 
+.. _configurationOptions:
 
 Configuration Options
 ---------------------

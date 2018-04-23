@@ -1,8 +1,7 @@
-"""Command handler for the `scan` route.
-"""
+"""Command handler for the `scan` route."""
 
 from synse import cache, errors, plugin
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.scheme.scan import ScanResponse
 
@@ -27,16 +26,16 @@ async def scan(rack=None, board=None, force=False):
     # this allows us to pick up any dynamically added plugins and clear out
     # any plugins that were removed.
     if len(plugin.Plugin.manager.plugins) == 0 or force:
-        logger.debug(gettext('Re-registering plugins.'))
+        logger.debug(_('Re-registering plugins.'))
         plugin.register_plugins()
 
-    logger.debug(gettext('Running "scan" command.'))
+    logger.debug(_('Running "scan" command.'))
     cache_data = await cache.get_scan_cache()
 
     if rack is not None:
         if not cache_data:
             raise errors.FailedScanCommandError(
-                gettext('Unable to filter by resource - no scan results returned.')
+                _('Unable to filter by resource - no scan results returned.')
             )
 
         for r in cache_data['racks']:
@@ -45,7 +44,7 @@ async def scan(rack=None, board=None, force=False):
                 break
         else:
             raise errors.RackNotFoundError(
-                gettext('Rack "{}" not found in scan results.').format(rack)
+                _('Rack "{}" not found in scan results.').format(rack)
             )
 
         if board is not None:
@@ -55,10 +54,10 @@ async def scan(rack=None, board=None, force=False):
                     break
             else:
                 raise errors.BoardNotFoundError(
-                    gettext('Board "{}" not found in scan results.').format(board)
+                    _('Board "{}" not found in scan results.').format(board)
                 )
 
-    logger.debug(gettext('Making "scan" response.'))
+    logger.debug(_('Making "scan" response.'))
     return ScanResponse(
         data=cache_data
     )

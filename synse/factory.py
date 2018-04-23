@@ -1,13 +1,14 @@
 """Factory for creating Synse Server Sanic application instances."""
 # pylint: disable=unused-variable,unused-argument
 
+import os
+
 from sanic import Sanic
 from sanic.exceptions import InvalidUsage, NotFound, ServerError
 from sanic.response import text
 
 from synse import config, errors, utils
 from synse.cache import configure_cache
-from synse.i18n import init_gettext
 from synse.log import LOGGING, logger, setup_logger
 from synse.response import json
 from synse.routes import aliases, base, core
@@ -36,8 +37,14 @@ def make_app():
     # set up application logging
     setup_logger()
 
-    # set up localization/internationalization
-    init_gettext()
+    # set the language to that set in the config, if it is not
+    # already set.
+    lang = os.environ.get('LANGUAGE')
+    if lang:
+        logger.info('LANGUAGE set from env: {}'.format(lang))
+    else:
+        lang = config.options.get('locale')
+        logger.info('LANGUAGE set from config: {}'.format(lang))
 
     # register the blueprints
     app.blueprint(aliases.bp)

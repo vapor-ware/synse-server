@@ -30,7 +30,10 @@ setup(
     license=pkg['__license__'],
     packages=find_packages(),
     include_package_data=True,
-    package_data={'': ['LICENSE']},
+    package_data={
+        '': ['LICENSE'],
+        'synse': ['i18n/*/LC_MESSAGES/*.mo']
+    },
     python_requires='==3.6',
     install_requires=[
         'aiocache',

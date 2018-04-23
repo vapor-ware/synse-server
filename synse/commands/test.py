@@ -1,5 +1,4 @@
-"""Command handler for the `test` route.
-"""
+"""Command handler for the `test` route."""
 
 from synse.scheme import TestResponse
 

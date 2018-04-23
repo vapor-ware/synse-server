@@ -1,5 +1,4 @@
-"""Synse Server application-wide constants.
-"""
+"""Synse Server application-wide constants."""
 
 # QUESTION (etd) - should this be 'procs', or something else? perhaps 'run' or 'sock'
 SOCKET_DIR = '/tmp/synse/procs'

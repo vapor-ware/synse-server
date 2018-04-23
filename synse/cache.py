@@ -1,11 +1,10 @@
-"""Synse Server caches and cache utilities.
-"""
+"""Synse Server caches and cache utilities."""
 
 import aiocache
 import grpc
 
 from synse import config, errors, utils
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.plugin import Plugin, get_plugins, register_plugins
 from synse.proto import util as putil
@@ -43,7 +42,7 @@ _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 
 def configure_cache():
     """Set the configuration for the asynchronous cache used by Synse."""
-    logger.debug(gettext('CONFIGURING CACHE: {}').format(AIOCACHE))
+    logger.debug(_('CONFIGURING CACHE: {}').format(AIOCACHE))
     aiocache.caches.set_config(AIOCACHE)
 
 
@@ -135,7 +134,7 @@ async def get_device_meta(rack, board, device):
 
     if dev is None:
         raise errors.DeviceNotFoundError(
-            gettext('{} does not correspond with a known device.').format(
+            _('{} does not correspond with a known device.').format(
                 '/'.join([rack, board, device]))
         )
 
@@ -325,7 +324,7 @@ async def _build_metainfo_cache():
         dict: The metainfo dictionary in which the key is the device id
             and the value is the data associated with that device.
     """
-    logger.debug(gettext('Building the metainfo cache.'))
+    logger.debug(_('Building the metainfo cache.'))
     metainfo, plugins = {}, {}
 
     # first, we want to iterate through all of the known plugins and
@@ -333,11 +332,11 @@ async def _build_metainfo_cache():
     # that backend.
     plugin_count = len(Plugin.manager.plugins)
     if plugin_count == 0:
-        logger.debug(gettext('Manager has no plugins - registering plugins.'))
+        logger.debug(_('Manager has no plugins - registering plugins.'))
         register_plugins()
         plugin_count = len(Plugin.manager.plugins)
 
-    logger.debug(gettext('plugins to scan: {}').format(plugin_count))
+    logger.debug(_('plugins to scan: {}').format(plugin_count))
 
     # track which plugins failed to provide metainfo for any reason.
     failures = {}
@@ -362,14 +361,14 @@ async def _build_metainfo_cache():
         #   - both
         except grpc.RpcError as ex:
             failures[name] = ex
-            logger.warning(gettext('Failed to get metainfo for plugin: {}').format(name))
+            logger.warning(_('Failed to get metainfo for plugin: {}').format(name))
             logger.warning(ex)
 
     # if we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugin_count != 0 and plugin_count == len(failures):
         raise errors.InternalApiError(
-            gettext('Failed to scan all plugins: {}').format(failures)
+            _('Failed to scan all plugins: {}').format(failures)
         )
 
     return metainfo, plugins
@@ -387,7 +386,7 @@ def _build_scan_cache(metainfo):
     Returns:
         dict: The constructed scan cache.
     """
-    logger.debug(gettext('Building the scan cache.'))
+    logger.debug(_('Building the scan cache.'))
     scan_cache = {}
 
     # the _tracked dictionary is used to help track which racks and
@@ -498,7 +497,7 @@ def _build_resource_info_cache(metainfo):
     Returns:
         dict: The constructed info cache.
     """
-    logger.debug(gettext('Building the info cache.'))
+    logger.debug(_('Building the info cache.'))
     info_cache = {}
 
     for source in metainfo.values():

@@ -1,12 +1,11 @@
-"""Command handler for the `read` route.
-"""
+"""Command handler for the `read` route."""
 # pylint: disable=line-too-long
 
 import grpc
 from synse_plugin import api
 
 from synse import cache, errors, plugin, utils
-from synse.i18n import gettext
+from synse.i18n import _
 from synse.log import logger
 from synse.scheme import ReadResponse
 
@@ -24,14 +23,14 @@ async def read(rack, board, device):
     """
     # lookup the known info for the specified device
     plugin_name, dev = await cache.get_device_meta(rack, board, device)
-    logger.debug(gettext('Device {} is managed by plugin {}').format(device, plugin_name))
+    logger.debug(_('Device {} is managed by plugin {}').format(device, plugin_name))
 
     # get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)
-    logger.debug(gettext('Got plugin: {}').format(_plugin))
+    logger.debug(_('Got plugin: {}').format(_plugin))
     if not _plugin:
         raise errors.PluginNotFoundError(
-            gettext('Unable to find plugin named "{}" to read.').format(plugin_name)
+            _('Unable to find plugin named "{}" to read.').format(plugin_name)
         )
 
     read_data = []
