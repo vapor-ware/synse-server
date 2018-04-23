@@ -45,6 +45,7 @@ def make_app():
     else:
         lang = config.options.get('locale')
         logger.info('LANGUAGE set from config: {}'.format(lang))
+        os.environ['LANGUAGE'] = lang
 
     # register the blueprints
     app.blueprint(aliases.bp)
