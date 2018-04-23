@@ -27,7 +27,7 @@ async def write(rack, board, device, data):
         rack, board, device, data))
 
     # lookup the known info for the specified device
-    plugin_name, __ = await cache.get_device_meta(rack, board, device)
+    plugin_name, __ = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
 
     # get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)

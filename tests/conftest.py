@@ -1,5 +1,6 @@
 """Test configuration for Synse Server for all tests."""
 
+import gettext
 import logging
 import os
 import shutil
@@ -7,7 +8,7 @@ import shutil
 import pytest
 import yaml
 
-from synse import config, const, factory
+from synse import config, const, factory, i18n
 from tests import data_dir
 
 _app = None
@@ -68,17 +69,3 @@ def disable_logging():
 def no_pretty_json():
     """Fixture to ensure basic JSON responses."""
     config.options.set('pretty_json', False)
-
-
-@pytest.fixture(autouse=True)
-def i18n_passthrough():
-    """Sets i18n.trans_func, just like if i18n.init_gettext was called."""
-    from synse import i18n
-    old_trans_func = i18n.trans_func
-    i18n.old_trans_func = old_trans_func
-    trans = lambda s: s
-    i18n.trans_func = trans
-
-    yield
-
-    i18n.trans_func = old_trans_func

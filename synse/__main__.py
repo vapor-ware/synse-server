@@ -12,7 +12,6 @@ Example Usage:
 
 from synse.factory import make_app
 
-
 app = make_app()
 app.run(
     host='0.0.0.0',

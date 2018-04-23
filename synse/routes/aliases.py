@@ -61,7 +61,7 @@ async def led_route(request, rack, board, device):
             except Exception as e:
                 raise errors.InvalidArgumentsError(
                     _('Invalid color value ({}). Must be a hexadecimal '
-                            'string between 000000 and FFFFFF.').format(param_color)
+                      'string between 000000 and FFFFFF.').format(param_color)
                 ) from e
 
             data.append({

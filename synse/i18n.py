@@ -1,7 +1,7 @@
 """Localization and internationalization helpers for Synse Server."""
 
-import os
 import gettext
+import os
 
 _here = os.path.dirname(os.path.realpath(__file__))
 

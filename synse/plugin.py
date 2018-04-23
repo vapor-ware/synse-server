@@ -253,7 +253,7 @@ def register_unix_plugins():
         for item in os.listdir(const.SOCKET_DIR):
             logger.debug('  {}'.format(item))
             fqn = os.path.join(const.SOCKET_DIR, item)
-            name, __ = os.path.splitext(item)
+            name, __ = os.path.splitext(item)  # pylint: disable=unused-variable
 
             if stat.S_ISSOCK(os.stat(fqn).st_mode):
                 # we have a plugin socket. if it already exists, there is nothing
