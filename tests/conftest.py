@@ -1,6 +1,5 @@
 """Test configuration for Synse Server for all tests."""
 
-import gettext
 import logging
 import os
 import shutil
@@ -8,7 +7,7 @@ import shutil
 import pytest
 import yaml
 
-from synse import config, const, factory, i18n
+from synse import config, const, factory
 from tests import data_dir
 
 _app = None
