@@ -3,7 +3,8 @@
 #
 PKG_NAME := synse
 IMG_NAME := vaporio/synse-server
-PKG_VER := $(shell python -c "import synse ; print(synse.__version__)")
+PKG_VER  := $(shell python -c "import synse ; print(synse.__version__)")
+DATE     := $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 export GIT_VER := $(shell /bin/sh -c "git log --pretty=format:'%h' -n 1 || echo 'none'")
 
 
@@ -55,14 +56,22 @@ pycache-clean:
 docker-slim:
 	tags="" ; \
 	for tag in $(SLIM_TAGS); do tags="$${tags} -t $${tag}"; done ; \
-	docker build -f dockerfile/slim.dockerfile $${tags} .
+	docker build -f dockerfile/slim.dockerfile \
+		--build-arg BUILD_DATE=$(DATE) \
+		--build-arg BUILD_VERSION=$(PKG_VER) \
+		--build-arg VCS_REF=$(GIT_VER) \
+		$${tags} .
 
 # build the docker images of synse server with the emulator
 .PHONY: docker-default
 docker-default:
 	tags="" ; \
 	for tag in $(DEFAULT_TAGS); do tags="$${tags} -t $${tag}"; done ; \
-	docker build -f dockerfile/release.dockerfile $${tags} .
+	docker build -f dockerfile/release.dockerfile \
+		--build-arg BUILD_DATE=$(DATE) \
+		--build-arg BUILD_VERSION=$(PKG_VER) \
+		--build-arg VCS_REF=$(GIT_VER) \
+		$${tags} .
 
 
 # Targets
