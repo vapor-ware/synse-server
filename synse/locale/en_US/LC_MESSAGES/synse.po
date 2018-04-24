@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-04-23 16:03-0400\n"
+"POT-Creation-Date: 2018-04-24 10:19-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -55,87 +55,103 @@ msgstr ""
 msgid "Building the info cache."
 msgstr ""
 
-#: synse/plugin.py:41
-msgid "Only Plugin instances can be added to the manager."
+#: synse/plugin.py:53
+msgid "Only Plugin instances can be added to the manager"
 msgstr ""
 
-#: synse/plugin.py:47
-msgid "Plugin (\"{}\") already exists in the manager."
+#: synse/plugin.py:59
+msgid "Plugin (\"{}\") already exists in the manager"
 msgstr ""
 
-#: synse/plugin.py:63
-msgid "\"{}\" is not known to PluginManager - nothing to remove."
+#: synse/plugin.py:75
+msgid "\"{}\" is not known to PluginManager - nothing to remove"
 msgstr ""
 
-#: synse/plugin.py:78
-msgid "PluginManager purged: {}"
+#: synse/plugin.py:90
+msgid "PluginManager purged plugins: {}"
 msgstr ""
 
-#: synse/plugin.py:116
+#: synse/plugin.py:136
 msgid "The given mode ({}) must be one of: tcp, unix"
 msgstr ""
 
-#: synse/plugin.py:122
-msgid "Unix socket ({}) does not exist."
+#: synse/plugin.py:142
+msgid "Unix socket ({}) does not exist"
 msgstr ""
 
-#: synse/plugin.py:170
-msgid "Plugins to be removed from manager: {}"
+#: synse/plugin.py:191
+msgid "Plugins to purge from manager: {}"
 msgstr ""
 
-#: synse/plugin.py:173
-msgid "done registering plugins"
+#: synse/plugin.py:194
+msgid "Plugin registration complete"
 msgstr ""
 
-#: synse/plugin.py:190
+#: synse/plugin.py:212
 msgid "Registering plugins (unix)"
 msgstr ""
 
-#: synse/plugin.py:234 synse/plugin.py:265
+#: synse/plugin.py:222
+msgid "Unix plugins in configuration: {}"
+msgstr ""
+
+#: synse/plugin.py:239 synse/plugin.py:241
+msgid "Checking for socket: {}"
+msgstr ""
+
+#: synse/plugin.py:245
+msgid "Unable to find configured socket: {}[.sock]"
+msgstr ""
+
+#: synse/plugin.py:251 synse/plugin.py:285
+msgid "{} is not a socket - skipping"
+msgstr ""
+
+#: synse/plugin.py:259 synse/plugin.py:294
 msgid "Created new plugin (unix): {}"
 msgstr ""
 
-#: synse/plugin.py:237 synse/plugin.py:277
-msgid "plugin \"{}\" already exists - will not re-register (unix)"
+#: synse/plugin.py:262 synse/plugin.py:306
+msgid "Unix Plugin \"{}\" already exists - will not re-register"
 msgstr ""
 
-#: synse/plugin.py:246
-msgid "default socket path does not exist, no plugins registered from {}"
+#: synse/plugin.py:271
+msgid "No default socket path found -- no plugins registered from {}"
 msgstr ""
 
-#: synse/plugin.py:251
-msgid "socket dir exists"
+#: synse/plugin.py:276
+msgid "Registering plugins from default socket directory"
 msgstr ""
 
-#: synse/plugin.py:283
-msgid "file is not a socket.. {}"
-msgstr ""
-
-#: synse/plugin.py:294
+#: synse/plugin.py:320
 msgid "Registering plugins (tcp)"
 msgstr ""
 
-#: synse/plugin.py:299
-msgid "found no plugins configured for tcp"
+#: synse/plugin.py:323
+msgid "TCP plugins in configuration: {}"
 msgstr ""
 
-#: synse/plugin.py:312
+#: synse/plugin.py:336
 msgid "Created new plugin (tcp): {}"
 msgstr ""
 
-#: synse/plugin.py:315
-msgid "plugin \"{}\" already exists - will not re-register (tcp)"
+#: synse/plugin.py:339
+msgid "TCP Plugin \"{}\" already exists - will not re-register"
+msgstr ""
+
+#: synse/utils.py:54
+msgid "\"{}\" is not a valid boolean string"
 msgstr ""
 
 #: synse/validate.py:26
 msgid "Device ({}) is not of type {}"
 msgstr ""
 
-#: synse/routes/aliases.py:162 synse/routes/aliases.py:168 synse/validate.py:51
+#: synse/routes/aliases.py:162 synse/routes/aliases.py:168 synse/validate.py:54
 msgid "Invalid query param: {} (valid params: {})"
 msgstr ""
 
-#: synse/validate.py:72
+#: synse/validate.py:75
 msgid "Endpoint does not support query parameters but got: {}"
 msgstr ""
 
@@ -304,4 +320,43 @@ msgstr ""
 #: synse/scheme/read.py:137
 msgid "Failed to convert \"{}\" to {}"
 msgstr ""
+
+#~ msgid "Only Plugin instances can be added to the manager."
+#~ msgstr ""
+
+#~ msgid "Plugin (\"{}\") already exists in the manager."
+#~ msgstr ""
+
+#~ msgid "\"{}\" is not known to PluginManager - nothing to remove."
+#~ msgstr ""
+
+#~ msgid "PluginManager purged: {}"
+#~ msgstr ""
+
+#~ msgid "Unix socket ({}) does not exist."
+#~ msgstr ""
+
+#~ msgid "Plugins to be removed from manager: {}"
+#~ msgstr ""
+
+#~ msgid "done registering plugins"
+#~ msgstr ""
+
+#~ msgid "plugin \"{}\" already exists - will not re-register (unix)"
+#~ msgstr ""
+
+#~ msgid "default socket path does not exist, no plugins registered from {}"
+#~ msgstr ""
+
+#~ msgid "socket dir exists"
+#~ msgstr ""
+
+#~ msgid "file is not a socket.. {}"
+#~ msgstr ""
+
+#~ msgid "found no plugins configured for tcp"
+#~ msgstr ""
+
+#~ msgid "plugin \"{}\" already exists - will not re-register (tcp)"
+#~ msgstr ""
 

@@ -32,7 +32,7 @@ setup(
     include_package_data=True,
     package_data={
         '': ['LICENSE'],
-        'synse': ['i18n/*/LC_MESSAGES/*.mo']
+        'synse': ['locale/*/LC_MESSAGES/*.mo']
     },
     python_requires='==3.6',
     install_requires=[

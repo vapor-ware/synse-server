@@ -10,5 +10,5 @@ _here = os.path.dirname(os.path.realpath(__file__))
 # time the locale will change is if it is configured by the user -- if
 # the given locale is incorrect or unsupported, we want this to fail so
 # they know right away.
-t = gettext.translation('synse', os.path.join(_here, 'i18n'))
+t = gettext.translation('synse', os.path.join(_here, 'locale'))
 _ = t.gettext

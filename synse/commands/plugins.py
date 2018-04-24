@@ -1,6 +1,8 @@
 """Command handler for the `plugins` route."""
 
 from synse import plugin
+from synse.i18n import _
+from synse.log import logger
 from synse.scheme.plugins import PluginsResponse
 
 
@@ -10,8 +12,10 @@ async def get_plugins():
     Returns:
         PluginsResponse: The "plugins" response scheme model.
     """
-    # register plugins. if no plugins exist, this will attempt to register
-    # new ones. if plugins already exist, this will just ensure that all of
+    logger.debug(_('Plugins Command'))
+
+    # Register plugins. If no plugins exist, this will attempt to register
+    # new ones. If plugins already exist, this will just ensure that all of
     # the tracked plugins are up to date.
     plugin.register_plugins()
 

@@ -1,6 +1,6 @@
-"""Synse Server scheme module.
+"""Synse Server scheme package.
 
-This module contains definitions and modeling for Synse Server endpoint
+This package contains definitions and modeling for Synse Server endpoint
 response schemes.
 """
 # pylint: disable=unused-import

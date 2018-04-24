@@ -1,4 +1,4 @@
-"""Synse Server python client for communicating to plugins via the gRPC API."""
+"""Synse Server Python client for communicating to plugins via the gRPC API."""
 
 import os
 
@@ -22,20 +22,21 @@ class WriteData(object):
     the color simultaneously. This can be done with two WriteData objects
     passed in a list to the `SynseInternalClient.write` method, e.g.
 
-      color = WriteData(action='color', raw=[b'ffffff'])
-      state = WriteData(action='on')
+        color = WriteData(action='color', raw=[b'ffffff'])
+        state = WriteData(action='on')
+
+    Args:
+        action (str): The action string for the write.
+        raw (list[bytes]): A list of bytes that constitute the raw data that
+            will be written by the write request.
     """
 
     def __init__(self, action=None, raw=None):
-        """Constructor for the WriteData object.
-
-        Args:
-            action (str): The action string for the write.
-            raw (list[bytes]): A list of bytes that constitute the raw data
-                that will be written by the write request.
-        """
         self.action = action if action is not None else ''
         self.raw = raw if raw is not None else []
+
+    def __str__(self):
+        return '<WriteData: action: {}, raw: {}>'.format(self.action, self.raw)
 
     def to_grpc(self):
         """Convert the WriteData model into the gRPC model for WriteData.
@@ -56,13 +57,16 @@ class SynseInternalClient(object):
 
     There should be one instance of the `SynseInternalClient` for every
     configured background process.
+
+    Args:
+        name (str): The name of the Plugin which the client is used by.
+        address (str): The Plugin address.
+        mode (str): The communication mode of the Plugin (e.g. 'unix', 'tcp')
     """
 
     _client_stubs = {}
 
     def __init__(self, name, address, mode):
-        """Constructor for a `SynseInternalClient` instance.
-        """
         self.name = name
         self.addr = address
         self.mode = mode
@@ -70,7 +74,8 @@ class SynseInternalClient(object):
         self.channel = self._channel()
         self.stub = self._stub()
 
-        # add it to the tracked stubs
+        # Add this client instance to the tracked stubs. This allows a client
+        # to be looked up by name from the class itself.
         SynseInternalClient._client_stubs[self.name] = self
 
     def _channel(self):
@@ -84,6 +89,7 @@ class SynseInternalClient(object):
                 _('Invalid gRPC client mode: {}').format(self.mode)
             )
 
+        logger.debug(_('Client gRPC channel: {}').format(target))
         return grpc.insecure_channel(target)
 
     def _stub(self):
@@ -96,7 +102,7 @@ class SynseInternalClient(object):
 
         Args:
             name (str): The name of the client. This is also the name
-                given to the background process socket.
+                given to the Plugin.
 
         Returns:
             SynseInternalClient: The client instance associated with
@@ -121,12 +127,10 @@ class SynseInternalClient(object):
         SynseInternalClient(name, addr, mode)
         cli = cls._client_stubs[name]
 
-        logger.debug(_('Registered Client:'))
-        logger.debug(_('  name:    {}').format(cli.name))
-        logger.debug(_('  mode:    {}').format(cli.mode))
-        logger.debug(_('  address: {}').format(cli.addr))
-        logger.debug(_('  channel: {}').format(cli.channel))
-        logger.debug(_('  stub:    {}').format(cli.stub))
+        logger.debug(
+            _('Registered client "{}" for mode "{}", address "{}"')
+            .format(cli.name, cli.mode, cli.addr)
+        )
         return cli
 
     def read(self, rack, board, device):
@@ -141,6 +145,8 @@ class SynseInternalClient(object):
             list[synse_plugin.api.ReadResponse]: The reading responses for the
                 specified device, if it exists.
         """
+        logger.debug(_('Issuing gRPC read request'))
+
         req = synse_api.ReadRequest(
             device=device,
             board=board,
@@ -163,7 +169,9 @@ class SynseInternalClient(object):
             list[synse_plugin.api.MetainfoResponse]: All device meta-information
                 provided by the plugin.
         """
-        # if the rack or board is not specified, pass it through as an
+        logger.debug(_('Issuing gRPC metainfo request'))
+
+        # If the rack or board is not specified, pass it through as an
         # empty string.
         rack = rack if rack is not None else ''
         board = board if board is not None else ''
@@ -191,6 +199,8 @@ class SynseInternalClient(object):
             synse_plugin.api.Transactions: The transactions that can be used
                 to track the given write request(s).
         """
+        logger.debug(_('Issuing gRPC write request'))
+
         req = synse_api.WriteRequest(
             device=device,
             board=board,
@@ -212,6 +222,8 @@ class SynseInternalClient(object):
             synse_plugin.api.WriteResponse: The WriteResponse detailing the
                 status and state of the given write transaction.
         """
+        logger.debug(_('Issuing gRPC transaction check'))
+
         req = synse_api.TransactionId(
             id=transaction_id
         )
@@ -256,5 +268,6 @@ def register_client(name, addr, mode):
     """
     cli = SynseInternalClient.get_client(name)
     if cli is None:
+        logger.debug(_('Registering new client for Plugin: {}').format(name))
         cli = SynseInternalClient.register(name, addr, mode)
     return cli

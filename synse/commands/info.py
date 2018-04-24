@@ -17,23 +17,23 @@ async def info(rack, board=None, device=None):
     Returns:
         InfoResponse: The "info" response scheme model.
     """
+    logger.debug(_('Info Command (args: {}, {}, {})').format(rack, board, device))
+
     if rack is None:
         raise errors.InvalidArgumentsError(
-            _('No rack specified when issuing info command.')
+            _('No rack specified when issuing info command')
         )
 
     _cache = await cache.get_resource_info_cache()
     r, b, d = get_resources(_cache, rack, board, device)
 
     if board is not None:
+        # We have: rack, board, device
         if device is not None:
-            # we have rack, board, device
-            logger.debug('info >> rack, board, device')
             response = d
 
+        # We have: rack, board
         else:
-            # we have rack, board
-            logger.debug('info >> rack, board')
             response = {
                 'board': b['board'],
                 'location': {'rack': r['rack']},
@@ -41,8 +41,7 @@ async def info(rack, board=None, device=None):
             }
 
     else:
-        # we have rack
-        logger.debug('info >> rack')
+        # We have: rack
         response = {
             'rack': r['rack'],
             'boards': list(r['boards'].keys())
@@ -79,23 +78,26 @@ def get_resources(info_cache, rack=None, board=None, device=None):
 
     if rack is not None:
         r = info_cache.get(rack)
+        logger.debug(_('Rack info from cache: {}').format(r))
         if not r:
             raise errors.RackNotFoundError(
-                _('Unable to find rack "{}" in info cache.').format(rack)
+                _('Unable to find rack "{}" in info cache').format(rack)
             )
 
     if board is not None:
         b = r['boards'].get(board)
+        logger.debug(_('Board info from cache: {}').format(b))
         if not b:
             raise errors.BoardNotFoundError(
-                _('Unable to find board "{}" in info cache.').format(board)
+                _('Unable to find board "{}" in info cache').format(board)
             )
 
     if device is not None:
         d = b['devices'].get(device)
+        logger.debug(_('Device info from cache: {}').format(d))
         if not d:
             raise errors.DeviceNotFoundError(
-                _('Unable to find device "{}" in info cache.').format(device)
+                _('Unable to find device "{}" in info cache').format(device)
             )
 
     return r, b, d

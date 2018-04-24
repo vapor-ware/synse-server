@@ -8,12 +8,6 @@ class TransactionResponse(SynseResponse):
     """A TransactionResponse is the response data for a Synse
     'transaction' command.
 
-    The JSON response returned by the Synse endpoint, constructed from
-    the data here, should follow the scheme:
-
-    Response Scheme:
-        <TODO - WRITE SCHEME FOR RESPONSE>
-
     Response Example:
         {
           "id": "b7jl0b2un4a154rn9u4g",
@@ -28,16 +22,15 @@ class TransactionResponse(SynseResponse):
           "message": ""
         }
 
+    Args:
+        transaction (str): The ID of the transaction.
+        context (dict): The write context for the write command the
+            transaction is associated with.
+        write_response (WriteResponse): The WriteResponse from a gRPC
+            transaction check.
     """
 
     def __init__(self, transaction, context, write_response):
-        """Constructor for the TransactionResponse class.
-
-        Args:
-            transaction ():
-            context ():
-            write_response ():
-        """
         self.data = {
             'id': transaction,
             'context': context,
@@ -65,5 +58,4 @@ class TransactionListResponse(SynseResponse):
     """
 
     def __init__(self, transactions):
-        """Constructor for the TransactionListResponse class."""
         self.data = transactions

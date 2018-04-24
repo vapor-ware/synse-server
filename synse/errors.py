@@ -212,7 +212,7 @@ class PluginStateError(SynseServerError):
         super(PluginStateError, self).__init__(message, PLUGIN_STATE_ERROR)
 
 
-# create a lookup table that maps the code value to a user-friendly string that
-# describes the code. the string is the lower-cased version of the variable
-# name with underscores replaced with spaces, e.g. SOME_CODE becomes "some code"
+# Create a lookup table that maps the code value to a user-friendly string that
+# describes the code. The string is the lower-cased version of the variable
+# name with underscores replaced with spaces, e.g. SOME_CODE becomes "some code".
 codes = {v: k.lower().replace('_', ' ') for k, v in globals().copy().items() if k.isupper()}

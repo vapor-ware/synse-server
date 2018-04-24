@@ -15,9 +15,14 @@ bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
 async def led_route(request, rack, board, device):
     """Endpoint to read/write LED device data.
 
-    If no state or color is specified through request parameters,
-    this will translate to a device read. Otherwise, if any valid request
-    parameter is specified, this will translate to a device write.
+    This route is an alias for the core `read` functionality when there
+    are no valid query parameters specified. It is an alias for the core
+    `write` functionality when there are valid query parameters specified.
+
+    Supported Query Parameters:
+        state: The LED state to set (on|off|blink)
+        color: The LED color to set. This must be a hexadecimal string
+            between 000000 and ffffff.
 
     Args:
         request (sanic.request.Request): The incoming request.
@@ -30,23 +35,25 @@ async def led_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_LED, rack, board, device)
 
+    # Get the valid query parameters. If unsupported query parameters
+    # are specified, this will raise an error.
     qparams = validate.validate_query_params(
         request.raw_args,
         'state', 'color'
     )
-
     param_state = qparams.get('state')
     param_color = qparams.get('color')
 
-    # if any of the parameters are specified, then this will be
-    # a write request for those parameters that are specified.
+    # If any of the parameters are specified, this will be a write request
+    # using those parameters.
     if any((param_state, param_color)):
+        logger.debug(_('LED alias route: writing (query parameters: {})').format(qparams))
         data = []
 
         if param_state:
             if param_state not in const.led_states:
                 raise errors.InvalidArgumentsError(
-                    _('Invalid state "{}". Must be one of {}').format(
+                    _('Invalid LED state "{}". Must be one of: {}').format(
                         param_state, const.led_states)
                 )
 
@@ -61,7 +68,7 @@ async def led_route(request, rack, board, device):
             except Exception as e:
                 raise errors.InvalidArgumentsError(
                     _('Invalid color value ({}). Must be a hexadecimal '
-                      'string between 000000 and FFFFFF.').format(param_color)
+                      'string between 000000 and FFFFFF').format(param_color)
                 ) from e
 
             data.append({
@@ -69,6 +76,7 @@ async def led_route(request, rack, board, device):
                 'raw': param_color
             })
 
+        logger.debug(_('LED data to write: {}').format(data))
         transactions = None
         for d in data:
             t = await commands.write(rack, board, device, d)
@@ -79,8 +87,9 @@ async def led_route(request, rack, board, device):
 
         return transactions.to_json()
 
-    # otherwise, we just read from the device
+    # Otherwise, we just read from the device.
     else:
+        logger.debug(_('LED alias route: reading'))
         reading = await commands.read(rack, board, device)
         return reading.to_json()
 
@@ -89,9 +98,13 @@ async def led_route(request, rack, board, device):
 async def fan_route(request, rack, board, device):
     """Endpoint to read/write fan device data.
 
-    If no fan speed is specified through request parameters, this will
-    translate to a device read. Otherwise, if a valid request parameter
-    is specified, this will translate to a device write.
+    This route is an alias for the core `read` functionality when there
+    are no valid query parameters specified. It is an alias for the core
+    `write` functionality when there are valid query parameters specified.
+
+    Supported Query Parameters:
+        speed: The fan speed to set, in RPM.
+        speed_percent: The fan speed to set, in percent.
 
     Args:
         request (sanic.request.Request): The incoming request.
@@ -102,54 +115,51 @@ async def fan_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    logger.info('fan_route. request: {}, request.raw_args: {}'.format(request, request.raw_args))
-
     await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
 
+    # Get the valid query parameters. If unsupported query parameters
+    # are specified, this will raise an error.
     qparams = validate.validate_query_params(
         request.raw_args,
-        'speed', # speed in rpm
-        'speed_percent' # speed of 0 (off) or 10% to 100%
+        'speed',  # speed in rpm
+        'speed_percent'  # speed of 0 (off) or 10% to 100%
     )
 
-    # If there are no query parameters, this is a read request.
-    if len(request.raw_args) == 0:
-        logger.info('fan_route. Read request')
-        reading = await commands.read(rack, board, device)
-        return reading.to_json()
+    param_speed_rpm = qparams.get('speed')
+    param_speed_percent = qparams.get('speed_percent')
 
-    # Get the first key in request.raw_args. Example: request.raw_args: {'speed': '0'}
-    if len(request.raw_args) == 1:
+    # Only one of 'speed' and 'speed_percent' can be specified at a time.
+    # TODO (etd): this could be generalized and incorporated into the validation
+    #   done above, e.g. validate_query_params(request.raw_args, OneOf(['speed', 'speed_percent']))
+    if all((param_speed_rpm, param_speed_percent)):
+        raise errors.InvalidArgumentsError(
+            _('Invalid query params: Can only specify one of "speed" and '
+              '"speed_percent", but both were given')
+        )
 
-        # Set fan speed by rpm.
-        if list(request.raw_args)[0] == 'speed':
-            param_speed = qparams.get('speed')
-            logger.info(
-                'fan_route. set speed: request {}, raw_args {}'.format(
-                    request, request.raw_args))
+    # If either of the parameters are specified, this will be a write request
+    # using those parameters.
+    if any((param_speed_rpm, param_speed_percent)):
+        logger.debug(_('Fan alias route: writing (query parameters: {})').format(qparams))
 
-            # if a request parameter is specified, this will translate to a
-            # write request.
-            if param_speed is not None:
-                # Fan speed in rpm verification is done in fan controller code.
-                # It varies by the motor attached to the controller, so no need
-                # to try to verify here in this context.
-                data = {
-                    'action': 'speed',
-                    'raw': param_speed,
-                }
-                transaction = await commands.write(rack, board, device, data)
-                return transaction.to_json()
+        # Set the fan speed by RPM. No validation on the fan speed is done here,
+        # as it is up to the underlying implementation to validate and fail as
+        # needed. The max and min allowable speeds vary by fan motor.
+        if param_speed_rpm:
+            logger.debug(_('Setting fan speed by RPM'))
+            data = {
+                'action': 'speed',
+                'raw': param_speed_rpm,
+            }
+            transaction = await commands.write(rack, board, device, data)
+            return transaction.to_json()
 
-        # Set fan speed by percent (0 or 10 to 100 normally)
-        elif list(request.raw_args)[0] == 'speed_percent':
-            param_speed_percent = qparams.get('speed_percent')
-            logger.info(
-                'fan_route. set speed: request {}, raw_args {}'.format(
-                    request, request.raw_args))
-
-            # Percentage verification is done on a lower level below here, so
-            # just pass the parameters on.
+        # Set the fan speed by percent (duty cycle). No validation on the fan
+        # speed is done here, as it is up to the underlying implementation to
+        # validate and fail as needed. The max and min allowable speeds vary
+        # by fan motor.
+        if param_speed_percent:
+            logger.debug(_('Setting fan speed by percent'))
             data = {
                 'action': 'speed_percent',
                 'raw': param_speed_percent,
@@ -157,25 +167,23 @@ async def fan_route(request, rack, board, device):
             transaction = await commands.write(rack, board, device, data)
             return transaction.to_json()
 
-        else:
-            raise errors.InvalidArgumentsError(
-                _('Invalid query param: {} (valid params: {})').format(
-                    list(request.raw_args)[0], qparams))
-
-    # This has to be an error.
+    # Otherwise, we just read from the device.
     else:
-        raise errors.InvalidArgumentsError(
-            _('Invalid query param: {} (valid params: {})').format(
-                list(request.raw_args), qparams))
+        logger.debug(_('Fan alias route: reading'))
+        reading = await commands.read(rack, board, device)
+        return reading.to_json()
 
 
 @bp.route('/power/<rack>/<board>/<device>')
 async def power_route(request, rack, board, device):
     """Endpoint to read/write power device data.
 
-    If no state is specified through request parameters, this will
-    translate to a device read. Otherwise, if a valid request parameter
-    is specified, this will translate to a device write.
+    This route is an alias for the core `read` functionality when there
+    are no valid query parameters specified. It is an alias for the core
+    `write` functionality when there are valid query parameters specified.
+
+    Supported Query Parameters:
+        state: The power state to set (on|off|cycle)
 
     Args:
         request (sanic.request.Request): The incoming request.
@@ -188,16 +196,19 @@ async def power_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_POWER, rack, board, device)
 
+    # Get the valid query parameters. If unsupported query parameters
+    # are specified, this will raise an error.
     qparams = validate.validate_query_params(
         request.raw_args,
         'state'
     )
-
     param_state = qparams.get('state')
 
-    # if a request parameter is specified, this will translate to a
-    # write request.
+    # If any of the parameters are specified, this will be a write request
+    # using those parameters.
     if param_state is not None:
+        logger.debug(_('Power alias route: writing (query parameters: {})').format(qparams))
+
         if param_state not in const.power_actions:
             raise errors.InvalidArgumentsError(
                 _('Invalid power state "{}". Must be one of: {}').format(
@@ -211,9 +222,9 @@ async def power_route(request, rack, board, device):
         transaction = await commands.write(rack, board, device, data)
         return transaction.to_json()
 
-    # if no request parameter is specified, this will translate to a
-    # read request.
+    # Otherwise, we just read from the device.
     else:
+        logger.debug(_('Power alias route: reading'))
         reading = await commands.read(rack, board, device)
         return reading.to_json()
 
@@ -222,9 +233,12 @@ async def power_route(request, rack, board, device):
 async def boot_target_route(request, rack, board, device):
     """Endpoint to read/write boot target device data.
 
-    If no target is specified through request parameters, this will
-    translate to a device read. Otherwise, if a valid request parameter
-    is specified, this will translate to a device write.
+    This route is an alias for the core `read` functionality when there
+    are no valid query parameters specified. It is an alias for the core
+    `write` functionality when there are valid query parameters specified.
+
+    Supported Query Parameters:
+        target: The boot target to set (hdd|pxe)
 
     Args:
         request (sanic.request.Request): The incoming request.
@@ -237,16 +251,19 @@ async def boot_target_route(request, rack, board, device):
     """
     await validate.validate_device_type(const.TYPE_SYSTEM, rack, board, device)
 
+    # Get the valid query parameters. If unsupported query parameters
+    # are specified, this will raise an error.
     qparams = validate.validate_query_params(
         request.raw_args,
         'target'
     )
-
     param_target = qparams.get('target')
 
-    # if a request parameter is specified, this will translate to a
-    # write request.
+    # If any of the parameters are specified, this will be a write request
+    # using those parameters.
     if param_target is not None:
+        logger.debug(_('Boot target alias route: writing (query parameters: {})').format(qparams))
+
         if param_target not in const.boot_targets:
             raise errors.InvalidArgumentsError(
                 _('Invalid boot target "{}". Must be one of: {}').format(
@@ -260,9 +277,9 @@ async def boot_target_route(request, rack, board, device):
         transaction = await commands.write(rack, board, device, data)
         return transaction.to_json()
 
-    # if no request parameter is specified, this will translate to a
-    # read request.
+    # Otherwise, we just read from the device.
     else:
+        logger.debug(_('Boot target alias route: reading'))
         reading = await commands.read(rack, board, device)
         return reading.to_json()
 
@@ -271,9 +288,9 @@ async def boot_target_route(request, rack, board, device):
 async def lock_route(request, rack, board, device): # pylint: disable=unused-argument
     """Endpoint to read/write lock device data.
 
-    If no lock action is specified through the request parameters,
-    this will translate to a device read. Otherwise, if a valid request
-    parameter is specified, this will translate to a device write.
+    This route is an alias for the core `read` functionality when there
+    are no valid query parameters specified. It is an alias for the core
+    `write` functionality when there are valid query parameters specified.
 
     Args:
         request (sanic.request.Request): The incoming request.
@@ -284,35 +301,5 @@ async def lock_route(request, rack, board, device): # pylint: disable=unused-arg
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    # FIXME - error out until a lock backend is actually implemented
-    return errors.SynseError('Endpoint not yet implemented.')
-    # await validate.validate_device_type(const.TYPE_LOCK, rack, board, device)
-    #
-    # qparams = validate.validate_query_params(
-    #     request.raw_args,
-    #     'action'
-    # )
-    #
-    # param_action = qparams.get('action')
-    #
-    # # if a request parameter is specified, this will translate to a
-    # # write request.
-    # if param_action is not None:
-    #     # validate the values of the action
-    #     if param_action not in const.lock_actions:
-    #         raise errors.InvalidArgumentsError(
-    #             gettext('Invalid lock action "{}". Must be one of: {}').format(
-    #                 param_action, const.lock_actions)
-    #         )
-    #
-    #     data = {
-    #         'action': param_action
-    #     }
-    #     transaction = await commands.write(rack, board, device, data)
-    #     return transaction.to_json()
-    #
-    # # if no request parameter is specified, this will translate to a
-    # # read request.
-    # else:
-    #     reading = await commands.read(rack, board, device)
-    #     return reading.to_json()
+    # FIXME (etd) - error out until a lock backend is actually implemented
+    return errors.SynseError('Endpoint not yet implemented')

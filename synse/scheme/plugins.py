@@ -4,34 +4,7 @@ from synse.scheme.base_response import SynseResponse
 
 
 class PluginsResponse(SynseResponse):
-    """A PluginsResponse is the response data for a Synse 'plugins' command.
-
-    The JSON response returned by the Synse endpoint, constructed from
-    the data here, should follow the scheme:
-
-    Response Scheme:
-        {
-          "type": "list",
-          "properties": {
-            "data": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "$id": "/properties/name",
-                  "type": "string"
-                },
-                "network": {
-                  "$id": "/properties/network",
-                  "type": "string"
-                },
-                "address": {
-                  "$id": "/properties/address",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
+    """A PluginsResponse is the response data for the Synse 'plugins' command.
 
     Response Example:
         [
@@ -46,12 +19,11 @@ class PluginsResponse(SynseResponse):
             "address": "/tmp/synse/proc/rs485.sock"
           }
         ]
+
+    Args:
+        data (list): List of dictionaries containing the name, network,
+            and address of the registered plugins.
     """
 
     def __init__(self, data):
-        """Constructor for the PluginsResponse class.
-
-        Args:
-            data (list): List of plugins' objects
-        """
         self.data = data

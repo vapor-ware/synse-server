@@ -1,4 +1,6 @@
-"""Synse Server application."""
+"""Synse Server: An HTTP API for the monitoring and control of physical
+and virtual devices.
+"""
 
 __title__ = 'synse'
 __version__ = '2.0.0'
