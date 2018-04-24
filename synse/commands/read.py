@@ -21,21 +21,23 @@ async def read(rack, board, device):
     Returns:
         ReadResponse: The "read" response scheme model.
     """
-    # lookup the known info for the specified device
+    logger.debug(_('Read Command (args: {}, {}, {})').format(rack, board, device))
+
+    # Lookup the known info for the specified device.
     plugin_name, dev = await cache.get_device_meta(rack, board, device)
     logger.debug(_('Device {} is managed by plugin {}').format(device, plugin_name))
 
-    # get the plugin context for the device's specified protocol
+    # Get the plugin context for the device's specified protocol.
     _plugin = plugin.get_plugin(plugin_name)
     logger.debug(_('Got plugin: {}').format(_plugin))
     if not _plugin:
         raise errors.PluginNotFoundError(
-            _('Unable to find plugin named "{}" to read.').format(plugin_name)
+            _('Unable to find plugin named "{}" to read').format(plugin_name)
         )
 
     read_data = []
     try:
-        # perform a gRPC read on the device's managing plugin
+        # Perform a gRPC read on the device's managing plugin
         read_data = _plugin.client.read(rack, board, device)
     except grpc.RpcError as ex:
 
@@ -77,9 +79,10 @@ async def read(rack, board, device):
 
                 # Create empty readings for each of the device's readings.
                 logger.warning(
-                    'Read for {}/{}/{} returned gRPC "no readings found". Will '
-                    'apply None as reading value. Note that this response might '
-                    'indicate plugin error/misconfiguration.'.format(rack, board, device))
+                    _('Read for {}/{}/{} returned gRPC "no readings found". Will '
+                      'apply None as reading value. Note that this response might '
+                      'indicate plugin error/misconfiguration.').format(rack, board, device)
+                )
                 read_data = []
                 for output in dev.output:
                     read_data.append(

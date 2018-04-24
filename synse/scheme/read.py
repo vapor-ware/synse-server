@@ -9,12 +9,6 @@ from synse.scheme.base_response import SynseResponse
 class ReadResponse(SynseResponse):
     """A ReadResponse is the response data for a Synse 'read' command.
 
-    The JSON response returned by the Synse endpoint, constructed from
-    the data here, should follow the scheme:
-
-    Response Scheme:
-        <TODO - WRITE SCHEME FOR RESPONSE>
-
     Response Example:
         {
           "type": "humidity",
@@ -38,6 +32,10 @@ class ReadResponse(SynseResponse):
           }
         }
 
+    Args:
+        device (MetainfoResponse): The device that is being read.
+        readings (list[ReadResponse]): A list of reading values returned
+            from the plugin.
     """
 
     _data_types = {
@@ -48,13 +46,6 @@ class ReadResponse(SynseResponse):
     }
 
     def __init__(self, device, readings):
-        """Constructor for the ReadResponse class.
-
-        Args:
-            device (MetainfoResponse): The device that is being read.
-            readings (list[ReadResponse]): A list of reading values returned
-                from the plugin.
-        """
         self.device = device
         self.readings = readings
 
@@ -64,25 +55,24 @@ class ReadResponse(SynseResponse):
         }
 
     def format_readings(self):
-        """Format the instance's readings to the Read response scheme.
+        """Format the instance's readings to the read response scheme.
 
         Returns:
             dict: A properly formatted Read response.
         """
-        logger.debug(_('Making read response'))
+        logger.debug(_('Formatting read response'))
         formatted = {}
 
         dev_output = self.device.output
         for reading in self.readings:
             rt = reading.type
 
-            # these fields may not be specified, e.g. in cases where it wouldn't
+            # These fields may not be specified, e.g. in cases where it wouldn't
             # make sense for a reading unit, e.g. LED state (on/off)
             unit = None
             precision = None
             data_type = None
 
-            logger.debug(_('device output: {}').format(dev_output))
             found = False
             for out in dev_output:
                 if out.type == rt:
@@ -100,7 +90,7 @@ class ReadResponse(SynseResponse):
                     found = True
                     break
 
-            # if the reading type does not match the supported types, we will not
+            # If the reading type does not match the supported types, we will not
             # return it, and instead will just just skip over it.
             if not found:
                 logger.warning(
@@ -109,7 +99,6 @@ class ReadResponse(SynseResponse):
                 )
                 continue
 
-            logger.debug(_('  Precision: {}').format(precision))
             value = reading.value
 
             # Handle cases where no data was read. Currently, we consider the reading
@@ -117,11 +106,11 @@ class ReadResponse(SynseResponse):
             #   - the ReadResponse value comes back as an empty string (e.g. "")
             #   - the ReadResponse value comes back as the string "null".
             if value == '' or value == 'null':
-                logger.debug('reading value for {} came back as empty/null'.format(rt))
+                logger.info(_('Reading value for {} came back as empty/null').format(rt))
                 value = None
 
             else:
-                # set the specified precision
+                # Set the specified precision
                 if precision:
                     try:
                         value = str(round(float(value), precision))
@@ -130,11 +119,11 @@ class ReadResponse(SynseResponse):
                             _('Invalid value for {}: "{}"').format(data_type, value)
                         )
 
-                # cast to the specified type
+                # Cast to the specified type
                 try:
                     value = self._data_types.get(data_type, str)(value)
                 except ValueError:
-                    logger.warning(_('Failed to convert "{}" to {}').format(value, data_type))
+                    logger.warning(_('Failed to cast "{}" to {}').format(value, data_type))
 
             formatted[rt] = {
                 'value': value,

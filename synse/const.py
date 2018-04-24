@@ -16,7 +16,7 @@ LED_ON = 'on'
 LED_OFF = 'off'
 LED_BLINK = 'blink'
 
-# all LED states
+# All LED states
 led_states = (
     LED_ON,
     LED_OFF,
@@ -29,7 +29,7 @@ PWR_ON = 'on'
 PWR_OFF = 'off'
 PWR_CYCLE = 'cycle'
 
-# all power actions
+# All power actions
 power_actions = (
     PWR_ON,
     PWR_OFF,
@@ -41,7 +41,7 @@ power_actions = (
 BT_HDD = 'hdd'
 BT_PXE = 'pxe'
 
-# all boot targets
+# All boot targets
 boot_targets = (
     BT_HDD,
     BT_PXE
@@ -53,7 +53,7 @@ LOCK_LOCK = 'lock'
 LOCK_UNLOCK = 'unlock'
 LOCK_MUNLOCK = 'munlock'  # momentary unlock
 
-# all lock actions
+# All lock actions
 lock_actions = (
     LOCK_LOCK,
     LOCK_UNLOCK,

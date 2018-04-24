@@ -19,14 +19,15 @@ AIOCACHE = {
     }
 }
 
-# Define namespace for caches
+# Synse Server cache namespaces
 NS_TRANSACTION = 'transaction'
 NS_META = 'meta'
 NS_PLUGINS = 'plugins'
 NS_SCAN = 'scan'
 NS_INFO = 'info'
 
-# Define cached key for caches
+# Internal keys into the caches for the data (e.g. dictionaries)
+# being cached.
 META_CACHE_KEY = 'meta_cache_key'
 PLUGINS_CACHE_KEY = 'plugins_cache_key'
 SCAN_CACHE_KEY = 'scan_cache_key'
@@ -41,8 +42,8 @@ _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 
 
 def configure_cache():
-    """Set the configuration for the asynchronous cache used by Synse."""
-    logger.debug(_('CONFIGURING CACHE: {}').format(AIOCACHE))
+    """Set the configuration for the caches used by Synse Server."""
+    logger.debug(_('Setting cache configuration: {}').format(AIOCACHE))
     aiocache.caches.set_config(AIOCACHE)
 
 
@@ -55,6 +56,7 @@ async def clear_cache(namespace):
     Args:
         namespace (str): The namespace of the cache to clear.
     """
+    logger.debug(_('Invalidating cache: {}').format(namespace))
     _cache = aiocache.caches.get('default')
     return await _cache.clear(namespace=namespace)
 
@@ -83,7 +85,7 @@ async def get_transaction(transaction_id):
 
 
 async def add_transaction(transaction_id, context, plugin_name):
-    """Add a new transaction to the transactions cache.
+    """Add a new transaction to the transaction cache.
 
     This cache tracks transactions and maps them to the plugin from which they
     originated, as well as the context of the transaction.
@@ -99,6 +101,10 @@ async def add_transaction(transaction_id, context, plugin_name):
         bool: True if successful; False otherwise.
     """
     ttl = config.options.get('cache.transaction.ttl', None)
+    logger.debug(
+        _('Caching transaction {} from plugin {} ({})').format(
+            transaction_id, plugin_name, context)
+    )
     return await transaction_cache.set(
         transaction_id,
         {
@@ -123,22 +129,22 @@ async def get_device_meta(rack, board, device):
             the second item is the meta information for that device.
 
     Raises:
-        SynseError: The given rack-board-device combination does not
-            correspond to a known device.
+        errors.DeviceNotFoundError: The given rack-board-device combination
+            does not correspond to a known device.
     """
     cid = utils.composite(rack, board, device)
 
-    # this also builds the plugins cache
+    # This also builds the plugins cache
     _cache = await get_metainfo_cache()
     dev = _cache.get(cid)
 
     if dev is None:
         raise errors.DeviceNotFoundError(
-            _('{} does not correspond with a known device.').format(
+            _('{} does not correspond with a known device').format(
                 '/'.join([rack, board, device]))
         )
 
-    # if the device exists, it will have come from a plugin, so we should
+    # If the device exists, it will have come from a plugin, so we should
     # always have the plugin name here.
     pcache = await _plugins_cache.get(PLUGINS_CACHE_KEY)
     return pcache.get(cid), dev
@@ -149,9 +155,9 @@ async def get_metainfo_cache():
     request across all plugins.
 
     If the cache does not exist or has surpassed its TTL, it will be
-    refreshed.
+    rebuilt.
 
-    If there are no registered plugins, it attempts to re-register them.
+    If there are no registered plugins, it attempts to (re-)register them.
 
     The metainfo cache is a map where the key is the device id composite
     and the value is the MetainfoResponse associated with that device.
@@ -176,11 +182,11 @@ async def get_metainfo_cache():
 
     # If the metainfo data is empty when built, we don't want to cache an
     # empty dictionary, so we will set it to None. Future calls to get_metainfo_cache
-    # will then attempt to rebuild the cache
-    meta_value = metainfo if metainfo else None
-    plugins_value = plugins if plugins else None
+    # will then attempt to rebuild the cache.
+    meta_value = metainfo or None
+    plugins_value = plugins or None
 
-    # get meta cache's ttl and update the cache. use the same ttl for the plugins
+    # Get meta cache's ttl and update the cache. Use the same ttl for the plugins.
     ttl = config.options.get('cache.meta.ttl', None)
     await _meta_cache.set(META_CACHE_KEY, meta_value, ttl=ttl)
     await _plugins_cache.set(PLUGINS_CACHE_KEY, plugins_value, ttl=ttl)
@@ -192,7 +198,7 @@ async def get_scan_cache():
     """Get the cached scan results.
 
     If the scan result cache does not exist or the TTL has expired, the cache
-    will be refreshed.
+    will be rebuilt.
 
     An example of the scan cache structure:
         {
@@ -227,16 +233,16 @@ async def get_scan_cache():
     if value is not None:
         return value
 
-    # if the cache is not found, we will (re)build it from metainfo cache
+    # If the cache is not found, we will (re)build it from metainfo cache.
     _metainfo = await get_metainfo_cache()
     scan_cache = _build_scan_cache(_metainfo)
 
     # If the scan data is empty when built, we don't want to cache an empty
     # dictionary, so we will set it to None. Future calls to get_scan_cache
-    # will then attempt to rebuild the cache
-    value = scan_cache if scan_cache else None
+    # will then attempt to rebuild the cache.
+    value = scan_cache or None
 
-    # get the scan cache's ttl and update the cache. this should be the same
+    # Get the scan cache's ttl and update the cache. This should be the same
     # ttl that is used by the metainfo cache.
     ttl = config.options.get('cache.meta.ttl', None)
     await _meta_cache.set(SCAN_CACHE_KEY, value, ttl=ttl)
@@ -248,7 +254,7 @@ async def get_resource_info_cache():
     """Get the cached resource info.
 
     If the resource info cache does not exist or the TTL has expired, the
-    cache will be refreshed.
+    cache will be rebuilt.
 
     An example of the info cache structure:
         {
@@ -300,16 +306,16 @@ async def get_resource_info_cache():
     if value is not None:
         return value
 
-    # if the cache is not found, we will (re)build it from metainfo cache
+    # If the cache is not found, we will (re)build it from metainfo cache.
     _metainfo = await get_metainfo_cache()
     info_cache = _build_resource_info_cache(_metainfo)
 
     # If the info data is empty when built, we don't want to cache an empty
     # dictionary, so we will set it to None. Future calls to get_info_cache
-    # will then attempt to rebuild the cache
-    value = info_cache if info_cache else None
+    # will then attempt to rebuild the cache.
+    value = info_cache or None
 
-    # get the info cache's ttl and update the cache. this should be the same
+    # Get the info cache's ttl and update the cache. This should be the same
     # ttl that is used by the metainfo cache.
     ttl = config.options.get('cache.meta.ttl', None)
     await _meta_cache.set(INFO_CACHE_KEY, value, ttl=ttl)
@@ -321,24 +327,30 @@ async def _build_metainfo_cache():
     """Construct the dictionary that will become the metainfo cache.
 
     Returns:
-        dict: The metainfo dictionary in which the key is the device id
-            and the value is the data associated with that device.
+        tuple(dict, dict): A tuple where the first dictionary is the metainfo
+            dictionary (in which the key is the device id and the value is the
+            data associated with that device), and the second dictionary is the
+            plugins dictionary (in which the device ID is mapped to the name of
+            the plugin which manages it).
+
+    Raises:
+        errors.InternalApiError: All plugins failed the metainfo scan.
     """
-    logger.debug(_('Building the metainfo cache.'))
+    logger.debug(_('Building the metainfo cache'))
     metainfo, plugins = {}, {}
 
-    # first, we want to iterate through all of the known plugins and
+    # First, we want to iterate through all of the known plugins and
     # use the associated client to get the meta information provided by
     # that backend.
     plugin_count = len(Plugin.manager.plugins)
     if plugin_count == 0:
-        logger.debug(_('Manager has no plugins - registering plugins.'))
+        logger.debug(_('Manager has no plugins - registering plugins'))
         register_plugins()
         plugin_count = len(Plugin.manager.plugins)
 
-    logger.debug(_('plugins to scan: {}').format(plugin_count))
+    logger.debug(_('Plugins to scan: {}').format(plugin_count))
 
-    # track which plugins failed to provide metainfo for any reason.
+    # Track which plugins failed to provide metainfo for any reason.
     failures = {}
 
     async for name, plugin in get_plugins():
@@ -350,7 +362,7 @@ async def _build_metainfo_cache():
                 metainfo[_id] = device
                 plugins[_id] = name
 
-        # we do not want to fail the scan if a single plugin fails to provide
+        # We do not want to fail the scan if a single plugin fails to provide
         # meta-information.
         #
         # FIXME (etd): instead of just logging out the errors, we could either:
@@ -364,7 +376,7 @@ async def _build_metainfo_cache():
             logger.warning(_('Failed to get metainfo for plugin: {}').format(name))
             logger.warning(ex)
 
-    # if we fail to read from all plugins (assuming there were any), then we
+    # If we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugin_count != 0 and plugin_count == len(failures):
         raise errors.InternalApiError(
@@ -386,11 +398,11 @@ def _build_scan_cache(metainfo):
     Returns:
         dict: The constructed scan cache.
     """
-    logger.debug(_('Building the scan cache.'))
+    logger.debug(_('Building the scan cache'))
     scan_cache = {}
 
-    # the _tracked dictionary is used to help track which racks and
-    # boards already exist while we are building the cache. it should
+    # The _tracked dictionary is used to help track which racks and
+    # boards already exist while we are building the cache. It should
     # look something like:
     #
     #   _tracked = {
@@ -403,7 +415,7 @@ def _build_scan_cache(metainfo):
     #       }
     #   }
     #
-    # where we track racks by their id, map each rack to a dictionary
+    # Where we track racks by their id, map each rack to a dictionary
     # containing the rack info, and track each board on the rack under
     # the 'boards' key.
     _tracked = {}
@@ -413,8 +425,8 @@ def _build_scan_cache(metainfo):
         board_id = source.location.board
         device_id = source.uid
 
-        # the given rack does not yet exist in our scan cache.
-        # in this case, we will create it, along with the board
+        # The given rack does not yet exist in our scan cache.
+        # In this case, we will create it, along with the board
         # and device that the source record provides.
         if rack_id not in _tracked:
             new_board = {
@@ -433,7 +445,7 @@ def _build_scan_cache(metainfo):
                 'boards': []
             }
 
-            # update the _tracked dictionary with references to the
+            # Update the _tracked dictionary with references to the
             # newly created rack and board.
             _tracked[rack_id] = {
                 'rack': new_rack,
@@ -442,9 +454,9 @@ def _build_scan_cache(metainfo):
                 }
             }
 
-        # the rack does exist in the scan cache. in this case, we will
-        # check if the board exists. if not, we will create it with the
-        # device that the source record provides. if so, we will append
+        # The rack does exist in the scan cache. In this case, we will
+        # check if the board exists. If not, we will create it with the
+        # device that the source record provides. If so, we will append
         # the device information provided by the source record to the
         # existing board.
         else:
@@ -471,10 +483,10 @@ def _build_scan_cache(metainfo):
                 })
 
     if _tracked:
-        # add the root 'racks' field to the scan data
+        # Add the root 'racks' field to the scan data
         scan_cache['racks'] = []
 
-        # populate the rack info and add it to the scan data racks list
+        # Populate the rack info and add it to the scan data racks list
         for ref in _tracked.values():
             ref['rack']['boards'] = list(ref['boards'].values())
             scan_cache['racks'].append(ref['rack'])
@@ -497,7 +509,7 @@ def _build_resource_info_cache(metainfo):
     Returns:
         dict: The constructed info cache.
     """
-    logger.debug(_('Building the info cache.'))
+    logger.debug(_('Building the info cache'))
     info_cache = {}
 
     for source in metainfo.values():

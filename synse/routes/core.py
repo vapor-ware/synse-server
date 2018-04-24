@@ -26,6 +26,9 @@ async def scan_route(request, rack=None, board=None):
     response, a user should have enough information to perform any subsequent
     command (e.g. read, write) for a given device.
 
+    Supported Query Parameters:
+        force: Forces a re-scan if 'true', otherwise does nothing.
+
     Args:
         request (sanic.request.Request): The incoming request.
         rack (str): The identifier of the rack to scan. If specified, this
@@ -42,11 +45,11 @@ async def scan_route(request, rack=None, board=None):
     qparams = validate.validate_query_params(request.raw_args, 'force')
 
     param_force = qparams.get('force')
+
+    force = False
     if param_force is not None:
         force = param_force.lower() == 'true'
-        logger.debug(_('forcing re-scan? {}').format(force))
-    else:
-        force = False
+    logger.debug(_('Forcing re-scan? {}').format(force))
 
     response = await commands.scan(rack=rack, board=board, force=force)
     return response.to_json()
@@ -94,11 +97,11 @@ async def write_route(request, rack, board, device):
             _('Invalid JSON specified: {}').format(request.body)
         ) from e
 
-    logger.debug(_('WRITE -> json: {}').format(data))
+    logger.debug(_('Write route: POSTed JSON: {}').format(data))
 
     if not any([x in data for x in ['action', 'raw']]):
         raise errors.InvalidArgumentsError(
-            _('Invalid data POSTed for write. Must contain "action" and/or "raw".')
+            _('Invalid data POSTed for write. Must contain "action" and/or "raw"')
         )
 
     response = await commands.write(rack, board, device, data)
@@ -183,12 +186,6 @@ async def fan_sensors(request):
 
     FIXME: this is a temporary route for autofan -- this should be generalized
     and we can add it back into mainline synse server.
-
-    Args:
-        request:
-
-    Returns:
-
     """
     result = await commands.fan_sensors()
     return json(result)

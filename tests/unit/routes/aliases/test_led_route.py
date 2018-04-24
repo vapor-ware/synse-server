@@ -1,5 +1,4 @@
-"""Test the 'synse.routes.aliases' Synse Server module's led route.
-"""
+"""Test the 'synse.routes.aliases' Synse Server module's led route."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest

@@ -2,10 +2,11 @@
 
 import datetime
 
+from synse.i18n import _
+
 
 def rfc3339now():
-    """Create an RFC3339 formatted timestamp for the current
-    UTC time.
+    """Create an RFC3339 formatted timestamp for the current UTC time.
 
     See Also:
         https://stackoverflow.com/a/8556555
@@ -34,9 +35,10 @@ def composite(rack, board, device):
 
 
 def s_to_bool(val):
-    """Take a string value and convert it to a boolean value. In Python
-    it is not as simple as casting to a bool type since something like
-    bool("false") would result in True, as a non-zero length string is
+    """Take a string value and convert it to a boolean value.
+
+    In Python it is not as simple as casting to a bool type since something
+    like bool("false") would result in True, as a non-zero length string is
     "truthy".
 
     Args:
@@ -44,16 +46,21 @@ def s_to_bool(val):
 
     Returns:
         bool: True, if the string represents "true"; False otherwise.
+
+    Raises:
+        ValueError: The input parameter is not a true/false string.
     """
     if val.lower() not in ('true', 'false'):
-        raise ValueError('string "{}" not a valid boolean value'.format(val))
+        raise ValueError(_('"{}" is not a valid boolean string').format(val))
     return val.lower() == 'true'
 
 
 def s_to_int(val):
-    """Take a string value and convert it to an int. This needs to be more
-    complex than just int("1") since we can have values like int("1.1") which
-    does not get converted to an integer.
+    """Take a string value and convert it to an int.
+
+    Converting to an integer needs to be more complex than just `int("1")`
+    since we can have values like `int("1.1")` which would not get converted
+    to an integer via a straight cast to `int`.
 
     Args:
         val (str): The string value to convert to int.

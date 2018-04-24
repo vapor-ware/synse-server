@@ -50,7 +50,7 @@ for French, whose ``locale code`` is ``fr_FR``.
     .. code-block:: console
 
         $ pybabel extract \
-            -o synse/i18n/synse.pot \
+            -o synse/locale/synse.pot \
             --project="Synse Server" \
             --copyright-holder="Vapor IO" \
             synse
@@ -68,8 +68,8 @@ for French, whose ``locale code`` is ``fr_FR``.
 
         $ pybabel init \
             -D synse \
-            -i synse/i18n/synse.pot \
-            -d synse/i18n \
+            -i synse/locale/synse.pot \
+            -d synse/locale \
             -l fr_FR
 
 
@@ -97,7 +97,7 @@ English, whose ``locale code`` is ``en_US``.
     .. code-block:: console
 
         $ pybabel extract \
-            -o synse/i18n/synse.pot \
+            -o synse/locale/synse.pot \
             --project="Synse Server" \
             --copyright-holder="Vapor IO" \
             synse
@@ -122,8 +122,8 @@ English, whose ``locale code`` is ``en_US``.
 
         $ pybabel update \
             -D synse \
-            -i synse/i18n/synse.pot \
-            -d synse/i18n \
+            -i synse/locale/synse.pot \
+            -d synse/locale \
             -l en_US
 
 
@@ -149,5 +149,5 @@ Or, if you have Babel installed locally, directly via ``pybabel``
 
     $ pybabel compile \
         -D synse \
-        -d synse/i18n \
+        -d synse/locale \
         --statistics

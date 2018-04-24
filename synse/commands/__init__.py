@@ -1,7 +1,8 @@
-"""Synse Server commands module.
+"""Synse Server commands package.
 
-This module contains the command definitions for all Synse Server
-endpoints. This is where the logic for all commands are implemented.
+This package contains the command definitions for all Synse Server
+endpoints.
+
 Command functions are imported here for easier importing elsewhere,
 e.g. instead of having to do 'from synse.commands.scan import scan'
 you can simply 'from synse.commands import scan'.
@@ -9,7 +10,7 @@ you can simply 'from synse.commands import scan'.
 # pylint: disable=unused-import
 
 from .config import config
-# FIXME - temporary for autofan support
+# FIXME (etd) - temporary for autofan support
 from .fan_sensors import fan_sensors
 from .info import info
 from .plugins import get_plugins

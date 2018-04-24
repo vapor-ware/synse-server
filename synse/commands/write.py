@@ -21,52 +21,49 @@ async def write(rack, board, device, data):
     Returns:
         WriteResponse: The "write" response scheme model.
     """
-    # Log what we are writing at info, the default logging level, so that we
-    # can tell what we are doing.
-    logger.info('write. rack: {}, board: {}, device: {}, data: {}'.format(
-        rack, board, device, data))
+    logger.debug(
+        _('Write Command (args: {}, {}, {}, data: {})')
+        .format(rack, board, device, data)
+    )
 
-    # lookup the known info for the specified device
+    # Lookup the known info for the specified device
     plugin_name, __ = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
 
-    # get the plugin context for the device's specified protocol
+    # Get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
         raise errors.PluginNotFoundError(
             _('Unable to find plugin named "{}"').format(plugin_name)
         )
 
-    # the data comes in as the POSTed dictionary which includes an 'action'
-    # and/or 'raw' field. here, we convert it to the appropriate modeling for
+    # The data comes in as the POSTed dictionary which includes an 'action'
+    # and/or 'raw' field. Here, we convert it to the appropriate modeling for
     # transport to the plugin.
     action = data.get('action')
     if not isinstance(action, str):
         raise errors.InvalidArgumentsError(
-            _('"action" value must be a string, but was {}'.format(type(action)))
+            _('"action" value must be a string, but was {}').format(type(action))
         )
 
     raw = data.get('raw')
     if raw is not None:
-        # raw should be a string - we need to convert to bytes
+        # Raw should be a string - we need to convert to bytes.
         if not isinstance(raw, str):
             raise errors.InvalidArgumentsError(
-                _('"raw" value must be a string, but was {}'.format(type(raw)))
+                _('"raw" value must be a string, but was {}').format(type(raw))
             )
         raw = [str.encode(raw)]
 
-    # Log what we are writing at info, the default logging level, so that we
-    # can tell what we are doing.
-    logger.info('write. action: {}, raw: {}'.format(
-        action, raw))
     wd = WriteData(action=action, raw=raw)
+    logger.info(_('Writing to {}: {}').format('/'.join((rack, board, device)), wd))
 
-    # perform a gRPC write on the device's managing plugin
+    # Perform a gRPC write on the device's managing plugin
     try:
         t = _plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
         raise errors.FailedWriteCommandError(str(ex)) from ex
 
-    # now that we have the transaction info, we want to map it to the corresponding
+    # Now that we have the transaction info, we want to map it to the corresponding
     # process so any subsequent transaction check will know where to look.
     for _id, ctx in t.transactions.items():
         context = {
@@ -75,7 +72,7 @@ async def write(rack, board, device, data):
         }
         ok = await cache.add_transaction(_id, context, _plugin.name)
         if not ok:
-            logger.error(_('Failed to add transaction {} to the cache.').format(_id))
+            logger.error(_('Failed to add transaction {} to the cache').format(_id))
 
     return WriteResponse(
         transactions=t.transactions

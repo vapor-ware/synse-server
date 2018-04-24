@@ -15,9 +15,10 @@ from synse.routes import aliases, base, core
 
 
 def make_app():
-    """Create a new instance of the Synse Server sanic application.
+    """Create a new instance of the Synse Server Sanic application.
 
-    This is the means by which all Synse Server applications are created.
+    This is the means by which all Synse Server applications should
+    be created.
 
     Returns:
         Sanic: A Sanic application setup and configured to serve
@@ -26,7 +27,7 @@ def make_app():
     app = Sanic(__name__, log_config=LOGGING)
     app.config.LOGO = None
 
-    # get the application configuration(s)
+    # Get the application configuration(s)
     config.options.add_config_paths('.', '/synse/config')
     config.options.env_prefix = 'SYNSE'
     config.options.auto_env = True
@@ -34,11 +35,14 @@ def make_app():
     config.options.parse(requires_cfg=False)
     config.options.validate()
 
-    # set up application logging
+    # Set up application logging
     setup_logger()
 
-    # set the language to that set in the config, if it is not
-    # already set.
+    # Set the language environment variable to that set in the config, if
+    # it is not already set. This is how we specify the language/locale for
+    # the application.
+    # FIXME (etd): this isn't a great way of doing things, especially if Synse
+    # Server is being run in a non-containerized environment.
     lang = os.environ.get('LANGUAGE')
     if lang:
         logger.info('LANGUAGE set from env: {}'.format(lang))
@@ -47,7 +51,7 @@ def make_app():
         logger.info('LANGUAGE set from config: {}'.format(lang))
         os.environ['LANGUAGE'] = lang
 
-    # register the blueprints
+    # Register the blueprints
     app.blueprint(aliases.bp)
     app.blueprint(base.bp)
     app.blueprint(core.bp)
@@ -74,7 +78,7 @@ def _disable_favicon(app):
 
 
 def _register_error_handling(app):
-    """Register the 404 and 500 error JSON responses for Synse Server.
+    """Register the 400, 404 and 500 error JSON responses for Synse Server.
 
     Args:
         app (sanic.Sanic): The Sanic application to add the handling to.
@@ -94,7 +98,7 @@ def _register_error_handling(app):
         return _make_error(error_id, exception)
 
     @app.exception(ServerError, InvalidUsage)
-    def err_500(request, exception):
+    def err(request, exception):
         """Handler for a 500 and 400 error."""
         logger.error('Exception for request: {}'.format(request))
         logger.exception(exception)

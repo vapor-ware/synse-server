@@ -1,4 +1,4 @@
-"""Synse Server configurations and configuration helpers."""
+"""Synse Server configuration and scheme definition."""
 
 from bison import Bison, DictOption, Option, Scheme
 

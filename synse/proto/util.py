@@ -28,12 +28,12 @@ def write_state_name(value):
 
 
 def metainfo_to_dict(meta):
-    """Convert a MetainfoResponse to a dictionary that can be
-    serialized out to JSON.
+    """Convert a MetainfoResponse to a dictionary that can be serialized out
+    to JSON.
 
     Args:
-        meta (MetainfoResponse): The MetainfoResponse object to
-            convert to a dictionary.
+        meta (MetainfoResponse): The MetainfoResponse object to convert to a
+            dictionary.
 
     Returns:
         dict: A dictionary representation of the MetainfoResponse.
@@ -56,12 +56,10 @@ def metainfo_to_dict(meta):
 
 
 def metaoutput_to_dict(meta):
-    """Convert a MetaOutput to a dictionary that can be
-    serialized out to JSON.
+    """Convert a MetaOutput to a dictionary that can be serialized out to JSON.
 
     Args:
-        meta (MetaOutput): The MetaOutput object to
-            convert to a dictionary.
+        meta (MetaOutput): The MetaOutput object to convert to a dictionary.
 
     Returns:
         dict: A dictionary representation of the MetaOutput.

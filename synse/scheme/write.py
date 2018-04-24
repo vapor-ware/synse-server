@@ -6,12 +6,6 @@ from synse.scheme.base_response import SynseResponse
 class WriteResponse(SynseResponse):
     """A WriteResponse is the response data for a Synse 'write' command.
 
-    The JSON response returned by the Synse endpoint, constructed from
-    the data here, should follow the scheme:
-
-    Response Scheme:
-        <TODO - WRITE SCHEME FOR RESPONSE>
-
     Response Example:
         [
           {
@@ -24,14 +18,12 @@ class WriteResponse(SynseResponse):
           }
         ]
 
+    Args:
+        transactions (Transactions): The transactions returned from a
+            gRPC write request.
     """
 
     def __init__(self, transactions):
-        """Constructor for the WriteResponse class.
-
-        Args:
-            transactions ():
-        """
         self.data = []
 
         for _id, ctx in transactions.items():

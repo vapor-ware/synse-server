@@ -11,11 +11,15 @@ from synse.log import logger
 # TODO: Need a note in the configuration files about auto_fan relying on
 # device information names in order to find these sensors.
 def _translate_device_info(device_info):
-    """
-    This translates the device info of the scan device to the field output in a
-    fan sensors result set.
-    :param device_info: The info field of the device in a scan.
-    :return: The field output in a fan sensors result set.
+    """This translates the device info of the scan device to the field output
+    in a fan sensors result set.
+
+    Args:
+        device_info (str): The info field of the device in a scan.
+
+    Returns:
+        str: The field output in a fan sensors result set.
+        None: Unknown device info.
     """
     if device_info.startswith('Rack Temperature 0 '):
         return 'thermistor_0'
@@ -49,22 +53,22 @@ def _translate_device_info(device_info):
     if device_info == 'Rack Differential Pressure Top':
         return 'differential_pressure_2'
 
-    logger.error('Unknown device_info: {}'.format(device_info))
+    logger.error('Unknown device_info: {}').format(device_info)
     return None
 
 
 async def fan_sensors():
-    """
+    """The handler for the Synse Server "fan sensors" API command.
 
     Returns:
-
+        dict: A dictionary of device readings for all fan sensors.
     """
-    # auto fan uses the MAX11610 thermistors and SDP619 differential pressure
-    # sensors. this isn't a *great* way of doing things since its hardcoded,
+    # Auto fan uses the MAX11610 thermistors and SDP619 differential pressure
+    # sensors. This isn't a *great* way of doing things since its hardcoded,
     # but this should be enough to get things in place and working in the short
     # term.
     #
-    # in the long term, it would be good to expand read functionality in some
+    # In the long term, it would be good to expand read functionality in some
     # way such that we can do something like:
     #
     #   GET synse/2.0/read?type=temperature
@@ -157,7 +161,6 @@ async def fan_sensors():
                         raise ValueError(message)
                     # No existing reading in the result set, safe to add it.
                     new_readings['racks'][rack][fan_sensor_key] = reading_value
-
 
     logger.debug('--- FAN SENSORS end ---')
     # Sort the new_readings racks by racks['id']

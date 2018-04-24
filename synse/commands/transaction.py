@@ -4,6 +4,7 @@ import grpc
 
 from synse import cache, errors, plugin
 from synse.i18n import _
+from synse.log import logger
 from synse.scheme import transaction as scheme
 
 
@@ -17,17 +18,20 @@ async def check_transaction(transaction_id):
 
     Returns:
         TransactionResponse: The "transaction" response scheme model.
+        TransactionListResponse: The list of all transactions.
     """
-    # if we are not given a transaction ID, then we want to return
+    logger.debug(_('Transaction Command (args: {})').format(transaction_id))
+
+    # If we are not given a transaction ID, then we want to return
     # the list of all actively tracked transactions.
     if transaction_id is None:
-        tkeys = cache.transaction_cache._cache.keys()
-        # keys in the cache are prepended with 'transaction', so here we get all
+        all_keys = cache.transaction_cache._cache.keys()
+        # Keys in the cache are prepended with 'transaction', so here we get all
         # keys with that prefix and strip the prefix.
-        transaction_ids = [k[11:] for k in tkeys if k.startswith('transaction')]
+        transaction_ids = [k[11:] for k in all_keys if k.startswith('transaction')]
         return scheme.TransactionListResponse(transaction_ids)
 
-    # otherwise, get the specified transaction
+    # Otherwise, get the specified transaction.
     transaction = await cache.get_transaction(transaction_id)
     if not transaction:
         raise errors.TransactionNotFoundError(
@@ -53,7 +57,7 @@ async def check_transaction(transaction_id):
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
         raise errors.PluginNotFoundError(
-            _('Unable to find plugin "{}".').format(plugin_name)
+            _('Unable to find plugin "{}"').format(plugin_name)
         )
 
     try:

@@ -17,8 +17,8 @@ async def validate_device_type(device_type, rack, board, device):
         device (str): The ID of the device.
 
     Raises:
-        SynseError: The device does not match the given type.
-        SynseError: The specified device is not found.
+        errors.InvalidDeviceType: The device does not match the given type.
+        errors.DeviceNotFoundError: The specified device is not found.
     """
     __, device = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
     if device.type != device_type.lower():
@@ -43,6 +43,9 @@ def validate_query_params(raw_args, *valid_params):
     Returns:
         dict: A dictionary that maps the supported query parameters found in
             the request with their values.
+
+    Raises:
+        errors.InvalidArgumentsError: An invalid query parameter was detected.
     """
     params = {}
     for k, v in raw_args.items():

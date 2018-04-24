@@ -17,25 +17,27 @@ async def scan(rack=None, board=None, force=False):
     Returns:
         ScanResponse: The "scan" response scheme model.
     """
+    logger.debug(_('Scan Command (args: {}, {}, force: {})').format(rack, board, force))
+
     if force:
         await cache.clear_all_meta_caches()
 
-    # plugins are registered on scan. if no plugins exist and a scan is
+    # Plugins are registered on scan. If no plugins exist and a scan is
     # performed (e.g. on startup), we will find and register plugins.
-    # additionally, if we are forcing re-scan, we will re-register plugins.
-    # this allows us to pick up any dynamically added plugins and clear out
+    # Additionally, if we are forcing re-scan, we will re-register plugins.
+    # This allows us to pick up any dynamically added plugins and clear out
     # any plugins that were removed.
     if len(plugin.Plugin.manager.plugins) == 0 or force:
-        logger.debug(_('Re-registering plugins.'))
+        logger.debug(_('Re-registering plugins'))
         plugin.register_plugins()
 
-    logger.debug(_('Running "scan" command.'))
     cache_data = await cache.get_scan_cache()
 
+    # Filter the scan results by rack.
     if rack is not None:
         if not cache_data:
             raise errors.FailedScanCommandError(
-                _('Unable to filter by resource - no scan results returned.')
+                _('Unable to filter by resource - no scan results returned')
             )
 
         for r in cache_data['racks']:
@@ -44,9 +46,10 @@ async def scan(rack=None, board=None, force=False):
                 break
         else:
             raise errors.RackNotFoundError(
-                _('Rack "{}" not found in scan results.').format(rack)
+                _('Rack "{}" not found in scan results').format(rack)
             )
 
+        # Filter the rack results by board.
         if board is not None:
             for b in cache_data['boards']:
                 if b['id'] == board:
@@ -54,10 +57,9 @@ async def scan(rack=None, board=None, force=False):
                     break
             else:
                 raise errors.BoardNotFoundError(
-                    _('Board "{}" not found in scan results.').format(board)
+                    _('Board "{}" not found in scan results').format(board)
                 )
 
-    logger.debug(_('Making "scan" response.'))
     return ScanResponse(
         data=cache_data
     )
