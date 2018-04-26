@@ -1,10 +1,6 @@
 FROM python:3.6-alpine
 LABEL maintainer="vapor@vapor.io"
 
-ARG BUILD_DATE
-ARG BUILD_VERSION
-ARG VCS_REF
-
 COPY requirements.txt requirements.txt
 
 RUN set -e -x \
@@ -18,6 +14,10 @@ RUN set -e -x \
 
 # Image Metadata -- http://label-schema.org/rc1/
 # This is set after the dependency install so we can cache that layer
+ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG VCS_REF
+
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="vaporio/synse-server" \

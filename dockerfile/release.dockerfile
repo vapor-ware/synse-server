@@ -1,10 +1,6 @@
 FROM python:3.6-alpine
 LABEL maintainer="vapor@vapor.io"
 
-ARG BUILD_DATE
-ARG BUILD_VERSION
-ARG VCS_REF
-
 # Environment variables for built-in emulator configuration.
 ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config" \
     PLUGIN_CONFIG="/synse/emulator"
@@ -29,6 +25,10 @@ RUN set -e -x \
 
 # Image Metadata -- http://label-schema.org/rc1/
 # This is set after the dependency install so we can cache that layer
+ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG VCS_REF
+
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.build-date=$BUILD_DATE \
       org.label-schema.name="vaporio/synse-server" \
