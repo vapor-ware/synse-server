@@ -8,7 +8,7 @@ such as RS-485, I²C, and IPMI. The Synse Server API makes it easy to read from 
 to devices, gather device meta-information, and scan for devices across multiple back-ends
 through a curl-able interface.
 
-Synse Server is created and maintained by Vapor IO under the GPL v2.0 license, and can be
+Synse Server is created and maintained by Vapor IO under the GPL v3.0 license, and can be
 found on `GitHub <https://github.com/vapor-ware/synse-server>`_.
 
 

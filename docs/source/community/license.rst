@@ -3,7 +3,7 @@
 License
 =======
 
-Synse Server is licensed under the GPL-2.0 license.
+Synse Server is licensed under the GPL-3.0 license.
 
 Briefly, that means that:
 
@@ -12,7 +12,7 @@ Briefly, that means that:
     including (via compiler) GPL-licensed code must also be made available under
     the GPL along with build & install instructions.*
 
-        -- `tldrleagal <https://tldrlegal.com/license/gnu-general-public-license-v2>`_
+        -- `tldrleagal <https://tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3)>`_
 
 For the full Synse Server license, see the `LICENSE <https://github.com/vapor-ware/synse-server/blob/master/LICENSE>`_
 file in the source repo.

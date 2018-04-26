@@ -115,7 +115,7 @@ We welcome contributions to the project. The project maintainers actively manage
 and pull requests. If you choose to contribute, we ask that you either comment on an existing
 issue or open a new one. This project follows the typical [GitHub Workflow][gh-workflow].
 
-Synse Server is released under the [GPL-2.0](LICENSE) license.
+Synse Server is released under the [GPL-3.0](LICENSE) license.
 
 
 [synse-api]: https://vapor-ware.github.io/synse-server/
