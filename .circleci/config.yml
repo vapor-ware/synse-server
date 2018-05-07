@@ -84,7 +84,10 @@ jobs:
           name: Check version matches tag
           command: |
             version=$(make version)
-            if [ "${version}" != "${CIRCLE_TAG}" ]; then
+            # Note the 'v' prefix to the version. We expect the tag to start with
+            # v, e.g. v1.2.3, but the version as defined by synse.__version__ does
+            # not have the 'v' prefix, so we add it here.
+            if [ "v${version}" != "${CIRCLE_TAG}" ]; then
               echo "Version ${version} does not match Tag ${CIRCLE_TAG}"
               exit 1
             else
@@ -120,7 +123,6 @@ jobs:
               -replace \
               -draft \
               ${CIRCLE_TAG} build/
-
 
 workflows:
   version: 2
