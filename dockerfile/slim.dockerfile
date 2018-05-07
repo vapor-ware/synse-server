@@ -1,3 +1,11 @@
+#
+# slim.dockerfile
+#
+# The dockerfile for the slim Synse Server release. This image
+# contains Synse Server without the built-in plugin emulator. This
+# image serves as the base for release.dockerfile, so it should be
+# built first.
+#
 FROM python:3.6-alpine
 LABEL maintainer="vapor@vapor.io"
 

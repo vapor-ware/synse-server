@@ -94,7 +94,7 @@ cover: test-unit ## Run unit tests and open the HTML coverage report
 	open ./results/cov-html/index.html
 
 .PHONY: docker
-docker: req-translations docker-default docker-slim ## Build the docker image for Synse Server locally
+docker: req-translations docker-slim docker-default ## Build the docker image for Synse Server locally
 
 .PHONY: api-doc
 api-doc: ## Open the API doc HTML reference
