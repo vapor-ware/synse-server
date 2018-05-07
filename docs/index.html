@@ -264,6 +264,12 @@
                   <li>
                     <a href="#fan" class="toc-h2 toc-link" data-title="fan">Fan</a>
                   </li>
+                  <li>
+                    <a href="#power" class="toc-h2 toc-link" data-title="power">Power</a>
+                  </li>
+                  <li>
+                    <a href="#boot-target" class="toc-h2 toc-link" data-title="boot-target">Boot Target</a>
+                  </li>
               </ul>
           </li>
       </div>
@@ -414,10 +420,13 @@ plugin which manages the device, common device types in Synse include:</p>
 
 <ul>
 <li>airflow</li>
+<li>boot_target</li>
 <li>fan</li>
 <li>humidity</li>
 <li>led</li>
+<li>power</li>
 <li>pressure</li>
+<li>system</li>
 <li>temperature</li>
 </ul>
 <h1 id='endpoints'>Endpoints</h1><h2 id='test'>Test</h2><pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/test"</span>
@@ -1341,6 +1350,8 @@ that the given query parameter value(s), if any, are permissible.</p>
 
 <p>If no valid query parameters are specified, this endpoint will read the specified device. If any number
 of valid query parameters are specified, the endpoint will write to the specified device.</p>
+
+<p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
 <h3 id='http-request-10'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/led/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-6'>URI Parameters</h3>
@@ -1384,7 +1395,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 </tr>
 </tbody></table>
 
-<aside class="warning">
+<aside class="notice">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>LED</i> instances may result in error.
 </aside>
@@ -1448,6 +1459,8 @@ that the given query parameter value(s), if any, are permissible.</p>
 
 <p>If no valid query parameters are specified, this endpoint will read the specified device. If any number
 of valid query parameters are specified, the endpoint will write to the specified device.</p>
+
+<p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
 <h3 id='http-request-11'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/2.0/fan/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-7'>URI Parameters</h3>
@@ -1491,11 +1504,219 @@ of valid query parameters are specified, the endpoint will write to the specifie
 </tr>
 </tbody></table>
 
-<aside class="warning">
+<aside class="notice">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>fan</i> instances may result in error.
 </aside>
 <h3 id='response-fields-9'>Response Fields</h3>
+<p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
+<h2 id='power'>Power</h2>
+<blockquote>
+<p>If no <em>valid</em> query parameters are specified, this will <strong>read</strong> from the power device.</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON will be the same as read response:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"power"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"state"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"on"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-05-07T13:41:08.690629Z"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"unit"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<blockquote>
+<p>If any <em>valid</em> query parameters are specified, this will <strong>write</strong> to the power device.</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON will be the same as a write response:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"state"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"off"</span><span class="w">
+      </span><span class="p">]</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bbo5fdtopi1g00ei06fg"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre>
+<p>An alias to <code>read</code> from or <code>write</code> to a known power device.</p>
+
+<p>While a power device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a power device and
+that the given query parameter value(s), if any, are permissible.</p>
+
+<p>If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.</p>
+
+<p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
+<h3 id='http-request-12'>HTTP Request</h3>
+<p><code>GET http://host:5000/synse/2.0/power/{rack}/{board}/{device}</code></p>
+<h3 id='uri-parameters-8'>URI Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>rack</em></td>
+<td>yes</td>
+<td>The id of the rack containing the power device to read from/write to.</td>
+</tr>
+<tr>
+<td><em>board</em></td>
+<td>yes</td>
+<td>The id of the board containing the power device to read from/write to.</td>
+</tr>
+<tr>
+<td><em>device</em></td>
+<td>yes</td>
+<td>The id of the power device to read from/write to.</td>
+</tr>
+</tbody></table>
+<h3 id='query-parameters-4'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>state</em></td>
+<td>The power state, e.g. <code>on</code>, <code>off</code></td>
+</tr>
+</tbody></table>
+
+<aside class="notice">
+ While Synse Server supports the listed Query Parameters, not all devices may support the 
+ corresponding actions. As a result, writing to some <i>power</i> instances may result in error.
+</aside>
+
+<p>The power <code>state</code>, commonly <code>on</code>/<code>off</code>, is not bound to those values. It is up to the underlying
+plugin what power actions are available. For example, the IPMI plugin supports <code>on</code>, <code>off</code>, <code>reset</code>,
+and <code>cycle</code>.</p>
+<h3 id='response-fields-10'>Response Fields</h3>
+<p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
+<h2 id='boot-target'>Boot Target</h2>
+<blockquote>
+<p>If no <em>valid</em> query parameters are specified, this will <strong>read</strong> from the boot target device.</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON will be the same as read response:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boot_target"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"disk"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-05-07T13:59:53.5529982Z"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"unit"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<blockquote>
+<p>If any <em>valid</em> query parameters are specified, this will <strong>write</strong> to the boot_target device.</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON will be the same as a write response:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"target"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"pxe"</span><span class="w">
+      </span><span class="p">]</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bbo5o0a8qtig00eqhue0"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre>
+<p>An alias to <code>read</code> from or <code>write</code> to a known boot_target device.</p>
+
+<p>While a boot_target device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a boot_target device and
+that the given query parameter value(s), if any, are permissible.</p>
+
+<p>If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.</p>
+
+<p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
+<h3 id='http-request-13'>HTTP Request</h3>
+<p><code>GET http://host:5000/synse/2.0/boot_target/{rack}/{board}/{device}</code></p>
+<h3 id='uri-parameters-9'>URI Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>rack</em></td>
+<td>yes</td>
+<td>The id of the rack containing the boot_target device to read from/write to.</td>
+</tr>
+<tr>
+<td><em>board</em></td>
+<td>yes</td>
+<td>The id of the board containing the boot_target device to read from/write to.</td>
+</tr>
+<tr>
+<td><em>device</em></td>
+<td>yes</td>
+<td>The id of the boot_target device to read from/write to.</td>
+</tr>
+</tbody></table>
+<h3 id='query-parameters-5'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>target</em></td>
+<td>The boot target to set. The values for this depend on plugin. Some examples include: <code>disk</code>, <code>pxe</code>, <code>none</code></td>
+</tr>
+</tbody></table>
+
+<aside class="notice">
+ While Synse Server supports the listed Query Parameters, not all devices will support the 
+ corresponding actions. As a result, writing to some <i>boot_target</i> instances may result in error.
+</aside>
+<h3 id='response-fields-11'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 
       </div>

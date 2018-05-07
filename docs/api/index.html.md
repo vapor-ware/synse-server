@@ -82,10 +82,13 @@ associated with a device, see the [info](#info) endpoint). While the device type
 plugin which manages the device, common device types in Synse include:
 
 - airflow
+- boot_target
 - fan
 - humidity
 - led
+- power
 - pressure
+- system
 - temperature
 
 
@@ -901,6 +904,8 @@ that the given query parameter value(s), if any, are permissible.
 If no valid query parameters are specified, this endpoint will read the specified device. If any number
 of valid query parameters are specified, the endpoint will write to the specified device.
 
+Invalid query parameters will result in a 400 Invalid Arguments error.
+
 ### HTTP Request
 
 `GET http://host:5000/synse/2.0/led/{rack}/{board}/{device}`
@@ -920,7 +925,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 | *state*   | The state of the LED. *Valid values:* (`on`, `off`, `blink`) |
 | *color*   | The color of the LED. This must be an RGB hexadecimal color string. |
 
-<aside class="warning">
+<aside class="notice">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>LED</i> instances may result in error.
 </aside>
@@ -1000,6 +1005,8 @@ that the given query parameter value(s), if any, are permissible.
 If no valid query parameters are specified, this endpoint will read the specified device. If any number
 of valid query parameters are specified, the endpoint will write to the specified device.
 
+Invalid query parameters will result in a 400 Invalid Arguments error.
+
 ### HTTP Request
 
 `GET http://host:5000/synse/2.0/fan/{rack}/{board}/{device}`
@@ -1019,9 +1026,208 @@ of valid query parameters are specified, the endpoint will write to the specifie
 | *speed* | The speed (in RPM) to set the fan to. |
 | *speed_percent* | The speed (in percent) to set the fan to. |
 
-<aside class="warning">
+<aside class="notice">
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>fan</i> instances may result in error.
+</aside>
+
+### Response Fields
+
+See the responses for [read](#read) and [write](#write).
+
+
+## Power
+
+> If no *valid* query parameters are specified, this will **read** from the power device.
+
+```shell
+curl "http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001')
+```
+
+> The response JSON will be the same as read response:
+
+```json
+{
+  "type": "power",
+  "data": {
+    "state": {
+      "value": "on",
+      "timestamp": "2018-05-07T13:41:08.690629Z",
+      "unit": null
+    }
+  }
+}
+```
+
+> If any *valid* query parameters are specified, this will **write** to the power device.
+
+```shell
+curl "http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off')
+```
+
+> The response JSON will be the same as a write response:
+
+```json
+[
+  {
+    "context": {
+      "action": "state",
+      "raw": [
+        "off"
+      ]
+    },
+    "transaction": "bbo5fdtopi1g00ei06fg"
+  }
+]
+```
+
+An alias to `read` from or `write` to a known power device.
+
+While a power device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a power device and
+that the given query parameter value(s), if any, are permissible.
+
+If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.
+
+Invalid query parameters will result in a 400 Invalid Arguments error.
+
+### HTTP Request
+
+`GET http://host:5000/synse/2.0/power/{rack}/{board}/{device}`
+
+### URI Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *rack*    | yes      | The id of the rack containing the power device to read from/write to. |
+| *board*   | yes      | The id of the board containing the power device to read from/write to. |
+| *device*  | yes      | The id of the power device to read from/write to. |
+
+### Query Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| *state* | The power state, e.g. `on`, `off` |
+
+<aside class="notice">
+ While Synse Server supports the listed Query Parameters, not all devices may support the 
+ corresponding actions. As a result, writing to some <i>power</i> instances may result in error.
+</aside>
+
+The power `state`, commonly `on`/`off`, is not bound to those values. It is up to the underlying
+plugin what power actions are available. For example, the IPMI plugin supports `on`, `off`, `reset`,
+and `cycle`.
+
+
+### Response Fields
+
+See the responses for [read](#read) and [write](#write).
+
+
+## Boot Target
+
+> If no *valid* query parameters are specified, this will **read** from the boot target device.
+
+```shell
+curl "http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18')
+```
+
+> The response JSON will be the same as read response:
+
+```json
+{
+  "type": "boot_target",
+  "data": {
+    "target": {
+      "value": "disk",
+      "timestamp": "2018-05-07T13:59:53.5529982Z",
+      "unit": null
+    }
+  }
+}
+```
+
+> If any *valid* query parameters are specified, this will **write** to the boot_target device.
+
+```shell
+curl "http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe')
+```
+
+> The response JSON will be the same as a write response:
+
+```json
+[
+  {
+    "context": {
+      "action": "target",
+      "raw": [
+        "pxe"
+      ]
+    },
+    "transaction": "bbo5o0a8qtig00eqhue0"
+  }
+]
+```
+
+An alias to `read` from or `write` to a known boot_target device.
+
+While a boot_target device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a boot_target device and
+that the given query parameter value(s), if any, are permissible.
+
+If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.
+
+Invalid query parameters will result in a 400 Invalid Arguments error.
+
+### HTTP Request
+
+`GET http://host:5000/synse/2.0/boot_target/{rack}/{board}/{device}`
+
+### URI Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *rack*    | yes      | The id of the rack containing the boot_target device to read from/write to. |
+| *board*   | yes      | The id of the board containing the boot_target device to read from/write to. |
+| *device*  | yes      | The id of the boot_target device to read from/write to. |
+
+### Query Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| *target* | The boot target to set. The values for this depend on plugin. Some examples include: `disk`, `pxe`, `none` |
+
+<aside class="notice">
+ While Synse Server supports the listed Query Parameters, not all devices will support the 
+ corresponding actions. As a result, writing to some <i>boot_target</i> instances may result in error.
 </aside>
 
 ### Response Fields
