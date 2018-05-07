@@ -98,7 +98,7 @@ docker: req-translations docker-default docker-slim ## Build the docker image fo
 
 .PHONY: api-doc
 api-doc: ## Open the API doc HTML reference
-	open ./docs/api/build/index.html
+	open ./docs/index.html
 
 .PHONY: docs
 docs: clean-docs ## Generate the Synse Server User and API documentation locally
