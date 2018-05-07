@@ -63,10 +63,14 @@ def patch_metainfo(monkeypatch):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     'device_type', [
-        'thermistor',
-        'Thermistor',
-        'THERMISTOR',
-        'ThErMiStOr',
+        ['thermistor'],
+        ['Thermistor'],
+        ['THERMISTOR'],
+        ['ThErMiStOr'],
+        # multiple types can be permissible for validation
+        ['led', 'fan', 'thermistor'],
+        ['system', 'THERMISTOR'],
+        ['LOCK', 'Thermistor']
     ]
 )
 async def test_validate_device_type(patch_metainfo, clear_caches, device_type):
@@ -78,14 +82,21 @@ async def test_validate_device_type(patch_metainfo, clear_caches, device_type):
 async def test_validate_device_type_no_device():
     """Test validating a device when the specified device doesn't exist."""
     with pytest.raises(errors.DeviceNotFoundError):
-        await validate.validate_device_type('thermistor', 'foo', 'bar', 'baz')
+        await validate.validate_device_type(['thermistor'], 'foo', 'bar', 'baz')
 
 
 @pytest.mark.asyncio
 async def test_validate_device_type_no_match(patch_metainfo, clear_caches):
     """Test validating a device when the types don't match."""
     with pytest.raises(errors.InvalidDeviceType):
-        await validate.validate_device_type('led', 'rack-1', 'vec', '12345')
+        await validate.validate_device_type(['led'], 'rack-1', 'vec', '12345')
+
+
+@pytest.mark.asyncio
+async def test_validate_device_type_no_match_multiple(patch_metainfo, clear_caches):
+    """Test validating a device when the types don't match."""
+    with pytest.raises(errors.InvalidDeviceType):
+        await validate.validate_device_type(['led', 'something'], 'rack-1', 'vec', '12345')
 
 
 @pytest.mark.parametrize(

@@ -10,8 +10,12 @@ async def validate_device_type(device_type, rack, board, device):
     """Validate that the device associated with the given routing info
     (rack, board device) matches the given device type.
 
+    This checks that the lower-cased device type matches the lower-cased
+    expected type, so casing on device type(s) should not matter.
+
     Args:
-        device_type (str): The type of the device, e.g. "led", "fan", etc.
+        device_type (list[str]): The device types that are permissible,
+            e.g. "led", "fan", etc.
         rack (str): The rack which the device belongs to.
         board (str): The board which the device belongs to.
         device (str): The ID of the device.
@@ -21,9 +25,9 @@ async def validate_device_type(device_type, rack, board, device):
         errors.DeviceNotFoundError: The specified device is not found.
     """
     __, device = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
-    if device.type != device_type.lower():
+    if device.type.lower() not in [t.lower() for t in device_type]:
         raise errors.InvalidDeviceType(
-            _('Device ({}) is not of type {}').format(device.type, device_type)
+            _('Device ({}) is not a supported type {}').format(device.type, device_type)
         )
 
 
