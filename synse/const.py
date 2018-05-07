@@ -3,12 +3,20 @@
 # QUESTION (etd) - should this be 'procs', or something else? perhaps 'run' or 'sock'
 SOCKET_DIR = '/tmp/synse/procs'
 
-# Device Types
+# Device type definitions
 TYPE_LED = 'led'
 TYPE_FAN = 'fan'
 TYPE_SYSTEM = 'system'
 TYPE_POWER = 'power'
 TYPE_LOCK = 'lock'
+TYPE_BOOT_TARGET = 'boot_target'
+
+# Type groupings (these correspond to API actions)
+LED_TYPES = [TYPE_LED]
+FAN_TYPES = [TYPE_FAN]
+POWER_TYPES = [TYPE_POWER]
+LOCK_TYPES = [TYPE_LOCK]
+BOOT_TARGET_TYPES = [TYPE_SYSTEM, TYPE_BOOT_TARGET]
 
 
 # LED state definitions

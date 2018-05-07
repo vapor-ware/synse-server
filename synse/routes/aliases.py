@@ -33,7 +33,7 @@ async def led_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    await validate.validate_device_type(const.TYPE_LED, rack, board, device)
+    await validate.validate_device_type(const.LED_TYPES, rack, board, device)
 
     # Get the valid query parameters. If unsupported query parameters
     # are specified, this will raise an error.
@@ -115,7 +115,7 @@ async def fan_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    await validate.validate_device_type(const.TYPE_FAN, rack, board, device)
+    await validate.validate_device_type(const.FAN_TYPES, rack, board, device)
 
     # Get the valid query parameters. If unsupported query parameters
     # are specified, this will raise an error.
@@ -194,7 +194,7 @@ async def power_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    await validate.validate_device_type(const.TYPE_POWER, rack, board, device)
+    await validate.validate_device_type(const.POWER_TYPES, rack, board, device)
 
     # Get the valid query parameters. If unsupported query parameters
     # are specified, this will raise an error.
@@ -249,7 +249,7 @@ async def boot_target_route(request, rack, board, device):
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    await validate.validate_device_type(const.TYPE_SYSTEM, rack, board, device)
+    await validate.validate_device_type(const.BOOT_TARGET_TYPES, rack, board, device)
 
     # Get the valid query parameters. If unsupported query parameters
     # are specified, this will raise an error.
