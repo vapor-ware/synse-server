@@ -88,6 +88,10 @@ echo "All tags for ${IMAGE_NAME}: ${tags[@]}"
 # uses a Make target defined there.
 #
 
+# Since release.dockerfile is based off of vaporio/synse-server:slim, we
+# will want to to generate that tag here as well.
+IMAGE_TAGS=slim IMAGE_DOCKERFILE=slim.dockerfile make build-docker
+
 IMAGE_TAGS="${tags[@]}" make docker
 
 
@@ -105,6 +109,7 @@ IMAGE_TAGS="${tags[@]}" make docker
 images=$(docker images \
     --filter "label=org.label-schema.vcs-ref=`git rev-parse --short HEAD 2> /dev/null || true`" \
     --filter "label=org.label-schema.name=vaporio/synse-server" \
+    --filter "dangling=false" \
     --format "{{.Repository}}:{{.Tag}}")
 
 echo "images to push: ${images}"

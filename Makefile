@@ -35,9 +35,10 @@ NC     := \033[0m
 # build the docker images with the given tags and tag suffix for the specified
 # dockerfile.
 build-docker:
+	echo "image tags: ${GREEN}$(IMAGE_TAGS)${NC}"
 	tags="" ; \
 	for tag in $(IMAGE_TAGS); do if [ "$(IMAGE_TAG_SUFFIX)" ]; then tag="$$tag-$(IMAGE_TAG_SUFFIX)"; fi; tags="$${tags} -t $(IMAGE_NAME):$${tag}" ; done ; \
-	echo "tags: $$tags" ; \
+	echo "${GREEN}tags: $$tags${NC}" ; \
 	docker build -f dockerfile/$(IMAGE_DOCKERFILE) \
 		--build-arg BUILD_DATE=$(BUILD_DATE) \
 		--build-arg BUILD_VERSION=$(PKG_VERSION) \
