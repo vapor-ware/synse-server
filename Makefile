@@ -114,7 +114,7 @@ docs: clean-docs  ## Generate the User Guide and API documentation locally
 .PHONY: github-tag
 github-tag:  ## Create and push a tag with the current version
 	git tag -a v${PKG_VERSION} -m "${PKG_NAME} version v${PKG_VERSION}"
-#	git push -u origin v${PKG_VERSION}
+	git push -u origin v${PKG_VERSION}
 
 .PHONY: i18n-compile
 i18n-compile:  ## Compile translations catalogs into a binary .mo file
