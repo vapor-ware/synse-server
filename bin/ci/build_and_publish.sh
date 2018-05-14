@@ -106,11 +106,11 @@ IMAGE_TAGS="${tags[@]}" make docker
 # image labels.
 #
 
-images=$(docker images \
+images=($(docker images \
     --filter "label=org.label-schema.vcs-ref=`git rev-parse --short HEAD 2> /dev/null || true`" \
     --filter "label=org.label-schema.name=vaporio/synse-server" \
     --filter "dangling=false" \
-    --format "{{.Repository}}:{{.Tag}}")
+    --format "{{.Repository}}:{{.Tag}}"))
 
 echo "images to push: ${images}"
 
