@@ -3,7 +3,7 @@ and virtual devices.
 """
 
 __title__ = 'synse'
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 __description__ = 'Synse Server'
 __author__ = 'Vapor IO'
 __author_email__ = 'vapor@vapor.io'
