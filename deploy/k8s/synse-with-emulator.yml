@@ -1,0 +1,136 @@
+# This file is a simple example of a Kubernetes deployment with Synse Server
+# and a single plugin, the emulator plugin. It is meant for demonstration
+# purposes, and can be used as an example for creating your own deployments
+# with Synse Server.
+
+
+# Configuration for the Emulator Plugin
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emulator-plugin-config
+  labels:
+    name: emulator-plugin-config
+data:
+  config.yml: |
+    version: 1.0
+    name: emulator
+    debug: true
+    network:
+      type: tcp
+      address: "0.0.0.0:5001"
+    settings:
+      mode: parallel
+      read:
+        interval: 1s
+      write:
+        interval: 1s
+---
+# A simple device configuration for the emulator plugin. This
+# will make 2 temperature devices and 2 LED devices available
+# to Synse Server.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emulator-device-config
+  labels:
+    name: emulator-device-config
+data:
+  devices.yml: |
+    version: 1.0
+    locations:
+      r1vec:
+        rack:
+          from_env: NODE_NAME
+        board: vec
+    devices:
+      - type: temperature
+        model: emul8-temp
+        instances:
+          - id: "1"
+            location: r1vec
+            info: Synse Temperature Sensor 1
+          - id: "2"
+            location: r1vec
+            info: Synse Temperature Sensor 2
+      - type: led
+        model: emul8-led
+        instances:
+          - id: "1"
+            location: r1vec
+            info: Synse LED
+          - id: "2"
+            location: r1vec
+            info: Synse backup LED
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: synse-server
+  labels:
+    app: synse-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synse-server
+  template:
+    metadata:
+      labels:
+        app: synse-server
+    spec:
+      volumes:
+        - name: emulator-plugin-config
+          configMap:
+            name: emulator-plugin-config
+        - name: emulator-device-config
+          configMap:
+            name: emulator-device-config
+      containers:
+        - name: synse-server
+          image: vaporio/synse-server:latest-slim
+          ports:
+            - name: http
+              containerPort: 5000
+          env:
+            # Enable debug logging via ENV config
+            - name: SYNSE_LOGGING
+              value: debug
+            # Register the Emulator Plugin via ENV config
+            - name: SYNSE_PLUGIN_TCP_EMULATOR
+              value: localhost:5001
+          resources:
+            requests:
+              cpu: 25m
+              memory: 100Mi
+        - name: emulator-plugin
+          image: vaporio/emulator-plugin:edge
+          ports:
+            - name: http
+              containerPort: 5001
+          env:
+            # Set pass the NODE_NAME to the container - this will be used
+            # as the rack id (see plugin device config)
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: PLUGIN_DEVICE_PATH
+              value: /tmp/device/config
+            - name: PLUGIN_CONFIG
+              value: /tmp/plugin
+          resources:
+            requests:
+              cpu: 25m
+              memory: 100Mi
+          volumeMounts:
+            # Mount in the emulator plugin configuration to a non-default location.
+            # This path is registered with the plugin via the PLUGIN_CONFIG enviroment
+            # variable.
+            - name: emulator-plugin-config
+              mountPath: /tmp/plugin
+            # Mount in the emulator plugin device config to a non-default location.
+            # This path is registered with the plugin via the PLUGIN_DEVICE_PATH
+            # environment variable.
+            - name: emulator-device-config
+              mountPath: /tmp/device/config

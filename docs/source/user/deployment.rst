@@ -10,9 +10,9 @@ with Synse Server and plugins.
 Deploying with Docker Compose
 -----------------------------
 For a complete set of examples for deploying with ``docker compose``, see the
-emulator example deployments in the ``deploy`` directory of the Synse Server source.
-This section goes into detail on how to deploy Synse Server with an externally
-running emulator plugin configured for TCP communication.
+emulator example deployments in the `deploy/docker directory <https://github.com/vapor-ware/synse-server/tree/master/deploy/docker>`_
+of the Synse Server source. This section goes into detail on how to deploy Synse Server
+with an externally running emulator plugin configured for TCP communication.
 
 For Synse Server, all that we really need to do is specify the plugin in the
 container's configuration. As you may recall from the :ref:`configuration` section,
@@ -239,4 +239,5 @@ To bring the deployment down,
 
 Deploying with Kubernetes
 -------------------------
-Coming soon
+A simple example deployment of Synse Server and the containerized Plugin Emulator can
+be found in the project source's `deploy/k8s directory <https://github.com/vapor-ware/synse-server/tree/master/deploy/k8s>`_.
