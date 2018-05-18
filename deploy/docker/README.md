@@ -3,8 +3,8 @@ This directory contains examples for [docker-compose][docker-compose] based depl
 of Synse Server (v2.0+) with the containerized Emulator Plugin.
 
 ## Deployments
-As a general note - the Emulator Plugin does not need to be containerized. In
-fact, it is built into non-slim Synse Server 2.0 images so that it can run
+As a general note - the Emulator Plugin does not need to be containerized separately.
+In fact, it is built into non-slim Synse Server 2.0+ images so that it can run
 alongside Synse Server, providing an easy way to get started/demo/play with it.
 
 In this case, we use a containerized version of the same emulator in order to
