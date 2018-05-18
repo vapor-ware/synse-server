@@ -3,8 +3,8 @@ This directory contains an example deployment of Synse Server with a containeriz
 Emulator Plugin for [Kubernetes][kubernetes].
 
 ## Deployments
-As a general note - the Emulator Plugin does not need to be containerized. In
-fact, it is built into non-slim Synse Server 2.0+ images so that it can run
+As a general note - the Emulator Plugin does not need to be containerized separately.
+In fact, it is built into non-slim Synse Server 2.0+ images so that it can run
 alongside Synse Server, providing an easy way to get started/demo/play with it.
 
 In this case, we use a containerized version of the same emulator in order to
@@ -25,6 +25,8 @@ For this example you will need:
 - an operational Kubernetes cluster
 - access to the Kubernetes cluster
 - [`kubectl`][kubectl], configured to talk to your cluster
+
+It may also be useful to get the [Synse CLI][synse-cli] to interact with Synse Server.
 
 It is also recommended that you have a basic understanding of how Synse Server
 works, how Synse Plugins work, and how the two interact. This is not required
@@ -79,8 +81,28 @@ This should give back a set of devices - in particular:
 If you look at the log output of the Emulator Plugin , you should see that these results
 match up with what that plugin had registered on startup.
 
+You can also do the above with the Synse CLI. First you'll need to add the IP as a host,
+and set that as the active host.
+```
+synse hosts add example 10.244.0.239
+synse hosts change example
+```
+
+Then, to test the status:
+```
+synse server status
+```
+
+And to get the scan information:
+```
+synse server scan
+```
+
+See the help information for the Synse CLI for more usage info.
+
 [kubernetes]: https://kubernetes.io/
 [kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
+[synse-cli]: https://github.com/vapor-ware/synse-cli
 [synse-sdk]: https://github.com/vapor-ware/synse-sdk
 [synse-grpc]: https://github.com/vapor-ware/synse-server-grpc
 [synse-user-guide]: http://synse-server.readthedocs.io/en/latest/
