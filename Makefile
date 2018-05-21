@@ -53,6 +53,10 @@ docker-default:
 .PHONY: docker-slim
 # build the docker images for slim.dockerfile -- this does not include the emulator
 docker-slim:
+	# Build the 'vaporio/synse-server:base' image. This will be used as the base
+	# for the 'release' image.
+	@$(MAKE) build-docker IMAGE_TAGS=base IMAGE_DOCKERFILE=slim.dockerfile
+	# Tag the slim image with the appropriate '-slim' tags.
 	@$(MAKE) build-docker IMAGE_TAG_SUFFIX=slim IMAGE_DOCKERFILE=slim.dockerfile
 
 .PHONY: pycache-clean

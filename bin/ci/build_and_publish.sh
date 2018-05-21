@@ -88,10 +88,6 @@ echo "All tags for ${IMAGE_NAME}: ${tags[@]}"
 # uses a Make target defined there.
 #
 
-# Since release.dockerfile is based off of vaporio/synse-server:slim, we
-# will want to to generate that tag here as well.
-IMAGE_TAGS=slim IMAGE_DOCKERFILE=slim.dockerfile make build-docker
-
 IMAGE_TAGS="${tags[@]}" make docker
 
 
@@ -115,5 +111,10 @@ images=($(docker images \
 echo "images to push: ${images}"
 
 for image in "${images[@]}"; do
-    docker push ${image}
+    # We want to not push the vaporio/synse-server:base image, since it is
+    # only built as the base for the release dockerfile and other tags. It
+    # is not intended to be pushed to DockerHub.
+    if [ "${image}" != "vaporio/synse-server:base" ]; then
+        docker push ${image}
+    fi
 done

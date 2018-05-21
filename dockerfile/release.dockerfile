@@ -3,15 +3,20 @@
 #
 # The dockerfile for the default Synse Server release. This image
 # contains Synse Server and a built-in plugin emulator. It is based
-# off of the synse-server:slim image (see slim.dockerfile), which
+# off of the synse-server:base image (see slim.dockerfile), which
 # installs the Synse Server dependencies, leaving this Dockerfile to
 # only need to install the emulator.
+#
+# vaporio/synse-server:base is NOT in DockerHub, it is intended to be
+# a local artifact from building slim.dockerfile. This way, this Dockerfile
+# is not using outdated images as its base. This build artifact is created
+# via the 'docker-slim' target.
 #
 # Note that because slim.dockerfile uses build args to set image metainfo,
 # the build cache is invalidated so this image will always be rebuilt.
 # The work done here should be minimal.
 #
-FROM vaporio/synse-server:slim
+FROM vaporio/synse-server:base
 
 # Emulator installation script
 COPY bin/install_emulator.sh tmp/install_emulator.sh
