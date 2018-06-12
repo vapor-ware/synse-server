@@ -12,7 +12,7 @@ from synse_plugin import api
 import synse.cache
 from synse import errors, plugin
 from synse.commands.read import read
-from synse.proto.client import SynseInternalClient
+from synse.proto.client import SynsePluginClient
 from synse.scheme.read import ReadResponse
 
 
@@ -92,14 +92,14 @@ def mock_get_device_meta(monkeypatch):
 @pytest.fixture()
 def mock_client_read(monkeypatch):
     """Fixture to monkeypatch the grpc client's read method."""
-    monkeypatch.setattr(SynseInternalClient, 'read', mockread)
+    monkeypatch.setattr(SynsePluginClient, 'read', mockread)
     return mock_client_read
 
 
 @pytest.fixture()
 def mock_client_read_fail(monkeypatch):
     """Fixture to monkeypatch the grpc client's read method to fail."""
-    monkeypatch.setattr(SynseInternalClient, 'read', mockreadfail)
+    monkeypatch.setattr(SynsePluginClient, 'read', mockreadfail)
     return mock_client_read_fail
 
 

@@ -7,7 +7,7 @@ import socket
 import pytest
 
 from synse import config, errors, plugin
-from synse.proto.client import SynseInternalClient
+from synse.proto.client import SynsePluginClient
 from tests import data_dir
 
 
@@ -106,7 +106,7 @@ def test_plugin_unix_ok():
     assert p.addr == path
     assert p.mode == 'unix'
     assert p.client is not None
-    assert isinstance(p.client, SynseInternalClient)
+    assert isinstance(p.client, SynsePluginClient)
 
 
 def test_plugin_tco_ok():
@@ -118,7 +118,7 @@ def test_plugin_tco_ok():
     assert p.addr == 'localhost:9999'
     assert p.mode == 'tcp'
     assert p.client is not None
-    assert isinstance(p.client, SynseInternalClient)
+    assert isinstance(p.client, SynsePluginClient)
 
 
 def test_plugins_same_manager(mock_plugin):

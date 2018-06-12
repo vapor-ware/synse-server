@@ -12,7 +12,7 @@ from synse_plugin import api
 import synse.cache
 from synse import errors, plugin
 from synse.commands.write import write
-from synse.proto.client import SynseInternalClient
+from synse.proto.client import SynsePluginClient
 from synse.scheme.write import WriteResponse
 
 
@@ -108,14 +108,14 @@ def mock_transaction_add(monkeypatch):
 @pytest.fixture()
 def mock_client_write(monkeypatch):
     """Fixture to monkeypatch the grpc client's write method."""
-    monkeypatch.setattr(SynseInternalClient, 'write', mockwrite)
+    monkeypatch.setattr(SynsePluginClient, 'write', mockwrite)
     return mock_client_write
 
 
 @pytest.fixture()
 def mock_client_write_fail(monkeypatch):
     """Fixture to monkeypatch the grpc client's write method to fail."""
-    monkeypatch.setattr(SynseInternalClient, 'write', mockwritefail)
+    monkeypatch.setattr(SynsePluginClient, 'write', mockwritefail)
     return mock_client_write_fail
 
 

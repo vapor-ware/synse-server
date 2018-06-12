@@ -28,7 +28,7 @@ def reset_state():
     plugin.Plugin.manager.plugins = {}
 
     # clear out the state of the client manager
-    client.SynseInternalClient._client_stubs = {}
+    client.SynsePluginClient._client_stubs = {}
 
     # clear the environment
     for k, _ in os.environ.items():

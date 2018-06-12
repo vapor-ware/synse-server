@@ -10,7 +10,7 @@ from synse_plugin import api
 import synse.cache
 from synse import errors, plugin
 from synse.commands.transaction import check_transaction
-from synse.proto.client import SynseInternalClient
+from synse.proto.client import SynsePluginClient
 from synse.scheme.transaction import (TransactionListResponse,
                                       TransactionResponse)
 
@@ -54,14 +54,14 @@ def mock_get_transaction(monkeypatch):
 @pytest.fixture()
 def mock_client_transaction(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method."""
-    monkeypatch.setattr(SynseInternalClient, 'check_transaction', mockchecktransaction)
+    monkeypatch.setattr(SynsePluginClient, 'check_transaction', mockchecktransaction)
     return mock_client_transaction
 
 
 @pytest.fixture()
 def mock_client_transaction_fail(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method to fail."""
-    monkeypatch.setattr(SynseInternalClient, 'check_transaction', mockchecktransactionfail)
+    monkeypatch.setattr(SynsePluginClient, 'check_transaction', mockchecktransactionfail)
     return mock_client_transaction_fail
 
 

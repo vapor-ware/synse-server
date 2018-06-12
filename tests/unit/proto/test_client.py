@@ -115,28 +115,28 @@ def test_write_data_to_grpc():
 def test_get_client_exists():
     """Get a client when the client exists."""
 
-    c = client.SynseInternalClient('test-cli', 'localhost:5000', 'tcp')
-    assert len(client.SynseInternalClient._client_stubs) == 1
+    c = client.SynsePluginClient('test-cli', 'localhost:5000', 'tcp')
+    assert len(client.SynsePluginClient._client_stubs) == 1
 
     test_cli = client.get_client('test-cli')
     assert test_cli == c
-    assert len(client.SynseInternalClient._client_stubs) == 1
+    assert len(client.SynsePluginClient._client_stubs) == 1
 
 
 def test_get_client_does_not_exist():
     """Get a client when it does not already exist."""
 
-    assert len(client.SynseInternalClient._client_stubs) == 0
+    assert len(client.SynsePluginClient._client_stubs) == 0
 
     client.get_client('test-cli')
 
-    assert len(client.SynseInternalClient._client_stubs) == 0
+    assert len(client.SynsePluginClient._client_stubs) == 0
 
 
 def test_client_init():
     """Verify the client initializes as expected."""
 
-    c = client.SynseInternalClient('test-cli', 'test-cli.sock', 'unix')
+    c = client.SynsePluginClient('test-cli', 'test-cli.sock', 'unix')
 
     assert c.name == 'test-cli'
     assert c.addr == 'test-cli.sock'
@@ -149,13 +149,13 @@ def test_client_init_bad_mode():
     """Verify the client fails to initialize when a bad mode is provided."""
 
     with pytest.raises(errors.InvalidArgumentsError):
-        client.SynseInternalClient('test-cli', 'test-cli.sock', 'foo')
+        client.SynsePluginClient('test-cli', 'test-cli.sock', 'foo')
 
 
 def test_client_read():
     """Test reading via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
+    c = client.SynsePluginClient('test', 'test.sock', 'unix')
     c.stub.Read = mock_read
 
     resp = c.read('rack-1', 'vec', '12345')
@@ -168,7 +168,7 @@ def test_client_read():
 def test_client_write():
     """Test writing via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
+    c = client.SynsePluginClient('test', 'test.sock', 'unix')
     c.stub.Write = mock_write
 
     resp = c.write('rack-1', 'vec', '12345', [client.WriteData()])
@@ -179,7 +179,7 @@ def test_client_write():
 def test_client_metainfo():
     """Test getting metainfo via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
+    c = client.SynsePluginClient('test', 'test.sock', 'unix')
     c.stub.Metainfo = mock_metainfo
 
     resp = c.metainfo()
@@ -192,7 +192,7 @@ def test_client_metainfo():
 def test_client_transaction():
     """Test checking a transaction via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
+    c = client.SynsePluginClient('test', 'test.sock', 'unix')
     c.stub.TransactionCheck = mock_transaction
 
     resp = c.check_transaction('abcdef')
