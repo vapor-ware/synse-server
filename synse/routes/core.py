@@ -175,6 +175,21 @@ async def plugins_route(request):
     return response.to_json()
 
 
+@bp.route('/capabilities')
+@validate.no_query_params()
+async def capabilities_route(request):
+    """Enumerate the device capabilities provided by all of the registered plugins.
+
+    Args:
+        request (sanic.request.Request): The incoming request.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
+    """
+    response = await commands.capabilities()
+    return response.to_json()
+
+
 # FIXME (etd) -- this is a temporary route that is being used for auto-fan for demo/
 # development. this functionality should be generalized and this specific endpoint
 # should be removed. this will only stay in for a short period of time, so use at

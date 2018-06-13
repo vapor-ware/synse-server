@@ -9,6 +9,7 @@ you can simply 'from synse.commands import scan'.
 """
 # pylint: disable=unused-import
 
+from .capabilities import capabilities
 from .config import config
 # FIXME (etd) - temporary for autofan support
 from .fan_sensors import fan_sensors

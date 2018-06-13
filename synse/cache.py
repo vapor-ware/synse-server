@@ -25,6 +25,7 @@ NS_META = 'meta'
 NS_PLUGINS = 'plugins'
 NS_SCAN = 'scan'
 NS_INFO = 'info'
+NS_CAPABILITIES = 'capabilities'
 
 # Internal keys into the caches for the data (e.g. dictionaries)
 # being cached.
@@ -32,6 +33,7 @@ META_CACHE_KEY = 'meta_cache_key'
 PLUGINS_CACHE_KEY = 'plugins_cache_key'
 SCAN_CACHE_KEY = 'scan_cache_key'
 INFO_CACHE_KEY = 'info_cache_key'
+CAPABILITIES_CACHE_KEY = 'capabilities_cache_key'
 
 # Create caches
 transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
@@ -39,6 +41,7 @@ _meta_cache = aiocache.SimpleMemoryCache(namespace=NS_META)
 _plugins_cache = aiocache.SimpleMemoryCache(namespace=NS_PLUGINS)
 _scan_cache = aiocache.SimpleMemoryCache(namespace=NS_SCAN)
 _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
+_capabilities_cache = aiocache.SimpleMemoryCache(namespace=NS_CAPABILITIES)
 
 
 def configure_cache():
@@ -148,6 +151,36 @@ async def get_device_meta(rack, board, device):
     # always have the plugin name here.
     pcache = await _plugins_cache.get(PLUGINS_CACHE_KEY)
     return pcache.get(cid), dev
+
+
+async def get_capabilities_cache():
+    """Get the cached device capability information for all registered
+    plugins, aggregated from the gRPC Capabilities request.
+
+    If the cache does not exist or has surpassed its TTL, it will be
+    rebuilt.
+
+    Returns:
+        list: A list enumerating each plugin's device kinds and their
+            corresponding capabilities.
+    """
+    # Get the cache and return it if it exists, otherwise, rebuild.
+    value = await _capabilities_cache.get(CAPABILITIES_CACHE_KEY)
+    if value is not None:
+        return value
+
+    capabilities = await _build_capabilities_cache()
+
+    # If the capabilities data is empty when built, we don't want to cache
+    # the empty list, so we will set it to None. Future calls to this function
+    # will then attempt to rebuild the cache.
+    value = capabilities or None
+
+    # Get the cache ttl
+    ttl = config.options.get('cache.meta.ttl', None)
+    await _capabilities_cache.set(CAPABILITIES_CACHE_KEY, value, ttl=ttl)
+
+    return capabilities
 
 
 async def get_metainfo_cache():
@@ -321,6 +354,67 @@ async def get_resource_info_cache():
     await _meta_cache.set(INFO_CACHE_KEY, value, ttl=ttl)
 
     return info_cache
+
+
+async def _build_capabilities_cache():
+    """Construct the list that will become the device capabilities cache.
+
+    Returns:
+        list: A list of dictionaries, where each dictionary corresponds to
+            a registered plugin. The plugin dict will identify the plugin
+            and enumerate the device kinds it supports and the output types
+            supported by those device kinds.
+
+    Raises:
+        errors.InternalApiError: All plugins failed the capabilities request.
+    """
+    logger.debug(_('Building the device capabilities cache'))
+    capabilities = []
+
+    # First, we want to iterate through all of the known plugins and use
+    # their clients to get the capability info for each plugin.
+    plugin_count = len(Plugin.manager.plugins)
+    if plugin_count == 0:
+        logger.debug(_('Manager has no plugins - registering plugins'))
+        register_plugins()
+        plugin_count = len(Plugin.manager.plugins)
+
+    logger.debug(_('Plugins to get capabilities for: {}').format(plugin_count))
+
+    # Track which plugins failed to provide capability info for any reason.
+    failures = {}
+
+    async for name, plugin in get_plugins():
+        logger.debug('{} - {}'.format(name, plugin))
+
+        devices = []
+
+        try:
+            for capability in plugin.client.capabilities():
+                devices.append({
+                    'kind': capability.kind,
+                    'outputs': capability.outputs
+                })
+
+        except grpc.RpcError as ex:
+            failures[name] = ex
+            logger.warning(_('Failed to get capability for plugin: {}').format(name))
+            logger.warning(ex)
+            continue
+
+        capabilities.append({
+            'plugin': name,
+            'devices': devices
+        })
+
+    # If we fail to read from all plugins (assuming there were any), then we
+    # can raise an error since it is likely something is mis-configured.
+    if plugin_count != 0 and plugin_count == len(failures):
+        raise errors.InternalApiError(
+            _('Failed to get capabilities for all plugins: {}').format(failures)
+        )
+
+    return capabilities
 
 
 async def _build_metainfo_cache():
