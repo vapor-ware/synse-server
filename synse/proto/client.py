@@ -22,18 +22,18 @@ class WriteData(object):
     the color simultaneously. This can be done with two WriteData objects
     passed in a list to the `SynsePluginClient.write` method, e.g.
 
-        color = WriteData(action='color', raw=[b'ffffff'])
+        color = WriteData(action='color', raw=b'ffffff')
         state = WriteData(action='on')
 
     Args:
         action (str): The action string for the write.
-        raw (list[bytes]): A list of bytes that constitute the raw data that
+        raw (bytes): The bytes that constitute the raw data that
             will be written by the write request.
     """
 
     def __init__(self, action=None, raw=None):
         self.action = action if action is not None else ''
-        self.raw = raw if raw is not None else []
+        self.raw = raw if raw is not None else b''
 
     def __str__(self):
         return '<WriteData: action: {}, raw: {}>'.format(self.action, self.raw)
@@ -136,33 +136,58 @@ class SynsePluginClient(object):
     def test(self):
         """Test that the plugin is reachable
 
-
+        Returns:
+            synse_plugin.api.Status: The status of the 'test' ping. This
+                should always resolve to 'ok' if the plugin is reachable,
+                or else result in a timeout/connection failure.
         """
         logger.debug(_('Issuing gRPC test request'))
 
         req = synse_api.Empty()
         timeout = config.options.get('grpc.timeout', None)
         resp = self.stub.Test(req, timeout=timeout)
-
         return resp
 
     def health(self):
         """Get the health of the plugin.
 
+        Returns:
+            synse_plugin.api.PluginHealth: The snapshot of the plugin's
+                health at the time the request was made.
         """
         logger.debug(_('Issuing gRPC health request'))
+
+        req = synse_api.Empty()
+        timeout = config.options.get('grpc.timeout', None)
+        resp = self.stub.Health(req, timeout=timeout)
+        return resp
 
     def metainfo(self):
         """Get the plugin metainfo.
 
+        Returns:
+            synse_plugin.api.Metadata: The plugin's metadata.
         """
         logger.debug(_('Issuing gRPC metainfo request'))
+
+        req = synse_api.Empty()
+        timeout = config.options.get('grpc.timeout', None)
+        resp = self.stub.Metainfo(req, timeout=timeout)
+        return resp
 
     def capabilities(self):
         """Get the plugin device capabilities.
 
+        Returns:
+            list[synse_plugin.api.DeviceCapability]: All device capability
+                information provided by the plugin.
         """
         logger.debug(_('Issuing gRPC capabilities request'))
+
+        req = synse_api.Empty()
+        timeout = config.options.get('grpc.timeout', None)
+        resp = [c for c in self.stub.Capabilities(req, timeout=timeout)]
+        return resp
 
     def devices(self, rack=None, board=None):
         """Get all device information from a plugin.
@@ -172,7 +197,7 @@ class SynsePluginClient(object):
             board (str): The board to filter by.
 
         Returns:
-            list[synse_plugin.api.MetainfoResponse]: All device meta-information
+            list[synse_plugin.api.Device]: All device information
                 provided by the plugin.
         """
         logger.debug(_('Issuing gRPC devices request'))
@@ -182,13 +207,13 @@ class SynsePluginClient(object):
         rack = rack if rack is not None else ''
         board = board if board is not None else ''
 
-        req = synse_api.MetainfoRequest(
+        req = synse_api.DeviceFilter(
             rack=rack,
             board=board
         )
 
         timeout = config.options.get('grpc.timeout', None)
-        resp = [r for r in self.stub.Metainfo(req, timeout=timeout)]
+        resp = [r for r in self.stub.Devices(req, timeout=timeout)]
 
         return resp
 
@@ -201,15 +226,15 @@ class SynsePluginClient(object):
             device (str): The identifier for the device to read.
 
         Returns:
-            list[synse_plugin.api.ReadResponse]: The reading responses for the
+            list[synse_plugin.api.Reading]: The reading responses for the
                 specified device, if it exists.
         """
         logger.debug(_('Issuing gRPC read request'))
 
-        req = synse_api.ReadRequest(
+        req = synse_api.DeviceFilter(
             device=device,
             board=board,
-            rack=rack
+            rack=rack,
         )
 
         timeout = config.options.get('grpc.timeout', None)
@@ -232,10 +257,12 @@ class SynsePluginClient(object):
         """
         logger.debug(_('Issuing gRPC write request'))
 
-        req = synse_api.WriteRequest(
-            device=device,
-            board=board,
-            rack=rack,
+        req = synse_api.WriteInfo(
+            deviceFilter=synse_api.DeviceFilter(
+                device=device,
+                board=board,
+                rack=rack,
+            ),
             data=[d.to_grpc() for d in data]
         )
 
@@ -250,17 +277,17 @@ class SynsePluginClient(object):
             transaction_id (str): The ID of the transaction to check.
 
         Returns:
-            synse_plugin.api.WriteResponse: The WriteResponse detailing the
+            list[synse_plugin.api.WriteResponse]: The WriteResponse detailing the
                 status and state of the given write transaction.
         """
         logger.debug(_('Issuing gRPC transaction request'))
 
-        req = synse_api.TransactionId(
+        req = synse_api.TransactionFilter(
             id=transaction_id
         )
 
         timeout = config.options.get('grpc.timeout', None)
-        resp = self.stub.TransactionCheck(req, timeout=timeout)
+        resp = [r for r in self.stub.Transaction(req, timeout=timeout)]
         return resp
 
 
