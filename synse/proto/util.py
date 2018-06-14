@@ -27,6 +27,12 @@ def write_state_name(value):
     return api.WriteResponse.WriteState.Name(value).lower()
 
 
+def plugin_health_status_name(value):
+    """
+    """
+    return api.PluginHealth.Status.Name(value).lower()
+
+
 def device_info_to_dict(device):
     """Convert a grpc Device to a dictionary that can be serialized out
     to JSON.
