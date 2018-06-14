@@ -1,24 +1,34 @@
 version: 1.0
 locations:
-  r1vec:
-    rack: rack-1
-    board: vec
+  - name: r1vec
+    rack:
+      name: rack-1
+    board:
+      name: vec
 devices:
-  - type: temperature
-    model: emul8-temp
+  - name: temperature
+    metadata:
+      model: emul8-temp
+    outputs:
+      - type: temperature
     instances:
-      - id: "1"
+      - info: Synse Temperature Sensor 1
         location: r1vec
-        info: Synse Temperature Sensor 1
-      - id: "2"
+        data:
+          id: 1
+      - info: Synse Temperature Sensor 2
         location: r1vec
-        info: Synse Temperature Sensor 2
-      - id: "3"
+        data:
+          id: 2
+      - info: Synse Temperature Sensor 3
         location: r1vec
-        info: Synse Temperature Sensor 3
-      - id: "4"
+        data:
+          id: 3
+      - info: Synse Temperature Sensor 4
         location: r1vec
-        info: Synse Temperature Sensor 4
-      - id: "5"
+        data:
+          id: 4
+      - info: Synse Temperature Sensor 5
         location: r1vec
-        info: Synse Temperature Sensor 5
+        data:
+          id: 5

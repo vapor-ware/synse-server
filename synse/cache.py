@@ -21,7 +21,7 @@ AIOCACHE = {
 
 # Synse Server cache namespaces
 NS_TRANSACTION = 'transaction'
-NS_META = 'meta'
+NS_DEVICE_INFO = 'devices'
 NS_PLUGINS = 'plugins'
 NS_SCAN = 'scan'
 NS_INFO = 'info'
@@ -29,7 +29,7 @@ NS_CAPABILITIES = 'capabilities'
 
 # Internal keys into the caches for the data (e.g. dictionaries)
 # being cached.
-META_CACHE_KEY = 'meta_cache_key'
+DEVICE_INFO_CACHE_KEY = 'meta_cache_key'
 PLUGINS_CACHE_KEY = 'plugins_cache_key'
 SCAN_CACHE_KEY = 'scan_cache_key'
 INFO_CACHE_KEY = 'info_cache_key'
@@ -37,7 +37,7 @@ CAPABILITIES_CACHE_KEY = 'capabilities_cache_key'
 
 # Create caches
 transaction_cache = aiocache.SimpleMemoryCache(namespace=NS_TRANSACTION)
-_meta_cache = aiocache.SimpleMemoryCache(namespace=NS_META)
+_device_info_cache = aiocache.SimpleMemoryCache(namespace=NS_DEVICE_INFO)
 _plugins_cache = aiocache.SimpleMemoryCache(namespace=NS_PLUGINS)
 _scan_cache = aiocache.SimpleMemoryCache(namespace=NS_SCAN)
 _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
@@ -68,7 +68,7 @@ async def clear_all_meta_caches():
     """Clear all caches which contain or are derived from meta-information
     collected from gRPC Metainfo requests.
     """
-    for ns in [NS_META, NS_PLUGINS, NS_INFO, NS_SCAN]:
+    for ns in [NS_DEVICE_INFO, NS_PLUGINS, NS_INFO, NS_SCAN]:
         await clear_cache(ns)
 
 
@@ -118,8 +118,8 @@ async def add_transaction(transaction_id, context, plugin_name):
     )
 
 
-async def get_device_meta(rack, board, device):
-    """Get the meta-information for a device.
+async def get_device_info(rack, board, device):
+    """Get the device information for a device.
 
     Args:
         rack (str): The rack which the device resides on.
@@ -127,9 +127,9 @@ async def get_device_meta(rack, board, device):
         device (str): The ID of the device to get meta-info for.
 
     Returns:
-        tuple(str, MetainfoResponse): A tuple where the first item is
+        tuple(str, Device): A tuple where the first item is
             the name of the plugin that the device is associated with and
-            the second item is the meta information for that device.
+            the second item is the device information for that device.
 
     Raises:
         errors.DeviceNotFoundError: The given rack-board-device combination
@@ -138,7 +138,7 @@ async def get_device_meta(rack, board, device):
     cid = utils.composite(rack, board, device)
 
     # This also builds the plugins cache
-    _cache = await get_metainfo_cache()
+    _cache = await get_device_info_cache()
     dev = _cache.get(cid)
 
     if dev is None:
@@ -183,8 +183,8 @@ async def get_capabilities_cache():
     return capabilities
 
 
-async def get_metainfo_cache():
-    """Get the cached meta-information aggregated from the gRPC Metainfo
+async def get_device_info_cache():
+    """Get the cached device information aggregated from the gRPC Devices
     request across all plugins.
 
     If the cache does not exist or has surpassed its TTL, it will be
@@ -192,39 +192,40 @@ async def get_metainfo_cache():
 
     If there are no registered plugins, it attempts to (re-)register them.
 
-    The metainfo cache is a map where the key is the device id composite
-    and the value is the MetainfoResponse associated with that device.
+    The device info cache is a map where the key is the device id composite
+    and the value is the Device information provided for that device.
     For example:
         {
-          "rack1-vec-1249ab12f2ed" : <MetainfoResponse>
+          "rack1-vec-1249ab12f2ed" : <Device>
         }
 
-    For the fields of the MetainfoResponse, see the gRPC proto spec:
+    For the fields of the Device, see the gRPC proto spec:
     https://github.com/vapor-ware/synse-server-grpc/blob/master/synse.proto
 
     Returns:
-        dict: The metainfo dictionary in which the key is the device id
+        dict: The device info dictionary in which the key is the device id
             and the value is the data associated with that device.
     """
     # Get the cache and return it if it exists, otherwise, rebuild.
-    value = await _meta_cache.get(META_CACHE_KEY)
+    value = await _device_info_cache.get(DEVICE_INFO_CACHE_KEY)
     if value is not None:
         return value
 
-    metainfo, plugins = await _build_metainfo_cache()
+    devices, plugins = await _build_device_info_cache()
 
-    # If the metainfo data is empty when built, we don't want to cache an
-    # empty dictionary, so we will set it to None. Future calls to get_metainfo_cache
-    # will then attempt to rebuild the cache.
-    meta_value = metainfo or None
+    # If the device data is empty when built, we don't want to cache an
+    # empty dictionary, so we will set it to None. Future calls to this
+    # function will then attempt to rebuild the cache.
+    devices_value = devices or None
     plugins_value = plugins or None
 
-    # Get meta cache's ttl and update the cache. Use the same ttl for the plugins.
+    # Get device cache's ttl and update the cache. Use the same ttl for the plugins.
+    # FIXME (etd) - may want to rename the config option
     ttl = config.options.get('cache.meta.ttl', None)
-    await _meta_cache.set(META_CACHE_KEY, meta_value, ttl=ttl)
+    await _device_info_cache.set(DEVICE_INFO_CACHE_KEY, devices_value, ttl=ttl)
     await _plugins_cache.set(PLUGINS_CACHE_KEY, plugins_value, ttl=ttl)
 
-    return metainfo
+    return devices
 
 
 async def get_scan_cache():
@@ -266,9 +267,9 @@ async def get_scan_cache():
     if value is not None:
         return value
 
-    # If the cache is not found, we will (re)build it from metainfo cache.
-    _metainfo = await get_metainfo_cache()
-    scan_cache = _build_scan_cache(_metainfo)
+    # If the cache is not found, we will (re)build it from device info cache.
+    _device_info = await get_device_info_cache()
+    scan_cache = _build_scan_cache(_device_info)
 
     # If the scan data is empty when built, we don't want to cache an empty
     # dictionary, so we will set it to None. Future calls to get_scan_cache
@@ -278,7 +279,7 @@ async def get_scan_cache():
     # Get the scan cache's ttl and update the cache. This should be the same
     # ttl that is used by the metainfo cache.
     ttl = config.options.get('cache.meta.ttl', None)
-    await _meta_cache.set(SCAN_CACHE_KEY, value, ttl=ttl)
+    await _scan_cache.set(SCAN_CACHE_KEY, value, ttl=ttl)
 
     return scan_cache
 
@@ -339,9 +340,9 @@ async def get_resource_info_cache():
     if value is not None:
         return value
 
-    # If the cache is not found, we will (re)build it from metainfo cache.
-    _metainfo = await get_metainfo_cache()
-    info_cache = _build_resource_info_cache(_metainfo)
+    # If the cache is not found, we will (re)build it from device info cache.
+    _device_info = await get_device_info_cache()
+    info_cache = _build_resource_info_cache(_device_info)
 
     # If the info data is empty when built, we don't want to cache an empty
     # dictionary, so we will set it to None. Future calls to get_info_cache
@@ -351,7 +352,7 @@ async def get_resource_info_cache():
     # Get the info cache's ttl and update the cache. This should be the same
     # ttl that is used by the metainfo cache.
     ttl = config.options.get('cache.meta.ttl', None)
-    await _meta_cache.set(INFO_CACHE_KEY, value, ttl=ttl)
+    await _info_cache.set(INFO_CACHE_KEY, value, ttl=ttl)
 
     return info_cache
 
@@ -417,24 +418,24 @@ async def _build_capabilities_cache():
     return capabilities
 
 
-async def _build_metainfo_cache():
-    """Construct the dictionary that will become the metainfo cache.
+async def _build_device_info_cache():
+    """Construct the dictionary that will become the device info cache.
 
     Returns:
-        tuple(dict, dict): A tuple where the first dictionary is the metainfo
+        tuple(dict, dict): A tuple where the first dictionary is the device info
             dictionary (in which the key is the device id and the value is the
             data associated with that device), and the second dictionary is the
             plugins dictionary (in which the device ID is mapped to the name of
             the plugin which manages it).
 
     Raises:
-        errors.InternalApiError: All plugins failed the metainfo scan.
+        errors.InternalApiError: All plugins failed the device scan.
     """
-    logger.debug(_('Building the metainfo cache'))
-    metainfo, plugins = {}, {}
+    logger.debug(_('Building the device cache'))
+    devices, plugins = {}, {}
 
     # First, we want to iterate through all of the known plugins and
-    # use the associated client to get the meta information provided by
+    # use the associated client to get the device information provided by
     # that backend.
     plugin_count = len(Plugin.manager.plugins)
     if plugin_count == 0:
@@ -444,20 +445,20 @@ async def _build_metainfo_cache():
 
     logger.debug(_('Plugins to scan: {}').format(plugin_count))
 
-    # Track which plugins failed to provide metainfo for any reason.
+    # Track which plugins failed to provide devices for any reason.
     failures = {}
 
     async for name, plugin in get_plugins():
         logger.debug('{} -- {}'.format(name, plugin))
 
         try:
-            for device in plugin.client.metainfo():
+            for device in plugin.client.devices():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
-                metainfo[_id] = device
+                devices[_id] = device
                 plugins[_id] = name
 
         # We do not want to fail the scan if a single plugin fails to provide
-        # meta-information.
+        # device information.
         #
         # FIXME (etd): instead of just logging out the errors, we could either:
         #   - update the response scheme to hold an 'errors' field which will alert
@@ -467,7 +468,7 @@ async def _build_metainfo_cache():
         #   - both
         except grpc.RpcError as ex:
             failures[name] = ex
-            logger.warning(_('Failed to get metainfo for plugin: {}').format(name))
+            logger.warning(_('Failed to get device info for plugin: {}').format(name))
             logger.warning(ex)
 
     # If we fail to read from all plugins (assuming there were any), then we
@@ -477,17 +478,17 @@ async def _build_metainfo_cache():
             _('Failed to scan all plugins: {}').format(failures)
         )
 
-    return metainfo, plugins
+    return devices, plugins
 
 
-def _build_scan_cache(metainfo):
+def _build_scan_cache(device_info):
     """Build the scan cache.
 
     This builds the scan cache, adhering to the Scan response scheme,
     using the contents of the meta-info cache.
 
     Args:
-        metainfo (dict): The meta-info cache dictionary.
+        device_info (dict): The device info cache dictionary.
 
     Returns:
         dict: The constructed scan cache.
@@ -514,7 +515,7 @@ def _build_scan_cache(metainfo):
     # the 'boards' key.
     _tracked = {}
 
-    for source in metainfo.values():
+    for source in device_info.values():
         rack_id = source.location.rack
         board_id = source.location.board
         device_id = source.uid
@@ -529,7 +530,7 @@ def _build_scan_cache(metainfo):
                     {
                         'id': device_id,
                         'info': source.info,
-                        'type': source.type
+                        'type': source.kind
                     }
                 ]
             }
@@ -562,7 +563,7 @@ def _build_scan_cache(metainfo):
                         {
                             'id': device_id,
                             'info': source.info,
-                            'type': source.type
+                            'type': source.kind
                         }
                     ]
                 }
@@ -573,7 +574,7 @@ def _build_scan_cache(metainfo):
                 r['boards'][board_id]['devices'].append({
                     'id': device_id,
                     'info': source.info,
-                    'type': source.type
+                    'type': source.kind
                 })
 
     if _tracked:
@@ -608,7 +609,7 @@ def _build_resource_info_cache(metainfo):
 
     for source in metainfo.values():
 
-        src = putil.metainfo_to_dict(source)
+        src = putil.device_info_to_dict(source)
 
         rack = source.location.rack
         board = source.location.board

@@ -9,34 +9,31 @@ from synse import cache, errors, validate
 from tests import utils
 
 
-async def make_metainfo_response(rack, board, device):
-    """Helper method to make a new MetainfoResponse object."""
+async def make_device_info_response(rack, board, device):
+    """Helper method to make a new Device object."""
     await cache._plugins_cache.set(cache.PLUGINS_CACHE_KEY, {device: 'test-plugin'})
 
-    return api.MetainfoResponse(
+    return api.Device(
         timestamp='october',
         uid=device,
-        type='thermistor',
-        model='test',
-        manufacturer='vapor io',
-        protocol='foo',
+        kind='thermistor',
+        metadata=dict(
+            model='test',
+            manufacturer='vapor io',
+        ),
+        plugin='foo',
         info='bar',
-        location=api.MetaLocation(
+        location=api.Location(
             rack=rack,
             board=board
         ),
         output=[
-            api.MetaOutput(
+            api.Output(
                 type='temperature',
-                data_type='float',
                 precision=3,
-                unit=api.MetaOutputUnit(
+                unit=api.Unit(
                     name='celsius',
                     symbol='C'
-                ),
-                range=api.MetaOutputRange(
-                    min=0,
-                    max=100
                 )
             )
         ]
@@ -45,19 +42,19 @@ async def make_metainfo_response(rack, board, device):
 # --- Mock Methods ---
 
 
-async def mock_get_metainfo_cache():
-    """Mock method for get_metainfo_cache - returns a single device."""
+async def mock_get_device_info_cache():
+    """Mock method for get_device_info_cache - returns a single device."""
     return {
-        'rack-1-vec-12345': await make_metainfo_response('rack-1', 'vec', '12345')
+        'rack-1-vec-12345': await make_device_info_response('rack-1', 'vec', '12345')
     }
 
 
 @pytest.fixture()
-def patch_metainfo(monkeypatch):
-    """Fixture to monkeypatch the get_metainfo_cache method."""
-    mock = asynctest.CoroutineMock(cache.get_metainfo_cache, side_effect=mock_get_metainfo_cache)
-    monkeypatch.setattr(cache, 'get_metainfo_cache', mock)
-    return patch_metainfo
+def patch_device_info(monkeypatch):
+    """Fixture to monkeypatch the get_device_info_cache method."""
+    mock = asynctest.CoroutineMock(cache.get_device_info_cache, side_effect=mock_get_device_info_cache)
+    monkeypatch.setattr(cache, 'get_device_info_cache', mock)
+    return patch_device_info
 
 
 @pytest.mark.asyncio
@@ -73,7 +70,7 @@ def patch_metainfo(monkeypatch):
         ['LOCK', 'Thermistor']
     ]
 )
-async def test_validate_device_type(patch_metainfo, clear_caches, device_type):
+async def test_validate_device_type(patch_device_info, clear_caches, device_type):
     """Test successfully validating a device."""
     await validate.validate_device_type(device_type, 'rack-1', 'vec', '12345')
 
@@ -86,14 +83,14 @@ async def test_validate_device_type_no_device():
 
 
 @pytest.mark.asyncio
-async def test_validate_device_type_no_match(patch_metainfo, clear_caches):
+async def test_validate_device_type_no_match(patch_device_info, clear_caches):
     """Test validating a device when the types don't match."""
     with pytest.raises(errors.InvalidDeviceType):
         await validate.validate_device_type(['led'], 'rack-1', 'vec', '12345')
 
 
 @pytest.mark.asyncio
-async def test_validate_device_type_no_match_multiple(patch_metainfo, clear_caches):
+async def test_validate_device_type_no_match_multiple(patch_device_info, clear_caches):
     """Test validating a device when the types don't match."""
     with pytest.raises(errors.InvalidDeviceType):
         await validate.validate_device_type(['led', 'something'], 'rack-1', 'vec', '12345')

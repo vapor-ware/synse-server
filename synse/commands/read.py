@@ -24,7 +24,7 @@ async def read(rack, board, device):
     logger.debug(_('Read Command (args: {}, {}, {})').format(rack, board, device))
 
     # Lookup the known info for the specified device.
-    plugin_name, dev = await cache.get_device_meta(rack, board, device)
+    plugin_name, dev = await cache.get_device_info(rack, board, device)
     logger.debug(_('Device {} is managed by plugin {}').format(device, plugin_name))
 
     # Get the plugin context for the device's specified protocol.

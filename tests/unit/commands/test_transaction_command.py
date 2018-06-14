@@ -23,19 +23,19 @@ def mockgettransaction(transaction):
         'plugin': transaction,
         'context': {
             'action': 'foo',
-            'raw': [b'bar']
+            'data': b'bar'
         }
     }
 
 
 def mockchecktransaction(self, transaction_id):
     """Mock method to monkeypatch the client check_transaction method."""
-    return api.WriteResponse(
+    return [api.WriteResponse(
         created='october',
         updated='november',
         status=3,
         state=0,
-    )
+    )]
 
 
 def mockchecktransactionfail(self, transaction_id):
@@ -54,14 +54,14 @@ def mock_get_transaction(monkeypatch):
 @pytest.fixture()
 def mock_client_transaction(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method."""
-    monkeypatch.setattr(SynsePluginClient, 'check_transaction', mockchecktransaction)
+    monkeypatch.setattr(SynsePluginClient, 'transaction', mockchecktransaction)
     return mock_client_transaction
 
 
 @pytest.fixture()
 def mock_client_transaction_fail(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method to fail."""
-    monkeypatch.setattr(SynsePluginClient, 'check_transaction', mockchecktransactionfail)
+    monkeypatch.setattr(SynsePluginClient, 'transaction', mockchecktransactionfail)
     return mock_client_transaction_fail
 
 
@@ -77,6 +77,7 @@ def make_plugin():
 
     if 'foo' in plugin.Plugin.manager.plugins:
         del plugin.Plugin.manager.plugins['foo']
+
 
 @pytest.mark.asyncio
 async def test_transaction_command_no_plugin_name(mock_get_transaction):
@@ -137,7 +138,7 @@ async def test_transaction_command(mock_get_transaction, mock_client_transaction
         'id': 'foo',
         'context': {
             'action': 'foo',
-            'raw': [b'bar']
+            'data': b'bar'
         },
         'state': 'ok',
         'status': 'done',

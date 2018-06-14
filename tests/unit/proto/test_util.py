@@ -46,100 +46,87 @@ def test_write_state_name_invalid():
         util.write_state_name(100)
 
 
-def test_metainfo_to_dict():
-    """Convert a MetainfoResponse object to dictionary."""
+def test_device_info_to_dict():
+    """Convert a Device object to dictionary."""
 
-    meta = api.MetainfoResponse(
+    meta = api.Device(
         timestamp='october',
         uid='12345',
-        type='thermistor',
-        model='test',
-        manufacturer='vapor io',
-        protocol='foo',
+        kind='thermistor',
+        metadata=dict(
+            model='test',
+            manufacturer='vapor io',
+        ),
+        plugin='foo',
         info='bar',
-        location=api.MetaLocation(
+        location=api.Location(
             rack='rack-1',
             board='vec'
         ),
         output=[
-            api.MetaOutput(
+            api.Output(
                 type='temperature',
-                data_type='float',
                 precision=3,
-                unit=api.MetaOutputUnit(
+                unit=api.Unit(
                     name='celsius',
                     symbol='C'
-                ),
-                range=api.MetaOutputRange(
-                    min=0,
-                    max=100
                 )
             )
         ]
     )
 
-    actual = util.metainfo_to_dict(meta)
+    actual = util.device_info_to_dict(meta)
 
     assert actual == {
         'timestamp': 'october',
         'uid': '12345',
-        'type': 'thermistor',
-        'model': 'test',
-        'manufacturer': 'vapor io',
-        'protocol': 'foo',
+        'kind': 'thermistor',
+        'metadata': {
+            'model': 'test',
+            'manufacturer': 'vapor io',
+        },
+        'plugin': 'foo',
         'info': 'bar',
-        'comment': '',
         'location': {
             'rack': 'rack-1',
             'board': 'vec'
         },
         'output': [
             {
+                'name': '',
+                'scaling_factor': 0.0,
                 'type': 'temperature',
-                'data_type': 'float',
                 'precision': 3,
                 'unit': {
                     'name': 'celsius',
                     'symbol': 'C',
-                },
-                'range': {
-                    'min': 0,
-                    'max': 100
                 }
             }
         ]
     }
 
 
-def test_metaoutput_to_dict():
-    """Convert a MetaOutput object to dictionary."""
+def test_output_to_dict():
+    """Convert an Output object to dictionary."""
 
-    meta = api.MetaOutput(
+    meta = api.Output(
         type='temperature',
-        data_type='float',
         precision=3,
-        unit=api.MetaOutputUnit(
+        unit=api.Unit(
             name='celsius',
             symbol='C'
-        ),
-        range=api.MetaOutputRange(
-            min=0,
-            max=100
         )
     )
 
-    actual = util.metaoutput_to_dict(meta)
+    actual = util.output_to_dict(meta)
 
     assert actual == {
+        'name': '',
         'type': 'temperature',
-        'data_type': 'float',
         'precision': 3,
+        'scaling_factor': 0.0,
         'unit': {
             'name': 'celsius',
             'symbol': 'C',
-        },
-        'range': {
-            'min': 0,
-            'max': 100
         }
     }

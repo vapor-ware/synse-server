@@ -21,7 +21,7 @@ def mockwritereturn(rack, board, device, data):
     r = WriteResponse({
         '{}-{}-{}'.format(rack, board, device): api.WriteData(
             action=data.get('action'),
-            raw=[data.get('raw').encode('ascii')]
+            data=data.get('raw').encode('ascii')
         )
     })
     return r
@@ -163,7 +163,7 @@ async def test_synse_led_write_valid_1(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"state","raw":["on"]},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == b'[{"context":{"action":"state","data":"on"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -176,7 +176,7 @@ async def test_synse_led_write_valid_2(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"state","raw":["off"]},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == b'[{"context":{"action":"state","data":"off"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -189,7 +189,7 @@ async def test_synse_led_write_valid_3(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"state","raw":["blink"]},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == b'[{"context":{"action":"state","data":"blink"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -202,7 +202,7 @@ async def test_synse_led_write_valid_5(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"color","raw":["ffffff"]},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == b'[{"context":{"action":"color","data":"ffffff"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -215,8 +215,8 @@ async def test_synse_led_write_valid_6(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     expected = [
-        {'context': {'action': 'state', 'raw': [b'on']}, 'transaction': 'rack-1-vec-123456'},
-        {'context': {'action': 'color', 'raw': [b'ffffff']}, 'transaction': 'rack-1-vec-123456'}
+        {'context': {'action': 'state', 'data': b'on'}, 'transaction': 'rack-1-vec-123456'},
+        {'context': {'action': 'color', 'data': b'ffffff'}, 'transaction': 'rack-1-vec-123456'}
     ]
 
     expected_json = ujson.dumps(expected)

@@ -8,9 +8,9 @@ from synse.scheme.write import WriteResponse
 def test_write_scheme():
     """Check that the write scheme matches the expected."""
 
-    wd1 = api.WriteData(raw=[b'test'], action='test1')
-    wd2 = api.WriteData(raw=[b'test'], action='test2')
-    wd3 = api.WriteData(raw=[b'test'], action='test3')
+    wd1 = api.WriteData(data=b'test', action='test1')
+    wd2 = api.WriteData(data=b'test', action='test2')
+    wd3 = api.WriteData(data=b'test', action='test3')
 
     transactions = {
         '123456': wd1,
@@ -24,21 +24,21 @@ def test_write_scheme():
         {
             'context': {
                 'action': wd1.action,
-                'raw': wd1.raw
+                'data': wd1.data
             },
             'transaction': '123456'
         },
         {
             'context': {
                 'action': wd2.action,
-                'raw': wd2.raw
+                'data': wd2.data
             },
             'transaction': 'abcdef'
         },
         {
             'context': {
                 'action': wd3.action,
-                'raw': wd3.raw
+                'data': wd3.data
             },
             'transaction': '!@#$%^'
         }

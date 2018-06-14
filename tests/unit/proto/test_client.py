@@ -15,10 +15,10 @@ from synse.proto import client
 def mock_read(req, timeout):
     """Mock the internal read call."""
     return [
-        synse_api.ReadResponse(
+        synse_api.Reading(
             timestamp='october',
             type='test',
-            value='10'
+            int32_value=10
         )
     ]
 
@@ -29,39 +29,36 @@ def mock_write(req, timeout):
         transactions={
             '12345': synse_api.WriteData(
                 action='test',
-                raw=[b'foo']
+                data=b'foo'
             )
         }
     )
 
 
-def mock_metainfo(req, timeout):
-    """Mock the internal metainfo call."""
+def mock_device_info(req, timeout):
+    """Mock the internal device info call."""
     return [
-        synse_api.MetainfoResponse(
+        synse_api.Device(
             timestamp='october',
             uid='12345',
-            type='thermistor',
-            model='test',
-            manufacturer='vapor io',
-            protocol='foo',
+            kind='thermistor',
+            metadata=dict(
+                model='test',
+                manufacturer='vapor io',
+            ),
+            plugin='foo',
             info='bar',
-            location=synse_api.MetaLocation(
+            location=synse_api.Location(
                 rack='rack-1',
                 board='vec'
             ),
             output=[
-                synse_api.MetaOutput(
+                synse_api.Output(
                     type='temperature',
-                    data_type='float',
                     precision=3,
-                    unit=synse_api.MetaOutputUnit(
+                    unit=synse_api.Unit(
                         name='celsius',
                         symbol='C'
-                    ),
-                    range=synse_api.MetaOutputRange(
-                        min=0,
-                        max=100
                     )
                 )
             ]
@@ -71,12 +68,12 @@ def mock_metainfo(req, timeout):
 
 def mock_transaction(req, timeout):
     """Mock the internal transaction call."""
-    return synse_api.WriteResponse(
+    return [synse_api.WriteResponse(
         created='october',
         updated='november',
         status=3,
         state=0,
-    )
+    )]
 
 # --- Test Cases ---
 
@@ -86,30 +83,30 @@ def test_write_data():
 
     wd = client.WriteData()
     assert wd.action == ''
-    assert wd.raw == []
+    assert wd.data == b''
 
     wd = client.WriteData(action='test')
     assert wd.action == 'test'
-    assert wd.raw == []
+    assert wd.data == b''
 
-    wd = client.WriteData(raw=[b'test'])
+    wd = client.WriteData(data=b'test')
     assert wd.action == ''
-    assert wd.raw == [b'test']
+    assert wd.data == b'test'
 
-    wd = client.WriteData(action='test', raw=[b'test'])
+    wd = client.WriteData(action='test', data=b'test')
     assert wd.action == 'test'
-    assert wd.raw == [b'test']
+    assert wd.data == b'test'
 
 
 def test_write_data_to_grpc():
     """Convert a WriteData instance to its gRPC equivalent."""
 
-    wd = client.WriteData(action='test', raw=[b'test'])
+    wd = client.WriteData(action='test', data=b'test')
     rpc = wd.to_grpc()
 
     assert isinstance(rpc, synse_api.WriteData)
     assert rpc.action == 'test'
-    assert rpc.raw == [b'test']
+    assert rpc.data == b'test'
 
 
 def test_get_client_exists():
@@ -142,7 +139,7 @@ def test_client_init():
     assert c.addr == 'test-cli.sock'
     assert c.mode == 'unix'
     assert isinstance(c.channel, grpc.Channel)
-    assert isinstance(c.stub, synse_grpc.InternalApiStub)
+    assert isinstance(c.stub, synse_grpc.PluginStub)
 
 
 def test_client_init_bad_mode():
@@ -162,7 +159,7 @@ def test_client_read():
 
     assert isinstance(resp, list)
     assert len(resp) == 1
-    assert isinstance(resp[0], synse_api.ReadResponse)
+    assert isinstance(resp[0], synse_api.Reading)
 
 
 def test_client_write():
@@ -176,25 +173,26 @@ def test_client_write():
     assert isinstance(resp, synse_api.Transactions)
 
 
-def test_client_metainfo():
-    """Test getting metainfo via the client."""
+def test_client_devices():
+    """Test getting device info via the client."""
 
     c = client.SynsePluginClient('test', 'test.sock', 'unix')
-    c.stub.Metainfo = mock_metainfo
+    c.stub.Devices = mock_device_info
 
-    resp = c.metainfo()
+    resp = c.devices()
 
     assert isinstance(resp, list)
     assert len(resp) == 1
-    assert isinstance(resp[0], synse_api.MetainfoResponse)
+    assert isinstance(resp[0], synse_api.Device)
 
 
 def test_client_transaction():
     """Test checking a transaction via the client."""
 
     c = client.SynsePluginClient('test', 'test.sock', 'unix')
-    c.stub.TransactionCheck = mock_transaction
+    c.stub.Transaction = mock_transaction
 
-    resp = c.check_transaction('abcdef')
+    resp = c.transaction('abcdef')
 
-    assert isinstance(resp, synse_api.WriteResponse)
+    assert isinstance(resp, list)
+    assert isinstance(resp[0], synse_api.WriteResponse)

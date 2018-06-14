@@ -61,8 +61,8 @@ async def check_transaction(transaction_id):
         )
 
     try:
-        resp = _plugin.client.check_transaction(transaction_id)
+        resp = _plugin.client.transaction(transaction_id)
     except grpc.RpcError as ex:
         raise errors.FailedTransactionCommandError(str(ex)) from ex
 
-    return scheme.TransactionResponse(transaction_id, context, resp)
+    return scheme.TransactionResponse(transaction_id, context, resp[0])

@@ -22,21 +22,21 @@ class WriteData(object):
     the color simultaneously. This can be done with two WriteData objects
     passed in a list to the `SynsePluginClient.write` method, e.g.
 
-        color = WriteData(action='color', raw=b'ffffff')
+        color = WriteData(action='color', data=b'ffffff')
         state = WriteData(action='on')
 
     Args:
         action (str): The action string for the write.
-        raw (bytes): The bytes that constitute the raw data that
+        data (bytes): The bytes that constitute the raw data that
             will be written by the write request.
     """
 
-    def __init__(self, action=None, raw=None):
+    def __init__(self, action=None, data=None):
         self.action = action if action is not None else ''
-        self.raw = raw if raw is not None else b''
+        self.data = data if data is not None else b''
 
     def __str__(self):
-        return '<WriteData: action: {}, raw: {}>'.format(self.action, self.raw)
+        return '<WriteData: action: {}, raw: {}>'.format(self.action, self.data)
 
     def to_grpc(self):
         """Convert the WriteData model into the gRPC model for WriteData.
@@ -46,7 +46,7 @@ class WriteData(object):
         """
         return synse_api.WriteData(
             action=self.action,
-            raw=self.raw
+            data=self.data
         )
 
 

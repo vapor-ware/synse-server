@@ -24,10 +24,13 @@ async def validate_device_type(device_type, rack, board, device):
         errors.InvalidDeviceType: The device does not match the given type.
         errors.DeviceNotFoundError: The specified device is not found.
     """
-    __, device = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
-    if device.type.lower() not in [t.lower() for t in device_type]:
+    __, device = await cache.get_device_info(rack, board, device)  # pylint: disable=unused-variable
+
+    # The type of a device should be the last element in it's kind namespace.
+    _type = device.kind.split('.')[-1].lower()
+    if _type not in [t.lower() for t in device_type]:
         raise errors.InvalidDeviceType(
-            _('Device ({}) is not a supported type {}').format(device.type, device_type)
+            _('Device ({}) is not a supported type {}').format(_type, device_type)
         )
 
 

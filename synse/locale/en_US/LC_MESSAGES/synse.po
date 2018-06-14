@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-04-24 10:19-0400\n"
+"POT-Creation-Date: 2018-06-14 11:28-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -19,40 +19,64 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
 
-#: synse/cache.py:45
-msgid "CONFIGURING CACHE: {}"
+#: synse/cache.py:49
+msgid "Setting cache configuration: {}"
 msgstr ""
 
-#: synse/cache.py:137
-msgid "{} does not correspond with a known device."
+#: synse/cache.py:62
+msgid "Invalidating cache: {}"
 msgstr ""
 
-#: synse/cache.py:327
-msgid "Building the metainfo cache."
+#: synse/cache.py:108
+msgid "Caching transaction {} from plugin {} ({})"
 msgstr ""
 
-#: synse/cache.py:335
-msgid "Manager has no plugins - registering plugins."
+#: synse/cache.py:146
+msgid "{} does not correspond with a known device"
 msgstr ""
 
-#: synse/cache.py:339
-msgid "plugins to scan: {}"
+#: synse/cache.py:372
+msgid "Building the device capabilities cache"
 msgstr ""
 
-#: synse/cache.py:364
-msgid "Failed to get metainfo for plugin: {}"
+#: synse/cache.py:379 synse/cache.py:442
+msgid "Manager has no plugins - registering plugins"
 msgstr ""
 
-#: synse/cache.py:371
+#: synse/cache.py:383
+msgid "Plugins to get capabilities for: {}"
+msgstr ""
+
+#: synse/cache.py:402
+msgid "Failed to get capability for plugin: {}"
+msgstr ""
+
+#: synse/cache.py:415
+msgid "Failed to get capabilities for all plugins: {}"
+msgstr ""
+
+#: synse/cache.py:434
+msgid "Building the device cache"
+msgstr ""
+
+#: synse/cache.py:446
+msgid "Plugins to scan: {}"
+msgstr ""
+
+#: synse/cache.py:471
+msgid "Failed to get device info for plugin: {}"
+msgstr ""
+
+#: synse/cache.py:478
 msgid "Failed to scan all plugins: {}"
 msgstr ""
 
-#: synse/cache.py:389
-msgid "Building the scan cache."
+#: synse/cache.py:496
+msgid "Building the scan cache"
 msgstr ""
 
-#: synse/cache.py:500
-msgid "Building the info cache."
+#: synse/cache.py:607
+msgid "Building the info cache"
 msgstr ""
 
 #: synse/plugin.py:53
@@ -139,84 +163,119 @@ msgstr ""
 msgid "TCP Plugin \"{}\" already exists - will not re-register"
 msgstr ""
 
-#: synse/utils.py:54
-msgid "\"{}\" is not a valid boolean string"
+#: synse/validate.py:33
+msgid "Device ({}) is not a supported type {}"
 msgstr ""
 
-#: synse/validate.py:26
-msgid "Device ({}) is not of type {}"
-msgstr ""
-
-#: synse/routes/aliases.py:162 synse/routes/aliases.py:168 synse/validate.py:54
+#: synse/validate.py:61
 msgid "Invalid query param: {} (valid params: {})"
 msgstr ""
 
-#: synse/validate.py:75
+#: synse/validate.py:82
 msgid "Endpoint does not support query parameters but got: {}"
 msgstr ""
 
-#: synse/commands/info.py:22
-msgid "No rack specified when issuing info command."
+#: synse/commands/capabilities.py:15
+msgid "Capabilities Command"
+msgstr ""
+
+#: synse/commands/info.py:20
+msgid "Info Command (args: {}, {}, {})"
+msgstr ""
+
+#: synse/commands/info.py:24
+msgid "No rack specified when issuing info command"
+msgstr ""
+
+#: synse/commands/info.py:81
+msgid "Rack info from cache: {}"
 msgstr ""
 
 #: synse/commands/info.py:84
-msgid "Unable to find rack \"{}\" in info cache."
+msgid "Unable to find rack \"{}\" in info cache"
 msgstr ""
 
-#: synse/commands/info.py:91
-msgid "Unable to find board \"{}\" in info cache."
+#: synse/commands/info.py:89
+msgid "Board info from cache: {}"
 msgstr ""
 
-#: synse/commands/info.py:98
-msgid "Unable to find device \"{}\" in info cache."
+#: synse/commands/info.py:92
+msgid "Unable to find board \"{}\" in info cache"
 msgstr ""
 
-#: synse/commands/read.py:26
+#: synse/commands/info.py:97
+msgid "Device info from cache: {}"
+msgstr ""
+
+#: synse/commands/info.py:100
+msgid "Unable to find device \"{}\" in info cache"
+msgstr ""
+
+#: synse/commands/plugins.py:15
+msgid "Plugins Command"
+msgstr ""
+
+#: synse/commands/read.py:24
+msgid "Read Command (args: {}, {}, {})"
+msgstr ""
+
+#: synse/commands/read.py:28
 msgid "Device {} is managed by plugin {}"
 msgstr ""
 
-#: synse/commands/read.py:30
+#: synse/commands/read.py:32
 msgid "Got plugin: {}"
 msgstr ""
 
-#: synse/commands/read.py:33
-msgid "Unable to find plugin named \"{}\" to read."
+#: synse/commands/read.py:35
+msgid "Unable to find plugin named \"{}\" to read"
 msgstr ""
 
-#: synse/commands/scan.py:29
-msgid "Re-registering plugins."
+#: synse/commands/read.py:82
+msgid ""
+"Read for {}/{}/{} returned gRPC \"no readings found\". Will apply None as"
+" reading value. Note that this response might indicate plugin "
+"error/misconfiguration."
 msgstr ""
 
-#: synse/commands/scan.py:32
-msgid "Running \"scan\" command."
+#: synse/commands/scan.py:20
+msgid "Scan Command (args: {}, {}, force: {})"
 msgstr ""
 
-#: synse/commands/scan.py:38
-msgid "Unable to filter by resource - no scan results returned."
+#: synse/commands/scan.py:31
+msgid "Re-registering plugins"
 msgstr ""
 
-#: synse/commands/scan.py:47
-msgid "Rack \"{}\" not found in scan results."
+#: synse/commands/scan.py:40
+msgid "Unable to filter by resource - no scan results returned"
 msgstr ""
 
-#: synse/commands/scan.py:57
-msgid "Board \"{}\" not found in scan results."
+#: synse/commands/scan.py:49
+msgid "Rack \"{}\" not found in scan results"
 msgstr ""
 
 #: synse/commands/scan.py:60
-msgid "Making \"scan\" response."
+msgid "Board \"{}\" not found in scan results"
 msgstr ""
 
-#: synse/commands/transaction.py:34
+#: synse/commands/transaction.py:23
+msgid "Transaction Command (args: {})"
+msgstr ""
+
+#: synse/commands/transaction.py:38
 msgid "Transaction with id \"{}\" not found"
 msgstr ""
 
-#: synse/commands/transaction.py:49
+#: synse/commands/transaction.py:53
 msgid "Unable to determine managing plugin for transaction {}."
 msgstr ""
 
-#: synse/commands/transaction.py:56
-msgid "Unable to find plugin \"{}\"."
+#: synse/commands/transaction.py:60
+msgid "Unable to find plugin \"{}\""
+msgstr ""
+
+#: synse/commands/write.py:25
+msgid "Write Command (args: {}, {}, {}, data: {})"
 msgstr ""
 
 #: synse/commands/write.py:36
@@ -227,98 +286,160 @@ msgstr ""
 msgid "\"action\" value must be a string, but was {}"
 msgstr ""
 
-#: synse/commands/write.py:53
-msgid "\"raw\" value must be a string, but was {}"
+#: synse/commands/write.py:58
+msgid "\"raw\"/\"data\" value must be a string, but was {}"
 msgstr ""
 
-#: synse/commands/write.py:78
-msgid "Failed to add transaction {} to the cache."
+#: synse/commands/write.py:63
+msgid "Writing to {}: {}"
 msgstr ""
 
-#: synse/proto/client.py:84
+#: synse/commands/write.py:80
+msgid "Failed to add transaction {} to the cache"
+msgstr ""
+
+#: synse/proto/client.py:89
 msgid "Invalid gRPC client mode: {}"
 msgstr ""
 
-#: synse/proto/client.py:124
-msgid "Registered Client:"
+#: synse/proto/client.py:92
+msgid "Client gRPC channel: {}"
 msgstr ""
 
-#: synse/proto/client.py:125
-msgid "  name:    {}"
+#: synse/proto/client.py:131
+msgid "Registered client \"{}\" for mode \"{}\", address \"{}\""
 msgstr ""
 
-#: synse/proto/client.py:126
-msgid "  mode:    {}"
+#: synse/proto/client.py:144
+msgid "Issuing gRPC test request"
 msgstr ""
 
-#: synse/proto/client.py:127
-msgid "  address: {}"
+#: synse/proto/client.py:158
+msgid "Issuing gRPC health request"
 msgstr ""
 
-#: synse/proto/client.py:128
-msgid "  channel: {}"
+#: synse/proto/client.py:171
+msgid "Issuing gRPC metainfo request"
 msgstr ""
 
-#: synse/proto/client.py:129
-msgid "  stub:    {}"
+#: synse/proto/client.py:185
+msgid "Issuing gRPC capabilities request"
 msgstr ""
 
-#: synse/routes/aliases.py:49
-msgid "Invalid state \"{}\". Must be one of {}"
+#: synse/proto/client.py:203
+msgid "Issuing gRPC devices request"
 msgstr ""
 
-#: synse/routes/aliases.py:63
+#: synse/proto/client.py:232
+msgid "Issuing gRPC read request"
+msgstr ""
+
+#: synse/proto/client.py:258
+msgid "Issuing gRPC write request"
+msgstr ""
+
+#: synse/proto/client.py:283
+msgid "Issuing gRPC transaction request"
+msgstr ""
+
+#: synse/proto/client.py:329
+msgid "Registering new client for Plugin: {}"
+msgstr ""
+
+#: synse/routes/aliases.py:50
+msgid "LED alias route: writing (query parameters: {})"
+msgstr ""
+
+#: synse/routes/aliases.py:56
+msgid "Invalid LED state \"{}\". Must be one of: {}"
+msgstr ""
+
+#: synse/routes/aliases.py:70
 msgid ""
 "Invalid color value ({}). Must be a hexadecimal string between 000000 and"
-" FFFFFF."
+" FFFFFF"
 msgstr ""
 
-#: synse/routes/aliases.py:203
+#: synse/routes/aliases.py:79
+msgid "LED data to write: {}"
+msgstr ""
+
+#: synse/routes/aliases.py:92
+msgid "LED alias route: reading"
+msgstr ""
+
+#: synse/routes/aliases.py:136
+msgid ""
+"Invalid query params: Can only specify one of \"speed\" and "
+"\"speed_percent\", but both were given"
+msgstr ""
+
+#: synse/routes/aliases.py:143
+msgid "Fan alias route: writing (query parameters: {})"
+msgstr ""
+
+#: synse/routes/aliases.py:149
+msgid "Setting fan speed by RPM"
+msgstr ""
+
+#: synse/routes/aliases.py:162
+msgid "Setting fan speed by percent"
+msgstr ""
+
+#: synse/routes/aliases.py:172
+msgid "Fan alias route: reading"
+msgstr ""
+
+#: synse/routes/aliases.py:210
+msgid "Power alias route: writing (query parameters: {})"
+msgstr ""
+
+#: synse/routes/aliases.py:214
 msgid "Invalid power state \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse/routes/aliases.py:252
+#: synse/routes/aliases.py:227
+msgid "Power alias route: reading"
+msgstr ""
+
+#: synse/routes/aliases.py:265
+msgid "Boot target alias route: writing (query parameters: {})"
+msgstr ""
+
+#: synse/routes/aliases.py:269
 msgid "Invalid boot target \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse/routes/core.py:47
-msgid "forcing re-scan? {}"
+#: synse/routes/aliases.py:282
+msgid "Boot target alias route: reading"
 msgstr ""
 
-#: synse/routes/core.py:94
-msgid "Invalid JSON specified: {}"
+#: synse/routes/core.py:52
+msgid "Forcing re-scan? {}"
 msgstr ""
 
 #: synse/routes/core.py:97
-msgid "WRITE -> json: {}"
+msgid "Invalid JSON specified: {}"
 msgstr ""
 
-#: synse/routes/core.py:101
-msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\"."
+#: synse/routes/core.py:100
+msgid "Write route: POSTed JSON: {}"
 msgstr ""
 
-#: synse/scheme/read.py:72
-msgid "Making read response"
+#: synse/routes/core.py:106
+msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\""
 msgstr ""
 
-#: synse/scheme/read.py:85
-msgid "device output: {}"
+#: synse/scheme/read.py:55
+msgid "Formatting read response"
 msgstr ""
 
-#: synse/scheme/read.py:107
+#: synse/scheme/read.py:87
 msgid "Found unexpected reading type \"{}\" for device {}"
 msgstr ""
 
-#: synse/scheme/read.py:112
-msgid "  Precision: {}"
-msgstr ""
-
-#: synse/scheme/read.py:130
-msgid "Invalid value for {}: \"{}\""
-msgstr ""
-
-#: synse/scheme/read.py:137
-msgid "Failed to convert \"{}\" to {}"
+#: synse/scheme/read.py:107
+msgid "Reading value for {} came back as empty/null"
 msgstr ""
 
 #~ msgid "Only Plugin instances can be added to the manager."
@@ -358,5 +479,128 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "plugin \"{}\" already exists - will not re-register (tcp)"
+#~ msgstr ""
+
+#~ msgid "CONFIGURING CACHE: {}"
+#~ msgstr ""
+
+#~ msgid "{} does not correspond with a known device."
+#~ msgstr ""
+
+#~ msgid "Building the metainfo cache."
+#~ msgstr ""
+
+#~ msgid "Manager has no plugins - registering plugins."
+#~ msgstr ""
+
+#~ msgid "plugins to scan: {}"
+#~ msgstr ""
+
+#~ msgid "Failed to get metainfo for plugin: {}"
+#~ msgstr ""
+
+#~ msgid "Building the scan cache."
+#~ msgstr ""
+
+#~ msgid "Building the info cache."
+#~ msgstr ""
+
+#~ msgid "\"{}\" is not a valid boolean string"
+#~ msgstr ""
+
+#~ msgid "Device ({}) is not of type {}"
+#~ msgstr ""
+
+#~ msgid "No rack specified when issuing info command."
+#~ msgstr ""
+
+#~ msgid "Unable to find rack \"{}\" in info cache."
+#~ msgstr ""
+
+#~ msgid "Unable to find board \"{}\" in info cache."
+#~ msgstr ""
+
+#~ msgid "Unable to find device \"{}\" in info cache."
+#~ msgstr ""
+
+#~ msgid "Unable to find plugin named \"{}\" to read."
+#~ msgstr ""
+
+#~ msgid "Re-registering plugins."
+#~ msgstr ""
+
+#~ msgid "Running \"scan\" command."
+#~ msgstr ""
+
+#~ msgid "Unable to filter by resource - no scan results returned."
+#~ msgstr ""
+
+#~ msgid "Rack \"{}\" not found in scan results."
+#~ msgstr ""
+
+#~ msgid "Board \"{}\" not found in scan results."
+#~ msgstr ""
+
+#~ msgid "Making \"scan\" response."
+#~ msgstr ""
+
+#~ msgid "Unable to find plugin \"{}\"."
+#~ msgstr ""
+
+#~ msgid "\"raw\" value must be a string, but was {}"
+#~ msgstr ""
+
+#~ msgid "Failed to add transaction {} to the cache."
+#~ msgstr ""
+
+#~ msgid "Registered Client:"
+#~ msgstr ""
+
+#~ msgid "  name:    {}"
+#~ msgstr ""
+
+#~ msgid "  mode:    {}"
+#~ msgstr ""
+
+#~ msgid "  address: {}"
+#~ msgstr ""
+
+#~ msgid "  channel: {}"
+#~ msgstr ""
+
+#~ msgid "  stub:    {}"
+#~ msgstr ""
+
+#~ msgid "Invalid state \"{}\". Must be one of {}"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Invalid color value ({}). Must be "
+#~ "a hexadecimal string between 000000 and"
+#~ " FFFFFF."
+#~ msgstr ""
+
+#~ msgid "forcing re-scan? {}"
+#~ msgstr ""
+
+#~ msgid "WRITE -> json: {}"
+#~ msgstr ""
+
+#~ msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\"."
+#~ msgstr ""
+
+#~ msgid "Making read response"
+#~ msgstr ""
+
+#~ msgid "device output: {}"
+#~ msgstr ""
+
+#~ msgid "  Precision: {}"
+#~ msgstr ""
+
+#~ msgid "Invalid value for {}: \"{}\""
+#~ msgstr ""
+
+#~ msgid "Failed to convert \"{}\" to {}"
 #~ msgstr ""
 

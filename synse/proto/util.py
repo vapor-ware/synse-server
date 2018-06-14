@@ -27,53 +27,47 @@ def write_state_name(value):
     return api.WriteResponse.WriteState.Name(value).lower()
 
 
-def metainfo_to_dict(meta):
-    """Convert a MetainfoResponse to a dictionary that can be serialized out
+def device_info_to_dict(device):
+    """Convert a grpc Device to a dictionary that can be serialized out
     to JSON.
 
     Args:
-        meta (MetainfoResponse): The MetainfoResponse object to convert to a
-            dictionary.
+        device (Device): The Device object to convert to a dictionary.
 
     Returns:
-        dict: A dictionary representation of the MetainfoResponse.
+        dict: A dictionary representation of the Device.
     """
     return {
-        'timestamp': meta.timestamp,
-        'uid': meta.uid,
-        'type': meta.type,
-        'model': meta.model,
-        'manufacturer': meta.manufacturer,
-        'protocol': meta.protocol,
-        'info': meta.info,
-        'comment': meta.comment,
+        'timestamp': device.timestamp,
+        'uid': device.uid,
+        'kind': device.kind,
+        'metadata': device.metadata,
+        'plugin': device.plugin,
+        'info': device.info,
         'location': {
-            'rack': meta.location.rack,
-            'board': meta.location.board
+            'rack': device.location.rack,
+            'board': device.location.board
         },
-        'output': [metaoutput_to_dict(o) for o in meta.output]
+        'output': [output_to_dict(o) for o in device.output]
     }
 
 
-def metaoutput_to_dict(meta):
-    """Convert a MetaOutput to a dictionary that can be serialized out to JSON.
+def output_to_dict(output):
+    """Convert an Output to a dictionary that can be serialized out to JSON.
 
     Args:
-        meta (MetaOutput): The MetaOutput object to convert to a dictionary.
+        output (Output): The Output object to convert to a dictionary.
 
     Returns:
-        dict: A dictionary representation of the MetaOutput.
+        dict: A dictionary representation of the Output.
     """
     return {
-        'type': meta.type,
-        'data_type': meta.data_type,
-        'precision': meta.precision,
+        'name': output.name,
+        'type': output.type,
+        'precision': output.precision,
+        'scaling_factor': output.scalingFactor,
         'unit': {
-            'name': meta.unit.name,
-            'symbol': meta.unit.symbol,
+            'name': output.unit.name,
+            'symbol': output.unit.symbol,
         },
-        'range': {
-            'min': meta.range.min,
-            'max': meta.range.max
-        }
     }

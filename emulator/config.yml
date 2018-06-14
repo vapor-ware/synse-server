@@ -1,6 +1,5 @@
 # Configuration for the emulator plugin built-in to Synse Server
 version: 1.0
-name: emulator
 debug: true
 network:
   type: unix

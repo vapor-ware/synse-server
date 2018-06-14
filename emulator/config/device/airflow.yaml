@@ -1,12 +1,18 @@
 version: 1.0
 locations:
-  r1vec:
-    rack: rack-1
-    board: vec
+  - name: r1vec
+    rack:
+      name: rack-1
+    board:
+      name: vec
 devices:
-  - type: airflow
-    model: emul8-air
+  - name: airflow
+    metadata:
+      model: emul8-air
+    outputs:
+      - type: airflow
     instances:
-      - id: "1"
+      - info: Synse Airflow Sensor
         location: r1vec
-        info: Synse Airflow Sensor
+        data:
+          id: 1
