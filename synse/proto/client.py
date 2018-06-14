@@ -6,7 +6,7 @@ import grpc
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
-from synse import config, errors
+from synse import config
 from synse.const import SOCKET_DIR
 from synse.i18n import _
 from synse.log import logger
@@ -50,88 +50,36 @@ class WriteData(object):
         )
 
 
-class SynsePluginClient(object):
-    """The `SynsePluginClient` object is a convenience wrapper around a
-    gRPC client used for communication between Synse and the background
-    processes which are its data sources.
+class PluginClient(object):
+    """The `PluginClient` class provides an interface to Synse Plugins
+    via the Synse Plugin gRPC API.
 
-    There should be one instance of the `SynsePluginClient` for every
-    configured background process.
+    There should be one instance of a `PluginClient` for every plugin
+    that is registered with Sysnse Server.
+
+    This class is a base class and should not be initialized directly.
 
     Args:
-        name (str): The name of the Plugin which the client is used by.
-        address (str): The Plugin address.
-        mode (str): The communication mode of the Plugin (e.g. 'unix', 'tcp')
+        address (str): The address of the Plugin.
     """
 
-    _client_stubs = {}
+    type = None
 
-    def __init__(self, name, address, mode):
-        self.name = name
-        self.addr = address
-        self.mode = mode
+    def __init__(self, address):
+        self.address = address
+        self.channel = None
+        self.grpc = None
 
-        self.channel = self._channel()
-        self.stub = self._stub()
+        self.make_stub()
 
-        # Add this client instance to the tracked stubs. This allows a client
-        # to be looked up by name from the class itself.
-        SynsePluginClient._client_stubs[self.name] = self
+    def make_channel(self):
+        """Make the channel for the grpc client stub."""
+        raise NotImplementedError('Subclasses must make their own channel.')
 
-    def _channel(self):
-        """Convenience method to create the client gRPC channel."""
-        if self.mode == 'unix':
-            target = 'unix:{}'.format(os.path.join(SOCKET_DIR, self.name + '.sock'))
-        elif self.mode == 'tcp':
-            target = self.addr
-        else:
-            raise errors.InvalidArgumentsError(
-                _('Invalid gRPC client mode: {}').format(self.mode)
-            )
-
-        logger.debug(_('Client gRPC channel: {}').format(target))
-        return grpc.insecure_channel(target)
-
-    def _stub(self):
-        """Convenience method to create the gRPC stub."""
-        return synse_grpc.PluginStub(self.channel)
-
-    @classmethod
-    def get_client(cls, name):
-        """Get a client instance for the given name.
-
-        Args:
-            name (str): The name of the client. This is also the name
-                given to the Plugin.
-
-        Returns:
-            SynsePluginClient: The client instance associated with
-                the given name.
-            None: The given name has no associated client.
-        """
-        return cls._client_stubs.get(name)
-
-    @classmethod
-    def register(cls, name, addr, mode):
-        """Register a new client instance.
-
-        Args:
-            name (str): The name of the plugin for the client.
-            addr (str): The address the plugin will communicate over.
-            mode (str): The communication mode of the plugin (either
-                'tcp' or 'unix').
-
-        Returns:
-            SynsePluginClient: The newly registered client instance.
-        """
-        SynsePluginClient(name, addr, mode)
-        cli = cls._client_stubs[name]
-
-        logger.debug(
-            _('Registered client "{}" for mode "{}", address "{}"')
-            .format(cli.name, cli.mode, cli.addr)
-        )
-        return cli
+    def make_stub(self):
+        """Create the gRPC client stub to communicate with the plugin."""
+        self.make_channel()
+        self.grpc = synse_grpc.PluginStub(self.channel)
 
     def test(self):
         """Test that the plugin is reachable
@@ -145,7 +93,7 @@ class SynsePluginClient(object):
 
         req = synse_api.Empty()
         timeout = config.options.get('grpc.timeout', None)
-        resp = self.stub.Test(req, timeout=timeout)
+        resp = self.grpc.Test(req, timeout=timeout)
         return resp
 
     def health(self):
@@ -159,7 +107,7 @@ class SynsePluginClient(object):
 
         req = synse_api.Empty()
         timeout = config.options.get('grpc.timeout', None)
-        resp = self.stub.Health(req, timeout=timeout)
+        resp = self.grpc.Health(req, timeout=timeout)
         return resp
 
     def metainfo(self):
@@ -172,7 +120,7 @@ class SynsePluginClient(object):
 
         req = synse_api.Empty()
         timeout = config.options.get('grpc.timeout', None)
-        resp = self.stub.Metainfo(req, timeout=timeout)
+        resp = self.grpc.Metainfo(req, timeout=timeout)
         return resp
 
     def capabilities(self):
@@ -186,7 +134,7 @@ class SynsePluginClient(object):
 
         req = synse_api.Empty()
         timeout = config.options.get('grpc.timeout', None)
-        resp = [c for c in self.stub.Capabilities(req, timeout=timeout)]
+        resp = [c for c in self.grpc.Capabilities(req, timeout=timeout)]
         return resp
 
     def devices(self, rack=None, board=None):
@@ -213,7 +161,7 @@ class SynsePluginClient(object):
         )
 
         timeout = config.options.get('grpc.timeout', None)
-        resp = [r for r in self.stub.Devices(req, timeout=timeout)]
+        resp = [r for r in self.grpc.Devices(req, timeout=timeout)]
 
         return resp
 
@@ -238,7 +186,7 @@ class SynsePluginClient(object):
         )
 
         timeout = config.options.get('grpc.timeout', None)
-        resp = [r for r in self.stub.Read(req, timeout=timeout)]
+        resp = [r for r in self.grpc.Read(req, timeout=timeout)]
 
         return resp
 
@@ -267,7 +215,7 @@ class SynsePluginClient(object):
         )
 
         timeout = config.options.get('grpc.timeout', None)
-        resp = self.stub.Write(req, timeout=timeout)
+        resp = self.grpc.Write(req, timeout=timeout)
         return resp
 
     def transaction(self, transaction_id):
@@ -287,45 +235,25 @@ class SynsePluginClient(object):
         )
 
         timeout = config.options.get('grpc.timeout', None)
-        resp = [r for r in self.stub.Transaction(req, timeout=timeout)]
+        resp = [r for r in self.grpc.Transaction(req, timeout=timeout)]
         return resp
 
 
-def get_client(name):
-    """Get the internal client for the given plugin name.
+class PluginTCPClient(PluginClient):
+    """A client for interfacing with Synse Plugins via TCP."""
 
-    This is a convenience module-level wrapper around the
-    `SynseInternalClient.get_client` method.
+    type = 'tcp'
 
-    Args:
-        name (str): The name of the client. This is also the name
-            given to the plugin socket, if configured for UNIX socket
-            networking.
-
-    Returns:
-        SynsePluginClient: The client instance associated with
-            that name. If a client does not exist for the given name,
-            a new one will be created.
-    """
-    return SynsePluginClient.get_client(name)
+    def make_channel(self):
+        self.channel = grpc.insecure_channel(self.address)
 
 
-def register_client(name, addr, mode):
-    """Register a new internal client for a plugin.
+class PluginUnixClient(PluginClient):
+    """A client for interfacing with Synse Plugins via Unix socket."""
 
-    Args:
-        name (str): The name of the plugin.
-        addr (str): The address which the plugin communicates over.
-        mode (str): The communication mode of the plugin (either
-            'unix' or 'tcp').
+    type = 'unix'
 
-    Returns:
-        SynsePluginClient: The client instance associated with the
-            name given. If a client does not exist for the given name,
-            a new one will be created.
-    """
-    cli = SynsePluginClient.get_client(name)
-    if cli is None:
-        logger.debug(_('Registering new client for Plugin: {}').format(name))
-        cli = SynsePluginClient.register(name, addr, mode)
-    return cli
+    def make_channel(self):
+        self.channel = grpc.insecure_channel(
+            'unix:{}'.format(os.path.join(SOCKET_DIR, self.address))
+        )

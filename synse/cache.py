@@ -385,8 +385,8 @@ async def _build_capabilities_cache():
     # Track which plugins failed to provide capability info for any reason.
     failures = {}
 
-    async for name, plugin in get_plugins():
-        logger.debug('{} - {}'.format(name, plugin))
+    async for plugin_id, plugin in get_plugins():
+        logger.debug('{} - {}'.format(plugin_id, plugin))
 
         devices = []
 
@@ -398,13 +398,13 @@ async def _build_capabilities_cache():
                 })
 
         except grpc.RpcError as ex:
-            failures[name] = ex
-            logger.warning(_('Failed to get capability for plugin: {}').format(name))
+            failures[plugin_id] = ex
+            logger.warning(_('Failed to get capability for plugin: {}').format(plugin_id))
             logger.warning(ex)
             continue
 
         capabilities.append({
-            'plugin': name,
+            'plugin': plugin.tag,
             'devices': devices
         })
 
@@ -448,14 +448,14 @@ async def _build_device_info_cache():
     # Track which plugins failed to provide devices for any reason.
     failures = {}
 
-    async for name, plugin in get_plugins():
-        logger.debug('{} -- {}'.format(name, plugin))
+    async for plugin_id, plugin in get_plugins():
+        logger.debug('{} -- {}'.format(plugin_id, plugin))
 
         try:
             for device in plugin.client.devices():
                 _id = utils.composite(device.location.rack, device.location.board, device.uid)
                 devices[_id] = device
-                plugins[_id] = name
+                plugins[_id] = plugin_id
 
         # We do not want to fail the scan if a single plugin fails to provide
         # device information.
@@ -467,8 +467,8 @@ async def _build_device_info_cache():
         #     and their 'health'/'state'.
         #   - both
         except grpc.RpcError as ex:
-            failures[name] = ex
-            logger.warning(_('Failed to get device info for plugin: {}').format(name))
+            failures[plugin_id] = ex
+            logger.warning(_('Failed to get device info for plugin: {}').format(plugin_id))
             logger.warning(ex)
 
     # If we fail to read from all plugins (assuming there were any), then we

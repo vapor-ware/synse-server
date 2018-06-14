@@ -109,27 +109,6 @@ def test_write_data_to_grpc():
     assert rpc.data == b'test'
 
 
-def test_get_client_exists():
-    """Get a client when the client exists."""
-
-    c = client.SynsePluginClient('test-cli', 'localhost:5000', 'tcp')
-    assert len(client.SynsePluginClient._client_stubs) == 1
-
-    test_cli = client.get_client('test-cli')
-    assert test_cli == c
-    assert len(client.SynsePluginClient._client_stubs) == 1
-
-
-def test_get_client_does_not_exist():
-    """Get a client when it does not already exist."""
-
-    assert len(client.SynsePluginClient._client_stubs) == 0
-
-    client.get_client('test-cli')
-
-    assert len(client.SynsePluginClient._client_stubs) == 0
-
-
 def test_client_init():
     """Verify the client initializes as expected."""
 

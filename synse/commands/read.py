@@ -86,7 +86,7 @@ async def read(rack, board, device):
                 read_data = []
                 for output in dev.output:
                     read_data.append(
-                        api.ReadResponse(
+                        api.Reading(
                             timestamp=utils.rfc3339now(),
                             type=output.type,
                             value='',

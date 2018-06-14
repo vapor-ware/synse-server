@@ -31,31 +31,24 @@ async def get_plugins():
         _plugin = p[1]
         # Get the plugin config and add it to the plugin data
         plugin_data = {
+            'tag': _plugin.tag,
+            'name': _plugin.name,
+            'description': _plugin.description,
+            'maintainer': _plugin.maintainer,
+            'vcs': _plugin.vcs,
+            'version': {
+                "plugin_version": _plugin.version.pluginVersion,
+                "sdk_version": _plugin.version.sdkVersion,
+                "build_date": _plugin.version.buildDate,
+                "git_commit": _plugin.version.gitCommit,
+                "git_tag": _plugin.version.gitTag,
+                "arch": _plugin.version.arch,
+                "os": _plugin.version.os,
+            },
             'network': {
                 'type': _plugin.mode,
-                'address': _plugin.addr
+                'address': _plugin.address
             }
-        }
-
-        # Get the plugin metadata
-        try:
-            metadata = _plugin.client.metainfo()
-        except grpc.RpcError as ex:
-            raise errors.FailedPluginCommandError(str(ex)) from ex
-
-        plugin_data['name'] = metadata.name
-        plugin_data['maintainer'] = metadata.maintainer
-        plugin_data['tag'] = metadata.tag
-        plugin_data['description'] = metadata.description
-        plugin_data['vcs'] = metadata.vcs
-        plugin_data['version'] = {
-            "plugin_version": metadata.version.pluginVersion,
-            "sdk_version": metadata.version.sdkVersion,
-            "build_date": metadata.version.buildDate,
-            "git_commit": metadata.version.gitCommit,
-            "git_tag": metadata.version.gitTag,
-            "arch": metadata.version.arch,
-            "os": metadata.version.os,
         }
 
         # Get the plugin health data
