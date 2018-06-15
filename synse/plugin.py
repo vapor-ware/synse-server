@@ -324,7 +324,6 @@ def register_unix():
     configured = config.options.get('plugin.unix', [])
     if not configured:
         logger.debug(_('No plugin configurations for unix'))
-        return registered
 
     logger.debug(_('unix plugin configuration: {}').format(configured))
     for address in configured:
