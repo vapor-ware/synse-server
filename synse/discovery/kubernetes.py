@@ -16,14 +16,19 @@ def discover():
         list[str]: A list of host:port addresses for plugins discovered
             via kubernetes.
     """
+    addresses = []
+
     cfg = config.options.get('plugin.discover.kubernetes')
+    if not cfg:
+        return addresses
 
     # Currently, we only support plugin discovery via kubernetes service
     # endpoints, under the `plugin.discover.kubernetes.endpoints` config
     # field.
     #
     # We can support other means later.
-    addresses = _register_from_endpoints(cfg.get('endpoints'))
+    from_endpoints = _register_from_endpoints(cfg.get('endpoints'))
+    addresses.extend(from_endpoints)
 
     return addresses
 
@@ -111,7 +116,10 @@ def _register_from_endpoints(cfg):
 
             for port in ports:
                 if port.name != 'http':
-                    logger.debug(_('skipping port (want name:http, but found name:{})').format(port.get('name')))
+                    logger.debug(
+                        _('skipping port (want name:http, but found name:{})')
+                        .format(port.get('name'))
+                    )
                     continue
 
                 port = port.port

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-06-14 11:28-0400\n"
+"POT-Creation-Date: 2018-06-15 15:20-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.5.3\n"
+"Generated-By: Babel 2.6.0\n"
 
 #: synse/cache.py:49
 msgid "Setting cache configuration: {}"
@@ -79,88 +79,101 @@ msgstr ""
 msgid "Building the info cache"
 msgstr ""
 
-#: synse/plugin.py:53
+#: synse/plugin.py:70
 msgid "Only Plugin instances can be added to the manager"
 msgstr ""
 
-#: synse/plugin.py:59
+#: synse/plugin.py:76
 msgid "Plugin (\"{}\") already exists in the manager"
 msgstr ""
 
-#: synse/plugin.py:75
+#: synse/plugin.py:92
 msgid "\"{}\" is not known to PluginManager - nothing to remove"
 msgstr ""
 
-#: synse/plugin.py:90
+#: synse/plugin.py:107
 msgid "PluginManager purged plugins: {}"
 msgstr ""
 
-#: synse/plugin.py:136
-msgid "The given mode ({}) must be one of: tcp, unix"
+#: synse/plugin.py:203 synse/plugin.py:299 synse/plugin.py:342
+#: synse/plugin.py:367
+msgid "Failed to register plugin with address: {}"
 msgstr ""
 
-#: synse/plugin.py:142
-msgid "Unix socket ({}) does not exist"
-msgstr ""
-
-#: synse/plugin.py:191
+#: synse/plugin.py:211
 msgid "Plugins to purge from manager: {}"
 msgstr ""
 
-#: synse/plugin.py:194
+#: synse/plugin.py:214
 msgid "Plugin registration complete"
 msgstr ""
 
-#: synse/plugin.py:212
-msgid "Registering plugins (unix)"
+#: synse/plugin.py:240
+msgid "{} is already registered"
 msgstr ""
 
-#: synse/plugin.py:222
-msgid "Unix plugins in configuration: {}"
+#: synse/plugin.py:251
+msgid "Invalid protocol specified for registration: {}"
 msgstr ""
 
-#: synse/plugin.py:239 synse/plugin.py:241
-msgid "Checking for socket: {}"
+#: synse/plugin.py:256
+msgid "gRPC Test response was not OK: {}"
 msgstr ""
 
-#: synse/plugin.py:245
-msgid "Unable to find configured socket: {}[.sock]"
+#: synse/plugin.py:259
+msgid "Failed to reach plugin at address {}: {}"
 msgstr ""
 
-#: synse/plugin.py:251 synse/plugin.py:285
-msgid "{} is not a socket - skipping"
+#: synse/plugin.py:268
+msgid "Failed to get plugin metadata at address {}: {}"
 msgstr ""
 
-#: synse/plugin.py:259 synse/plugin.py:294
-msgid "Created new plugin (unix): {}"
+#: synse/plugin.py:277
+msgid "Registered new plugin: {}"
 msgstr ""
 
-#: synse/plugin.py:262 synse/plugin.py:306
-msgid "Unix Plugin \"{}\" already exists - will not re-register"
-msgstr ""
-
-#: synse/plugin.py:271
-msgid "No default socket path found -- no plugins registered from {}"
-msgstr ""
-
-#: synse/plugin.py:276
-msgid "Registering plugins from default socket directory"
-msgstr ""
-
-#: synse/plugin.py:320
+#: synse/plugin.py:287
 msgid "Registering plugins (tcp)"
 msgstr ""
 
-#: synse/plugin.py:323
-msgid "TCP plugins in configuration: {}"
+#: synse/plugin.py:292
+msgid "No plugin configurations for TCP"
 msgstr ""
 
-#: synse/plugin.py:336
-msgid "Created new plugin (tcp): {}"
+#: synse/plugin.py:295
+msgid "TCP plugin configuration: {}"
 msgstr ""
 
-#: synse/plugin.py:339
-msgid "TCP Plugin \"{}\" already exists - will not re-register"
+#: synse/plugin.py:321
+msgid "Registering plugins (unix)"
+msgstr ""
+
+#: synse/plugin.py:326
+msgid "No plugin configurations for unix"
+msgstr ""
+
+#: synse/plugin.py:328
+msgid "unix plugin configuration: {}"
+msgstr ""
+
+#: synse/plugin.py:333
+msgid "Socket {} not found"
+msgstr ""
+
+#: synse/plugin.py:337
+msgid "{} is not a socket"
+msgstr ""
+
+#: synse/plugin.py:350
+msgid "No default socket path found, no plugins will be registered from {}"
+msgstr ""
+
+#: synse/plugin.py:354
+msgid "Registering plugins from default socket directory"
+msgstr ""
+
+#: synse/plugin.py:362
+msgid "{} is not a socket - skipping"
 msgstr ""
 
 #: synse/validate.py:33
@@ -211,7 +224,7 @@ msgstr ""
 msgid "Unable to find device \"{}\" in info cache"
 msgstr ""
 
-#: synse/commands/plugins.py:15
+#: synse/commands/plugins.py:18
 msgid "Plugins Command"
 msgstr ""
 
@@ -298,52 +311,80 @@ msgstr ""
 msgid "Failed to add transaction {} to the cache"
 msgstr ""
 
-#: synse/proto/client.py:89
-msgid "Invalid gRPC client mode: {}"
+#: synse/discovery/kubernetes.py:55
+msgid "No labels found for kubernetes service discovery via endpoints"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:65
+msgid "Using endpoint label selector: {}"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:81
+msgid "Found endpoint with name: {}"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:89
+msgid "No addresses for subset of endpoint - skipping ({})"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:95
+msgid "Address has no target_ref - skipping ({})"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:100
+msgid "Address is not a pod address - skipping ({})"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:109
+msgid "No ip found for endpoint, will not search for port"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:114
+msgid "No ports for subset of endpoint - skipping ({})"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:119
+msgid "skipping port (want name:http, but found name:{})"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:128
+msgid "endpoint.name={}, ip={}, port={}"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:130
+msgid "No ip/port found for endpoint {} - skipping"
 msgstr ""
 
 #: synse/proto/client.py:92
-msgid "Client gRPC channel: {}"
-msgstr ""
-
-#: synse/proto/client.py:131
-msgid "Registered client \"{}\" for mode \"{}\", address \"{}\""
-msgstr ""
-
-#: synse/proto/client.py:144
 msgid "Issuing gRPC test request"
 msgstr ""
 
-#: synse/proto/client.py:158
+#: synse/proto/client.py:106
 msgid "Issuing gRPC health request"
 msgstr ""
 
-#: synse/proto/client.py:171
+#: synse/proto/client.py:119
 msgid "Issuing gRPC metainfo request"
 msgstr ""
 
-#: synse/proto/client.py:185
+#: synse/proto/client.py:133
 msgid "Issuing gRPC capabilities request"
 msgstr ""
 
-#: synse/proto/client.py:203
+#: synse/proto/client.py:151
 msgid "Issuing gRPC devices request"
 msgstr ""
 
-#: synse/proto/client.py:232
+#: synse/proto/client.py:180
 msgid "Issuing gRPC read request"
 msgstr ""
 
-#: synse/proto/client.py:258
+#: synse/proto/client.py:206
 msgid "Issuing gRPC write request"
 msgstr ""
 
-#: synse/proto/client.py:283
+#: synse/proto/client.py:231
 msgid "Issuing gRPC transaction request"
-msgstr ""
-
-#: synse/proto/client.py:329
-msgid "Registering new client for Plugin: {}"
 msgstr ""
 
 #: synse/routes/aliases.py:50
@@ -602,5 +643,50 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Failed to convert \"{}\" to {}"
+#~ msgstr ""
+
+#~ msgid "The given mode ({}) must be one of: tcp, unix"
+#~ msgstr ""
+
+#~ msgid "Unix socket ({}) does not exist"
+#~ msgstr ""
+
+#~ msgid "Unix plugins in configuration: {}"
+#~ msgstr ""
+
+#~ msgid "Checking for socket: {}"
+#~ msgstr ""
+
+#~ msgid "Unable to find configured socket: {}[.sock]"
+#~ msgstr ""
+
+#~ msgid "Created new plugin (unix): {}"
+#~ msgstr ""
+
+#~ msgid "Unix Plugin \"{}\" already exists - will not re-register"
+#~ msgstr ""
+
+#~ msgid "No default socket path found -- no plugins registered from {}"
+#~ msgstr ""
+
+#~ msgid "TCP plugins in configuration: {}"
+#~ msgstr ""
+
+#~ msgid "Created new plugin (tcp): {}"
+#~ msgstr ""
+
+#~ msgid "TCP Plugin \"{}\" already exists - will not re-register"
+#~ msgstr ""
+
+#~ msgid "Invalid gRPC client mode: {}"
+#~ msgstr ""
+
+#~ msgid "Client gRPC channel: {}"
+#~ msgstr ""
+
+#~ msgid "Registered client \"{}\" for mode \"{}\", address \"{}\""
+#~ msgstr ""
+
+#~ msgid "Registering new client for Plugin: {}"
 #~ msgstr ""
 

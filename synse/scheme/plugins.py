@@ -10,7 +10,7 @@ class PluginsResponse(SynseResponse):
         [
           {
             "network":{
-              "type":"tcp",
+              "protocol":"tcp",
               "address":"emulator-plugin:5001"
             },
             "name":"emulator plugin",

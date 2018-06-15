@@ -10,7 +10,7 @@ from synse_plugin import api
 import synse.cache
 from synse import errors, plugin
 from synse.commands.transaction import check_transaction
-from synse.proto.client import SynsePluginClient
+from synse.proto.client import PluginClient, PluginTCPClient
 from synse.scheme.transaction import (TransactionListResponse,
                                       TransactionResponse)
 
@@ -54,14 +54,14 @@ def mock_get_transaction(monkeypatch):
 @pytest.fixture()
 def mock_client_transaction(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method."""
-    monkeypatch.setattr(SynsePluginClient, 'transaction', mockchecktransaction)
+    monkeypatch.setattr(PluginClient, 'transaction', mockchecktransaction)
     return mock_client_transaction
 
 
 @pytest.fixture()
 def mock_client_transaction_fail(monkeypatch):
     """Fixture to monkeypatch the grpc client's transaction method to fail."""
-    monkeypatch.setattr(SynsePluginClient, 'transaction', mockchecktransactionfail)
+    monkeypatch.setattr(PluginClient, 'transaction', mockchecktransactionfail)
     return mock_client_transaction_fail
 
 
@@ -69,14 +69,23 @@ def mock_client_transaction_fail(monkeypatch):
 def make_plugin():
     """Fixture to create and register a plugin for testing."""
 
+    plugin_id = 'vaporio/foo+tcp@localhost:9999'
+
     # make a dummy plugin for the tests to use
-    if 'foo' not in plugin.Plugin.manager.plugins:
-        plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    if plugin_id not in plugin.Plugin.manager.plugins:
+        plugin.Plugin(
+            metadata=api.Metadata(
+                name='foo',
+                tag='vaporio/foo'
+            ),
+            address='localhost:9999',
+            plugin_client=PluginTCPClient('localhost:9999')
+        )
 
     yield
 
-    if 'foo' in plugin.Plugin.manager.plugins:
-        del plugin.Plugin.manager.plugins['foo']
+    if plugin_id in plugin.Plugin.manager.plugins:
+        del plugin.Plugin.manager.plugins[plugin_id]
 
 
 @pytest.mark.asyncio
@@ -110,7 +119,7 @@ async def test_transaction_command_grpc_err(mock_get_transaction, mock_client_tr
     # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
     # properly trapping the exception for further testing.
     try:
-        await check_transaction('foo')
+        await check_transaction('vaporio/foo+tcp@localhost:9999')
     except errors.SynseError as e:
         assert e.error_id == errors.FAILED_TRANSACTION_COMMAND
 
@@ -131,11 +140,11 @@ async def test_transaction_command_no_transaction(clear_caches):
 async def test_transaction_command(mock_get_transaction, mock_client_transaction, make_plugin):
     """Get a TransactionResponse when the plugin exists."""
 
-    resp = await check_transaction('foo')
+    resp = await check_transaction('vaporio/foo+tcp@localhost:9999')
 
     assert isinstance(resp, TransactionResponse)
     assert resp.data == {
-        'id': 'foo',
+        'id': 'vaporio/foo+tcp@localhost:9999',
         'context': {
             'action': 'foo',
             'data': b'bar'

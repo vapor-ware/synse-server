@@ -2,7 +2,7 @@
 
 import grpc
 
-from synse import errors, plugin
+from synse import plugin, utils
 from synse.i18n import _
 from synse.log import logger
 from synse.proto import util
@@ -37,16 +37,16 @@ async def get_plugins():
             'maintainer': _plugin.maintainer,
             'vcs': _plugin.vcs,
             'version': {
-                "plugin_version": _plugin.version.pluginVersion,
-                "sdk_version": _plugin.version.sdkVersion,
-                "build_date": _plugin.version.buildDate,
-                "git_commit": _plugin.version.gitCommit,
-                "git_tag": _plugin.version.gitTag,
-                "arch": _plugin.version.arch,
-                "os": _plugin.version.os,
+                'plugin_version': _plugin.version.pluginVersion,
+                'sdk_version': _plugin.version.sdkVersion,
+                'build_date': _plugin.version.buildDate,
+                'git_commit': _plugin.version.gitCommit,
+                'git_tag': _plugin.version.gitTag,
+                'arch': _plugin.version.arch,
+                'os': _plugin.version.os,
             },
             'network': {
-                'type': _plugin.mode,
+                'protocol': _plugin.protocol,
                 'address': _plugin.address
             }
         }
@@ -55,20 +55,26 @@ async def get_plugins():
         try:
             health = _plugin.client.health()
         except grpc.RpcError as ex:
-            raise errors.FailedPluginCommandError(str(ex)) from ex
-
-        plugin_data['health'] = {
-            'timestamp': health.timestamp,
-            'status': util.plugin_health_status_name(health.status),
-            'checks': [
-                {
-                    'name': check.name,
-                    'status': util.plugin_health_status_name(check.status),
-                    'message': check.message,
-                    'timestamp': check.timestamp,
-                    'type': check.type,
-                } for check in health.checks]
-        }
+            plugin_data['health'] = {
+                'timestamp': utils.rfc3339now(),
+                'status': 'error',
+                'message': str(ex),
+                'checks': []
+            }
+        else:
+            plugin_data['health'] = {
+                'timestamp': health.timestamp,
+                'status': util.plugin_health_status_name(health.status),
+                'message': '',
+                'checks': [
+                    {
+                        'name': check.name,
+                        'status': util.plugin_health_status_name(check.status),
+                        'message': check.message,
+                        'timestamp': check.timestamp,
+                        'type': check.type,
+                    } for check in health.checks]
+            }
 
         plugins.append(plugin_data)
 

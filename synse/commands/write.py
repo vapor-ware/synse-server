@@ -75,7 +75,7 @@ async def write(rack, board, device, data):
             'action': ctx.action,
             'data': ctx.data
         }
-        ok = await cache.add_transaction(_id, context, _plugin.name)
+        ok = await cache.add_transaction(_id, context, _plugin.id())
         if not ok:
             logger.error(_('Failed to add transaction {} to the cache').format(_id))
 

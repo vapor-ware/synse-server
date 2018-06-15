@@ -10,6 +10,7 @@ import pytest
 from synse_plugin import api
 
 from synse import cache, errors, plugin
+from synse.proto import client
 from tests import data_dir
 
 # -- Helper Methods ---
@@ -248,7 +249,14 @@ async def test_get_device_info_cache_ok(plugin_context, clear_caches):
     """Get the device info cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_devices
 
     meta = await cache.get_device_info_cache()
@@ -262,7 +270,14 @@ async def test_get_device_info_cache_empty(plugin_context, clear_caches):
     """Get the empty device info cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_device_info_empty
 
     meta = await cache.get_device_info_cache()
@@ -275,7 +290,14 @@ async def test_get_device_info_cache_exist(plugin_context, clear_caches):
     """Get the existing device info cache."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_devices
 
     # this is the first time we ask for cache
@@ -298,7 +320,14 @@ async def test_get_device_info_cache_total_failure(plugin_context, clear_caches)
     """Get the device info cache when all plugins fail to respond."""
 
     # create & register new plugin
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_device_info_fail  # override to induce failure
 
     try:
@@ -312,10 +341,24 @@ async def test_get_device_info_cache_partial_failure(plugin_context, clear_cache
     """Get the device info cache when some plugins fail to respond."""
 
     # create & register new plugins
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_devices
 
-    p = plugin.Plugin('bar', 'localhost:9998', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='bar',
+            tag='vaporio/bar'
+        ),
+        address='localhost:9998',
+        plugin_client=client.PluginTCPClient('localhost:9998')
+    )
     p.client.devices = mock_client_device_info_fail  # override to induce failure
 
     meta = await cache.get_device_info_cache()
@@ -344,7 +387,14 @@ async def test_get_scan_cache_empty(plugin_context, clear_caches):
     """Get the empty scan cache."""
 
     # create & register new plugin with empty device info cache
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_device_info_empty
 
     meta_cache = await cache.get_device_info_cache()
@@ -385,7 +435,14 @@ async def test_get_resource_info_cache_empty(plugin_context, clear_caches):
     """Get the empty info cache."""
 
     # create & register new plugin with empty device info cache
-    p = plugin.Plugin('foo', 'localhost:9999', 'tcp')
+    p = plugin.Plugin(
+        metadata=api.Metadata(
+            name='foo',
+            tag='vaporio/foo'
+        ),
+        address='localhost:9999',
+        plugin_client=client.PluginTCPClient('localhost:9999')
+    )
     p.client.devices = mock_client_device_info_empty
 
     meta_cache = await cache.get_device_info_cache()

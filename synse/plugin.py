@@ -117,13 +117,14 @@ class Plugin(object):
     Args:
         metadata (Metadata): The gRPC Metadata data for the Plugin.
         address (str): The address of the Plugin.
-        client (client.PluginClient): The client for communicating with
+        plugin_client (client.PluginClient): The client for communicating with
             the Plugin.
     """
 
     manager = None
 
-    def __init__(self, metadata, address, client):
+    # FIXME: remove address, get it from the client.
+    def __init__(self, metadata, address, plugin_client):
         self.name = metadata.name
         self.maintainer = metadata.maintainer
         self.tag = metadata.tag
@@ -131,15 +132,15 @@ class Plugin(object):
         self.vcs = metadata.vcs
         self.version = metadata.version
 
-        self.client = client
+        self.client = plugin_client
         self.address = address
-        self.mode = client.type
+        self.protocol = plugin_client.type
 
         # Register this instance with the manager.
         self.manager.add(self)
 
     def __str__(self):
-        return '<Plugin ({}): {}@{}>'.format(self.tag, self.mode, self.address)
+        return '<Plugin ({}): {}@{}>'.format(self.tag, self.protocol, self.address)
 
     def id(self):
         """Get the ID of the plugin. The ID is a composite of the
@@ -148,7 +149,7 @@ class Plugin(object):
         Returns:
             string: The ID for the Plugin.
         """
-        return '{}+{}@{}'.format(self.tag, self.mode, self.address)
+        return '{}+{}@{}'.format(self.tag, self.protocol, self.address)
 
 
 # Create an instance of the PluginManager to use for all plugins
@@ -239,17 +240,15 @@ def register_plugin(address, protocol):
         logger.debug(_('{} is already registered').format(plugin))
         return plugin.id()
 
-    if protocol == 'tcp':
-        client_cls = client.PluginTCPClient
-    elif protocol == 'unix':
-        client_cls = client.PluginUnixClient
-    else:
-        raise ValueError(_('Invalid protocol specified for registration: {}').format(protocol))
-
     # The client does not exist, so we must register it. This means we need to
     # connect with it to (a) make sure its reachable, and (b) get its metadata
     # in order to properly create a new Plugin model for it.
-    plugin_client = client_cls(address)
+    if protocol == 'tcp':
+        plugin_client = client.PluginTCPClient(address)
+    elif protocol == 'unix':
+        plugin_client = client.PluginUnixClient(address)
+    else:
+        raise ValueError(_('Invalid protocol specified for registration: {}').format(protocol))
 
     try:
         status = plugin_client.test()
@@ -258,6 +257,7 @@ def register_plugin(address, protocol):
             return None
     except Exception as e:
         logger.warning(_('Failed to reach plugin at address {}: {}').format(address, e))
+        return None
 
     # If we made it here, we were successful in establishing communication
     # with the plugin. Now, we should get its metainfo and create a Plugin
@@ -271,7 +271,7 @@ def register_plugin(address, protocol):
     plugin = Plugin(
         metadata=meta,
         address=address,
-        client=plugin_client
+        plugin_client=plugin_client
     )
 
     logger.debug(_('Registered new plugin: {}').format(plugin))
@@ -334,7 +334,7 @@ def register_unix():
             continue
 
         if not stat.S_ISSOCK(os.stat(address).st_mode):
-            logger.error(_("{} is not a socket").format(address))
+            logger.error(_('{} is not a socket').format(address))
             continue
 
         plugin_id = register_plugin(address, 'unix')
@@ -370,6 +370,9 @@ def register_unix():
 
             # We want the plugins registered from this default directory to
             # be surfaced in the config, so we will add it there.
-            config.options.get('plugin.unix').append(address)
+            if config.options.get('plugin.unix') is None:
+                config.options.set('plugin.unix', [address])
+            else:
+                config.options.get('plugin.unix').append(address)
 
     return registered

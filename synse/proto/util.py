@@ -28,7 +28,13 @@ def write_state_name(value):
 
 
 def plugin_health_status_name(value):
-    """
+    """Get the name for the given health state value.
+
+    Args:
+        value (int): The value representing the health state.
+
+    Returns:
+        str: The string representation of the health state.
     """
     return api.PluginHealth.Status.Name(value).lower()
 

@@ -6,7 +6,6 @@ import pytest
 from synse_plugin import api as synse_api
 from synse_plugin import grpc as synse_grpc
 
-from synse import errors
 from synse.proto import client
 
 # --- Mock Methods ---
@@ -109,30 +108,29 @@ def test_write_data_to_grpc():
     assert rpc.data == b'test'
 
 
+def test_init_base_client():
+    """Initializing the base client should result in error."""
+
+    with pytest.raises(NotImplementedError):
+        _ = client.PluginClient(address='localhost')
+
+
 def test_client_init():
     """Verify the client initializes as expected."""
 
-    c = client.SynsePluginClient('test-cli', 'test-cli.sock', 'unix')
+    c = client.PluginUnixClient('foo/bar/test-cli.sock')
 
-    assert c.name == 'test-cli'
-    assert c.addr == 'test-cli.sock'
-    assert c.mode == 'unix'
+    assert c.address == 'foo/bar/test-cli.sock'
+    assert c.type == 'unix'
     assert isinstance(c.channel, grpc.Channel)
-    assert isinstance(c.stub, synse_grpc.PluginStub)
-
-
-def test_client_init_bad_mode():
-    """Verify the client fails to initialize when a bad mode is provided."""
-
-    with pytest.raises(errors.InvalidArgumentsError):
-        client.SynsePluginClient('test-cli', 'test-cli.sock', 'foo')
+    assert isinstance(c.grpc, synse_grpc.PluginStub)
 
 
 def test_client_read():
     """Test reading via the client."""
 
-    c = client.SynsePluginClient('test', 'test.sock', 'unix')
-    c.stub.Read = mock_read
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Read = mock_read
 
     resp = c.read('rack-1', 'vec', '12345')
 
@@ -144,8 +142,8 @@ def test_client_read():
 def test_client_write():
     """Test writing via the client."""
 
-    c = client.SynsePluginClient('test', 'test.sock', 'unix')
-    c.stub.Write = mock_write
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Write = mock_write
 
     resp = c.write('rack-1', 'vec', '12345', [client.WriteData()])
 
@@ -155,8 +153,8 @@ def test_client_write():
 def test_client_devices():
     """Test getting device info via the client."""
 
-    c = client.SynsePluginClient('test', 'test.sock', 'unix')
-    c.stub.Devices = mock_device_info
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Devices = mock_device_info
 
     resp = c.devices()
 
@@ -168,8 +166,8 @@ def test_client_devices():
 def test_client_transaction():
     """Test checking a transaction via the client."""
 
-    c = client.SynsePluginClient('test', 'test.sock', 'unix')
-    c.stub.Transaction = mock_transaction
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Transaction = mock_transaction
 
     resp = c.transaction('abcdef')
 

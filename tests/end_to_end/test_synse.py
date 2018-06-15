@@ -362,7 +362,17 @@ class TestConfig(object):
             'grpc': {'timeout': 3},
             'locale': 'en_US',
             'logging': 'debug',
-            'plugin': {'tcp': {}, 'unix': {}},
+            'plugin': {
+                'tcp': [],
+                'unix': [],
+                'discover': {
+                    'kubernetes': {
+                        'endpoints': {
+                            'labels': {},
+                        }
+                    }
+                }
+            },
             'pretty_json': True
         }
 
@@ -394,12 +404,19 @@ class TestPlugins(object):
         plugin = data[0]
 
         assert 'name' in plugin
+        assert 'maintainer' in plugin
+        assert 'tag' in plugin
+        assert 'description' in plugin
+        assert 'vcs' in plugin
+        assert 'version' in plugin
         assert 'network' in plugin
-        assert 'address' in plugin
+        assert 'health' in plugin
 
-        assert plugin['name'] == 'emulator'
-        assert plugin['network'] == 'unix'
-        assert plugin['address'] == '/tmp/synse/procs/emulator.sock'
+        assert plugin['name'] == 'emulator plugin'
+        assert plugin['network'] == {
+            'protocol': 'unix',
+            'address':'/tmp/synse/procs/emulator.sock'
+        }
 
 
 #
