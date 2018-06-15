@@ -12,7 +12,9 @@ scheme = Scheme(
         ListOption('unix', default=[], member_type=str, bind_env=True),
         DictOption('discover', default={}, scheme=Scheme(
             DictOption('kubernetes', default={}, scheme=Scheme(
-                DictOption('labels', default={}, scheme=None)
+                DictOption('endpoints', default={}, scheme=Scheme(
+                    DictOption('labels', default={}, scheme=None)
+                )),
             ))
         )),
     )),

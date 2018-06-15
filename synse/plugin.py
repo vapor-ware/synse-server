@@ -4,6 +4,7 @@ import os
 import stat
 
 from synse import config, const, errors
+from synse.discovery import kubernetes
 from synse.i18n import _
 from synse.log import logger
 from synse.proto import client
@@ -188,10 +189,21 @@ def register_plugins():
     Upon initialization, the Plugin instances are automatically registered
     with the PluginManager.
     """
+    # Register plugins from local config (file, env)
     unix = register_unix()
     tcp = register_tcp()
 
-    diff = set(Plugin.manager.plugins) - set(unix + tcp)
+    # Get addresses of plugins to register via service discovery
+    discovered = []
+    addresses = kubernetes.discover()
+    for address in addresses:
+        plugin_id = register_plugin(address, 'tcp')
+        if plugin_id is None:
+            logger.error(_('Failed to register plugin with address: {}').format(address))
+            continue
+        discovered.append(plugin_id)
+
+    diff = set(Plugin.manager.plugins) - set(unix + tcp + discovered)
 
     # Now that we have found all current plugins, we will want to clear out
     # any old plugins which may no longer be present.
@@ -201,7 +213,70 @@ def register_plugins():
     logger.debug(_('Plugin registration complete'))
 
 
-# FIXME (etd): a lot of the logic below can be cleaned up and consolidated.
+def register_plugin(address, protocol):
+    """Register a plugin. If a plugin with the given address already exists,
+    it will not be re-registered, but its ID will still be returned.
+
+    If a plugin fails to register, None is returned.
+
+    Args:
+        address (str): The address of the plugin to register.
+        protocol (str): The protocol that the plugin uses. This should
+            be one of 'unix', 'tcp'.
+
+    Returns:
+        str: The ID of the plugin that was registered.
+        None: The given address failed to resolve, so no plugin
+            was registered.
+
+    Raises:
+        ValueError: An invalid protocol is specified. The protocol must
+            be one of: 'unix', 'tcp'
+
+    """
+    plugin = Plugin.manager.get_by_address(address)
+    if plugin:
+        logger.debug(_('{} is already registered').format(plugin))
+        return plugin.id()
+
+    if protocol == 'tcp':
+        client_cls = client.PluginTCPClient
+    elif protocol == 'unix':
+        client_cls = client.PluginUnixClient
+    else:
+        raise ValueError(_('Invalid protocol specified for registration: {}').format(protocol))
+
+    # The client does not exist, so we must register it. This means we need to
+    # connect with it to (a) make sure its reachable, and (b) get its metadata
+    # in order to properly create a new Plugin model for it.
+    plugin_client = client_cls(address)
+
+    try:
+        status = plugin_client.test()
+        if not status.ok:
+            logger.warning(_('gRPC Test response was not OK: {}').format(address))
+            return None
+    except Exception as e:
+        logger.warning(_('Failed to reach plugin at address {}: {}').format(address, e))
+
+    # If we made it here, we were successful in establishing communication
+    # with the plugin. Now, we should get its metainfo and create a Plugin
+    # instance with it.
+    try:
+        meta = plugin_client.metainfo()
+    except Exception as e:
+        logger.warning(_('Failed to get plugin metadata at address {}: {}').format(address, e))
+        return None
+
+    plugin = Plugin(
+        metadata=meta,
+        address=address,
+        client=plugin_client
+    )
+
+    logger.debug(_('Registered new plugin: {}').format(plugin))
+    return plugin.id()
+
 
 def register_tcp():
     """Register the plugins that use TCP for communication.
@@ -218,47 +293,12 @@ def register_tcp():
         return registered
 
     logger.debug(_('TCP plugin configuration: {}').format(configured))
-
-    manager = Plugin.manager
-
     for address in configured:
-        # The config here should be the address (host[:port])
-        plugin = manager.get_by_address(address)
-        if plugin:
-            logger.debug(_('TCP plugin "{}" is already registered').format(plugin))
-            registered.append(plugin.id())
+        plugin_id = register_plugin(address, 'tcp')
+        if plugin_id is None:
+            logger.error(_('Failed to register plugin with address: {}').format(address))
             continue
-
-        # The plugin has not already been registered, so we must try registering
-        # it now. First, we'll need to create a client to check that the plugin
-        # is reachable.
-
-        plugin_client = client.PluginTCPClient(address)
-
-        try:
-            resp = plugin_client.test()
-            if not resp.ok:
-                raise errors.InternalApiError('gRPC Test response status was not "ok"')
-        except Exception as e:
-            logger.error(_('Failed to reach plugin at tcp {}: {}').format(address, e))
-            continue
-
-        # Now, we can communicate with the plugin, so we should get its metainfo
-        # so we can create a Plugin instance for it.
-        try:
-            meta = plugin_client.metainfo()
-        except Exception as e:
-            logger.error(_('Failed to get plugin metadata at tcp {}: {}').format(address, e))
-            continue
-
-        plugin = Plugin(
-            metadata=meta,
-            address=address,
-            client=plugin_client
-        )
-
-        logger.debug(_('Registered new plugin: {}').format(plugin))
-        registered.append(plugin.id())
+        registered.append(plugin_id)
 
     return registered
 
@@ -287,9 +327,6 @@ def register_unix():
         return registered
 
     logger.debug(_('unix plugin configuration: {}').format(configured))
-
-    manager = Plugin.manager
-
     for address in configured:
         # The config here should be the path the the unix socket, which is our address.
         # First, check that the socket exists and that the address is a socket file.
@@ -301,42 +338,11 @@ def register_unix():
             logger.error(_("{} is not a socket").format(address))
             continue
 
-        plugin = manager.get_by_address(address)
-        if plugin:
-            logger.debug(_('unix plugin "{}" is already registered').format(plugin))
-            registered.append(plugin.id())
+        plugin_id = register_plugin(address, 'unix')
+        if plugin_id is None:
+            logger.error(_('Failed to register plugin with address: {}').format(address))
             continue
-
-        # The plugin has not already been registered, so we must try registering
-        # it now. First, we'll need to create a client to check that the plugin
-        # is reachable.
-
-        plugin_client = client.PluginUnixClient(address)
-
-        try:
-            resp = plugin_client.test()
-            if not resp.ok:
-                raise errors.InternalApiError('gRPC Test response status was not "ok"')
-        except Exception as e:
-            logger.error(_('Failed to reach plugin at unix {}: {}').format(address, e))
-            continue
-
-        # Now, we can communicate with the plugin, so we should get its metainfo
-        # so we can create a Plugin instance for it.
-        try:
-            meta = plugin_client.metainfo()
-        except Exception as e:
-            logger.error(_('Failed to get plugin metadata at unix {}: {}').format(address, e))
-            continue
-
-        plugin = Plugin(
-            metadata=meta,
-            address=address,
-            client=plugin_client
-        )
-
-        logger.debug(_('Registered new plugin: {}').format(plugin))
-        registered.append(plugin.id())
+        registered.append(plugin_id)
 
     # Now, go through the default socket directory and pick up any sockets that
     # may be set for automatic registration.
@@ -357,42 +363,11 @@ def register_unix():
                 logger.debug(_('{} is not a socket - skipping').format(address))
                 continue
 
-            plugin = manager.get_by_address(address)
-            if plugin:
-                logger.debug(_('unix plugin "{}" is already registered').format(plugin))
-                registered.append(plugin.id())
+            plugin_id = register_plugin(address, 'unix')
+            if plugin_id is None:
+                logger.error(_('Failed to register plugin with address: {}').format(address))
                 continue
-
-            # The plugin has not already been registered, so we must try registering
-            # it now. First, we'll need to create a client to check that the plugin
-            # is reachable.
-
-            plugin_client = client.PluginUnixClient(address)
-
-            try:
-                resp = plugin_client.test()
-                if not resp.ok:
-                    raise errors.InternalApiError('gRPC Test response status was not "ok"')
-            except Exception as e:
-                logger.error(_('Failed to reach plugin at unix {}: {}').format(address, e))
-                continue
-
-            # Now, we can communicate with the plugin, so we should get its metainfo
-            # so we can create a Plugin instance for it.
-            try:
-                meta = plugin_client.metainfo()
-            except Exception as e:
-                logger.error(_('Failed to get plugin metadata at unix {}: {}').format(address, e))
-                continue
-
-            plugin = Plugin(
-                metadata=meta,
-                address=address,
-                client=plugin_client
-            )
-
-            logger.debug(_('Registered new plugin: {}').format(plugin))
-            registered.append(plugin.id())
+            registered.append(plugin_id)
 
             # We want the plugins registered from this default directory to
             # be surfaced in the config, so we will add it there.
