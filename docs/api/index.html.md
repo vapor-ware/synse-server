@@ -6,7 +6,7 @@ language_tabs:
   - python
 
 toc_footers:
-  - Vapor IO • Synse Server • v2.0.0
+  - Vapor IO • Synse Server • v2.1.0
 
 search: true
 ---
@@ -72,6 +72,7 @@ The currently defined error IDs follow.
 | 5002 | Failed scan command |
 | 5003 | Failed transaction command |
 | 5004 | Failed write command |
+| 5005 | Failed plugin command |
 | 6000 | Internal API failure |
 | 6500 | Plugin state error |
 
@@ -156,8 +157,8 @@ response = requests.get('http://host:5000/synse/version')
 
 ```json
 {
-  "version": "2.0.0",
-  "api_version": "2.0"
+  "version": "2.1.0",
+  "api_version": "2.1"
 }
 
 ```
@@ -181,13 +182,13 @@ should be used in subsequent requests.
 ## Config
 
 ```shell
-curl "http://host:5000/synse/2.0/config"
+curl "http://host:5000/synse/2.1/config"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/config')
+response = requests.get('http://host:5000/synse/2.1/config')
 ```
 
 > The response JSON would be structured as:
@@ -198,9 +199,9 @@ response = requests.get('http://host:5000/synse/2.0/config')
   "pretty_json": true,
   "locale": "en_US",
   "plugin": {
-    "unix": {
-      "emulator": null
-    }
+    "tcp": [
+      "emulator-plugin:5001"
+    ]
   },
   "cache": {
     "meta": {
@@ -228,7 +229,7 @@ for more information.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/config`
+`GET http://host:5000/synse/2.1/config`
 
 ### Response
 
@@ -237,17 +238,16 @@ The response to the `config` endpoint is the unified configuration for Synse Ser
 describes the configuration scheme in more detail.
 
 
-
-## Plugins
+## Capabilities
 
 ```shell
-curl "http://host:5000/synse/2.0/plugins"
+curl "http://host:5000/synse/2.1/capabilities"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/plugins')
+response = requests.get('http://host:5000/synse/2.1/capabilities')
 ```
 
 > The response JSON would be structured as:
@@ -255,44 +255,186 @@ response = requests.get('http://host:5000/synse/2.0/plugins')
 ```json
 [
   {
-    "name": "emulator",
-    "network": "unix",
-    "address": "\/tmp\/synse\/procs\/emulator.sock"
+    "plugin": "vaporio\/emulator-plugin",
+    "devices": [
+      {
+        "kind": "airflow",
+        "outputs": [
+          "airflow"
+        ]
+      },
+      {
+        "kind": "temperature",
+        "outputs": [
+          "temperature"
+        ]
+      },
+      {
+        "kind": "pressure",
+        "outputs": [
+          "pressure"
+        ]
+      },
+      {
+        "kind": "led",
+        "outputs": [
+          "led.color",
+          "led.state"
+        ]
+      },
+      {
+        "kind": "humidity",
+        "outputs": [
+          "humidity",
+          "temperature"
+        ]
+      },
+      {
+        "kind": "fan",
+        "outputs": [
+          "fan.speed"
+        ]
+      }
+    ]
   }
 ]
 ```
 
-Get all the plugins that are currently registered with Synse Server. 
-
-This endpoint is added as a convenience to make it easier to determine which plugins Synse Server
-is running with. Plugins can be registers with Synse Server in a variety of ways, including
-file and environment configurations. See the [User Guide](http://synse-server.readthedocs.io/en/latest/index.html)
-for more on how to register plugins with Synse Server. This endpoint shows the unified view of all registered plugins.
+Get a list of device capabilities from all registered plugins. Device capabilities list out
+the outputs for each device kind that a plugin is configured to handle. This lets a user known
+which device kinds are supported, and for those device kinds, what readings they can expect.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/plugins`
+`GET http://host:5000/synse/2.1/capabilities`
 
-### Response
+### Response Fields
 
 | Field | Description |
 | ----- | ----------- |
-| *name* | The name of plugin. |
-| *network* | The plugin's network mode. (unix, tcp)|
-| *address* | The address of the plugin. (unix socket path, tcp address) |
+| *plugin* | The name of the plugin with the corresponding device kinds/output types. |
+| *devices* | A list of device kinds supported by the plugin. |
+| *{device}.kind* | The name of the device kind. |
+| *{device}.outputs* | A list of the names of the output types that the device kind supports. |
 
 
-
-## Scan
+## Plugins
 
 ```shell
-curl "http://host:5000/synse/2.0/scan"
+curl "http://host:5000/synse/2.1/plugins"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/scan')
+response = requests.get('http://host:5000/synse/2.1/plugins')
+```
+
+> The response JSON would be structured as:
+
+```json
+[
+  {
+    "tag": "vaporio\/emulator-plugin",
+    "name": "emulator plugin",
+    "description": "A plugin with emulated devices and data",
+    "maintainer": "vaporio",
+    "vcs": "github.com\/vapor-ware\/synse-emulator-plugin",
+    "version": {
+      "plugin_version": "2.0.0",
+      "sdk_version": "1.0.0",
+      "build_date": "2018-06-14T16:24:09",
+      "git_commit": "13e6478",
+      "git_tag": "1.0.2-5-g13e6478",
+      "arch": "amd64",
+      "os": "linux"
+    },
+    "network": {
+      "protocol": "tcp",
+      "address": "emulator-plugin:5001"
+    },
+    "health": {
+      "timestamp": "2018-06-15T20:04:33.4393472Z",
+      "status": "ok",
+      "message": "",
+      "checks": [
+        {
+          "name": "read buffer health",
+          "status": "ok",
+          "message": "",
+          "timestamp": "2018-06-15T20:04:06.3524458Z",
+          "type": "periodic"
+        },
+        {
+          "name": "write buffer health",
+          "status": "ok",
+          "message": "",
+          "timestamp": "2018-06-15T20:04:06.3523946Z",
+          "type": "periodic"
+        }
+      ]
+    }
+  }
+]
+```
+
+Get info on all of the plugins that are currently registered with Synse Server.
+
+This endpoint makes it easy to see which plugins are registered with an instance of Sysne Server.
+It exposes metadata about the plugin, plugin config info, and the health status of that plugin.
+
+### HTTP Request
+
+`GET http://host:5000/synse/2.1/plugins`
+
+### Response
+
+| Field | Description |
+| ----- | ----------- |
+| *tag* | The plugin tag. This is a normalized string made up of its name and maintainer. |
+| *name* | The name of plugin. |
+| *maintainer* | The maintainer of the plugin. |
+| *description* | A short description of the plugin. |
+| *vcs* | A link to the version control repo for the plugin. |
+| *version* | An object that contains version information about the plugin. |
+| *{version}.plugin_version* | The plugin version. |
+| *{version}.sdk_version* | The version of the Synse SDK that the plugin is using. |
+| *{version}.build_date* | The date that the plugin was built. |
+| *{version}.git_commit* | The git commit at which the plugin was built. |
+| *{version}.git_tag* | The git tag at which the plugin was built. |
+| *{version}.arch* | The architecture that the plugin is running on. |
+| *{version}.os* | The OS that the plugin is running on. |
+| *network* | An object that describes the network configurations for the plugin. |
+| *{network}.protocol* | The protocol that is used to communicate with the plugin (unix, tcp). |
+| *{network}.address* | The address of the plugin for the protocol used. |
+| *health* | An object that describes the overall health of the plugin. |
+| *{health}.timestamp* | The time at which the health status applies. |
+| *{health}.status* | The health status of the plugin (ok, degraded, failing, error, unknown) |
+| *{health}.message* | A message describing the error, if in an error state. |
+| *{health}.checks* | A collection of health check snapshots for the plugin. |
+
+There may be 0..N health checks for a Plugin, depending on how it is configured. The health
+check elements here make up a snapshot of the plugin's health at a given time.
+
+| Field | Description |
+| ----- | ----------- |
+| *name* | The name of the health check. |
+| *status* | The status of the health check (ok, failing) |
+| *message* | A message describing the failure, if in a failing state. |
+| *timestamp* | The timestamp for which the status applies. |
+| *type* | The type of health check (e.g. periodic) |
+
+
+## Scan
+
+```shell
+curl "http://host:5000/synse/2.1/scan"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/2.1/scan')
 ```
 
 > The response JSON would be structured as:
@@ -363,7 +505,7 @@ the given rack or board.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/scan[/{rack}[/{board}]]`
+`GET http://host:5000/synse/2.1/scan[/{rack}[/{board}]]`
 
 ### URI Parameters
 
@@ -396,13 +538,13 @@ the given rack or board.
 ## Read
 
 ```shell
-curl "http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03"
+curl "http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0c054cf877759db376b03"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0c054cf877759db376b03')
+response = requests.get('http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0c054cf877759db376b03')
 ```
 
 > The response JSON would be structured as:
@@ -417,7 +559,9 @@ response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0
       "unit": {
         "symbol": "C",
         "name": "degrees celsius"
-      }
+      },
+      "type": "temperature",
+      "info": ""
     }
   }
 }
@@ -432,12 +576,16 @@ response = requests.get('http://host:5000/synse/2.0/read/rack-1/vec/eb100067acb0
     "state": {
       "value": "off",
       "timestamp": "2018-02-01T13:48:59.573898829Z",
-      "unit": null
+      "unit": null,
+      "type": "state",
+      "info": ""
     },
     "color": {
       "value": "000000",
       "timestamp": "2018-02-01T13:48:59.573898829Z",
-      "unit": null
+      "unit": null,
+      "type": "color",
+      "info": ""
     }
   }
 }
@@ -454,7 +602,7 @@ as reads not permitted.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/read/{rack}/{board}/{device}`
+`GET http://host:5000/synse/2.1/read/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -474,6 +622,8 @@ These values can be found via the [scan](#scan) command.
 | *data*  | An object where the keys specify the *reading type* and the values are the corresponding reading objects. Note that a reading type is not the same as the device type. |
 | *{reading}.value* | The value for the given reading type. |
 | *{reading}.timestamp* | The time at which the reading was taken. |
+| *{reading}.type* | The type of the reading output. |
+| *{reading}.info* | Any additional information associated with the reading. |
 | *{reading}.unit* | The unit of measure for the reading. If the reading has no unit, this will be `null`. |
 | *{unit}.name* | The long name of the unit. *(e.g. "acceleration")* |
 | *{unit}.symbol* | The symbol (or short name) of the unit. *(e.g. "m/s^2")* |
@@ -485,8 +635,8 @@ These values can be found via the [scan](#scan) command.
 curl \
   -H "Content-Type: application/json" \
   -X POST \
-  -d '{"action": "color", "raw": "f38ac2"}' \
-  "http://host:5000/synse/2.0/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
+  -d '{"action": "color", "data": "f38ac2"}' \
+  "http://host:5000/synse/2.1/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
 ```
 
 ```python
@@ -494,11 +644,11 @@ import requests
 
 data = {
     'action': 'color',
-    'raw': 'f38ac2'
+    'data': 'f38ac2'
 }
 
 response = requests.post(
-    'http://host:5000/synse/2.0/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed', 
+    'http://host:5000/synse/2.1/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed', 
     json=data
 )
 ```
@@ -510,9 +660,7 @@ response = requests.post(
   {
     "context": {
       "action": "color",
-      "raw": [
-        "f38ac2"
-      ]
+      "data": "f38ac2"
     },
     "transaction": "b9keavu8n63001v6bnm0"
   }
@@ -533,13 +681,19 @@ write command. Some "alias" routes exists which allow writing to a specific devi
 routes ([led](#led), [fan](#fan)), validation is done on the provided data, to the best extent it
 can be.
 
-The data POSTed for a write consists of two peices: an `action`, and `raw` data. The values for these
+The data POSTed for a write consists of two pieces: an `action`, and `data` field. The values for these
 change based on the device type/plugin, but in general the `action` specifies what will change and
-`raw` is the data needed to make that change. See below for more details.
+`data` is the data needed to make that change. See below for more details.
+
+<aside class="notice">
+ In Synse Server v2.0, the <i>data</i> field was called <i>raw</i>. For backwards compatibility,
+ <i>raw</i> is still allowed, but will be phased out in the future.
+</aside>
+
 
 ### HTTP Request
 
-`POST http://host:5000/synse/2.0/write/{rack}/{board}/{device}`
+`POST http://host:5000/synse/2.1/write/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -553,29 +707,29 @@ These values can be found via the [scan](#scan) command.
 
 ### POST Body
 
-The post body requires an "action" and "raw" to be specified, e.g.
+The post body requires an "action" and "data" to be specified, e.g.
 
 > Example POSTed JSON
 
 ```json
 {
   "action": "color",
-  "raw": "ff0000"
+  "data": "ff0000"
 }
 ```
 
 | Field | Description |
 | ----- | ----------- |
 | *action* | The write action to perform. This is device-specific. |
-| *raw* | The data associated with the given action. |
+| *data* | The data associated with the given action. |
 
-The valid values and requirements for `action` and `raw` are dependent on the device type/plugin
+The valid values and requirements for `action` and `data` are dependent on the device type/plugin
 implementation. For example, an `LED` device supports the actions: `color`, `state`; a
 `fan` device supports `speed`. 
 
-Some devices may only need an `action` specified. Some may need both `action` and `raw` specified.
+Some devices may only need an `action` specified. Some may need both `action` and `data` specified.
 While it is up to the underlying plugin to determine what are valid values for a device, generally,
-the `action` should be the attribute to set and `raw` should be the value to set it to.
+the `action` should be the attribute to set and `data` should be the value to set it to.
 
 ### Response Fields
 
@@ -589,13 +743,13 @@ the `action` should be the attribute to set and `raw` should be the value to set
 ## Transaction
 
 ```shell
-curl "http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g"
+curl "http://host:5000/synse/2.1/transaction/b9pin8ofmg5g01vmt77g"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vmt77g')
+response = requests.get('http://host:5000/synse/2.1/transaction/b9pin8ofmg5g01vmt77g')
 ```
 
 > The response JSON would be structured as:
@@ -605,9 +759,7 @@ response = requests.get('http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vm
   "id": "b9pin8ofmg5g01vmt77g",
   "context": {
     "action": "color",
-    "raw": [
-      "f38ac2"
-    ]
+    "data": "f38ac2"
   },
   "state": "ok",
   "status": "done",
@@ -620,13 +772,13 @@ response = requests.get('http://host:5000/synse/2.0/transaction/b9pin8ofmg5g01vm
 > To list all cached transactions:
 
 ```shell
-curl "http://host:5000/synse/2.0/transaction"
+curl "http://host:5000/synse/2.1/transaction"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/transaction')
+response = requests.get('http://host:5000/synse/2.1/transaction')
 ```
 
 > The response JSON would be structured as:
@@ -648,7 +800,7 @@ for more.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/transaction[/{transaction id}]`
+`GET http://host:5000/synse/2.1/transaction[/{transaction id}]`
 
 ### URI Parameters
 
@@ -675,13 +827,13 @@ for more.
 > a rack-level request:
 
 ```shell
-curl "http://host:5000/synse/2.0/info/rack-1"
+curl "http://host:5000/synse/2.1/info/rack-1"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/info/rack-1')
+response = requests.get('http://host:5000/synse/2.1/info/rack-1')
 ```
 
 > The response JSON would be structured as:
@@ -698,13 +850,13 @@ response = requests.get('http://host:5000/synse/2.0/info/rack-1')
 > For a board-level request:
 
 ```shell
-curl "http://host:5000/synse/2.0/info/rack-1/vec"
+curl "http://host:5000/synse/2.1/info/rack-1/vec"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/info/rack-1/vec')
+response = requests.get('http://host:5000/synse/2.1/info/rack-1/vec')
 ```
 
 > The response JSON would be structured as:
@@ -731,43 +883,40 @@ response = requests.get('http://host:5000/synse/2.0/info/rack-1/vec')
 > For a device-level request:
 
 ```shell
-curl "http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"
+curl "http://host:5000/synse/2.1/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913')
+response = requests.get('http://host:5000/synse/2.1/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913')
 ```
 
 > The response JSON would be structured as:
 
 ```json
 {
-  "timestamp": "2018-02-01T15:29:31.934013127Z",
-  "uid": "db1e5deb43d9d0af6d80885e74362913",
-  "type": "temperature",
-  "model": "emul8-temp",
-  "manufacturer": "Vapor IO",
-  "protocol": "emulator",
-  "info": "Synse Temperature Sensor 3",
-  "comment": "",
+  "timestamp": "2018-06-15T20:35:59.8571613Z",
+  "uid": "8f7ac60be5c8a3815ce89753de138edf",
+  "kind": "temperature",
+  "metadata": [
+    "model"
+  ],
+  "plugin": "emulator plugin",
+  "info": "Synse Temperature Sensor 5",
   "location": {
     "rack": "rack-1",
     "board": "vec"
   },
   "output": [
     {
+      "name": "temperature",
       "type": "temperature",
-      "data_type": "float",
-      "precision": 2,
+      "precision": 3,
+      "scaling_factor": 1.0,
       "unit": {
-        "name": "degrees celsius",
+        "name": "celsius",
         "symbol": "C"
-      },
-      "range": {
-        "min": 0,
-        "max": 100
       }
     }
   ]
@@ -778,7 +927,7 @@ Get the available information for the specified resource.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/info/{rack}[/{board}[/{device}]]`
+`GET http://host:5000/synse/2.1/info/{rack}[/{board}[/{device}]]`
 
 ### URI Parameters
 
@@ -811,14 +960,12 @@ Get the available information for the specified resource.
 | ----- | ----------- |
 | *timestamp* | The time at which the device info was last retrieved. |
 | *uid* | The unique (per board) ID of the device. |
-| *type* | The type of the device. (see [Device Types](#device-types) for more.) |
-| *model* | The model of the device, as set in the plugin prototype configuration. |
-| *manufacturer* | The manufacturer of the device, as set in the plugin prototype configuration. |
-| *protocol* | The protocol by which we interface with the device. |
+| *kind* | The device kind, as specified by the plugin. The last element in the namespaced name should be the device type. |
+| *metadata* | A mapping of arbitrary values that provide metadata for the device. |
+| *plugin* | The name of the plugin that manages the device. |
 | *info* | Any human-readable information set to help identify the given device. |
-| *comment* | Any additional comment set for the given device. |
 | *location* | An object which provides information on its hierarchical parents (e.g. rack, board). |
-| *output* | The specification for how the device's reading(s) should be output. |
+| *output* | A list of output types that this device supports. |
 
 
 
@@ -827,13 +974,13 @@ Get the available information for the specified resource.
 > If no *valid* query parameters are specified, this will **read** from the LED device.
 
 ```shell
-curl "http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
+curl "http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed')
+response = requests.get('http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed')
 ```
 
 > The response JSON will be the same as read response:
@@ -845,12 +992,16 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
     "state": {
       "value": "off",
       "timestamp": "2018-02-01T16:16:04.884816422Z",
-      "unit": null
+      "unit": null,
+      "type": "state",
+      "info": ""
     },
     "color": {
       "value": "f38ac2",
       "timestamp": "2018-02-01T16:16:04.884816422Z",
-      "unit": null
+      "unit": null,
+      "type": "color",
+      "info": ""
     }
   }
 }
@@ -859,13 +1010,13 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
 > If any *valid* query parameters are specified, this will **write** to the LED device.
 
 ```shell
-curl "http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
+curl "http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on')
+response = requests.get('http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on')
 ```
 
 > The response JSON will be the same as a write response:
@@ -875,18 +1026,14 @@ response = requests.get('http://host:5000/synse/2.0/led/rack-1/vec/f52d29fecf05a
   {
     "context": {
       "action": "state",
-      "raw": [
-        "on"
-      ]
+      "data": "on"
     },
     "transaction": "b9pjujgfmg5g01vmt7b0"
   },
   {
     "context": {
       "action": "color",
-      "raw": [
-        "00ff00"
-      ]
+      "data": "00ff00"
     },
     "transaction": "b9pjujgfmg5g01vmt7bg"
   }
@@ -908,7 +1055,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/led/{rack}/{board}/{device}`
+`GET http://host:5000/synse/2.1/led/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -940,13 +1087,13 @@ See the responses for [read](#read) and [write](#write).
 > If no *valid* query parameters are specified, this will **read** from the fan device.
 
 ```shell
-curl "http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
+curl "http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c')
+response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c')
 ```
 
 > The response JSON will be the same as read response:
@@ -961,7 +1108,9 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
       "unit": {
         "symbol": "RPM",
         "name": "revolutions per minute"
-      }
+      },
+      "type": "fan_speed",
+      "info": ""
     }
   }
 }
@@ -970,13 +1119,13 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
 > If any *valid* query parameters are specified, this will **write** to the fan device.
 
 ```shell
-curl "http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
+curl "http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200')
+response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200')
 ```
 
 > The response JSON will be the same as a write response:
@@ -986,9 +1135,7 @@ response = requests.get('http://host:5000/synse/2.0/fan/rack-1/vec/eb9a56f95b5bd
   {
     "context": {
       "action": "speed",
-      "raw": [
-        "200"
-      ]
+      "raw": "200"
     },
     "transaction": "b9pkjh8fmg5g01vmt7d0"
   }
@@ -1009,7 +1156,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/fan/{rack}/{board}/{device}`
+`GET http://host:5000/synse/2.1/fan/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -1041,13 +1188,13 @@ See the responses for [read](#read) and [write](#write).
 > If no *valid* query parameters are specified, this will **read** from the power device.
 
 ```shell
-curl "http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001"
+curl "http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001')
+response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001')
 ```
 
 > The response JSON will be the same as read response:
@@ -1059,7 +1206,9 @@ response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f0
     "state": {
       "value": "on",
       "timestamp": "2018-05-07T13:41:08.690629Z",
-      "unit": null
+      "unit": null,
+      "type": "state",
+      "info": ""
     }
   }
 }
@@ -1068,13 +1217,13 @@ response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f0
 > If any *valid* query parameters are specified, this will **write** to the power device.
 
 ```shell
-curl "http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off"
+curl "http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off')
+response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off')
 ```
 
 > The response JSON will be the same as a write response:
@@ -1084,9 +1233,7 @@ response = requests.get('http://host:5000/synse/2.0/power/rack-1/vec/fd8e4bd57f0
   {
     "context": {
       "action": "state",
-      "raw": [
-        "off"
-      ]
+      "raw": "off"
     },
     "transaction": "bbo5fdtopi1g00ei06fg"
   }
@@ -1107,7 +1254,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/power/{rack}/{board}/{device}`
+`GET http://host:5000/synse/2.1/power/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -1143,13 +1290,13 @@ See the responses for [read](#read) and [write](#write).
 > If no *valid* query parameters are specified, this will **read** from the boot target device.
 
 ```shell
-curl "http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18"
+curl "http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18')
+response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18')
 ```
 
 > The response JSON will be the same as read response:
@@ -1161,7 +1308,9 @@ response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/55882
     "target": {
       "value": "disk",
       "timestamp": "2018-05-07T13:59:53.5529982Z",
-      "unit": null
+      "unit": null,
+      "type": "target",
+      "info": ""
     }
   }
 }
@@ -1170,13 +1319,13 @@ response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/55882
 > If any *valid* query parameters are specified, this will **write** to the boot_target device.
 
 ```shell
-curl "http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe"
+curl "http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe')
+response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe')
 ```
 
 > The response JSON will be the same as a write response:
@@ -1186,9 +1335,7 @@ response = requests.get('http://host:5000/synse/2.0/boot_target/rack-1/vec/55882
   {
     "context": {
       "action": "target",
-      "raw": [
-        "pxe"
-      ]
+      "raw": "pxe"
     },
     "transaction": "bbo5o0a8qtig00eqhue0"
   }
@@ -1209,7 +1356,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.0/boot_target/{rack}/{board}/{device}`
+`GET http://host:5000/synse/2.1/boot_target/{rack}/{board}/{device}`
 
 ### URI Parameters
 
