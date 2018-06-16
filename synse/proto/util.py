@@ -1,6 +1,6 @@
 """Utilities around the Synse Server gRPC API."""
 
-from synse_plugin import api
+from synse_grpc import api
 
 
 def write_status_name(value):

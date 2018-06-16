@@ -5,7 +5,7 @@ import os
 import shutil
 
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 from synse import config, plugin
 from synse.commands.plugins import get_plugins

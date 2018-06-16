@@ -5,7 +5,7 @@ import os
 import socket
 
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 import synse.proto.client
 from synse import config, errors, plugin

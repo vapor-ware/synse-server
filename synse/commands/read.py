@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long
 
 import grpc
-from synse_plugin import api
+from synse_grpc import api
 
 from synse import cache, errors, plugin, utils
 from synse.i18n import _

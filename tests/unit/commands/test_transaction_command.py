@@ -5,7 +5,7 @@
 import asynctest
 import grpc
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 import synse.cache
 from synse import errors, plugin

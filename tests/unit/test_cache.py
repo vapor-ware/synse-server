@@ -7,7 +7,7 @@ import aiocache
 import asynctest
 import grpc
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 from synse import cache, errors, plugin
 from synse.proto import client

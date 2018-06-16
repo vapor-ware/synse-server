@@ -3,7 +3,7 @@
 
 import asynctest
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 from synse import cache, errors, validate
 from tests import utils

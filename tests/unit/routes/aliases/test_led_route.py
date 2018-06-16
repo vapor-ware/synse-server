@@ -5,7 +5,7 @@ import asynctest
 import pytest
 import ujson
 from sanic.response import HTTPResponse
-from synse_plugin import api
+from synse_grpc import api
 
 import synse.commands
 import synse.validate

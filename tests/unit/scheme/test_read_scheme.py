@@ -2,7 +2,7 @@
 # pylint: disable=redefined-outer-name,unused-variable
 
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 from synse.scheme.read import ReadResponse
 

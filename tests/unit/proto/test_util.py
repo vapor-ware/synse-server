@@ -1,7 +1,7 @@
 """Test the 'synse.proto.util' Synse Server module."""
 
 import pytest
-from synse_plugin import api
+from synse_grpc import api
 
 from synse.proto import util
 

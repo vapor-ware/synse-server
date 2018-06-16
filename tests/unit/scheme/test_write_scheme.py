@@ -1,6 +1,6 @@
 """Test the 'synse.scheme.write' Synse Server module."""
 
-from synse_plugin import api
+from synse_grpc import api
 
 from synse.scheme.write import WriteResponse
 

@@ -3,8 +3,7 @@
 
 import grpc
 import pytest
-from synse_plugin import api as synse_api
-from synse_plugin import grpc as synse_grpc
+import synse_grpc
 
 from synse.proto import client
 
@@ -14,7 +13,7 @@ from synse.proto import client
 def mock_read(req, timeout):
     """Mock the internal read call."""
     return [
-        synse_api.Reading(
+        synse_grpc.api.Reading(
             timestamp='october',
             type='test',
             int32_value=10
@@ -24,9 +23,9 @@ def mock_read(req, timeout):
 
 def mock_write(req, timeout):
     """Mock the internal write call."""
-    return synse_api.Transactions(
+    return synse_grpc.api.Transactions(
         transactions={
-            '12345': synse_api.WriteData(
+            '12345': synse_grpc.api.WriteData(
                 action='test',
                 data=b'foo'
             )
@@ -37,7 +36,7 @@ def mock_write(req, timeout):
 def mock_device_info(req, timeout):
     """Mock the internal device info call."""
     return [
-        synse_api.Device(
+        synse_grpc.api.Device(
             timestamp='october',
             uid='12345',
             kind='thermistor',
@@ -47,15 +46,15 @@ def mock_device_info(req, timeout):
             ),
             plugin='foo',
             info='bar',
-            location=synse_api.Location(
+            location=synse_grpc.api.Location(
                 rack='rack-1',
                 board='vec'
             ),
             output=[
-                synse_api.Output(
+                synse_grpc.api.Output(
                     type='temperature',
                     precision=3,
-                    unit=synse_api.Unit(
+                    unit=synse_grpc.api.Unit(
                         name='celsius',
                         symbol='C'
                     )
@@ -67,7 +66,7 @@ def mock_device_info(req, timeout):
 
 def mock_transaction(req, timeout):
     """Mock the internal transaction call."""
-    return [synse_api.WriteResponse(
+    return [synse_grpc.api.WriteResponse(
         created='october',
         updated='november',
         status=3,
@@ -103,7 +102,7 @@ def test_write_data_to_grpc():
     wd = client.WriteData(action='test', data=b'test')
     rpc = wd.to_grpc()
 
-    assert isinstance(rpc, synse_api.WriteData)
+    assert isinstance(rpc, synse_grpc.api.WriteData)
     assert rpc.action == 'test'
     assert rpc.data == b'test'
 
@@ -123,7 +122,7 @@ def test_client_init():
     assert c.address == 'foo/bar/test-cli.sock'
     assert c.type == 'unix'
     assert isinstance(c.channel, grpc.Channel)
-    assert isinstance(c.grpc, synse_grpc.PluginStub)
+    assert isinstance(c.grpc, synse_grpc.grpc.PluginStub)
 
 
 def test_client_read():
@@ -136,7 +135,7 @@ def test_client_read():
 
     assert isinstance(resp, list)
     assert len(resp) == 1
-    assert isinstance(resp[0], synse_api.Reading)
+    assert isinstance(resp[0], synse_grpc.api.Reading)
 
 
 def test_client_write():
@@ -147,7 +146,7 @@ def test_client_write():
 
     resp = c.write('rack-1', 'vec', '12345', [client.WriteData()])
 
-    assert isinstance(resp, synse_api.Transactions)
+    assert isinstance(resp, synse_grpc.api.Transactions)
 
 
 def test_client_devices():
@@ -160,7 +159,7 @@ def test_client_devices():
 
     assert isinstance(resp, list)
     assert len(resp) == 1
-    assert isinstance(resp[0], synse_api.Device)
+    assert isinstance(resp[0], synse_grpc.api.Device)
 
 
 def test_client_transaction():
@@ -172,4 +171,4 @@ def test_client_transaction():
     resp = c.transaction('abcdef')
 
     assert isinstance(resp, list)
-    assert isinstance(resp[0], synse_api.WriteResponse)
+    assert isinstance(resp[0], synse_grpc.api.WriteResponse)
