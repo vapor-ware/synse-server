@@ -4,7 +4,7 @@ Synse Server
 
 Synse Server provides a simple JSON API to monitor and control physical and virtual devices.
 It provides a uniform HTTP interface for back-end plugins implementing various protocols,
-such as RS-485, I²C, and IPMI. The Synse Server API makes it easy to read from and write
+such as IPMI, SNMP, and Modbus-over-IP. The Synse Server API makes it easy to read from and write
 to devices, gather device meta-information, and scan for devices across multiple back-ends
 through a curl-able interface.
 
@@ -23,8 +23,8 @@ Features
 - Write to devices
 - Enumerate all devices managed by plugins
 - Get meta information on all devices
-- Securable via TLS/SSL
 - Dockerized for scalability and deployability
+- Securable via TLS/SSL
 
 
 Architecture

@@ -1377,19 +1377,29 @@ a rack-level request:</p>
 <p>The response JSON would be structured as:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-06-15T20:35:59.8571613Z"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"uid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8f7ac60be5c8a3815ce89753de138edf"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-    </span><span class="s2">"model"</span><span class="w">
-  </span><span class="p">],</span><span class="w">
+  </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-06-18T13:30:15.6554449Z"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"uid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"34c226b1afadaae5f172a4e1763fd1a6"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"humidity"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"metadata"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"emul8-humidity"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
   </span><span class="s2">"plugin"</span><span class="p">:</span><span class="w"> </span><span class="s2">"emulator plugin"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"info"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Synse Temperature Sensor 5"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"info"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Synse Humidity Sensor"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"location"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
     </span><span class="s2">"rack"</span><span class="p">:</span><span class="w"> </span><span class="s2">"rack-1"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"board"</span><span class="p">:</span><span class="w"> </span><span class="s2">"vec"</span><span class="w">
   </span><span class="p">},</span><span class="w">
   </span><span class="s2">"output"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"humidity"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"humidity"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"precision"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"scaling_factor"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"unit"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"percent humidity"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"symbol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"%"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w">
       </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w">
@@ -1675,7 +1685,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
   </span><span class="p">{</span><span class="w">
     </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
       </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"speed"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"200"</span><span class="w">
+      </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"200"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"b9pkjh8fmg5g01vmt7d0"</span><span class="w">
   </span><span class="p">}</span><span class="w">
@@ -1781,7 +1791,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
   </span><span class="p">{</span><span class="w">
     </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
       </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"state"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"off"</span><span class="w">
+      </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"off"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bbo5fdtopi1g00ei06fg"</span><span class="w">
   </span><span class="p">}</span><span class="w">
@@ -1887,7 +1897,7 @@ and <code>cycle</code>.</p>
   </span><span class="p">{</span><span class="w">
     </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
       </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"target"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pxe"</span><span class="w">
+      </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pxe"</span><span class="w">
     </span><span class="p">},</span><span class="w">
     </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bbo5o0a8qtig00eqhue0"</span><span class="w">
   </span><span class="p">}</span><span class="w">
