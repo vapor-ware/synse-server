@@ -53,7 +53,7 @@ def device_info_to_dict(device):
         'timestamp': device.timestamp,
         'uid': device.uid,
         'kind': device.kind,
-        'metadata': device.metadata,
+        'metadata': {k: v for k, v in device.metadata.items()},
         'plugin': device.plugin,
         'info': device.info,
         'location': {

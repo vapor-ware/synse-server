@@ -896,19 +896,29 @@ response = requests.get('http://host:5000/synse/2.1/info/rack-1/vec/db1e5deb43d9
 
 ```json
 {
-  "timestamp": "2018-06-15T20:35:59.8571613Z",
-  "uid": "8f7ac60be5c8a3815ce89753de138edf",
-  "kind": "temperature",
-  "metadata": [
-    "model"
-  ],
+  "timestamp": "2018-06-18T13:30:15.6554449Z",
+  "uid": "34c226b1afadaae5f172a4e1763fd1a6",
+  "kind": "humidity",
+  "metadata": {
+    "model": "emul8-humidity"
+  },
   "plugin": "emulator plugin",
-  "info": "Synse Temperature Sensor 5",
+  "info": "Synse Humidity Sensor",
   "location": {
     "rack": "rack-1",
     "board": "vec"
   },
   "output": [
+    {
+      "name": "humidity",
+      "type": "humidity",
+      "precision": 3,
+      "scaling_factor": 1.0,
+      "unit": {
+        "name": "percent humidity",
+        "symbol": "%"
+      }
+    },
     {
       "name": "temperature",
       "type": "temperature",
@@ -1135,7 +1145,7 @@ response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd
   {
     "context": {
       "action": "speed",
-      "raw": "200"
+      "data": "200"
     },
     "transaction": "b9pkjh8fmg5g01vmt7d0"
   }
@@ -1233,7 +1243,7 @@ response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f0
   {
     "context": {
       "action": "state",
-      "raw": "off"
+      "data": "off"
     },
     "transaction": "bbo5fdtopi1g00ei06fg"
   }
@@ -1335,7 +1345,7 @@ response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/55882
   {
     "context": {
       "action": "target",
-      "raw": "pxe"
+      "data": "pxe"
     },
     "transaction": "bbo5o0a8qtig00eqhue0"
   }
