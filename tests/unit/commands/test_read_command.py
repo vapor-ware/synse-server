@@ -193,8 +193,8 @@ async def test_read_command_grpc_err_no_reading(mock_get_device_info, mock_clien
     assert isinstance(resp, ReadResponse)
     assert resp.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': None,
@@ -204,7 +204,7 @@ async def test_read_command_grpc_err_no_reading(mock_get_device_info, mock_clien
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
 
 
@@ -217,8 +217,8 @@ async def test_read_command(mock_get_device_info, mock_client_read, make_plugin)
     assert isinstance(resp, ReadResponse)
     assert resp.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': 10.0,
@@ -228,5 +228,5 @@ async def test_read_command(mock_get_device_info, mock_client_read, make_plugin)
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }

@@ -210,9 +210,14 @@ def validate_read(data):
     if keys is None:
         pytest.fail('Reading type unknown: {}'.format(data))
 
-    assert isinstance(d, dict)
+    assert isinstance(d, list)
     for k in keys:
-        assert k in d
+        found = False
+        for reading in d:
+            if reading['type'] == k:
+                found = True
+                break
+        assert found
 
 
 def validate_error_response(data, http_code, error_code):

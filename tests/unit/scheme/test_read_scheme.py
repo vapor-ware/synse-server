@@ -51,8 +51,8 @@ def test_read_scheme():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': 10.0,
@@ -62,7 +62,7 @@ def test_read_scheme():
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
 
 
@@ -82,8 +82,8 @@ def test_read_scheme_empty_value():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': None,
@@ -93,7 +93,7 @@ def test_read_scheme_empty_value():
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
 
 
@@ -128,8 +128,8 @@ def test_read_scheme_non_convertible_value():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': '101a',
@@ -139,7 +139,7 @@ def test_read_scheme_non_convertible_value():
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
 
 
@@ -159,8 +159,8 @@ def test_read_scheme_with_precision_rounding():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'value': 10.123,
                 'type': 'temperature',
@@ -170,7 +170,7 @@ def test_read_scheme_with_precision_rounding():
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
 
 
@@ -190,8 +190,8 @@ def test_read_scheme_with_precision_rounding_2():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': 10.988,
@@ -201,7 +201,7 @@ def test_read_scheme_with_precision_rounding_2():
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
 
 
@@ -221,7 +221,7 @@ def test_read_scheme_with_no_matching_readings():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {}
+        'data': []
     }
 
 
@@ -243,15 +243,15 @@ def test_read_scheme_no_unit():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': 10.988,
                 'timestamp': 'november',
                 'unit': None
             }
-        }
+        ]
     }
 
 
@@ -272,8 +272,8 @@ def test_read_scheme_no_precision():
 
     assert response_scheme.data == {
         'kind': 'thermistor',
-        'data': {
-            'temperature': {
+        'data': [
+            {
                 'info': '',
                 'type': 'temperature',
                 'value': 10.98765432,
@@ -283,5 +283,5 @@ def test_read_scheme_no_precision():
                     'symbol': 'C'
                 }
             }
-        }
+        ]
     }
