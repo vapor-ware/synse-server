@@ -1,5 +1,5 @@
 """Test the 'synse.commands.read' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument
+# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
 import shutil
@@ -10,7 +10,7 @@ import pytest
 from synse_grpc import api
 
 import synse.cache
-from synse import errors, plugin
+from synse import errors, plugin, utils
 from synse.commands.read import read
 from synse.proto.client import PluginClient, PluginUnixClient
 from synse.scheme.read import ReadResponse
@@ -78,6 +78,15 @@ def mockreadfail(self, rack, board, device):
     raise grpc.RpcError()
 
 
+def patch_client_read_error(self, rack, board, device):
+    """Patch the grpc client's read method to raise a gRPC error indicative of
+    the "no readings found" case."""
+    e = grpc.RpcError()
+    e.details = lambda: 'no readings found'
+    e.code = lambda: grpc.StatusCode.NOT_FOUND
+    raise e
+
+
 @pytest.fixture()
 def mock_get_device_info(monkeypatch):
     """Fixture to monkeypatch the cache device meta lookup."""
@@ -98,6 +107,22 @@ def mock_client_read_fail(monkeypatch):
     """Fixture to monkeypatch the grpc client's read method to fail."""
     monkeypatch.setattr(PluginClient, 'read', mockreadfail)
     return mock_client_read_fail
+
+
+@pytest.fixture()
+def mock_client_read_error(monkeypatch):
+    """Fixture to monkeypatch the client's read method to error out."""
+    monkeypatch.setattr(PluginClient, 'read', patch_client_read_error)
+    return mock_client_read_error
+
+
+@pytest.fixture()
+def mock_rfc_time(monkeypatch):
+    """Fixture to monkeypatch the util for generating a timestamp so we can
+    reliably test the timestamp field.
+    """
+    monkeypatch.setattr(utils, 'rfc3339now', lambda: 'sometime')
+    return mock_rfc_time
 
 
 @pytest.fixture()
@@ -157,6 +182,30 @@ async def test_read_command_grpc_err(mock_get_device_info, mock_client_read_fail
         await read('rack-1', 'vec', '12345')
     except errors.SynseError as e:
         assert e.error_id == errors.FAILED_READ_COMMAND
+
+
+@pytest.mark.asyncio
+async def test_read_command_grpc_err_no_reading(mock_get_device_info, mock_client_read_error, make_plugin, mock_rfc_time):
+    """Get a ReadResponse when the plugin returns an error indicating no reading."""
+
+    resp = await read('rack-1', 'vec', '12345')
+
+    assert isinstance(resp, ReadResponse)
+    assert resp.data == {
+        'kind': 'thermistor',
+        'data': {
+            'temperature': {
+                'info': '',
+                'type': 'temperature',
+                'value': None,
+                'timestamp': 'sometime',
+                'unit': {
+                    'name': 'celsius',
+                    'symbol': 'C'
+                }
+            }
+        }
+    }
 
 
 @pytest.mark.asyncio
