@@ -552,8 +552,8 @@ response = requests.get('http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0
 ```json
 {
   "type": "temperature",
-  "data": {
-    "temperature": {
+  "data": [
+    {
       "value": 20.3,
       "timestamp": "2018-02-01T13:47:40.395939895Z",
       "unit": {
@@ -563,7 +563,7 @@ response = requests.get('http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0
       "type": "temperature",
       "info": ""
     }
-  }
+  ]
 }
 ```
 
@@ -572,22 +572,22 @@ response = requests.get('http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0
 ```json
 {
   "type": "led",
-  "data": {
-    "state": {
+  "data": [
+    {
       "value": "off",
       "timestamp": "2018-02-01T13:48:59.573898829Z",
       "unit": null,
       "type": "state",
       "info": ""
     },
-    "color": {
+    {
       "value": "000000",
       "timestamp": "2018-02-01T13:48:59.573898829Z",
       "unit": null,
       "type": "color",
       "info": ""
     }
-  }
+  ]
 }
 ```
 
@@ -998,22 +998,22 @@ response = requests.get('http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a
 ```json
 {
   "type": "led",
-  "data": {
-    "state": {
+  "data": [
+    {
       "value": "off",
       "timestamp": "2018-02-01T16:16:04.884816422Z",
       "unit": null,
       "type": "state",
       "info": ""
     },
-    "color": {
+    {
       "value": "f38ac2",
       "timestamp": "2018-02-01T16:16:04.884816422Z",
       "unit": null,
       "type": "color",
       "info": ""
     }
-  }
+  ]
 }
 ```
 
@@ -1111,8 +1111,8 @@ response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd
 ```json
 {
   "type": "fan",
-  "data": {
-    "fan_speed": {
+  "data": [
+    {
       "value": 0,
       "timestamp": "2018-02-01T17:07:18.113960446Z",
       "unit": {
@@ -1122,7 +1122,7 @@ response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd
       "type": "fan_speed",
       "info": ""
     }
-  }
+  ]
 }
 ```
 
@@ -1212,15 +1212,15 @@ response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f0
 ```json
 {
   "type": "power",
-  "data": {
-    "state": {
+  "data": [
+    {
       "value": "on",
       "timestamp": "2018-05-07T13:41:08.690629Z",
       "unit": null,
       "type": "state",
       "info": ""
     }
-  }
+  ]
 }
 ```
 
@@ -1314,15 +1314,15 @@ response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/55882
 ```json
 {
   "type": "boot_target",
-  "data": {
-    "target": {
+  "data": [
+    {
       "value": "disk",
       "timestamp": "2018-05-07T13:59:53.5529982Z",
       "unit": null,
       "type": "target",
       "info": ""
     }
-  }
+  ]
 }
 ```
 
