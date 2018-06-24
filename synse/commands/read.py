@@ -35,7 +35,6 @@ async def read(rack, board, device):
             _('Unable to find plugin named "{}" to read').format(plugin_name)
         )
 
-    read_data = []
     try:
         # Perform a gRPC read on the device's managing plugin
         read_data = _plugin.client.read(rack, board, device)
@@ -47,6 +46,11 @@ async def read(rack, board, device):
         # is a better way to check this other than comparing strings..
         if hasattr(ex, 'code') and hasattr(ex, 'details'):
             if grpc.StatusCode.NOT_FOUND == ex.code() and 'no readings found' in ex.details().lower():
+
+                # FIXME (etd) - with SDK v1.0, is the below correct? We should not longer
+                # have to pass the "null" string. I think an empty string should also not
+                # indicate no readings.. it should be the NOT_FOUND error (or, at least
+                # some kind of error).
 
                 # Currently, in the SDK, there are three different behaviors for
                 # devices that do not have readings. Either (a). "null" is returned,
@@ -89,9 +93,10 @@ async def read(rack, board, device):
                         api.Reading(
                             timestamp=utils.rfc3339now(),
                             type=output.type,
-                            value='',
                         )
                     )
+            else:
+                raise errors.FailedReadCommandError(str(ex)) from ex
         else:
             raise errors.FailedReadCommandError(str(ex)) from ex
 

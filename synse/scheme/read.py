@@ -11,8 +11,10 @@ class ReadResponse(SynseResponse):
     Response Example:
         {
           "type": "humidity",
-          "data": {
-            "temperature": {
+          "data": [
+            {
+              "info": "",
+              "type": "temperature",
               "value": 123,
               "unit": {
                 "symbol": "C",
@@ -20,7 +22,9 @@ class ReadResponse(SynseResponse):
               },
               "timestamp": "2017-11-10 09:08:07"
             },
-            "humidity": {
+            {
+              "info": "",
+              "type": "humidity",
               "value": 123,
               "unit": {
                 "symbol": "%",
@@ -28,7 +32,7 @@ class ReadResponse(SynseResponse):
               },
               "timestamp": "2017-11-10 09:08:07"
             }
-          }
+          ]
         }
 
     Args:
@@ -53,7 +57,7 @@ class ReadResponse(SynseResponse):
             dict: A properly formatted Read response.
         """
         logger.debug(_('Formatting read response'))
-        formatted = {}
+        formatted = []
 
         dev_output = self.device.output
         for reading in self.readings:
@@ -112,12 +116,12 @@ class ReadResponse(SynseResponse):
                 if precision and isinstance(value, float):
                     value = round(value, precision)
 
-            formatted[rt] = {
+            formatted.append({
                 'value': value,
                 'timestamp': reading.timestamp,
                 'unit': unit,
                 'type': rt,
                 'info': reading.info,
-            }
+            })
 
         return formatted
