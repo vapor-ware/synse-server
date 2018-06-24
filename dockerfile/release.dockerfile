@@ -18,7 +18,7 @@
 #
 FROM vaporio/synse-server:base
 
-# Build Image Metadata. Mapping after slim.dockerfile.
+# Set Image Metadata (mapping after dockerfile/slim.dockerfile).
 ARG BUILD_DATE
 ARG BUILD_VERSION
 ARG VCS_REF
