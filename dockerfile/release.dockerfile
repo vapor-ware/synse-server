@@ -18,6 +18,19 @@
 #
 FROM vaporio/synse-server:base
 
+# Set Image Metadata (mapping after dockerfile/slim.dockerfile).
+ARG BUILD_DATE
+ARG BUILD_VERSION
+ARG VCS_REF
+
+LABEL org.label-schema.schema-version="1.0" \
+      org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="vaporio/synse-server" \
+      org.label-schema.vcs-url="https://github.com/vapor-ware/synse-server" \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.vendor="Vapor IO" \
+      org.label-schema.version=$BUILD_VERSION
+
 # Emulator installation script
 COPY bin/install_emulator.sh tmp/install_emulator.sh
 
