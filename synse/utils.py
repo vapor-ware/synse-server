@@ -30,3 +30,20 @@ def composite(rack, board, device):
         str: A composite of the input strings.
     """
     return '-'.join([rack, board, device])
+
+
+def type_from_kind(kind):
+    """Get the device type from the device kind.
+
+    The device kind is the fully qualified name of the device kind, e.g.
+    'foo.bar.temperature'. The device type should be the last element of
+    the name-spaced kind, where the delimiter is a period.
+
+    Args:
+        kind (str): The device kind.
+
+    Returns:
+        str: The type of the devices, derived from the device kind.
+    """
+    components = kind.split('.')
+    return components[-1]
