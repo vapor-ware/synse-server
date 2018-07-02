@@ -6,7 +6,6 @@ import bison
 import pytest
 
 from synse import cache, config, const, plugin
-from synse.proto import client
 from tests import data_dir
 
 
@@ -26,9 +25,6 @@ def reset_state():
 
     # reset managed plugins
     plugin.Plugin.manager.plugins = {}
-
-    # clear out the state of the client manager
-    client.SynseInternalClient._client_stubs = {}
 
     # clear the environment
     for k, _ in os.environ.items():

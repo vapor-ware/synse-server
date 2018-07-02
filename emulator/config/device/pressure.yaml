@@ -1,15 +1,22 @@
 version: 1.0
 locations:
-  r1vec:
-    rack: rack-1
-    board: vec
+  - name: r1vec
+    rack:
+      name: rack-1
+    board:
+      name: vec
 devices:
-  - type: pressure
-    model: emul8-pressure
+  - name: pressure
+    metadata:
+      model: emul8-pressure
+    outputs:
+      - type: pressure
     instances:
-      - id: "1"
+      - info: Synse Pressure Sensor 1
         location: r1vec
-        info: Synse Pressure Sensor 1
-      - id: "2"
+        data:
+          id: 1
+      - info: Synse Pressure Sensor 2
         location: r1vec
-        info: Synse Pressure Sensor 2
+        data:
+          id: 2

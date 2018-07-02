@@ -38,33 +38,33 @@ class EmulatorDevices(object):
     to be changed, updated, or added to.
     """
     airflow = [
-        '29d1a03e8cddfbf1cf68e14e60e5f5cc'
+        'df6a06d6e28da8aab0c25ee41688fd1c'
     ]
 
     temperature = [
-        '329a91c6781ce92370a3c38ba9bf35b2',
-        '83cc1efe7e596e4ab6769e0c6e3edf88',
-        'db1e5deb43d9d0af6d80885e74362913',
-        'eb100067acb0c054cf877759db376b03',
-        'f97f284037b04badb6bb7aacd9654a4e'
+        '45ffe8f7f7a2b0ae970b687abd06f9e6',
+        'f441d97b2f6545ef3001a688489e820a',
+        '8f7ac60be5c8a3815ce89753de138edf',
+        '3ee84834c79c5a124d858e237e81e186',
+        '0fe8f06229aa9a01ef6032d1ddaf18a5'
     ]
 
     pressure = [
-        '5b2ce651ad91715c96ec71f4096c5d0e',
-        'f3dd2a56b588f181c5c782f45467b214'
+        'f838b2d6afceb01e7a2634893f6f935c',
+        'e385de0e2b5d16af5e34167d479fc766'
     ]
 
     humidity = [
-        'bbadeee4d96ca38ffbcaabb3d8837526'
+        '34c226b1afadaae5f172a4e1763fd1a6'
     ]
 
     led = [
-        'd29e0bd113a484dc48fd55bd3abad6bb',
-        'f52d29fecf05a195af13f14c7306cfed'
+        '12ea5644d052c6bf1bca3c9864fd8a44',
+        'bcf0618c50bff9121cb10d141d66f46f'
     ]
 
     fan = [
-        'eb9a56f95b5bd6d9b51996ccd0f2329c'
+        '12835beffd3e6c603aa4dd92127707b5'
     ]
 
     all = airflow + temperature + pressure + humidity + led + fan
@@ -126,7 +126,7 @@ def validate_write_ok(data, size):
         assert isinstance(transaction, str)
 
         assert 'action' in context
-        assert 'raw' in context
+        assert 'data' in context
 
 
 def wait_for_transaction(transaction_id):
@@ -190,29 +190,34 @@ def validate_read(data):
     """Helper to validate that read response schemes are correct."""
     assert isinstance(data, dict)
 
-    assert 'type' in data
+    assert 'kind' in data
     assert 'data' in data
 
-    t = data['type']
+    k = data['kind']
     d = data['data']
 
     # lookup maps the reading type to the fields that reading type should provide
     lookup = {
         'temperature': ['temperature'],
         'led': ['color', 'state'],
-        'fan': ['fan_speed'],
+        'fan': ['speed'],
         'airflow': ['airflow'],
         'pressure': ['pressure'],
         'humidity': ['temperature', 'humidity']
     }
 
-    keys = lookup.get(t)
+    keys = lookup.get(k)
     if keys is None:
         pytest.fail('Reading type unknown: {}'.format(data))
 
-    assert isinstance(d, dict)
+    assert isinstance(d, list)
     for k in keys:
-        assert k in d
+        found = False
+        for reading in d:
+            if reading['type'] == k:
+                found = True
+                break
+        assert found
 
 
 def validate_error_response(data, http_code, error_code):
@@ -362,7 +367,17 @@ class TestConfig(object):
             'grpc': {'timeout': 3},
             'locale': 'en_US',
             'logging': 'debug',
-            'plugin': {'tcp': {}, 'unix': {}},
+            'plugin': {
+                'tcp': [],
+                'unix': [],
+                'discover': {
+                    'kubernetes': {
+                        'endpoints': {
+                            'labels': {},
+                        }
+                    }
+                }
+            },
             'pretty_json': True
         }
 
@@ -394,12 +409,19 @@ class TestPlugins(object):
         plugin = data[0]
 
         assert 'name' in plugin
+        assert 'maintainer' in plugin
+        assert 'tag' in plugin
+        assert 'description' in plugin
+        assert 'vcs' in plugin
+        assert 'version' in plugin
         assert 'network' in plugin
-        assert 'address' in plugin
+        assert 'health' in plugin
 
-        assert plugin['name'] == 'emulator'
-        assert plugin['network'] == 'unix'
-        assert plugin['address'] == '/tmp/synse/procs/emulator.sock'
+        assert plugin['name'] == 'emulator plugin'
+        assert plugin['network'] == {
+            'protocol': 'unix',
+            'address':'/tmp/synse/procs/emulator.sock'
+        }
 
 
 #
@@ -713,12 +735,10 @@ class TestInfo(object):
         assert isinstance(data, dict)
         assert 'timestamp' in data
         assert 'uid' in data
-        assert 'type' in data
-        assert 'model' in data
-        assert 'manufacturer' in data
-        assert 'protocol' in data
+        assert 'kind' in data
+        assert 'metadata' in data
+        assert 'plugin' in data
         assert 'info' in data
-        assert 'comment' in data
         assert 'location' in data
         assert 'output' in data
 

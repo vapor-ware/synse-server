@@ -5,9 +5,11 @@ import os
 import shutil
 
 import pytest
+from synse_grpc import api
 
-from synse import plugin
+from synse import config, plugin
 from synse.commands.plugins import get_plugins
+from synse.proto import client
 from synse.scheme.plugins import PluginsResponse
 
 
@@ -17,9 +19,12 @@ def mock_plugin():
     based plugin for ease of testing.
     """
     p = plugin.Plugin(
-        name='test-plug',
+        metadata=api.Metadata(
+            name='test-plug',
+            tag='vaporio/test-plug'
+        ),
         address='localhost:9999',
-        mode='tcp'
+        plugin_client=client.PluginTCPClient(address='localhost:9999')
     )
 
     yield p
@@ -28,6 +33,7 @@ def mock_plugin():
 @pytest.fixture()
 def disable_register():
     """Disable plugin registration."""
+
     # plugin registration will remove plugins from the manager that are
     # not found to be 'active' any longer, where 'active' is defined as
     # being present/absent from the expected directory. In some test setups,
@@ -35,9 +41,11 @@ def disable_register():
     def passthru():
         """Passthrough function for testing."""
         return
+
     plugin.register_plugins = passthru
 
 
+# FIXME - should just use the builtin pytest `tmpdir` fixture
 @pytest.fixture(scope='module')
 def remove_tmp_dir():
     """Fixture to remove any test data."""
@@ -63,21 +71,42 @@ async def test_plugins_command_no_plugin():
 @pytest.mark.asyncio
 async def test_plugins_command_plugin(mock_plugin, disable_register, cleanup):
     """Get a plugins response using plugin."""
+    config.options.set('grpc.timeout', 0.25)
+
     # Add a mock plugin to the Manager
     pm = plugin.Plugin.manager
 
-    # the plugin tested here is added via the mock_plugin fixture
+    # the plugin tested here is added via the mock_plugin fixture. the plugin
+    # added by the test fixture has the tag vaporio/test-plug, and uses tcp
+    # with address localhost:9999 -- with that, we know what the ID should be.
     assert len(pm.plugins) == 1
-    assert 'test-plug' in pm.plugins
+    assert 'vaporio/test-plug+tcp@localhost:9999' in pm.plugins
 
     # Get that plugin
     c = await get_plugins()
     assert isinstance(c, PluginsResponse)
     assert len(c.data) == 1
-    assert c.data == [
-        {
-            'name': 'test-plug',
-            'network': 'tcp',
-            'address': 'localhost:9999'
-        }
-    ]
+    p = c.data[0]
+
+    assert p['tag'] == 'vaporio/test-plug'
+    assert p['name'] == 'test-plug'
+    assert p['description'] == ''
+    assert p['maintainer'] == ''
+    assert p['vcs'] == ''
+    assert p['version'] == {
+        'plugin_version': '',
+        'sdk_version': '',
+        'build_date': '',
+        'git_commit': '',
+        'git_tag': '',
+        'arch': '',
+        'os': '',
+    }
+    assert p['network'] == {
+        'protocol': 'tcp',
+        'address': 'localhost:9999'
+    }
+    assert p['health']['timestamp'] != ''
+    assert p['health']['checks'] == []
+    assert p['health']['status'] == 'error'
+    assert 'Connect Failed' in p['health']['message']

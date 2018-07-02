@@ -10,9 +10,11 @@ services:
   # Synse Server
   synse-server:
     container_name: synse-server
-    image: vaporio/synse-server:2.0.0
+    image: vaporio/synse-server:edge
     ports:
       - 5000:5000
+    environment:
+      SYNSE_LOGGING: debug
     # Unix-based plugins can be registered with Synse Server when Synse Server
     # detects the socket file in a well-known path. Here, we mount a shared
     # volume to that path (/tmp/synse/procs) so that Synse Server can access
@@ -25,13 +27,13 @@ services:
   # Emulator Plugin
   emulator-plugin:
     container_name: emulator-plugin
-    image: vaporio/emulator-plugin
+    image: vaporio/emulator-plugin:edge
     environment:
       # sets the override location for the plugin configuration (which is
       # mounted in as a volume, below)
       PLUGIN_CONFIG: /tmp/config
       # sets the override location for the device instance configuration
-      PLUGIN_DEVICE_PATH: /tmp/devices
+      PLUGIN_DEVICE_CONFIG: /tmp/devices
     volumes:
       # mount in the plugin config (see the environment section on how to
       # reference this non-default location)

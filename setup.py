@@ -37,11 +37,12 @@ setup(
     python_requires='==3.6',
     install_requires=[
         'aiocache',
+        'bison>=0.0.5',
         'grpcio',
+        'kubernetes',
         'pyyaml',
         'sanic',
-        'synse-plugin',
-        'bison>=0.0.5'
+        'synse-grpc',
     ],
     tests_require=[
         'aiohttp',

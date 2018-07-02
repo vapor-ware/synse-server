@@ -4,9 +4,10 @@ import os
 import stat
 
 from synse import config, const, errors
+from synse.discovery import kubernetes
 from synse.i18n import _
 from synse.log import logger
-from synse.proto.client import register_client
+from synse.proto import client
 
 
 class PluginManager(object):
@@ -20,18 +21,34 @@ class PluginManager(object):
     def __init__(self):
         self.plugins = {}
 
-    def get(self, name):
-        """Get a Plugin instance by name.
+    def get(self, plugin_id):
+        """Get a Plugin instance by ID.
 
         Args:
-            name (str): The name of the Plugin.
+            plugin_id (str): The id of the Plugin.
 
         Returns:
-            Plugin: The Plugin instance with the matching name.
-            None: The given name does not correspond to a known
+            Plugin: The Plugin instance with the matching id.
+            None: The given id does not correspond to a known
                 Plugin instance.
         """
-        return self.plugins.get(name)
+        return self.plugins.get(plugin_id)
+
+    def get_by_address(self, address):
+        """Get a Plugin instance by address.
+
+        Args:
+            address (str): The address of the Plugin.
+
+        Returns:
+            Plugin: The Plugin instance with the matching address.
+            None: The given address does not correspond to a known
+                Plugin instance.
+        """
+        for _, plugin in self.plugins.items():
+            if plugin.address == address:
+                return plugin
+        return None
 
     def add(self, plugin):
         """Add a new Plugin to the manager.
@@ -53,94 +70,86 @@ class PluginManager(object):
                 _('Only Plugin instances can be added to the manager')
             )
 
-        name = plugin.name
-        if name in self.plugins:
+        plugin_id = plugin.id()
+        if plugin_id in self.plugins:
             raise errors.PluginStateError(
-                _('Plugin ("{}") already exists in the manager').format(name)
+                _('Plugin ("{}") already exists in the manager').format(plugin_id)
             )
 
-        self.plugins[name] = plugin
+        self.plugins[plugin_id] = plugin
 
-    def remove(self, name):
+    def remove(self, plugin_id):
         """Remove the plugin from the manager.
 
         If a specified name does not exist in the managed plugins dictionary,
         this will not fail, but it will log the event.
 
         Args:
-            name (str): The name of the Plugin.
+            plugin_id (str): The id of the Plugin.
         """
-        if name not in self.plugins:
+        if plugin_id not in self.plugins:
             logger.debug(
                 _('"{}" is not known to PluginManager - nothing to remove')
-                .format(name)
+                .format(plugin_id)
             )
         else:
-            del self.plugins[name]
+            del self.plugins[plugin_id]
 
-    def purge(self, names):
+    def purge(self, ids):
         """Remove all of the specified Plugins from the manager.
 
         Args:
-            names (list[str]): The names of the Plugins to remove.
+            ids (list[str]): The ids of the Plugins to remove.
         """
-        for name in names:
-            if name in self.plugins:
-                del self.plugins[name]
-        logger.debug(_('PluginManager purged plugins: {}').format(names))
+        for plugin_id in ids:
+            if plugin_id in self.plugins:
+                del self.plugins[plugin_id]
+        logger.debug(_('PluginManager purged plugins: {}').format(ids))
 
 
 class Plugin(object):
-    """The Plugin object configures and controls access to a Synse Plugin
-    via the Synse gRPC API.
+    """The Plugin object models a Synse Plugin that has been registered with
+    Synse Server. It holds the Plugin metadata as well as a reference to a client
+    for communicating with the plugin via the Synse gRPC API.
 
-    On initialization, all Plugin instances are registered with the
-    PluginManager.
+    On initialization, all Plugin instances are registered with the PluginManager.
 
     Args:
-        name (str): The name of the plugin.
-        mode (str): The communication mode of the plugin. Currently,
-            only 'tcp' and 'unix' modes are supported.
-        address (str): The address of the plugin. The value for the
-            address is dependent on the communication mode of the plugin.
-            For 'unix', this would be the path to the unix socket. For
-            'tcp', this would be the host[:port].
+        metadata (Metadata): The gRPC Metadata data for the Plugin.
+        address (str): The address of the Plugin.
+        plugin_client (client.PluginClient): The client for communicating with
+            the Plugin.
     """
 
     manager = None
 
-    def __init__(self, name, address, mode):
-        self.name = name
-        self.mode = mode
-        self.addr = address
+    # FIXME: remove address, get it from the client.
+    def __init__(self, metadata, address, plugin_client):
+        self.name = metadata.name
+        self.maintainer = metadata.maintainer
+        self.tag = metadata.tag
+        self.description = metadata.description
+        self.vcs = metadata.vcs
+        self.version = metadata.version
 
-        self._validate_mode()
-        self.client = register_client(name, address, mode)
+        self.client = plugin_client
+        self.address = address
+        self.protocol = plugin_client.type
 
         # Register this instance with the manager.
         self.manager.add(self)
 
     def __str__(self):
-        return '<Plugin ({}): {} {}>'.format(self.mode, self.name, self.addr)
+        return '<Plugin ({}): {}@{}>'.format(self.tag, self.protocol, self.address)
 
-    def _validate_mode(self):
-        """Validate the plugin mode.
+    def id(self):
+        """Get the ID of the plugin. The ID is a composite of the
+        plugin's tag, mode, and address.
 
-        Raises:
-            errors.PluginStateError: The plugin mode is unsupported. This will
-                also be raised if the mode is 'unix', but the socket does not
-                exist.
+        Returns:
+            string: The ID for the Plugin.
         """
-        if self.mode not in ['tcp', 'unix']:
-            raise errors.PluginStateError(
-                _('The given mode ({}) must be one of: tcp, unix').format(self.mode)
-            )
-
-        if self.mode == 'unix':
-            if not os.path.exists(self.addr):
-                raise errors.PluginStateError(
-                    _('Unix socket ({}) does not exist').format(self.addr)
-                )
+        return '{}+{}@{}'.format(self.tag, self.protocol, self.address)
 
 
 # Create an instance of the PluginManager to use for all plugins
@@ -181,10 +190,21 @@ def register_plugins():
     Upon initialization, the Plugin instances are automatically registered
     with the PluginManager.
     """
-    unix = register_unix_plugins()
-    tcp = register_tcp_plugins()
+    # Register plugins from local config (file, env)
+    unix = register_unix()
+    tcp = register_tcp()
 
-    diff = set(Plugin.manager.plugins) - set(unix + tcp)
+    # Get addresses of plugins to register via service discovery
+    discovered = []
+    addresses = kubernetes.discover()
+    for address in addresses:
+        plugin_id = register_plugin(address, 'tcp')
+        if plugin_id is None:
+            logger.error(_('Failed to register plugin with address: {}').format(address))
+            continue
+        discovered.append(plugin_id)
+
+    diff = set(Plugin.manager.plugins) - set(unix + tcp + discovered)
 
     # Now that we have found all current plugins, we will want to clear out
     # any old plugins which may no longer be present.
@@ -194,7 +214,96 @@ def register_plugins():
     logger.debug(_('Plugin registration complete'))
 
 
-def register_unix_plugins():
+def register_plugin(address, protocol):
+    """Register a plugin. If a plugin with the given address already exists,
+    it will not be re-registered, but its ID will still be returned.
+
+    If a plugin fails to register, None is returned.
+
+    Args:
+        address (str): The address of the plugin to register.
+        protocol (str): The protocol that the plugin uses. This should
+            be one of 'unix', 'tcp'.
+
+    Returns:
+        str: The ID of the plugin that was registered.
+        None: The given address failed to resolve, so no plugin
+            was registered.
+
+    Raises:
+        ValueError: An invalid protocol is specified. The protocol must
+            be one of: 'unix', 'tcp'
+
+    """
+    plugin = Plugin.manager.get_by_address(address)
+    if plugin:
+        logger.debug(_('{} is already registered').format(plugin))
+        return plugin.id()
+
+    # The client does not exist, so we must register it. This means we need to
+    # connect with it to (a) make sure its reachable, and (b) get its metadata
+    # in order to properly create a new Plugin model for it.
+    if protocol == 'tcp':
+        plugin_client = client.PluginTCPClient(address)
+    elif protocol == 'unix':
+        plugin_client = client.PluginUnixClient(address)
+    else:
+        raise ValueError(_('Invalid protocol specified for registration: {}').format(protocol))
+
+    try:
+        status = plugin_client.test()
+        if not status.ok:
+            logger.warning(_('gRPC Test response was not OK: {}').format(address))
+            return None
+    except Exception as e:
+        logger.warning(_('Failed to reach plugin at address {}: {}').format(address, e))
+        return None
+
+    # If we made it here, we were successful in establishing communication
+    # with the plugin. Now, we should get its metainfo and create a Plugin
+    # instance with it.
+    try:
+        meta = plugin_client.metainfo()
+    except Exception as e:
+        logger.warning(_('Failed to get plugin metadata at address {}: {}').format(address, e))
+        return None
+
+    plugin = Plugin(
+        metadata=meta,
+        address=address,
+        plugin_client=plugin_client
+    )
+
+    logger.debug(_('Registered new plugin: {}').format(plugin))
+    return plugin.id()
+
+
+def register_tcp():
+    """Register the plugins that use TCP for communication.
+
+    Return:
+        list[str]: The ids of all plugins that were registered.
+    """
+    logger.debug(_('Registering plugins (tcp)'))
+    registered = []
+
+    configured = config.options.get('plugin.tcp', [])
+    if not configured:
+        logger.debug(_('No plugin configurations for TCP'))
+        return registered
+
+    logger.debug(_('TCP plugin configuration: {}').format(configured))
+    for address in configured:
+        plugin_id = register_plugin(address, 'tcp')
+        if plugin_id is None:
+            logger.error(_('Failed to register plugin with address: {}').format(address))
+            continue
+        registered.append(plugin_id)
+
+    return registered
+
+
+def register_unix():
     """Register the plugins that use a unix socket for communication.
 
     Unix plugins can be configured in a variety of ways:
@@ -207,138 +316,63 @@ def register_unix_plugins():
     unix-configured plugins.
 
     Returns:
-        list[str]: The names of all plugins that were registered.
+        list[str]: The ids of all plugins that were registered.
     """
     logger.debug(_('Registering plugins (unix)'))
-
-    manager = Plugin.manager
-
-    # Track the names of the plugins that have been registered.
     registered = []
 
-    # First, register any plugins that are specified in the Synse Server
-    # configuration (file, env).
-    configured = config.options.get('plugin.unix', {})
-    logger.debug(_('Unix plugins in configuration: {}').format(configured))
-    if configured:
-        for name, path in configured.items():
-            # If the user wants to use the default configuration directory,
-            # they can specify something like
-            #
-            #   plugins:
-            #       unix:
-            #           plugin_name:
-            #
-            # This will give us a 'name' here of 'plugin_name' and a 'path'
-            # of None.
-            if path is None:
-                path = const.SOCKET_DIR
+    configured = config.options.get('plugin.unix', [])
+    if not configured:
+        logger.debug(_('No plugin configurations for unix'))
 
-            # Check for both 'plugin_name' and 'plugin_name.sock'
-            sock_path = os.path.join(path, name + '.sock')
-            logger.debug(_('Checking for socket: {}').format(sock_path))
-            if not os.path.exists(sock_path):
-                logger.debug(_('Checking for socket: {}').format(sock_path))
-                sock_path = os.path.join(path, name)
-                if not os.path.exists(sock_path):
-                    logger.error(
-                        _('Unable to find configured socket: {}[.sock]').format(sock_path)
-                    )
-                    continue
+    logger.debug(_('unix plugin configuration: {}').format(configured))
+    for address in configured:
+        # The config here should be the path the the unix socket, which is our address.
+        # First, check that the socket exists and that the address is a socket file.
+        if not os.path.exists(address):
+            logger.error(_('Socket {} not found').format(address))
+            continue
 
-            # Check that the file is a socket
-            if not stat.S_ISSOCK(os.stat(sock_path).st_mode):
-                logger.warning(_('{} is not a socket - skipping').format(sock_path))
-                continue
+        if not stat.S_ISSOCK(os.stat(address).st_mode):
+            logger.error(_('{} is not a socket').format(address))
+            continue
 
-            # We have a plugin socket. If it already exists, there is nothing
-            # to do; it is already registered. If it does not exist, we will
-            # need to register it.
-            if manager.get(name) is None:
-                plugin = Plugin(name=name, address=sock_path, mode='unix')
-                logger.debug(_('Created new plugin (unix): {}').format(plugin))
-            else:
-                logger.debug(
-                    _('Unix Plugin "{}" already exists - will not re-register').format(name)
-                )
+        plugin_id = register_plugin(address, 'unix')
+        if plugin_id is None:
+            logger.error(_('Failed to register plugin with address: {}').format(address))
+            continue
+        registered.append(plugin_id)
 
-            registered.append(name)
-
-    # Now go through the default socket directory to pick up any other sockets
-    # that may be set for automatic registration.
+    # Now, go through the default socket directory and pick up any sockets that
+    # may be set for automatic registration.
     if not os.path.exists(const.SOCKET_DIR):
         logger.debug(
-            _('No default socket path found -- no plugins registered from {}')
+            _('No default socket path found, no plugins will be registered from {}')
             .format(const.SOCKET_DIR)
         )
-
     else:
         logger.debug(_('Registering plugins from default socket directory'))
 
         for item in os.listdir(const.SOCKET_DIR):
             logger.debug('  {}'.format(item))
-            fqn = os.path.join(const.SOCKET_DIR, item)
-            name, __ = os.path.splitext(item)  # pylint: disable=unused-variable
+            address = os.path.join(const.SOCKET_DIR, item)
 
-            # Check that the file is a socket
-            if not stat.S_ISSOCK(os.stat(fqn).st_mode):
-                logger.warning(_('{} is not a socket - skipping').format(fqn))
+            # Check if the file is a socket
+            if not stat.S_ISSOCK(os.stat(address).st_mode):
+                logger.debug(_('{} is not a socket - skipping').format(address))
                 continue
 
-            # We have a plugin socket. If it already exists, there is nothing
-            # to do; it is already registered. If it does not exist, we will
-            # need to register it.
-            if manager.get(name) is None:
-                # A new plugin gets added to the manager on initialization.
-                plugin = Plugin(name=name, address=fqn, mode='unix')
-                logger.debug(_('Created new plugin (unix): {}').format(plugin))
+            plugin_id = register_plugin(address, 'unix')
+            if plugin_id is None:
+                logger.error(_('Failed to register plugin with address: {}').format(address))
+                continue
+            registered.append(plugin_id)
 
-                # Add the plugin to the Synse Server configuration. This will
-                # allow a caller of the '/config' endpoint to see what plugins
-                # are configured. Further, it can help with other processing that
-                # might need the list of configured plugins.
-                #
-                # The value of `None` is used to indicate the default directory.
-                config.options.set('plugin.unix.{}'.format(name), None)
-
+            # We want the plugins registered from this default directory to
+            # be surfaced in the config, so we will add it there.
+            if config.options.get('plugin.unix') is None:
+                config.options.set('plugin.unix', [address])
             else:
-                logger.debug(
-                    _('Unix Plugin "{}" already exists - will not re-register').format(name)
-                )
+                config.options.get('plugin.unix').append(address)
 
-            registered.append(name)
-
-    return list(set(registered))
-
-
-def register_tcp_plugins():
-    """Register the plugins that use TCP for communication.
-
-    Return:
-        list[str]: The names of all plugins that were registered.
-    """
-    logger.debug(_('Registering plugins (tcp)'))
-
-    configured = config.options.get('plugin.tcp', {})
-    logger.debug(_('TCP plugins in configuration: {}').format(configured))
-    if not configured:
-        return []
-
-    manager = Plugin.manager
-
-    # Track the names of all plugins that are registered.
-    registered = []
-
-    for name, address in configured.items():
-        if manager.get(name) is None:
-            # A new plugin gets added to the manager on initialization.
-            plugin = Plugin(name=name, address=address, mode='tcp')
-            logger.debug(_('Created new plugin (tcp): {}').format(plugin))
-        else:
-            logger.debug(
-                _('TCP Plugin "{}" already exists - will not re-register').format(name)
-            )
-
-        registered.append(name)
-
-    return list(set(registered))
+    return registered

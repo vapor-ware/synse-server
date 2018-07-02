@@ -99,7 +99,9 @@ async def write_route(request, rack, board, device):
 
     logger.debug(_('Write route: POSTed JSON: {}').format(data))
 
-    if not any([x in data for x in ['action', 'raw']]):
+    # For backwards compatibility, keeping 'raw' in. Here, 'data' and 'raw' are
+    # the same thing.
+    if not any([x in data for x in ['action', 'raw', 'data']]):
         raise errors.InvalidArgumentsError(
             _('Invalid data POSTed for write. Must contain "action" and/or "raw"')
         )
@@ -172,6 +174,21 @@ async def plugins_route(request):
         sanic.response.HTTPResponse: The endpoint response.
     """
     response = await commands.get_plugins()
+    return response.to_json()
+
+
+@bp.route('/capabilities')
+@validate.no_query_params()
+async def capabilities_route(request):
+    """Enumerate the device capabilities provided by all of the registered plugins.
+
+    Args:
+        request (sanic.request.Request): The incoming request.
+
+    Returns:
+        sanic.response.HTTPResponse: The endpoint response.
+    """
+    response = await commands.capabilities()
     return response.to_json()
 
 

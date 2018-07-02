@@ -1,6 +1,6 @@
 """Test the 'synse.scheme.transaction' Synse Server module."""
 
-from synse_plugin import api
+from synse_grpc import api
 
 from synse.scheme.transaction import (TransactionListResponse,
                                       TransactionResponse)

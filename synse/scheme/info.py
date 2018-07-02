@@ -32,29 +32,37 @@ class InfoResponse(SynseResponse):
 
         Device Info
         {
-          "device_id": "id1",
-          "type": "temperature",
-          "model": "MAX11608",
-          "manufacturer": "Maxim Integrated",
-          "protocol": "i2c",
-          "info": "top right thermistor 0",
-          "comment": "last serviced 10/21/2017",
+          "timestamp": "2018-06-18T13:30:15.6554449Z",
+          "uid": "34c226b1afadaae5f172a4e1763fd1a6",
+          "kind": "humidity",
+          "metadata": {
+            "model": "emul8-humidity"
+          },
+          "plugin": "emulator plugin",
+          "info": "Synse Humidity Sensor",
           "location": {
-            "rack": "rack_1",
-            "board": "00000001"
+            "rack": "rack-1",
+            "board": "vec"
           },
           "output": [
             {
-              "type": "temperature",
-              "data_type": "float",
-              "precision": 2,
+              "name": "humidity",
+              "type": "humidity",
+              "precision": 3,
+              "scaling_factor": 1.0,
               "unit": {
-                "name": "degrees celsius",
+                "name": "percent humidity",
+                "symbol": "%"
+              }
+            },
+            {
+              "name": "temperature",
+              "type": "temperature",
+              "precision": 3,
+              "scaling_factor": 1.0,
+              "unit": {
+                "name": "celsius",
                 "symbol": "C"
-              },
-              "range": {
-                "min": 0,
-                "max": 100
               }
             }
           ]

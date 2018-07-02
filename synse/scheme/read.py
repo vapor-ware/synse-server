@@ -1,6 +1,5 @@
 """Response scheme for the `read` endpoint."""
 
-from synse import utils
 from synse.i18n import _
 from synse.log import logger
 from synse.scheme.base_response import SynseResponse
@@ -12,8 +11,10 @@ class ReadResponse(SynseResponse):
     Response Example:
         {
           "type": "humidity",
-          "data": {
-            "temperature": {
+          "data": [
+            {
+              "info": "",
+              "type": "temperature",
               "value": 123,
               "unit": {
                 "symbol": "C",
@@ -21,7 +22,9 @@ class ReadResponse(SynseResponse):
               },
               "timestamp": "2017-11-10 09:08:07"
             },
-            "humidity": {
+            {
+              "info": "",
+              "type": "humidity",
               "value": 123,
               "unit": {
                 "symbol": "%",
@@ -29,28 +32,21 @@ class ReadResponse(SynseResponse):
               },
               "timestamp": "2017-11-10 09:08:07"
             }
-          }
+          ]
         }
 
     Args:
-        device (MetainfoResponse): The device that is being read.
-        readings (list[ReadResponse]): A list of reading values returned
+        device (Device): The device that is being read.
+        readings (list[Reading]): A list of reading values returned
             from the plugin.
     """
-
-    _data_types = {
-        'string': str,
-        'float': float,
-        'int': utils.s_to_int,
-        'bool': utils.s_to_bool,
-    }
 
     def __init__(self, device, readings):
         self.device = device
         self.readings = readings
 
         self.data = {
-            'type': device.type,
+            'kind': device.kind,
             'data': self.format_readings()
         }
 
@@ -61,7 +57,7 @@ class ReadResponse(SynseResponse):
             dict: A properly formatted Read response.
         """
         logger.debug(_('Formatting read response'))
-        formatted = {}
+        formatted = []
 
         dev_output = self.device.output
         for reading in self.readings:
@@ -71,7 +67,6 @@ class ReadResponse(SynseResponse):
             # make sense for a reading unit, e.g. LED state (on/off)
             unit = None
             precision = None
-            data_type = None
 
             found = False
             for out in dev_output:
@@ -79,7 +74,6 @@ class ReadResponse(SynseResponse):
                     symbol = out.unit.symbol
                     name = out.unit.name
                     precision = out.precision
-                    data_type = out.data_type
 
                     if symbol or name:
                         unit = {
@@ -99,8 +93,16 @@ class ReadResponse(SynseResponse):
                 )
                 continue
 
-            value = reading.value
+            # The value is stored in a protobuf oneof block, so we need to figure out
+            # which field it is in, and extract it. If no field is set, take the reading
+            # value to be None.
+            value = None
 
+            field = reading.WhichOneof('value')
+            if field is not None:
+                value = getattr(reading, field)
+
+            # FIXME (etd) is this block still relevent with the grpc changes? I don't think it is.
             # Handle cases where no data was read. Currently, we consider the reading
             # to have no data if:
             #   - the ReadResponse value comes back as an empty string (e.g. "")
@@ -111,24 +113,15 @@ class ReadResponse(SynseResponse):
 
             else:
                 # Set the specified precision
-                if precision:
-                    try:
-                        value = str(round(float(value), precision))
-                    except ValueError:
-                        logger.warning(
-                            _('Invalid value for {}: "{}"').format(data_type, value)
-                        )
+                if precision and isinstance(value, float):
+                    value = round(value, precision)
 
-                # Cast to the specified type
-                try:
-                    value = self._data_types.get(data_type, str)(value)
-                except ValueError:
-                    logger.warning(_('Failed to cast "{}" to {}').format(value, data_type))
-
-            formatted[rt] = {
+            formatted.append({
                 'value': value,
                 'timestamp': reading.timestamp,
-                'unit': unit
-            }
+                'unit': unit,
+                'type': rt,
+                'info': reading.info,
+            })
 
         return formatted

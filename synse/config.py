@@ -1,6 +1,6 @@
 """Synse Server configuration and scheme definition."""
 
-from bison import Bison, DictOption, Option, Scheme
+from bison import Bison, DictOption, ListOption, Option, Scheme
 
 # The Synse Server configuration scheme
 scheme = Scheme(
@@ -8,8 +8,15 @@ scheme = Scheme(
     Option('pretty_json', default=True, field_type=bool),
     Option('locale', default='en_US', field_type=str),
     DictOption('plugin', default={}, scheme=Scheme(
-        DictOption('tcp', default={}, scheme=None, bind_env=True),
-        DictOption('unix', default={}, scheme=None, bind_env=True)
+        ListOption('tcp', default=[], member_type=str, bind_env=True),
+        ListOption('unix', default=[], member_type=str, bind_env=True),
+        DictOption('discover', default={}, scheme=Scheme(
+            DictOption('kubernetes', default={}, scheme=Scheme(
+                DictOption('endpoints', default={}, scheme=Scheme(
+                    DictOption('labels', default={}, scheme=None)
+                )),
+            ))
+        )),
     )),
     DictOption('cache', default=None, scheme=Scheme(
         DictOption('meta', scheme=Scheme(

@@ -1,5 +1,4 @@
 version: 1.0
-name: emulator
 debug: true
 network:
   type: tcp

@@ -11,7 +11,7 @@ class WriteResponse(SynseResponse):
           {
             "context": {
               "action": "state",
-              "raw": ["on"]
+              "data": "on"
             },
             "timestamp": "2017-11-08 14:01:53",
             "transaction": "b7jl0b2un4a154rn9u4g"
@@ -30,7 +30,7 @@ class WriteResponse(SynseResponse):
             self.data.append({
                 'context': {
                     'action': ctx.action,
-                    'raw': ctx.raw
+                    'data': ctx.data
                 },
                 'transaction': _id
             })

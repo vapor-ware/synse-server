@@ -2,8 +2,6 @@
 
 import datetime
 
-from synse.i18n import _
-
 
 def rfc3339now():
     """Create an RFC3339 formatted timestamp for the current UTC time.
@@ -34,44 +32,18 @@ def composite(rack, board, device):
     return '-'.join([rack, board, device])
 
 
-def s_to_bool(val):
-    """Take a string value and convert it to a boolean value.
+def type_from_kind(kind):
+    """Get the device type from the device kind.
 
-    In Python it is not as simple as casting to a bool type since something
-    like bool("false") would result in True, as a non-zero length string is
-    "truthy".
-
-    Args:
-        val (str): The string value to convert to boolean.
-
-    Returns:
-        bool: True, if the string represents "true"; False otherwise.
-
-    Raises:
-        ValueError: The input parameter is not a true/false string.
-    """
-    if val.lower() not in ('true', 'false'):
-        raise ValueError(_('"{}" is not a valid boolean string').format(val))
-    return val.lower() == 'true'
-
-
-def s_to_int(val):
-    """Take a string value and convert it to an int.
-
-    Converting to an integer needs to be more complex than just `int("1")`
-    since we can have values like `int("1.1")` which would not get converted
-    to an integer via a straight cast to `int`.
+    The device kind is the fully qualified name of the device kind, e.g.
+    'foo.bar.temperature'. The device type should be the last element of
+    the name-spaced kind, where the delimiter is a period.
 
     Args:
-        val (str): The string value to convert to int.
+        kind (str): The device kind.
 
     Returns:
-        int: The integer representation of the given string.
-
-    Raises:
-        ValueError: Unable to cast to int.
+        str: The type of the devices, derived from the device kind.
     """
-    try:
-        return int(float(val))
-    except Exception as e:
-        raise ValueError from e
+    components = kind.split('.')
+    return components[-1]

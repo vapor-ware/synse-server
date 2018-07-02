@@ -15,6 +15,7 @@ FAILED_READ_COMMAND = 5001
 FAILED_SCAN_COMMAND = 5002
 FAILED_TRANSACTION_COMMAND = 5003
 FAILED_WRITE_COMMAND = 5004
+FAILED_PLUGIN_COMMAND = 5005
 
 # Internal API (gRPC) errors
 INTERNAL_API_FAILURE = 6000
@@ -196,6 +197,13 @@ class FailedTransactionCommandError(SynseServerError):
 
     def __init__(self, message):
         super(FailedTransactionCommandError, self).__init__(message, FAILED_TRANSACTION_COMMAND)
+
+
+class FailedPluginCommandError(SynseServerError):
+    """Error in executing a "plugin" command."""
+
+    def __init__(self, message):
+        super(FailedPluginCommandError, self).__init__(message, FAILED_PLUGIN_COMMAND)
 
 
 class InternalApiError(SynseServerError):

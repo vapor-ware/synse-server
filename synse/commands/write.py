@@ -27,7 +27,7 @@ async def write(rack, board, device, data):
     )
 
     # Lookup the known info for the specified device
-    plugin_name, __ = await cache.get_device_meta(rack, board, device)  # pylint: disable=unused-variable
+    plugin_name, __ = await cache.get_device_info(rack, board, device)  # pylint: disable=unused-variable
 
     # Get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)
@@ -37,24 +37,29 @@ async def write(rack, board, device, data):
         )
 
     # The data comes in as the POSTed dictionary which includes an 'action'
-    # and/or 'raw' field. Here, we convert it to the appropriate modeling for
+    # and/or 'raw'/'data' field. Here, we convert it to the appropriate modeling for
     # transport to the plugin.
-    action = data.get('action')
-    if not isinstance(action, str):
+    write_action = data.get('action')
+    if not isinstance(write_action, str):
         raise errors.InvalidArgumentsError(
-            _('"action" value must be a string, but was {}').format(type(action))
+            _('"action" value must be a string, but was {}').format(type(write_action))
         )
 
-    raw = data.get('raw')
-    if raw is not None:
-        # Raw should be a string - we need to convert to bytes.
-        if not isinstance(raw, str):
-            raise errors.InvalidArgumentsError(
-                _('"raw" value must be a string, but was {}').format(type(raw))
-            )
-        raw = [str.encode(raw)]
+    # Get the data out. If the 'data' field is present, we will use it. Otherwise, we will
+    # look for a 'raw' field, for backwards compatibility. If 'data' exists, 'raw' is ignored.
+    write_data = data.get('data')
+    if write_data is None:
+        write_data = data.get('raw')
 
-    wd = WriteData(action=action, raw=raw)
+    if write_data is not None:
+        # The data should be an instance of bytes, which in python is a string
+        if not isinstance(write_data, str):
+            raise errors.InvalidArgumentsError(
+                _('"raw"/"data" value must be a string, but was {}').format(type(write_data))
+            )
+        write_data = str.encode(write_data)
+
+    wd = WriteData(action=write_action, data=write_data)
     logger.info(_('Writing to {}: {}').format('/'.join((rack, board, device)), wd))
 
     # Perform a gRPC write on the device's managing plugin
@@ -68,9 +73,9 @@ async def write(rack, board, device, data):
     for _id, ctx in t.transactions.items():
         context = {
             'action': ctx.action,
-            'raw': ctx.raw
+            'data': ctx.data
         }
-        ok = await cache.add_transaction(_id, context, _plugin.name)
+        ok = await cache.add_transaction(_id, context, _plugin.id())
         if not ok:
             logger.error(_('Failed to add transaction {} to the cache').format(_id))
 

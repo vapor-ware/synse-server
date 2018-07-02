@@ -3,10 +3,8 @@
 
 import grpc
 import pytest
-from synse_plugin import api as synse_api
-from synse_plugin import grpc as synse_grpc
+import synse_grpc
 
-from synse import errors
 from synse.proto import client
 
 # --- Mock Methods ---
@@ -15,53 +13,50 @@ from synse.proto import client
 def mock_read(req, timeout):
     """Mock the internal read call."""
     return [
-        synse_api.ReadResponse(
+        synse_grpc.api.Reading(
             timestamp='october',
             type='test',
-            value='10'
+            int32_value=10
         )
     ]
 
 
 def mock_write(req, timeout):
     """Mock the internal write call."""
-    return synse_api.Transactions(
+    return synse_grpc.api.Transactions(
         transactions={
-            '12345': synse_api.WriteData(
+            '12345': synse_grpc.api.WriteData(
                 action='test',
-                raw=[b'foo']
+                data=b'foo'
             )
         }
     )
 
 
-def mock_metainfo(req, timeout):
-    """Mock the internal metainfo call."""
+def mock_device_info(req, timeout):
+    """Mock the internal device info call."""
     return [
-        synse_api.MetainfoResponse(
+        synse_grpc.api.Device(
             timestamp='october',
             uid='12345',
-            type='thermistor',
-            model='test',
-            manufacturer='vapor io',
-            protocol='foo',
+            kind='thermistor',
+            metadata=dict(
+                model='test',
+                manufacturer='vapor io',
+            ),
+            plugin='foo',
             info='bar',
-            location=synse_api.MetaLocation(
+            location=synse_grpc.api.Location(
                 rack='rack-1',
                 board='vec'
             ),
             output=[
-                synse_api.MetaOutput(
+                synse_grpc.api.Output(
                     type='temperature',
-                    data_type='float',
                     precision=3,
-                    unit=synse_api.MetaOutputUnit(
+                    unit=synse_grpc.api.Unit(
                         name='celsius',
                         symbol='C'
-                    ),
-                    range=synse_api.MetaOutputRange(
-                        min=0,
-                        max=100
                     )
                 )
             ]
@@ -71,12 +66,12 @@ def mock_metainfo(req, timeout):
 
 def mock_transaction(req, timeout):
     """Mock the internal transaction call."""
-    return synse_api.WriteResponse(
+    return [synse_grpc.api.WriteResponse(
         created='october',
         updated='november',
         status=3,
         state=0,
-    )
+    )]
 
 # --- Test Cases ---
 
@@ -86,115 +81,94 @@ def test_write_data():
 
     wd = client.WriteData()
     assert wd.action == ''
-    assert wd.raw == []
+    assert wd.data == b''
 
     wd = client.WriteData(action='test')
     assert wd.action == 'test'
-    assert wd.raw == []
+    assert wd.data == b''
 
-    wd = client.WriteData(raw=[b'test'])
+    wd = client.WriteData(data=b'test')
     assert wd.action == ''
-    assert wd.raw == [b'test']
+    assert wd.data == b'test'
 
-    wd = client.WriteData(action='test', raw=[b'test'])
+    wd = client.WriteData(action='test', data=b'test')
     assert wd.action == 'test'
-    assert wd.raw == [b'test']
+    assert wd.data == b'test'
 
 
 def test_write_data_to_grpc():
     """Convert a WriteData instance to its gRPC equivalent."""
 
-    wd = client.WriteData(action='test', raw=[b'test'])
+    wd = client.WriteData(action='test', data=b'test')
     rpc = wd.to_grpc()
 
-    assert isinstance(rpc, synse_api.WriteData)
+    assert isinstance(rpc, synse_grpc.api.WriteData)
     assert rpc.action == 'test'
-    assert rpc.raw == [b'test']
+    assert rpc.data == b'test'
 
 
-def test_get_client_exists():
-    """Get a client when the client exists."""
+def test_init_base_client():
+    """Initializing the base client should result in error."""
 
-    c = client.SynseInternalClient('test-cli', 'localhost:5000', 'tcp')
-    assert len(client.SynseInternalClient._client_stubs) == 1
-
-    test_cli = client.get_client('test-cli')
-    assert test_cli == c
-    assert len(client.SynseInternalClient._client_stubs) == 1
-
-
-def test_get_client_does_not_exist():
-    """Get a client when it does not already exist."""
-
-    assert len(client.SynseInternalClient._client_stubs) == 0
-
-    client.get_client('test-cli')
-
-    assert len(client.SynseInternalClient._client_stubs) == 0
+    with pytest.raises(NotImplementedError):
+        _ = client.PluginClient(address='localhost')
 
 
 def test_client_init():
     """Verify the client initializes as expected."""
 
-    c = client.SynseInternalClient('test-cli', 'test-cli.sock', 'unix')
+    c = client.PluginUnixClient('foo/bar/test-cli.sock')
 
-    assert c.name == 'test-cli'
-    assert c.addr == 'test-cli.sock'
-    assert c.mode == 'unix'
+    assert c.address == 'foo/bar/test-cli.sock'
+    assert c.type == 'unix'
     assert isinstance(c.channel, grpc.Channel)
-    assert isinstance(c.stub, synse_grpc.InternalApiStub)
-
-
-def test_client_init_bad_mode():
-    """Verify the client fails to initialize when a bad mode is provided."""
-
-    with pytest.raises(errors.InvalidArgumentsError):
-        client.SynseInternalClient('test-cli', 'test-cli.sock', 'foo')
+    assert isinstance(c.grpc, synse_grpc.grpc.PluginStub)
 
 
 def test_client_read():
     """Test reading via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
-    c.stub.Read = mock_read
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Read = mock_read
 
     resp = c.read('rack-1', 'vec', '12345')
 
     assert isinstance(resp, list)
     assert len(resp) == 1
-    assert isinstance(resp[0], synse_api.ReadResponse)
+    assert isinstance(resp[0], synse_grpc.api.Reading)
 
 
 def test_client_write():
     """Test writing via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
-    c.stub.Write = mock_write
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Write = mock_write
 
     resp = c.write('rack-1', 'vec', '12345', [client.WriteData()])
 
-    assert isinstance(resp, synse_api.Transactions)
+    assert isinstance(resp, synse_grpc.api.Transactions)
 
 
-def test_client_metainfo():
-    """Test getting metainfo via the client."""
+def test_client_devices():
+    """Test getting device info via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
-    c.stub.Metainfo = mock_metainfo
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Devices = mock_device_info
 
-    resp = c.metainfo()
+    resp = c.devices()
 
     assert isinstance(resp, list)
     assert len(resp) == 1
-    assert isinstance(resp[0], synse_api.MetainfoResponse)
+    assert isinstance(resp[0], synse_grpc.api.Device)
 
 
 def test_client_transaction():
     """Test checking a transaction via the client."""
 
-    c = client.SynseInternalClient('test', 'test.sock', 'unix')
-    c.stub.TransactionCheck = mock_transaction
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Transaction = mock_transaction
 
-    resp = c.check_transaction('abcdef')
+    resp = c.transaction('abcdef')
 
-    assert isinstance(resp, synse_api.WriteResponse)
+    assert isinstance(resp, list)
+    assert isinstance(resp[0], synse_grpc.api.WriteResponse)
