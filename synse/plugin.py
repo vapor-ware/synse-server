@@ -284,12 +284,11 @@ def register_tcp():
     Return:
         list[str]: The ids of all plugins that were registered.
     """
-    logger.debug(_('Registering plugins (tcp)'))
     registered = []
 
     configured = config.options.get('plugin.tcp', [])
     if not configured:
-        logger.debug(_('No plugin configurations for TCP'))
+        logger.info(_('No plugin configurations for TCP'))
         return registered
 
     logger.debug(_('TCP plugin configuration: {}').format(configured))
@@ -300,6 +299,7 @@ def register_tcp():
             continue
         registered.append(plugin_id)
 
+    logger.info('Registered tcp plugins: {}'.format(registered))
     return registered
 
 
@@ -318,12 +318,11 @@ def register_unix():
     Returns:
         list[str]: The ids of all plugins that were registered.
     """
-    logger.debug(_('Registering plugins (unix)'))
     registered = []
 
     configured = config.options.get('plugin.unix', [])
     if not configured:
-        logger.debug(_('No plugin configurations for unix'))
+        logger.info(_('No plugin configurations for unix'))
 
     logger.debug(_('unix plugin configuration: {}').format(configured))
     for address in configured:
@@ -351,7 +350,9 @@ def register_unix():
             .format(const.SOCKET_DIR)
         )
     else:
-        logger.debug(_('Registering plugins from default socket directory'))
+        logger.debug(_(
+            'Registering plugins from default socket directory ({})'.format(
+                const.SOCKET_DIR)))
 
         for item in os.listdir(const.SOCKET_DIR):
             logger.debug('  {}'.format(item))
@@ -375,4 +376,5 @@ def register_unix():
             else:
                 config.options.get('plugin.unix').append(address)
 
+    logger.info('Registered unix plugins: {}'.format(registered))
     return registered
