@@ -17,3 +17,18 @@ def test_composite(params, expected):
     """Test successfully composing various string combinations."""
     actual = utils.composite(*params)
     assert expected == actual
+
+
+@pytest.mark.parametrize(
+    'kind,expected', [
+        ('foo', 'foo'),
+        ('foo.bar', 'bar'),
+        ('...temperature', 'temperature'),
+        ('device.1.2.3.4.5.6.humidity', 'humidity'),
+        ('', '')
+    ]
+)
+def test_type_from_kind(kind, expected):
+    """Test getting the device type from the device kind."""
+    actual = utils.type_from_kind(kind)
+    assert expected == actual

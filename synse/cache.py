@@ -530,7 +530,7 @@ def _build_scan_cache(device_info):
                     {
                         'id': device_id,
                         'info': source.info,
-                        'type': source.kind
+                        'type': utils.type_from_kind(source.kind)
                     }
                 ]
             }
@@ -563,7 +563,7 @@ def _build_scan_cache(device_info):
                         {
                             'id': device_id,
                             'info': source.info,
-                            'type': source.kind
+                            'type': utils.type_from_kind(source.kind)
                         }
                     ]
                 }
@@ -574,7 +574,7 @@ def _build_scan_cache(device_info):
                 r['boards'][board_id]['devices'].append({
                     'id': device_id,
                     'info': source.info,
-                    'type': source.kind
+                    'type': utils.type_from_kind(source.kind)
                 })
 
     if _tracked:
