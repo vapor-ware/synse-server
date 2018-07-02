@@ -35,7 +35,7 @@ LABEL org.label-schema.schema-version="1.0" \
 COPY bin/install_emulator.sh tmp/install_emulator.sh
 
 # Environment variables for built-in emulator configuration.
-ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config" \
+ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
     PLUGIN_CONFIG="/synse/emulator"
 
 # The linux_amd64 emulator binary is built with libc, not muslc, it
