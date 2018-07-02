@@ -76,7 +76,7 @@ async def fan_sensors():
     # to read all the devices of a given type or model.
 
     start_time = datetime.datetime.now()
-    _cache = await cache.get_metainfo_cache()
+    _cache = await cache.get_device_info_cache()
     scan_cache = await cache.get_scan_cache()
 
     readings = []
@@ -87,10 +87,10 @@ async def fan_sensors():
     for _, v in _cache.items():
 
         logger.debug('FAN SENSORS')
-        logger.debug('fan_sensors cache item: {}'.format(v))
-
-        is_temp = v.type.lower() == 'temperature' and v.model.lower() == 'max11610'
-        is_pressure = v.type.lower() == 'pressure' and v.model.lower() == 'sdp610'
+        is_temp = v.output[0].name.lower() == 'temperature' \
+                  and v.metadata['model'].lower() == 'max11610'
+        is_pressure = v.output[0].name.lower() == 'pressure' \
+                      and v.metadata['model'].lower() == 'sdp610'
 
         if is_temp or is_pressure:
             rack = v.location.rack # string (vec1-c1-wrigley for example)
@@ -138,17 +138,19 @@ async def fan_sensors():
                 # Translate single_reading['scan_cache_device']['info']
                 # and add it under the rack key which is:
                 # new_readings['racks'][rack][translation] \
-                #     = single_reading['data'][single_reading['type']]['value']
+                #     = single_reading['data'][0]['value']
+                logger.debug('single_reading: {}'.format(single_reading))
                 logger.debug(
                     'single_reading[scan_cache_device][info]: {}'.format(
                         single_reading['scan_cache_device']['info']))
                 logger.debug(
-                    'single_reading[data][single_reading[type]][value]: {}'.format(
-                        single_reading['data'][single_reading['type']]['value']))
+                    'single_reading[data][single_reading[kind][value]: {}'.format(
+                        single_reading['data'][0]['value']))
 
                 # Add sensor reading to result set.
                 fan_sensor_key = _translate_device_info(single_reading['scan_cache_device']['info'])
-                reading_value = single_reading['data'][single_reading['type']]['value']
+                # This only works because thermistors and pressure sensors have exactly one reading.
+                reading_value = single_reading['data'][0]['value'] # [single_reading['kind']]['value']
                 if fan_sensor_key is not None and reading_value is not None:
                     # Be sure not to overwrite any existing reading in the current result set.
                     # That would imply a mapping issue or some other bug.
@@ -165,6 +167,12 @@ async def fan_sensors():
     logger.debug('--- FAN SENSORS end ---')
     # Sort the new_readings racks by racks['id']
     new_readings['racks'] = OrderedDict(sorted(new_readings['racks'].items()))
+
+    # Sort each output for each rack so we can debug this.
+    for rack in new_readings['racks']:
+        logger.debug('sorting rack: {}'.format(rack))
+        new_readings['racks'][rack] = OrderedDict(sorted(new_readings['racks'][rack].items()))
+
     end_time = datetime.datetime.now()
     read_time = (end_time - start_time).total_seconds() * 1000
 
