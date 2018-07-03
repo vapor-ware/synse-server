@@ -28,7 +28,7 @@ just call it ``emulator``. Putting this all together, we get
 .. code-block:: yaml
 
     environment:
-      SYNSE_PLUGIN_TCP_EMULATOR: emulator-plugin:5001
+      SYNSE_PLUGIN_TCP: emulator-plugin:5001
 
 Here, ``emulator-plugin`` is being used as the host name. We'll need to link in
 the emulator container to the Synse Server container with that host name.
@@ -46,11 +46,11 @@ specifying the container name, image, and ports
 
     synse-server:
       container_name: synse-server
-      image: vaporio/synse-server:2.0.0-slim
+      image: vaporio/synse-server:latest-slim
       ports:
         - 5000:5000
       environment:
-        SYNSE_PLUGIN_TCP_EMULATOR: emulator-plugin:5001
+        SYNSE_PLUGIN_TCP: emulator-plugin:5001
       links:
         - emulator-plugin
 
@@ -62,26 +62,22 @@ expose that port.
 
 The only remaining bit is configuring the plugin. Plugin configuration is discussed in
 the `SDK Documentation <https://github.com/vapor-ware/synse-sdk>`_. Briefly, a plugin takes
-three types of configuration:
+different types of configuration:
 
-1. *prototype configuration* - This should be provided in the plugin image. Prototype
-   configurations define the basic metadata of the devices that a plugin supports.
-2. *instance configuration* - This is specified by the user. It specifies the instances
-   of the prototypes that this particular plugin will be interfacing with.
-3. *plugin configuration* - This is the general configuration for how the plugin should
+1. *device configuration* - This is specified by the user. It specifies the device instances
+   that this particular plugin will be interfacing with.
+2. *plugin configuration* - This is the general configuration for how the plugin should
    behave. For example, you can configure the plugin to perform device actions in parallel
    or in serial via this config.
 
-The prototype configuration is provided in the the ``vaporio/emulator-plugin`` image, so
-we do not have to configure that here. We do need to provide the instance config and the
-plugin config. See the SDK Documentation for more information on these configs.
+We do need to provide the instance config and the plugin config for the emulator plugin.
+See the SDK Documentation for more information on these configs.
 
 For our plugin config, we have the following ``config.yml``,
 
 .. code-block:: yaml
 
     version: 1.0
-    name: emulator
     debug: true
     network:
       type: tcp
@@ -96,28 +92,36 @@ of the Synse Server source repo.
 
     version: 1.0
     locations:
-      r1b1:
-        rack: rack-1
-        board: board-1
+      - name: r1b1
+        rack:
+          name: rack-1
+        board:
+          name: board-1
     devices:
-      - type: temperature
-        model: emul8-temp
+      - name: temperature
+        metadata:
+          model: emul8-temp
+        outputs:
+          - type: temperature
         instances:
-          - id: "1"
+          - info: Temperature Sensor 1
             location: r1b1
-            info: Temperature Sensor 1
-          - id: "2"
+            data:
+              id: 1
+          - info: Temperature Sensor 2
             location: r1b1
-            info: Temperature Sensor 2
-          - id: "3"
+            data:
+              id: 2
+          - info: Temperature Sensor 3
             location: r1b1
-            info: Temperature Sensor 3
-          - id: "4"
+            data:
+              id: 3
+          - info: Temperature Sensor 4
             location: r1b1
-            info: Temperature Sensor 4
+            data:
+              id: 4
 
-Briefly, this defines four 'emul8-temp' temperature sensors (which is backed by a prototype
-that the plugin supports) on 'rack-1', 'board-1'. The rack and board designation here are
+Briefly, this defines four temperature sensors on 'rack-1', 'board-1'. The rack and board designation here are
 arbitrary for this example but are typically used to organized device across racks and boards.
 
 With these two files saved in the current working directory, we can mount them into the
@@ -138,8 +142,8 @@ search path, we can tell it with environment variables
     environment:
       # sets the override directory location for plugin configuration
       PLUGIN_CONFIG: /tmp/config
-      # sets the override directory location for device instance configuration
-      PLUGIN_DEVICE_PATH: /tmp/devices
+      # sets the override directory location for device configuration
+      PLUGIN_DEVICE_CONFIG: /tmp/devices
 
 Putting everything here together, we get the final compose file, ``compose.yml``:
 
@@ -149,11 +153,11 @@ Putting everything here together, we get the final compose file, ``compose.yml``
     services:
       synse-server:
         container_name: synse-server
-        image: vaporio/synse-server:2.0.0-slim
+        image: vaporio/synse-server:latest-slim
         ports:
           - 5000:5000
         environment:
-          SYNSE_PLUGIN_TCP_EMULATOR: emulator-plugin:5001
+          SYNSE_PLUGIN_TCP: emulator-plugin:5001
         links:
           - emulator-plugin
 
@@ -167,7 +171,7 @@ Putting everything here together, we get the final compose file, ``compose.yml``
           - ./devices.yml:/tmp/devices/device.yml
         environment:
           PLUGIN_CONFIG: /tmp/config
-          PLUGIN_DEVICE_PATH: /tmp/devices
+          PLUGIN_DEVICE_CONFIG: /tmp/devices
 
 To run it,
 
@@ -180,7 +184,7 @@ see the four temperature devices that were configured.
 
 .. code-block:: console
 
-    $ curl localhost:5000/synse/2.0/scan
+    $ curl localhost:5000/synse/v2/scan
     {
       "racks":[
         {
@@ -221,12 +225,48 @@ specified there just as it was configured.
 
 .. code-block:: console
 
-    $ curl localhost:5000/synse/2.0/plugins
+    $ curl localhost:5000/synse/v2/plugins
     [
       {
-        "name":"emulator",
-        "network":"tcp",
-        "address":"emulator-plugin:5001"
+        "tag":"vaporio\/emulator-plugin",
+        "name":"emulator plugin",
+        "description":"A plugin with emulated devices and data",
+        "maintainer":"vaporio",
+        "vcs":"github.com\/vapor-ware\/synse-emulator-plugin",
+        "version":{
+          "plugin_version":"2.0.0",
+          "sdk_version":"1.0.0",
+          "build_date":"2018-06-14T16:24:09",
+          "git_commit":"13e6478",
+          "git_tag":"1.0.2-5-g13e6478",
+          "arch":"amd64",
+          "os":"linux"
+        },
+        "network":{
+          "protocol":"tcp",
+          "address":"emulator-plugin:5001"
+        },
+        "health":{
+          "timestamp":"2018-06-28T18:03:02.0690155Z",
+          "status":"ok",
+          "message":"",
+          "checks":[
+            {
+              "name":"read buffer health",
+              "status":"ok",
+              "message":"",
+              "timestamp":"2018-06-28T18:02:56.4710872Z",
+              "type":"periodic"
+            },
+            {
+              "name":"write buffer health",
+              "status":"ok",
+              "message":"",
+              "timestamp":"2018-06-28T18:02:56.4710769Z",
+              "type":"periodic"
+            }
+          ]
+        }
       }
     ]
 

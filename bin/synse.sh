@@ -2,7 +2,7 @@
 
 # synse.sh
 #
-# This script is the entrypoint script for the Synse Server docker
+# This script is the entry point script for the Synse Server docker
 # images. It is used to start Synse Server and to optionally start
 # an instance of the emulator plugin alongside it.
 #
@@ -26,7 +26,7 @@
 # ---------------------------------------------------------------------
 set -o errexit -o pipefail
 
-version="$(python /synse/synse/version.py)"
+version="$(python -c "import synse ; print(synse.__version__)")"
 
 # help
 # ----
@@ -54,8 +54,8 @@ cat <<USAGE
     docker run vaporio/synse-server [flag | subcommand]
 
   Flags:
-    --help | -h     Show this message.
-    --version | -v  Show the version of Synse.
+    --help, -h     Show this message.
+    --version, -v  Show the version of Synse.
 
   Subcommands:
     enable-emulator

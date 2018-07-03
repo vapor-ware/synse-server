@@ -22,7 +22,7 @@ configured, for simplicity of the example)
     services:
       synse-server:
         container_name: synse-server
-        image: vaporio/synse-server:2.0.0
+        image: vaporio/synse-server:latest
         ports:
           - 5000:5000
         healthcheck:
@@ -50,7 +50,7 @@ something similar to
 
 *Note the (healthy) state specified under the STATUS output.*
 
-You can use ``docker insepect <container>`` to get more details on the health check. This is
+You can use ``docker inspect <container>`` to get more details on the health check. This is
 especially useful if the health check is failing or stuck.
 
 .. _psdKubernetes:

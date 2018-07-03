@@ -279,7 +279,7 @@ or by hitting the ``/config`` endpoint
 
 .. code-block:: bash
 
-    curl localhost:5000/synse/2.0/config
+    curl localhost:5000/synse/v2/config
 
 Configurations can also be mounted in via ``docker-compose``
 
