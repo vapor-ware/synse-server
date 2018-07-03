@@ -50,7 +50,7 @@ something similar to
 
 *Note the (healthy) state specified under the STATUS output.*
 
-You can use ``docker insepect <container>`` to get more details on the health check. This is
+You can use ``docker inspect <container>`` to get more details on the health check. This is
 especially useful if the health check is failing or stuck.
 
 .. _psdKubernetes:

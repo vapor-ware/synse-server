@@ -14,7 +14,6 @@ metadata:
 data:
   config.yml: |
     version: 1.0
-    name: emulator
     debug: true
     network:
       type: tcp
@@ -39,29 +38,41 @@ data:
   devices.yml: |
     version: 1.0
     locations:
-      r1vec:
+      - name: r1vec
         rack:
-          from_env: NODE_NAME
-        board: vec
+          fromEnv: NODE_NAME
+        board:
+          name: vec
     devices:
-      - type: temperature
-        model: emul8-temp
+      - name: temperature
+        metadata:
+          model: emul8-temp
+        outputs:
+          - type: temperature
         instances:
-          - id: "1"
+          - info: Synse Temperature Sensor 1
             location: r1vec
-            info: Synse Temperature Sensor 1
-          - id: "2"
+            data:
+              id: 1
+          - info: Synse Temperature Sensor 2
             location: r1vec
-            info: Synse Temperature Sensor 2
-      - type: led
-        model: emul8-led
+            data:
+              id: 2
+      - name: led
+        metadata:
+          model: emul8-led
+        outputs:
+          - type: led.color
+          - type: led.state
         instances:
-          - id: "1"
+          - info: Synse LED
             location: r1vec
-            info: Synse LED
-          - id: "2"
+            data:
+              id: 1
+          - info: Synse backup LED
             location: r1vec
-            info: Synse backup LED
+            data:
+              id: 2
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -97,7 +108,7 @@ spec:
             - name: SYNSE_LOGGING
               value: debug
             # Register the Emulator Plugin via ENV config
-            - name: SYNSE_PLUGIN_TCP_EMULATOR
+            - name: SYNSE_PLUGIN_TCP
               value: localhost:5001
           resources:
             requests:
@@ -115,7 +126,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-            - name: PLUGIN_DEVICE_PATH
+            - name: PLUGIN_DEVICE_CONFIG
               value: /tmp/device/config
             - name: PLUGIN_CONFIG
               value: /tmp/plugin
@@ -125,12 +136,12 @@ spec:
               memory: 100Mi
           volumeMounts:
             # Mount in the emulator plugin configuration to a non-default location.
-            # This path is registered with the plugin via the PLUGIN_CONFIG enviroment
+            # This path is registered with the plugin via the PLUGIN_CONFIG environment
             # variable.
             - name: emulator-plugin-config
               mountPath: /tmp/plugin
             # Mount in the emulator plugin device config to a non-default location.
-            # This path is registered with the plugin via the PLUGIN_DEVICE_PATH
+            # This path is registered with the plugin via the PLUGIN_DEVICE_CONFIG
             # environment variable.
             - name: emulator-device-config
               mountPath: /tmp/device/config

@@ -1,5 +1,5 @@
 ---
-title: API Reference
+title: Synse v2 API Reference
 
 language_tabs:
   - shell
