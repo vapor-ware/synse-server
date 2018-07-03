@@ -71,7 +71,7 @@ curl <pod id>:5000/synse/test
 If successful, you are ready to go. Next, perform a scan to see everything that is available
 via the plugin:
 ```
-curl <pod ip>:5000/synse/2.0/scan
+curl <pod ip>:5000/synse/v2/scan
 ```
 
 This should give back a set of devices - in particular:

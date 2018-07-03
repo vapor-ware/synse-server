@@ -13,4 +13,4 @@ if len(_version) != 3:
 
 major, minor, __ = _version
 
-__api_version__ = major + '.' + minor
+__api_version__ = 'v' + major

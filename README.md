@@ -99,7 +99,7 @@ see the [User Guide][user-guide].
    with, which in this case is the [emulator][synse-emulator].
    
     ```console
-    $ curl http://localhost:5000/synse/2.0/scan
+    $ curl http://localhost:5000/synse/v2/scan
     ```
 
 See the [API Documentation][synse-api] to learn what else Synse Server is capable of.

@@ -6,7 +6,7 @@ language_tabs:
   - python
 
 toc_footers:
-  - Vapor IO • Synse Server • v2.1.0
+  - Vapor IO • Synse Server • v2
 
 search: true
 ---
@@ -158,7 +158,7 @@ response = requests.get('http://host:5000/synse/version')
 ```json
 {
   "version": "2.1.0",
-  "api_version": "2.1"
+  "api_version": "v2"
 }
 
 ```
@@ -182,13 +182,13 @@ should be used in subsequent requests.
 ## Config
 
 ```shell
-curl "http://host:5000/synse/2.1/config"
+curl "http://host:5000/synse/v2/config"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/config')
+response = requests.get('http://host:5000/synse/v2/config')
 ```
 
 > The response JSON would be structured as:
@@ -229,7 +229,7 @@ for more information.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/config`
+`GET http://host:5000/synse/v2/config`
 
 ### Response
 
@@ -241,13 +241,13 @@ describes the configuration scheme in more detail.
 ## Capabilities
 
 ```shell
-curl "http://host:5000/synse/2.1/capabilities"
+curl "http://host:5000/synse/v2/capabilities"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/capabilities')
+response = requests.get('http://host:5000/synse/v2/capabilities')
 ```
 
 > The response JSON would be structured as:
@@ -306,7 +306,7 @@ which device kinds are supported, and for those device kinds, what readings they
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/capabilities`
+`GET http://host:5000/synse/v2/capabilities`
 
 ### Response Fields
 
@@ -321,13 +321,13 @@ which device kinds are supported, and for those device kinds, what readings they
 ## Plugins
 
 ```shell
-curl "http://host:5000/synse/2.1/plugins"
+curl "http://host:5000/synse/v2/plugins"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/plugins')
+response = requests.get('http://host:5000/synse/v2/plugins')
 ```
 
 > The response JSON would be structured as:
@@ -385,7 +385,7 @@ It exposes metadata about the plugin, plugin config info, and the health status 
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/plugins`
+`GET http://host:5000/synse/v2/plugins`
 
 ### Response
 
@@ -428,13 +428,13 @@ check elements here make up a snapshot of the plugin's health at a given time.
 ## Scan
 
 ```shell
-curl "http://host:5000/synse/2.1/scan"
+curl "http://host:5000/synse/v2/scan"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/scan')
+response = requests.get('http://host:5000/synse/v2/scan')
 ```
 
 > The response JSON would be structured as:
@@ -505,7 +505,7 @@ the given rack or board.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/scan[/{rack}[/{board}]]`
+`GET http://host:5000/synse/v2/scan[/{rack}[/{board}]]`
 
 ### URI Parameters
 
@@ -538,13 +538,13 @@ the given rack or board.
 ## Read
 
 ```shell
-curl "http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0c054cf877759db376b03"
+curl "http://host:5000/synse/v2/read/rack-1/vec/eb100067acb0c054cf877759db376b03"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/read/rack-1/vec/eb100067acb0c054cf877759db376b03')
+response = requests.get('http://host:5000/synse/v2/read/rack-1/vec/eb100067acb0c054cf877759db376b03')
 ```
 
 > The response JSON would be structured as:
@@ -602,7 +602,7 @@ as reads not permitted.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/read/{rack}/{board}/{device}`
+`GET http://host:5000/synse/v2/read/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -636,7 +636,7 @@ curl \
   -H "Content-Type: application/json" \
   -X POST \
   -d '{"action": "color", "data": "f38ac2"}' \
-  "http://host:5000/synse/2.1/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
+  "http://host:5000/synse/v2/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
 ```
 
 ```python
@@ -648,7 +648,7 @@ data = {
 }
 
 response = requests.post(
-    'http://host:5000/synse/2.1/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed', 
+    'http://host:5000/synse/v2/write/rack-1/vec/f52d29fecf05a195af13f14c7306cfed', 
     json=data
 )
 ```
@@ -686,14 +686,14 @@ change based on the device type/plugin, but in general the `action` specifies wh
 `data` is the data needed to make that change. See below for more details.
 
 <aside class="notice">
- In Synse Server v2.0, the <i>data</i> field was called <i>raw</i>. For backwards compatibility,
+ In Synse Server v2, the <i>data</i> field was called <i>raw</i>. For backwards compatibility,
  <i>raw</i> is still allowed, but will be phased out in the future.
 </aside>
 
 
 ### HTTP Request
 
-`POST http://host:5000/synse/2.1/write/{rack}/{board}/{device}`
+`POST http://host:5000/synse/v2/write/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -743,13 +743,13 @@ the `action` should be the attribute to set and `data` should be the value to se
 ## Transaction
 
 ```shell
-curl "http://host:5000/synse/2.1/transaction/b9pin8ofmg5g01vmt77g"
+curl "http://host:5000/synse/v2/transaction/b9pin8ofmg5g01vmt77g"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/transaction/b9pin8ofmg5g01vmt77g')
+response = requests.get('http://host:5000/synse/v2/transaction/b9pin8ofmg5g01vmt77g')
 ```
 
 > The response JSON would be structured as:
@@ -772,13 +772,13 @@ response = requests.get('http://host:5000/synse/2.1/transaction/b9pin8ofmg5g01vm
 > To list all cached transactions:
 
 ```shell
-curl "http://host:5000/synse/2.1/transaction"
+curl "http://host:5000/synse/v2/transaction"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/transaction')
+response = requests.get('http://host:5000/synse/v2/transaction')
 ```
 
 > The response JSON would be structured as:
@@ -800,7 +800,7 @@ for more.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/transaction[/{transaction id}]`
+`GET http://host:5000/synse/v2/transaction[/{transaction id}]`
 
 ### URI Parameters
 
@@ -827,13 +827,13 @@ for more.
 > a rack-level request:
 
 ```shell
-curl "http://host:5000/synse/2.1/info/rack-1"
+curl "http://host:5000/synse/v2/info/rack-1"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/info/rack-1')
+response = requests.get('http://host:5000/synse/v2/info/rack-1')
 ```
 
 > The response JSON would be structured as:
@@ -850,13 +850,13 @@ response = requests.get('http://host:5000/synse/2.1/info/rack-1')
 > For a board-level request:
 
 ```shell
-curl "http://host:5000/synse/2.1/info/rack-1/vec"
+curl "http://host:5000/synse/v2/info/rack-1/vec"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/info/rack-1/vec')
+response = requests.get('http://host:5000/synse/v2/info/rack-1/vec')
 ```
 
 > The response JSON would be structured as:
@@ -883,13 +883,13 @@ response = requests.get('http://host:5000/synse/2.1/info/rack-1/vec')
 > For a device-level request:
 
 ```shell
-curl "http://host:5000/synse/2.1/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"
+curl "http://host:5000/synse/v2/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913')
+response = requests.get('http://host:5000/synse/v2/info/rack-1/vec/db1e5deb43d9d0af6d80885e74362913')
 ```
 
 > The response JSON would be structured as:
@@ -937,7 +937,7 @@ Get the available information for the specified resource.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/info/{rack}[/{board}[/{device}]]`
+`GET http://host:5000/synse/v2/info/{rack}[/{board}[/{device}]]`
 
 ### URI Parameters
 
@@ -984,13 +984,13 @@ Get the available information for the specified resource.
 > If no *valid* query parameters are specified, this will **read** from the LED device.
 
 ```shell
-curl "http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
+curl "http://host:5000/synse/v2/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed')
+response = requests.get('http://host:5000/synse/v2/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed')
 ```
 
 > The response JSON will be the same as read response:
@@ -1020,13 +1020,13 @@ response = requests.get('http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a
 > If any *valid* query parameters are specified, this will **write** to the LED device.
 
 ```shell
-curl "http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
+curl "http://host:5000/synse/v2/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on')
+response = requests.get('http://host:5000/synse/v2/led/rack-1/vec/f52d29fecf05a195af13f14c7306cfed?color=00ff00&state=on')
 ```
 
 > The response JSON will be the same as a write response:
@@ -1065,7 +1065,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/led/{rack}/{board}/{device}`
+`GET http://host:5000/synse/v2/led/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -1097,13 +1097,13 @@ See the responses for [read](#read) and [write](#write).
 > If no *valid* query parameters are specified, this will **read** from the fan device.
 
 ```shell
-curl "http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
+curl "http://host:5000/synse/v2/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c')
+response = requests.get('http://host:5000/synse/v2/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c')
 ```
 
 > The response JSON will be the same as read response:
@@ -1129,13 +1129,13 @@ response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd
 > If any *valid* query parameters are specified, this will **write** to the fan device.
 
 ```shell
-curl "http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
+curl "http://host:5000/synse/v2/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200')
+response = requests.get('http://host:5000/synse/v2/fan/rack-1/vec/eb9a56f95b5bd6d9b51996ccd0f2329c?speed=200')
 ```
 
 > The response JSON will be the same as a write response:
@@ -1166,7 +1166,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/fan/{rack}/{board}/{device}`
+`GET http://host:5000/synse/v2/fan/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -1198,13 +1198,13 @@ See the responses for [read](#read) and [write](#write).
 > If no *valid* query parameters are specified, this will **read** from the power device.
 
 ```shell
-curl "http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001"
+curl "http://host:5000/synse/v2/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001')
+response = requests.get('http://host:5000/synse/v2/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001')
 ```
 
 > The response JSON will be the same as read response:
@@ -1227,13 +1227,13 @@ response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f0
 > If any *valid* query parameters are specified, this will **write** to the power device.
 
 ```shell
-curl "http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off"
+curl "http://host:5000/synse/v2/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off')
+response = requests.get('http://host:5000/synse/v2/power/rack-1/vec/fd8e4bd57f041c1131ef965496688001?state=off')
 ```
 
 > The response JSON will be the same as a write response:
@@ -1264,7 +1264,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/power/{rack}/{board}/{device}`
+`GET http://host:5000/synse/v2/power/{rack}/{board}/{device}`
 
 ### URI Parameters
 
@@ -1300,13 +1300,13 @@ See the responses for [read](#read) and [write](#write).
 > If no *valid* query parameters are specified, this will **read** from the boot target device.
 
 ```shell
-curl "http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18"
+curl "http://host:5000/synse/v2/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18')
+response = requests.get('http://host:5000/synse/v2/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18')
 ```
 
 > The response JSON will be the same as read response:
@@ -1329,13 +1329,13 @@ response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/55882
 > If any *valid* query parameters are specified, this will **write** to the boot_target device.
 
 ```shell
-curl "http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe"
+curl "http://host:5000/synse/v2/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe"
 ```
 
 ```python
 import requests
 
-response = requests.get('http://host:5000/synse/2.1/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe')
+response = requests.get('http://host:5000/synse/v2/boot_target/rack-1/vec/558828ddb1b4e2a9b2e14a28a1eebd18?target=pxe')
 ```
 
 > The response JSON will be the same as a write response:
@@ -1366,7 +1366,7 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 
 ### HTTP Request
 
-`GET http://host:5000/synse/2.1/boot_target/{rack}/{board}/{device}`
+`GET http://host:5000/synse/v2/boot_target/{rack}/{board}/{device}`
 
 ### URI Parameters
 

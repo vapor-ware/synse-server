@@ -12,5 +12,5 @@ def test_version():
 
     assert synse.version.major == act_maj
     assert synse.version.minor == act_min
-    assert synse.version.__api_version__ == act_maj + '.' + act_min
+    assert synse.version.__api_version__ == 'v' + act_maj
     assert synse.version.__version__ == actual

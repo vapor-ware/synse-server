@@ -56,7 +56,7 @@ You can get the API version of Synse Server, which is used in subsequent API cal
     $ curl http://localhost:5000/synse/version
     {
       "version": "2.1.0",
-      "api_version": "2.1"
+      "api_version": "v2"
     }
 
 Finally, you can see what devices are available to Synse Server by running a scan, using
@@ -64,7 +64,7 @@ the API version you got above.
 
 .. code-block:: console
 
-    $ curl http://localhost:5000/synse/2.1/scan
+    $ curl http://localhost:5000/synse/v2/scan
 
 This lists all devices that are configured with the registered plugins (in this case,
 the emulator) and can be managed and monitored by Synse Server. To see what else Synse

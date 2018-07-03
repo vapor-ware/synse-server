@@ -46,7 +46,7 @@ specifying the container name, image, and ports
 
     synse-server:
       container_name: synse-server
-      image: vaporio/synse-server:2.0.0-slim
+      image: vaporio/synse-server:latest-slim
       ports:
         - 5000:5000
       environment:
@@ -149,7 +149,7 @@ Putting everything here together, we get the final compose file, ``compose.yml``
     services:
       synse-server:
         container_name: synse-server
-        image: vaporio/synse-server:2.0.0-slim
+        image: vaporio/synse-server:latest-slim
         ports:
           - 5000:5000
         environment:
@@ -180,7 +180,7 @@ see the four temperature devices that were configured.
 
 .. code-block:: console
 
-    $ curl localhost:5000/synse/2.0/scan
+    $ curl localhost:5000/synse/v2/scan
     {
       "racks":[
         {
@@ -221,7 +221,7 @@ specified there just as it was configured.
 
 .. code-block:: console
 
-    $ curl localhost:5000/synse/2.0/plugins
+    $ curl localhost:5000/synse/v2/plugins
     [
       {
         "name":"emulator",

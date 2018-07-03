@@ -22,7 +22,7 @@ configured, for simplicity of the example)
     services:
       synse-server:
         container_name: synse-server
-        image: vaporio/synse-server:2.0.0
+        image: vaporio/synse-server:latest
         ports:
           - 5000:5000
         healthcheck:
