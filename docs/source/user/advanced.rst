@@ -69,6 +69,18 @@ using label matching. Below is an example Kubernetes configuration that will cre
 Deployment for Synse Server and the Emulator Plugin. Synse Server is configured to discover the
 plugin using endpoint labels, specifically the ``app=synse`` and ``component=plugin`` labels.
 
+In the example below, Synse Server is configured for plugin discovery via a mounted ConfigMap. It
+can also be configured via environment variable, e.g.
+
+.. code-block:: none
+
+    SYNSE_PLUGIN_DISCOVER_KUBERNETES_ENDPOINTS_LABELS_APP=synse
+    SYNSE_PLUGIN_DISCOVER_KUBERNETES_ENDPOINTS_LABELS_COMPONENT=plugin
+
+Where ``SYNSE_PLUGIN_DISCOVER_KUBERNETES_ENDPOINTS_LABELS`` is the key prefix for discovery using
+kubernetes endpoint labels, ``APP`` and ``COMPONENT`` (the last elements of the ENV variable name)
+are the label keys, and the env variable values are the values for those keys.
+
 .. code-block:: yaml
 
     apiVersion: v1
