@@ -350,9 +350,10 @@ def register_unix():
             .format(const.SOCKET_DIR)
         )
     else:
-        logger.debug(_(
-            'Registering plugins from default socket directory ({})'.format(
-                const.SOCKET_DIR)))
+        logger.debug(
+            _('Registering plugins from default socket directory ({})')
+            .format(const.SOCKET_DIR)
+        )
 
         for item in os.listdir(const.SOCKET_DIR):
             logger.debug('  {}'.format(item))

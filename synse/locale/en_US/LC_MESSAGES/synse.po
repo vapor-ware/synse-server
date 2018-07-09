@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-06-15 15:20-0400\n"
+"POT-Creation-Date: 2018-07-09 09:31-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -95,8 +95,8 @@ msgstr ""
 msgid "PluginManager purged plugins: {}"
 msgstr ""
 
-#: synse/plugin.py:203 synse/plugin.py:299 synse/plugin.py:342
-#: synse/plugin.py:367
+#: synse/plugin.py:203 synse/plugin.py:298 synse/plugin.py:341
+#: synse/plugin.py:369
 msgid "Failed to register plugin with address: {}"
 msgstr ""
 
@@ -132,47 +132,39 @@ msgstr ""
 msgid "Registered new plugin: {}"
 msgstr ""
 
-#: synse/plugin.py:287
-msgid "Registering plugins (tcp)"
-msgstr ""
-
-#: synse/plugin.py:292
+#: synse/plugin.py:291
 msgid "No plugin configurations for TCP"
 msgstr ""
 
-#: synse/plugin.py:295
+#: synse/plugin.py:294
 msgid "TCP plugin configuration: {}"
 msgstr ""
 
-#: synse/plugin.py:321
-msgid "Registering plugins (unix)"
-msgstr ""
-
-#: synse/plugin.py:326
+#: synse/plugin.py:325
 msgid "No plugin configurations for unix"
 msgstr ""
 
-#: synse/plugin.py:328
+#: synse/plugin.py:327
 msgid "unix plugin configuration: {}"
 msgstr ""
 
-#: synse/plugin.py:333
+#: synse/plugin.py:332
 msgid "Socket {} not found"
 msgstr ""
 
-#: synse/plugin.py:337
+#: synse/plugin.py:336
 msgid "{} is not a socket"
 msgstr ""
 
-#: synse/plugin.py:350
+#: synse/plugin.py:349
 msgid "No default socket path found, no plugins will be registered from {}"
 msgstr ""
 
 #: synse/plugin.py:354
-msgid "Registering plugins from default socket directory"
+msgid "Registering plugins from default socket directory ({})"
 msgstr ""
 
-#: synse/plugin.py:362
+#: synse/plugin.py:364
 msgid "{} is not a socket - skipping"
 msgstr ""
 
@@ -244,7 +236,7 @@ msgstr ""
 msgid "Unable to find plugin named \"{}\" to read"
 msgstr ""
 
-#: synse/commands/read.py:82
+#: synse/commands/read.py:86
 msgid ""
 "Read for {}/{}/{} returned gRPC \"no readings found\". Will apply None as"
 " reading value. Note that this response might indicate plugin "
@@ -343,47 +335,47 @@ msgstr ""
 msgid "No ports for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:119
+#: synse/discovery/kubernetes.py:120
 msgid "skipping port (want name:http, but found name:{})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:128
+#: synse/discovery/kubernetes.py:131
 msgid "endpoint.name={}, ip={}, port={}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:130
+#: synse/discovery/kubernetes.py:133
 msgid "No ip/port found for endpoint {} - skipping"
 msgstr ""
 
-#: synse/proto/client.py:92
+#: synse/proto/client.py:91
 msgid "Issuing gRPC test request"
 msgstr ""
 
-#: synse/proto/client.py:106
+#: synse/proto/client.py:105
 msgid "Issuing gRPC health request"
 msgstr ""
 
-#: synse/proto/client.py:119
+#: synse/proto/client.py:118
 msgid "Issuing gRPC metainfo request"
 msgstr ""
 
-#: synse/proto/client.py:133
+#: synse/proto/client.py:132
 msgid "Issuing gRPC capabilities request"
 msgstr ""
 
-#: synse/proto/client.py:151
+#: synse/proto/client.py:150
 msgid "Issuing gRPC devices request"
 msgstr ""
 
-#: synse/proto/client.py:180
+#: synse/proto/client.py:179
 msgid "Issuing gRPC read request"
 msgstr ""
 
-#: synse/proto/client.py:206
+#: synse/proto/client.py:205
 msgid "Issuing gRPC write request"
 msgstr ""
 
-#: synse/proto/client.py:231
+#: synse/proto/client.py:230
 msgid "Issuing gRPC transaction request"
 msgstr ""
 
@@ -471,15 +463,15 @@ msgstr ""
 msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\""
 msgstr ""
 
-#: synse/scheme/read.py:55
+#: synse/scheme/read.py:59
 msgid "Formatting read response"
 msgstr ""
 
-#: synse/scheme/read.py:87
+#: synse/scheme/read.py:91
 msgid "Found unexpected reading type \"{}\" for device {}"
 msgstr ""
 
-#: synse/scheme/read.py:107
+#: synse/scheme/read.py:111
 msgid "Reading value for {} came back as empty/null"
 msgstr ""
 
@@ -688,5 +680,14 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Registering new client for Plugin: {}"
+#~ msgstr ""
+
+#~ msgid "Registering plugins (tcp)"
+#~ msgstr ""
+
+#~ msgid "Registering plugins (unix)"
+#~ msgstr ""
+
+#~ msgid "Registering plugins from default socket directory"
 #~ msgstr ""
 
