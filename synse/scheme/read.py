@@ -102,19 +102,9 @@ class ReadResponse(SynseResponse):
             if field is not None:
                 value = getattr(reading, field)
 
-            # FIXME (etd) is this block still relevent with the grpc changes? I don't think it is.
-            # Handle cases where no data was read. Currently, we consider the reading
-            # to have no data if:
-            #   - the ReadResponse value comes back as an empty string (e.g. "")
-            #   - the ReadResponse value comes back as the string "null".
-            if value == '' or value == 'null':
-                logger.info(_('Reading value for {} came back as empty/null').format(rt))
-                value = None
-
-            else:
-                # Set the specified precision
-                if precision and isinstance(value, float):
-                    value = round(value, precision)
+            # Set the specified precision, if specified
+            if precision and isinstance(value, float):
+                value = round(value, precision)
 
             formatted.append({
                 'value': value,

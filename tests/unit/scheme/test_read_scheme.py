@@ -66,7 +66,7 @@ def test_read_scheme():
     }
 
 
-def test_read_scheme_empty_value():
+def test_read_scheme_empty_string_value():
     """Test that the read scheme matches the expected when the read value
     is an empty string.
     """
@@ -76,6 +76,35 @@ def test_read_scheme_empty_value():
         timestamp='november',
         type='temperature',
         string_value=''
+    )
+
+    response_scheme = ReadResponse(dev, [reading])
+
+    assert response_scheme.data == {
+        'kind': 'thermistor',
+        'data': [
+            {
+                'info': '',
+                'type': 'temperature',
+                'value': '',  # an empty string is a valid value
+                'timestamp': 'november',
+                'unit': {
+                    'name': 'celsius',
+                    'symbol': 'C'
+                }
+            }
+        ]
+    }
+
+
+def test_read_scheme_null_value():
+    """Test that the read scheme matches the expected when there is no read value.
+    """
+    dev = make_device_response()
+
+    reading = api.Reading(
+        timestamp='november',
+        type='temperature',
     )
 
     response_scheme = ReadResponse(dev, [reading])
