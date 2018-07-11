@@ -27,7 +27,7 @@ requests==2.19.1          # via kubernetes, requests-oauthlib
 rsa==3.4.2                # via google-auth
 sanic==0.7.0
 six==1.11.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, websocket-client
-synse-grpc==1.0.0         # via https://pypi.org/project/synse-grpc/ For dev workflow, copy to this repo and change Dockerfile to use copy.
+synse-grpc==1.0.1         # via https://pypi.org/project/synse-grpc/ For dev workflow, copy to this repo and change Dockerfile to use copy.
 ujson==1.35               # via sanic
 urllib3==1.23             # via kubernetes, requests
 uvloop==0.9.1             # via sanic
