@@ -11,7 +11,7 @@ from synse.i18n import _
 from synse.log import logger
 
 
-class WriteData(object):
+class WriteData:
     """The WriteData object is a convenient way to group together
     write actions and raw data into a single bundle for a single write
     transaction.
@@ -49,7 +49,7 @@ class WriteData(object):
         )
 
 
-class PluginClient(object):
+class PluginClient:
     """The `PluginClient` class provides an interface to Synse Plugins
     via the Synse Plugin gRPC API.
 
