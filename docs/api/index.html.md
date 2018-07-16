@@ -528,7 +528,7 @@ By default, `scan` will enumerate all devices on all boards on all racks. The `r
 parameters, defined below, can be used to refine the scan to return devices only within the scope of
 the given rack or board.
 
-The scan results are sorted by rack id, board id, and device id.
+The scan results are sorted by rack id, board id, and plugin.
 
 ### HTTP Request
 

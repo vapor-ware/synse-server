@@ -600,22 +600,19 @@ def _build_scan_cache(device_info):
             for bid in sorted_board_ids:
                 board = rack_ref['boards'][bid]
 
-                # Sort all devices on each board by device id
-                board['devices'] = sorted(board['devices'], key=lambda d: d['id'])
-                rack['boards'].append(board)
+                # Sort all devices on each board by plugin and sort ordinal
+                board['devices'] = sorted(
+                    board['devices'],
+                    key=lambda d: (d['plugin'], d['sort_ordinal'])
+                )
 
-            scan_cache['racks'].append(rack)
-
-        # Sort each rack by plugin and sort_ordinal.
-        for rack in scan_cache['racks']:
-            for board in rack['boards']:
-                board['devices'] = \
-                    sorted(board['devices'], key=lambda o: (o['plugin'], o['sort_ordinal']))
-                # Delete the plugin and sort_ordinal keys after sorting.
+                # Delete the plugin and sort_ordinal from the scan result after sorting.
                 for device in board['devices']:
                     del device['plugin']
                     del device['sort_ordinal']
 
+                rack['boards'].append(board)
+            scan_cache['racks'].append(rack)
     return scan_cache
 
 
