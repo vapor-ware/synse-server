@@ -449,39 +449,64 @@ response = requests.get('http://host:5000/synse/v2/scan')
           "id": "vec",
           "devices": [
             {
-              "id": "eb100067acb0c054cf877759db376b03",
-              "info": "Synse Temperature Sensor 1",
+              "id": "0fe8f06229aa9a01ef6032d1ddaf18a5",
+              "info": "Synse Temperature Sensor 3",
               "type": "temperature"
             },
             {
-              "id": "83cc1efe7e596e4ab6769e0c6e3edf88",
-              "info": "Synse Temperature Sensor 2",
-              "type": "temperature"
-            },
-            {
-              "id": "329a91c6781ce92370a3c38ba9bf35b2",
-              "info": "Synse Temperature Sensor 4",
-              "type": "temperature"
-            },
-            {
-              "id": "f97f284037b04badb6bb7aacd9654a4e",
-              "info": "Synse Temperature Sensor 5",
-              "type": "temperature"
-            },
-            {
-              "id": "eb9a56f95b5bd6d9b51996ccd0f2329c",
+              "id": "12835beffd3e6c603aa4dd92127707b5",
               "info": "Synse Fan",
               "type": "fan"
             },
             {
-              "id": "f52d29fecf05a195af13f14c7306cfed",
+              "id": "12ea5644d052c6bf1bca3c9864fd8a44",
               "info": "Synse LED",
               "type": "led"
             },
             {
-              "id": "d29e0bd113a484dc48fd55bd3abad6bb",
-              "info": "Synse Backup LED",
+              "id": "34c226b1afadaae5f172a4e1763fd1a6",
+              "info": "Synse Humidity Sensor",
+              "type": "humidity"
+            },
+            {
+              "id": "3ee84834c79c5a124d858e237e81e186",
+              "info": "Synse Temperature Sensor 2",
+              "type": "temperature"
+            },
+            {
+              "id": "45ffe8f7f7a2b0ae970b687abd06f9e6",
+              "info": "Synse Temperature Sensor 1",
+              "type": "temperature"
+            },
+            {
+              "id": "8f7ac60be5c8a3815ce89753de138edf",
+              "info": "Synse Temperature Sensor 5",
+              "type": "temperature"
+            },
+            {
+              "id": "bcf0618c50bff9121cb10d141d66f46f",
+              "info": "Synse backup LED",
               "type": "led"
+            },
+            {
+              "id": "df6a06d6e28da8aab0c25ee41688fd1c",
+              "info": "Synse Airflow Sensor",
+              "type": "airflow"
+            },
+            {
+              "id": "e385de0e2b5d16af5e34167d479fc766",
+              "info": "Synse Pressure Sensor 1",
+              "type": "pressure"
+            },
+            {
+              "id": "f441d97b2f6545ef3001a688489e820a",
+              "info": "Synse Temperature Sensor 4",
+              "type": "temperature"
+            },
+            {
+              "id":" f838b2d6afceb01e7a2634893f6f935c",
+              "info": "Synse Pressure Sensor 2",
+              "type": "pressure"
             }
           ]
         }
@@ -502,6 +527,8 @@ information (e.g. rack ID, board ID, device ID) can be used in subsequent comman
 By default, `scan` will enumerate all devices on all boards on all racks. The `rack` and `board` URI
 parameters, defined below, can be used to refine the scan to return devices only within the scope of
 the given rack or board.
+
+The scan results are sorted by rack id, board id, and plugin.
 
 ### HTTP Request
 

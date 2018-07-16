@@ -589,24 +589,30 @@ def _build_scan_cache(device_info):
         # Add the root 'racks' field to the scan data
         scan_cache['racks'] = []
 
-        # Populate the rack info and add it to the scan data racks list
-        for ref in _tracked.values():
-            ref['rack']['boards'] = list(ref['boards'].values())
-            scan_cache['racks'].append(ref['rack'])
+        # Sort the racks in the _tracked dictionary by rack id
+        sorted_rack_ids = sorted(_tracked.keys())
+        for rid in sorted_rack_ids:
+            rack_ref = _tracked[rid]
+            rack = rack_ref['rack']
 
-        # Sort the scan cache by racks['id']
-        scan_cache['racks'] = sorted(scan_cache['racks'], key=lambda rck: rck['id'])
+            # Sort each board on each rack by board id
+            sorted_board_ids = sorted(rack_ref['boards'].keys())
+            for bid in sorted_board_ids:
+                board = rack_ref['boards'][bid]
 
-        # Sort each rack by plugin and sort_ordinal.
-        for rack in scan_cache['racks']:
-            for board in rack['boards']:
-                board['devices'] = \
-                    sorted(board['devices'], key=lambda o: (o['plugin'], o['sort_ordinal']))
-                # Delete the plugin and sort_ordinal keys after sorting.
+                # Sort all devices on each board by plugin and sort ordinal
+                board['devices'] = sorted(
+                    board['devices'],
+                    key=lambda d: (d['plugin'], d['sort_ordinal'])
+                )
+
+                # Delete the plugin and sort_ordinal from the scan result after sorting.
                 for device in board['devices']:
                     del device['plugin']
                     del device['sort_ordinal']
 
+                rack['boards'].append(board)
+            scan_cache['racks'].append(rack)
     return scan_cache
 
 
