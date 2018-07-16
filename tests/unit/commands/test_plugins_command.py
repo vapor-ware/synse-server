@@ -40,7 +40,6 @@ def disable_register():
     # the plugins won't be in standard places so we disable registration.
     def passthru():
         """Passthrough function for testing."""
-        return
 
     plugin.register_plugins = passthru
 

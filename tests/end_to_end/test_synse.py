@@ -28,7 +28,7 @@ host = os.environ.get('SYNSE_TEST_HOST', 'localhost')
 # Test Utilities
 # -------------------------------
 
-class EmulatorDevices(object):
+class EmulatorDevices:
     """EmulatorDevices is a container that defines the well-known device
     IDs for the emulator devices. Since the emulator is configured the
     same way for these tests, it should always produce the same device
@@ -311,7 +311,7 @@ def validate_scan_board(board):
 # Status
 #
 
-class TestStatus(object):
+class TestStatus:
     """Tests for the 'test' route."""
 
     def test_status_ok(self):
@@ -329,7 +329,7 @@ class TestStatus(object):
 # Version
 #
 
-class TestVersion(object):
+class TestVersion:
     """Tests for the 'version' route."""
 
     def test_version_ok(self):
@@ -348,7 +348,7 @@ class TestVersion(object):
 # Config
 #
 
-class TestConfig(object):
+class TestConfig:
     """Tests for the 'config' route."""
 
     def test_config_ok(self):
@@ -388,7 +388,7 @@ class TestConfig(object):
 # Plugins
 #
 
-class TestPlugins(object):
+class TestPlugins:
     """Tests for the 'plugins' route."""
 
     def test_plugins_ok(self):
@@ -428,7 +428,7 @@ class TestPlugins(object):
 # Scan
 #
 
-class TestScan(object):
+class TestScan:
     """Tests for the 'scan' route."""
 
     @pytest.mark.parametrize(
@@ -513,7 +513,7 @@ class TestScan(object):
 # Read
 #
 
-class TestRead(object):
+class TestRead:
     """Tests for the 'read' route."""
 
     @pytest.mark.parametrize(
@@ -569,7 +569,7 @@ class TestRead(object):
 # Write
 #
 
-class TestWrite(object):
+class TestWrite:
     """Tests for the 'write' route."""
 
     @pytest.mark.parametrize(
@@ -654,7 +654,7 @@ class TestWrite(object):
 # Info
 #
 
-class TestInfo(object):
+class TestInfo:
     """Tests for the 'info' route."""
 
     def test_rack_info_no_ctx(self):
@@ -763,7 +763,7 @@ class TestInfo(object):
 # LED
 #
 
-class TestLED(object):
+class TestLED:
     """Tests for the 'led' route."""
 
     @pytest.mark.parametrize(
@@ -864,7 +864,7 @@ class TestLED(object):
 # Fan
 #
 
-class TestFan(object):
+class TestFan:
     """Tests for the 'fan' route."""
 
     @pytest.mark.parametrize(
