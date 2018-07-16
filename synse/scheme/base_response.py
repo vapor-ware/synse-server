@@ -3,7 +3,7 @@
 from synse.response import json
 
 
-class SynseResponse(object):
+class SynseResponse:
     """SynseResponse is the base object for all implemented response
     schemes.
 

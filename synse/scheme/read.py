@@ -107,7 +107,7 @@ class ReadResponse(SynseResponse):
             # to have no data if:
             #   - the ReadResponse value comes back as an empty string (e.g. "")
             #   - the ReadResponse value comes back as the string "null".
-            if value == '' or value == 'null':
+            if value in ('', 'null'):
                 logger.info(_('Reading value for {} came back as empty/null').format(rt))
                 value = None
 

@@ -10,7 +10,7 @@ from synse.log import logger
 from synse.proto import client
 
 
-class PluginManager(object):
+class PluginManager:
     """Manager for all registered background plugins.
 
     Only a single instance of the PluginManager should be used. It is
@@ -107,7 +107,7 @@ class PluginManager(object):
         logger.debug(_('PluginManager purged plugins: {}').format(ids))
 
 
-class Plugin(object):
+class Plugin:
     """The Plugin object models a Synse Plugin that has been registered with
     Synse Server. It holds the Plugin metadata as well as a reference to a client
     for communicating with the plugin via the Synse gRPC API.

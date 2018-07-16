@@ -45,7 +45,6 @@ def mock_read(monkeypatch):
 
 def mockvalidatedevicetype(device_type, rack, board, device):
     """Mock method that will be used in mokeypatching the validate device type method."""
-    return
 
 
 @pytest.fixture()
