@@ -485,7 +485,7 @@ def _build_scan_cache(device_info):
     """Build the scan cache.
 
     This builds the scan cache, adhering to the Scan response scheme,
-    using the contents of the meta-info cache.
+    using the contents of the device-info cache.
 
     Args:
         device_info (dict): The device info cache dictionary.
@@ -519,6 +519,8 @@ def _build_scan_cache(device_info):
         rack_id = source.location.rack
         board_id = source.location.board
         device_id = source.uid
+        plugin = source.plugin
+        sort_ordinal = source.sortOrdinal
 
         # The given rack does not yet exist in our scan cache.
         # In this case, we will create it, along with the board
@@ -530,7 +532,9 @@ def _build_scan_cache(device_info):
                     {
                         'id': device_id,
                         'info': source.info,
-                        'type': utils.type_from_kind(source.kind)
+                        'type': utils.type_from_kind(source.kind),
+                        'plugin': plugin,
+                        'sort_ordinal': sort_ordinal,
                     }
                 ]
             }
@@ -563,7 +567,9 @@ def _build_scan_cache(device_info):
                         {
                             'id': device_id,
                             'info': source.info,
-                            'type': utils.type_from_kind(source.kind)
+                            'type': utils.type_from_kind(source.kind),
+                            'plugin': plugin,
+                            'sort_ordinal': sort_ordinal,
                         }
                     ]
                 }
@@ -574,7 +580,9 @@ def _build_scan_cache(device_info):
                 r['boards'][board_id]['devices'].append({
                     'id': device_id,
                     'info': source.info,
-                    'type': utils.type_from_kind(source.kind)
+                    'type': utils.type_from_kind(source.kind),
+                    'plugin': plugin,
+                    'sort_ordinal': sort_ordinal,
                 })
 
     if _tracked:
@@ -597,6 +605,16 @@ def _build_scan_cache(device_info):
                 rack['boards'].append(board)
 
             scan_cache['racks'].append(rack)
+
+        # Sort each rack by plugin and sort_ordinal.
+        for rack in scan_cache['racks']:
+            for board in rack['boards']:
+                board['devices'] = \
+                    sorted(board['devices'], key=lambda o: (o['plugin'], o['sort_ordinal']))
+                # Delete the plugin and sort_ordinal keys after sorting.
+                for device in board['devices']:
+                    del device['plugin']
+                    del device['sort_ordinal']
 
     return scan_cache
 
