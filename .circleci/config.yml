@@ -211,6 +211,7 @@ workflows:
   build:
     jobs:
       - test
+      - lint
       - publish-edge:
           context: vapor-auto
           requires:
