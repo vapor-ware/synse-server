@@ -52,6 +52,29 @@ jobs:
           key: v1-test-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/py36
+      - store_artifacts:
+          path: ./results
+      - store_test_results:
+          path: ./results/pytest
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build Docker Image
+          command: make docker
+
+  # lint
+  #
+  # This job runs linting on project source files.
+  lint:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo chown -R circleci:circleci /usr/local/bin
+            sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+            pip install tox>=2.9.0
       - restore_cache:
           keys:
             - v1-lint-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
@@ -62,15 +85,6 @@ jobs:
           key: v1-lint-{{ checksum "requirements.txt" }}-{{ checksum "tox.ini" }}
           paths:
             - .tox/lint
-      - store_artifacts:
-          path: ./results
-      - store_test_results:
-          path: ./results/pytest
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Build Docker Image
-          command: make docker
 
   # publish-edge
   #
@@ -197,6 +211,7 @@ workflows:
   build:
     jobs:
       - test
+      - lint
       - publish-edge:
           context: vapor-auto
           requires:

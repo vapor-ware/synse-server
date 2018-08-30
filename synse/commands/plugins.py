@@ -27,7 +27,11 @@ async def get_plugins():
     #  - metadata (grpc metadata) .. we need to make a call for this
     #  - health (grpc health)     .. we need to make a call for this
     plugins = []
-    async for p in plugin.get_plugins():
+
+    # FIXME (etd): as of pylint 2.1.1, this gets marked with 'not-an-iterable'
+    # It still appears to work just fine, so need to figure out why it is getting
+    # marked as such and what should be done to fix it.
+    async for p in plugin.get_plugins():  # pylint: disable=not-an-iterable
         _plugin = p[1]
         # Get the plugin config and add it to the plugin data
         plugin_data = {
