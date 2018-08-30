@@ -3,6 +3,7 @@
     <a href="https://circleci.com/gh/vapor-ware/synse-server"><img src="https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield"></a>
     <a href="https://codecov.io/gh/vapor-ware/synse-server"><img src="https://codecov.io/gh/vapor-ware/synse-server/branch/master/graph/badge.svg" /></a>
     <a href='http://synse-server.readthedocs.io/en/latest/?badge=latest'><img src='https://readthedocs.org/projects/synse-server/badge/?version=latest' alt='Documentation Status' /></a>
+    <a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server.svg?type=shield"/></a>
         
 <h1 align="center">Synse Server</h1>
 </p>
@@ -115,7 +116,10 @@ We welcome contributions to the project. The project maintainers actively manage
 and pull requests. If you choose to contribute, we ask that you either comment on an existing
 issue or open a new one. This project follows the typical [GitHub Workflow][gh-workflow].
 
+## License
 Synse Server is released under the [GPL-3.0](LICENSE) license.
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server?ref=badge_large)
 
 
 [synse-api]: https://vapor-ware.github.io/synse-server/
