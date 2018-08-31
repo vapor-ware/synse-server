@@ -4,7 +4,8 @@ network:
   type: tcp
   address: ":5001"
   tls:
-    key: /tmp/ssl/pluginserver.key
-    cert: /tmp/ssl/pluginserver.crt
+    skipVerify: true
+    key: /tmp/ssl/emulator-plugin.key
+    cert: /tmp/ssl/emulator-plugin.crt
     caCerts:
-      - /tmp/ssl/Vapor_IO.crt
+      - /tmp/ssl/rootCA.crt
