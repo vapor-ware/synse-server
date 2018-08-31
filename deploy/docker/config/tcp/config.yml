@@ -3,9 +3,10 @@ debug: true
 network:
   type: tcp
   address: ":5001"
-  tls:
-    skipVerify: true
-    key: /tmp/ssl/emulator-plugin.key
-    cert: /tmp/ssl/emulator-plugin.crt
-    caCerts:
-      - /tmp/ssl/rootCA.crt
+  # [TLS config]: tells the plugin where the keys/certs are located
+  #tls:
+  #  skipVerify: true
+  #  key: /tmp/ssl/emulator-plugin.key
+  #  cert: /tmp/ssl/emulator-plugin.crt
+  #  caCerts:
+  #    - /tmp/ssl/rootCA.crt

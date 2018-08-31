@@ -29,7 +29,7 @@ scheme = Scheme(
     DictOption('grpc', scheme=Scheme(
         Option('timeout', default=3, field_type=int),
         DictOption('tls', default={}, bind_env=True, scheme=Scheme(
-            Option('cert', field_type=str)
+            Option('cert', default="", field_type=str)  # FIXME: no default
         ))
     )),
 )

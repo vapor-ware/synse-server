@@ -18,10 +18,11 @@ services:
     environment:
       SYNSE_LOGGING: debug
       SYNSE_PLUGIN_TCP: emulator-plugin:5001
-      SYNSE_GRPC_TLS_CERT: /tmp/ssl/emulator-plugin.crt
-    volumes:
-      - ./emulator-plugin.crt:/tmp/ssl/emulator-plugin.crt
-      #- ./out/Vapor_IO.crt:/tmp/ssl/ca.crt
+      # [TLS config]: specify the cert to use for gRPC TLS
+      #SYNSE_GRPC_TLS_CERT: /tmp/ssl/emulator-plugin.crt
+    # [TLS config]: volume is only needed for mounting in cert for TLS
+    #volumes:
+    #  - ./certs/emulator-plugin.crt:/tmp/ssl/emulator-plugin.crt
     links:
       - emulator-plugin
 
@@ -39,12 +40,10 @@ services:
       # mount in the device instance configuration (see the environment
       # section on how to reference this non-default location)
       - ./config/devices:/tmp/devices
-      #- ./out/pluginserver.crt:/tmp/ssl/pluginserver.crt
-      #- ./out/pluginserver.key:/tmp/ssl/pluginserver.key
-      #- ./out/Vapor_IO.crt:/tmp/ssl/Vapor_IO.crt
-      - ./emulator-plugin.crt:/tmp/ssl/emulator-plugin.crt
-      - ./emulator-plugin.key:/tmp/ssl/emulator-plugin.key
-      - ./rootCA.crt:/tmp/ssl/rootCA.crt
+      # [TLS config]: mount in the keys/certs needed for gRPC TLS
+      #- ./certs/emulator-plugin.crt:/tmp/ssl/emulator-plugin.crt
+      #- ./certs/emulator-plugin.key:/tmp/ssl/emulator-plugin.key
+      #- ./certs/rootCA.crt:/tmp/ssl/rootCA.crt
     environment:
       # sets the override location for the plugin configuration
       PLUGIN_CONFIG: /tmp/config

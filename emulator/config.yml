@@ -10,4 +10,3 @@ settings:
     interval: 1s
   write:
     interval: 1s
-sslEnable: true
