@@ -32,7 +32,7 @@ LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.version=$BUILD_VERSION
 
 # Emulator installation script
-COPY bin/install_emulator.sh tmp/install_emulator.sh
+#COPY bin/install_emulator.sh tmp/install_emulator.sh
 
 # Environment variables for built-in emulator configuration.
 ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
@@ -43,8 +43,11 @@ ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
 # we can make a symlink to fix the missing dependency:
 # https://stackoverflow.com/a/35613430
 RUN set -e -x \
+    && apk --update add ca-certificates \
     && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 \
-    && apk --update --no-cache --virtual .build-dep add \
-        curl jq \
-    && EMULATOR_OUT=/usr/local/bin/emulator ./tmp/install_emulator.sh \
-    && apk del .build-dep
+    && mv emulator/emulator /usr/local/bin/emulator
+#    && apk --update --no-cache --virtual .build-dep add \
+#        curl jq \
+#    && EMULATOR_OUT=/usr/local/bin/emulator ./tmp/install_emulator.sh \
+#    && apk del .build-dep
+

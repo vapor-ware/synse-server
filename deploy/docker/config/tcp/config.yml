@@ -1,5 +1,10 @@
-version: 1.0
+version: 1.1
 debug: true
 network:
   type: tcp
   address: ":5001"
+  tls:
+    key: /tmp/ssl/pluginserver.key
+    cert: /tmp/ssl/pluginserver.crt
+    caCerts:
+      - /tmp/ssl/Vapor_IO.crt
