@@ -369,14 +369,7 @@ class TestConfig:
             'logging': 'debug',
             'plugin': {
                 'tcp': [],
-                'unix': [],
-                'discover': {
-                    'kubernetes': {
-                        'endpoints': {
-                            'labels': {},
-                        }
-                    }
-                }
+                'unix': []
             },
             'pretty_json': True
         }
