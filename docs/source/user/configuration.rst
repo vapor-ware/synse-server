@@ -178,6 +178,14 @@ variable, ``SYNSE_LOGGING=error``.
         | *default*: ``3``
 
 
+    :tls:
+        Configuration options relating to securing the gRPC communication
+        layer with TLS/SSL.
+
+        :cert:
+            The fully qualified path to the cert to use when communicating
+            with plugins.
+
 Examples
 --------
 
@@ -229,6 +237,8 @@ Below is a valid (if contrived) and complete example configuration file.
     grpc:
       # timeout in seconds
       timeout: 5
+      tls:
+        cert: /tmp/ssl/example.crt
 
 
 Configuring Synse Server
