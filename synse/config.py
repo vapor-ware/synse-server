@@ -10,10 +10,10 @@ scheme = Scheme(
     DictOption('plugin', default={}, scheme=Scheme(
         ListOption('tcp', default=[], member_type=str, bind_env=True),
         ListOption('unix', default=[], member_type=str, bind_env=True),
-        DictOption('discover', default={}, bind_env=True, scheme=Scheme(
-            DictOption('kubernetes', default={}, bind_env=True, scheme=Scheme(
-                DictOption('endpoints', default={}, bind_env=True, scheme=Scheme(
-                    DictOption('labels', default={}, bind_env=True, scheme=None)
+        DictOption('discover', required=False, bind_env=True, scheme=Scheme(
+            DictOption('kubernetes', required=False, bind_env=True, scheme=Scheme(
+                DictOption('endpoints', required=False, bind_env=True, scheme=Scheme(
+                    DictOption('labels', bind_env=True, scheme=None)
                 )),
             ))
         )),
@@ -27,7 +27,10 @@ scheme = Scheme(
         ))
     )),
     DictOption('grpc', scheme=Scheme(
-        Option('timeout', default=3, field_type=int)
+        Option('timeout', default=3, field_type=int),
+        DictOption('tls', required=False, bind_env=True, scheme=Scheme(
+            Option('cert', field_type=str)
+        ))
     )),
 )
 

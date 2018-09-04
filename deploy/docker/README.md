@@ -83,6 +83,17 @@ This should give back a set of devices - in particular:
 If you look at the log output of the Emulator Plugin , you should see that these results
 match up with what that plugin had registered on startup.
 
+## Configuring TLS
+The deployment can be configured to use TLS for the gRPC communication between Synse Server
+and the plugin (in this case, the `emulator-plugin`). The required keys/certs exist in the
+[`certs`](certs) subdirectory. If those do not work, you can also generate new ones using the
+[`gencert.sh`](gencert.sh) helper.
+
+In order to configure a deployment to use TLS, you will need to modify the config files. Within
+each of the config files (`deploy-tcp.yml` and `config/tcp/config.yml`), you will see some
+of the configuration commented out pertaining to TLS setup. Simply uncomment those lines of
+configuration (prefixed with `[TLS config]`), and run the deployment the same as before.
+
 [docker-compose]: https://docs.docker.com/compose/install/
 [synse-sdk]: https://github.com/vapor-ware/synse-sdk
 [synse-grpc]: https://github.com/vapor-ware/synse-server-grpc

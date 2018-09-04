@@ -1,10 +1,13 @@
 """Test the 'synse.proto.client' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
+import os
+
 import grpc
 import pytest
 import synse_grpc
 
+from synse import config
 from synse.proto import client
 
 # --- Mock Methods ---
@@ -72,6 +75,34 @@ def mock_transaction(req, timeout):
         status=3,
         state=0,
     )]
+
+
+def mock_test(req, timeout):
+    """Mock the internal grpc test call."""
+    return synse_grpc.api.Status(ok=True)
+
+
+def mock_health(req, timeout):
+    """Mock the internal grpc health call."""
+    return synse_grpc.api.PluginHealth(
+        timestamp='now'
+    )
+
+
+def mock_metainfo(req, timeout):
+    """Mock the internal grpc metainfo call."""
+    return synse_grpc.api.Metadata(
+        name='test'
+    )
+
+
+def mock_capabilities(req, timeout):
+    """Mock the internal grpc capabilities call."""
+    return [synse_grpc.api.DeviceCapability(
+        kind='test',
+        outputs=['foo', 'bar']
+    )]
+
 
 # --- Test Cases ---
 
@@ -172,3 +203,71 @@ def test_client_transaction():
 
     assert isinstance(resp, list)
     assert isinstance(resp[0], synse_grpc.api.WriteResponse)
+
+
+def test_client_test():
+    """Test that a plugin is reachable."""
+
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Test = mock_test
+
+    resp = c.test()
+
+    assert isinstance(resp, synse_grpc.api.Status)
+
+
+def test_client_health():
+    """Test getting plugin health via the client."""
+
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Health = mock_health
+
+    resp = c.health()
+
+    assert isinstance(resp, synse_grpc.api.PluginHealth)
+
+
+def test_client_metainfo():
+    """Test getting plugin metainfo via the client."""
+
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Metainfo = mock_metainfo
+
+    resp = c.metainfo()
+
+    assert isinstance(resp, synse_grpc.api.Metadata)
+
+
+def test_client_capabilities():
+    """Test getting plugin capabilities via the client."""
+
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.Capabilities = mock_capabilities
+
+    resp = c.capabilities()
+
+    assert isinstance(resp, list)
+    assert len(resp) == 1
+    assert isinstance(resp[0], synse_grpc.api.DeviceCapability)
+
+
+def test_make_channel_insecure():
+    """Test making the grpc channel for the plugin client.
+    In this case, the channel will be insecure (no TLS configured).
+    """
+
+    c = client.PluginTCPClient('localhost')
+    assert c.channel is not None
+    assert c.channel._channel.target() == b'localhost'
+
+
+def test_make_channel_secure():
+    """Test making the grpc channel for the plugin client.
+    In this case, the channel will be secure (TLS configured).
+    """
+    crt = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'test_data', 'test.crt')
+    config.options.set('grpc.tls.cert', crt)
+
+    c = client.PluginTCPClient('localhost')
+    assert c.channel is not None
+    assert c.channel._channel.target() == b'localhost'

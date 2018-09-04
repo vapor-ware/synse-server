@@ -13,7 +13,7 @@ COPY requirements.txt requirements.txt
 
 RUN set -e -x \
     && apk --update --no-cache add \
-        bash libstdc++ \
+        bash libstdc++ ca-certificates \
     && apk --update --no-cache --virtual .build-dep add \
         build-base \
     && pip install --upgrade pip \

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-07-16 15:09-0400\n"
+"POT-Creation-Date: 2018-09-04 09:17-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -39,7 +39,7 @@ msgstr ""
 msgid "Building the device capabilities cache"
 msgstr ""
 
-#: synse/cache.py:379 synse/cache.py:442
+#: synse/cache.py:379 synse/cache.py:445
 msgid "Manager has no plugins - registering plugins"
 msgstr ""
 
@@ -47,35 +47,35 @@ msgstr ""
 msgid "Plugins to get capabilities for: {}"
 msgstr ""
 
-#: synse/cache.py:402
+#: synse/cache.py:405
 msgid "Failed to get capability for plugin: {}"
 msgstr ""
 
-#: synse/cache.py:415
+#: synse/cache.py:418
 msgid "Failed to get capabilities for all plugins: {}"
 msgstr ""
 
-#: synse/cache.py:434
+#: synse/cache.py:437
 msgid "Building the device cache"
 msgstr ""
 
-#: synse/cache.py:446
+#: synse/cache.py:449
 msgid "Plugins to scan: {}"
 msgstr ""
 
-#: synse/cache.py:471
+#: synse/cache.py:477
 msgid "Failed to get device info for plugin: {}"
 msgstr ""
 
-#: synse/cache.py:478
+#: synse/cache.py:484
 msgid "Failed to scan all plugins: {}"
 msgstr ""
 
-#: synse/cache.py:496
+#: synse/cache.py:502
 msgid "Building the scan cache"
 msgstr ""
 
-#: synse/cache.py:625
+#: synse/cache.py:637
 msgid "Building the info cache"
 msgstr ""
 
@@ -347,35 +347,43 @@ msgstr ""
 msgid "No ip/port found for endpoint {} - skipping"
 msgstr ""
 
-#: synse/proto/client.py:91
+#: synse/proto/client.py:86
+msgid "TLS enabled for gRPC"
+msgstr ""
+
+#: synse/proto/client.py:89
+msgid "Using cert file: {}"
+msgstr ""
+
+#: synse/proto/client.py:111
 msgid "Issuing gRPC test request"
 msgstr ""
 
-#: synse/proto/client.py:105
+#: synse/proto/client.py:125
 msgid "Issuing gRPC health request"
 msgstr ""
 
-#: synse/proto/client.py:118
+#: synse/proto/client.py:138
 msgid "Issuing gRPC metainfo request"
 msgstr ""
 
-#: synse/proto/client.py:132
+#: synse/proto/client.py:152
 msgid "Issuing gRPC capabilities request"
 msgstr ""
 
-#: synse/proto/client.py:150
+#: synse/proto/client.py:170
 msgid "Issuing gRPC devices request"
 msgstr ""
 
-#: synse/proto/client.py:179
+#: synse/proto/client.py:199
 msgid "Issuing gRPC read request"
 msgstr ""
 
-#: synse/proto/client.py:205
+#: synse/proto/client.py:225
 msgid "Issuing gRPC write request"
 msgstr ""
 
-#: synse/proto/client.py:230
+#: synse/proto/client.py:250
 msgid "Issuing gRPC transaction request"
 msgstr ""
 
@@ -469,10 +477,6 @@ msgstr ""
 
 #: synse/scheme/read.py:91
 msgid "Found unexpected reading type \"{}\" for device {}"
-msgstr ""
-
-#: synse/scheme/read.py:111
-msgid "Reading value for {} came back as empty/null"
 msgstr ""
 
 #~ msgid "Only Plugin instances can be added to the manager."
@@ -689,5 +693,8 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Registering plugins from default socket directory"
+#~ msgstr ""
+
+#~ msgid "Reading value for {} came back as empty/null"
 #~ msgstr ""
 

@@ -221,3 +221,81 @@ are the label keys, and the env variable values are the values for those keys.
               volumeMounts:
                 - name: emulator-config
                   mountPath: /tmp/config
+
+
+Secure Communication
+--------------------
+
+There are two layers of communication with Synse Server which we call *external*, when something
+else (e.g. some service, cURL, etc) hits the Synse Server HTTP API, and *internal*, where Synse
+Server is communicating with the plugins.
+
+External communication can be secured by setting up something like `Nginx <https://www.nginx.com/>`_
+in front of Synse Server and using it for TLS termination. There are numerous examples of how to
+do this which can be found elsewhere.
+
+Internal communication can also be secured using TLS. The :ref:`configuration` provides details
+on the config options that can be used to set this up. Note that Synse Server does not do any
+cert generation or management - this is something you will need to do on your own.
+
+There are numerous tutorials online about how to generate certs - for this example, you can
+generate a `self-signed cert <https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs>`_
+or `bootstrap a CA to sign your certs <https://github.com/square/certstrap>`_. In the example
+below, we have the certs/keys for our plugin server (emulator-plugin) and the cert from the
+root CA (``rootCA.crt``).
+
+.. code-block:: yaml
+
+    version: "3"
+    services:
+      synse-server:
+        container_name: synse-server
+        image: vaporio/synse-server:latest
+        ports:
+          - 5000:5000
+        environment:
+          SYNSE_LOGGING: debug
+          SYNSE_PLUGIN_TCP: emulator-plugin:5001
+          SYNSE_GRPC_TLS_CERT: /tmp/ssl/emulator-plugin.crt
+        volumes:
+          - ./certs/emulator-plugin.crt:/tmp/ssl/emulator-plugin.crt
+        links:
+          - emulator-plugin
+
+      emulator-plugin:
+        container_name: emulator-plugin
+        image: vaporio/emulator-plugin:latest
+        ports:
+          - 5001:5001
+        command: "--debug"
+        volumes:
+          - ./config/tcp:/tmp/config/
+          - ./config/devices:/tmp/devices
+          - ./certs/emulator-plugin.crt:/tmp/ssl/emulator-plugin.crt
+          - ./certs/emulator-plugin.key:/tmp/ssl/emulator-plugin.key
+          - ./certs/rootCA.crt:/tmp/ssl/rootCA.crt
+        environment:
+          PLUGIN_CONFIG: /tmp/config
+          PLUGIN_DEVICE_CONFIG: /tmp/devices
+
+
+The plugin config will also need to specify TLS configurations
+
+.. code-block:: yaml
+
+    version: 1.1
+    debug: true
+    network:
+      type: tcp
+      address: ":5001"
+      tls:
+        # set to true, since the cert is self-signed
+        skipVerify: true
+        key: /tmp/ssl/emulator-plugin.key
+        cert: /tmp/ssl/emulator-plugin.crt
+        caCerts:
+          - /tmp/ssl/rootCA.crt
+
+
+With this plugin config and docker compose deployment config, Synse Server and the
+emulator plugin will communicate with TLS/SSL enabled gRPC.

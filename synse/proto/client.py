@@ -71,9 +71,29 @@ class PluginClient:
 
         self.make_stub()
 
+    def _fmt_address(self):
+        """Format the client address appropriately, based on the network
+        type of the client.
+        """
+        raise NotImplementedError('Subclasses must implement their own address formatting.')
+
     def make_channel(self):
         """Make the channel for the grpc client stub."""
-        raise NotImplementedError('Subclasses must make their own channel.')
+        # If Synse Server is configured to communicate with the plugin using
+        # TLS, set up a secure channel, otherwise use an insecure channel.
+        # FIXME (etd) - we'll probably want to support using a CA here?
+        if config.options.get('grpc.tls'):
+            logger.info(_('TLS enabled for gRPC'))
+
+            cert = config.options.get('grpc.tls.cert')
+            logger.info(_('Using cert file: {}').format(cert))
+            with open(cert, 'rb') as f:
+                plugin_cert = f.read()
+
+            creds = grpc.ssl_channel_credentials(root_certificates=plugin_cert)
+            self.channel = grpc.secure_channel(self._fmt_address(), creds)
+        else:
+            self.channel = grpc.insecure_channel(self._fmt_address())
 
     def make_stub(self):
         """Create the gRPC client stub to communicate with the plugin."""
@@ -243,8 +263,8 @@ class PluginTCPClient(PluginClient):
 
     type = 'tcp'
 
-    def make_channel(self):
-        self.channel = grpc.insecure_channel(self.address)
+    def _fmt_address(self):
+        return self.address
 
 
 class PluginUnixClient(PluginClient):
@@ -252,7 +272,5 @@ class PluginUnixClient(PluginClient):
 
     type = 'unix'
 
-    def make_channel(self):
-        self.channel = grpc.insecure_channel(
-            'unix:{}'.format(os.path.join(SOCKET_DIR, self.address))
-        )
+    def _fmt_address(self):
+        return 'unix:{}'.format(os.path.join(SOCKET_DIR, self.address))

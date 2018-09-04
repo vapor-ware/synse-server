@@ -37,7 +37,7 @@ setup(
     python_requires='==3.6',
     install_requires=[
         'aiocache',
-        'bison>=0.0.5',
+        'bison>=0.0.6',
         'grpcio',
         'kubernetes',
         'pyyaml',

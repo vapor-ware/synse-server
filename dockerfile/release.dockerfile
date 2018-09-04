@@ -48,3 +48,4 @@ RUN set -e -x \
         curl jq \
     && EMULATOR_OUT=/usr/local/bin/emulator ./tmp/install_emulator.sh \
     && apk del .build-dep
+
