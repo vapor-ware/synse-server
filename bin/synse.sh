@@ -27,6 +27,7 @@
 set -o errexit -o pipefail
 
 version="$(python -c "import synse ; print(synse.__version__)")"
+pid=0
 
 # help
 # ----
@@ -98,6 +99,20 @@ function enable-emulator {
     fi
 }
 
+# signal exit
+# -----------
+#   exit when a signal is trapped. we need to do this here since
+#   docker/kubernetes send a signal to PROC 1 in the container,
+#   which would be this script.
+function signal_exit {
+    echo "caught signal - exiting"
+    if [ ${pid} -ne 0 ]; then
+        kill -SIGTERM "$pid"
+    fi
+    exit 1
+}
+
+trap signal_exit SIGINT SIGTERM
 
 # if any arguments were passed in, act on them now.
 for var in "$@"
@@ -106,4 +121,11 @@ do
 done
 
 # start synse
-python synse
+python synse &
+pid="$!"
+
+# wait forever
+while true
+do
+    tail -f /dev/null & wait ${!}
+done
