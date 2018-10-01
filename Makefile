@@ -126,7 +126,7 @@ run: docker  ## Build and run Synse Server with emulator locally (localhost:5000
 test: pycache-clean test-unit test-integration test-end-to-end  ## Run all tests
 
 .PHONY: test-end-to-end
-test-end-to-end: pycache-clean req-translations  ## Run the end to end tests
+test-end-to-end: pycache-clean req-translations docker ## Run the end to end tests
 ifdef HAS_PY36
 	docker-compose -f compose/synse.yml up -d --build
 	tox tests/end_to_end

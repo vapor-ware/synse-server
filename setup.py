@@ -41,7 +41,7 @@ setup(
         'grpcio',
         'kubernetes',
         'pyyaml',
-        'sanic',
+        'sanic>=0.8.0',
         'synse-grpc>=1.0.1',
     ],
     tests_require=[
