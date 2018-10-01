@@ -34,7 +34,7 @@ setup(
         '': ['LICENSE'],
         'synse': ['locale/*/LC_MESSAGES/*.mo']
     },
-    python_requires='==3.6',
+    python_requires='>=3.6',
     install_requires=[
         'aiocache',
         'bison>=0.0.6',

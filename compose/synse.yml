@@ -12,7 +12,7 @@ services:
     image: vaporio/synse-server:local
     build:
       context: ..
-      dockerfile: dockerfile/release.dockerfile
+      dockerfile: dockerfile/synse.dockerfile
     environment:
       - SYNSE_LOGGING=debug
     ports:
