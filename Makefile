@@ -5,14 +5,7 @@
 PKG_NAME    := synse
 PKG_VERSION := $(shell python -c "import synse ; print(synse.__version__)")
 IMAGE_NAME  := vaporio/synse-server
-
-GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2> /dev/null || true)
-GIT_TAG    ?= $(shell git describe --tags 2> /dev/null || true)
-BUILD_DATE := $(shell date -u +%Y-%m-%dT%T 2> /dev/null)
-
-IMAGE_DOCKERFILE ?= release.dockerfile
-IMAGE_TAGS       ?= latest local
-IMAGE_TAG_SUFFIX ?=
+IMAGE_TAGS  ?= latest local
 
 HAS_TRANSLATIONS := $(shell find synse -name '*.mo')
 HAS_PY36         := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
@@ -30,34 +23,6 @@ NC     := \033[0m
 # Note: these targets are undocumented by `help`, as they are intended to
 # only be called as dependencies of other targets.
 #
-
-.PHONY: build-docker
-# build the docker images with the given tags and tag suffix for the specified
-# dockerfile.
-build-docker:
-	echo "image tags: ${GREEN}$(IMAGE_TAGS)${NC}"
-	tags="" ; \
-	for tag in $(IMAGE_TAGS); do if [ "$(IMAGE_TAG_SUFFIX)" ]; then tag="$$tag-$(IMAGE_TAG_SUFFIX)"; fi; tags="$${tags} -t $(IMAGE_NAME):$${tag}" ; done ; \
-	echo "${GREEN}tags: $$tags${NC}" ; \
-	docker build -f dockerfile/$(IMAGE_DOCKERFILE) \
-		--build-arg BUILD_DATE=$(BUILD_DATE) \
-		--build-arg BUILD_VERSION=$(PKG_VERSION) \
-		--build-arg VCS_REF=$(GIT_COMMIT) \
-		$${tags} .
-
-.PHONY: docker-default
-# build the docker images for release.dockerfile -- this includes the emulator
-docker-default:
-	@$(MAKE) build-docker
-
-.PHONY: docker-slim
-# build the docker images for slim.dockerfile -- this does not include the emulator
-docker-slim:
-	# Build the 'vaporio/synse-server:base' image. This will be used as the base
-	# for the 'release' image.
-	@$(MAKE) build-docker IMAGE_TAGS=base IMAGE_DOCKERFILE=slim.dockerfile
-	# Tag the slim image with the appropriate '-slim' tags.
-	@$(MAKE) build-docker IMAGE_TAG_SUFFIX=slim IMAGE_DOCKERFILE=slim.dockerfile
 
 .PHONY: pycache-clean
 # pycache-clean is used to clean out .pyc and .pyo files and the __pycache__
@@ -100,7 +65,8 @@ endif
 	pip-compile --output-file requirements.txt setup.py
 
 .PHONY: docker
-docker: req-translations docker-slim docker-default  ## Build the docker image locally
+docker: req-translations  ## Build the docker image locally
+	@ IMAGE_TAGS="$(IMAGE_TAGS)" IMAGE_NAME=$(IMAGE_NAME) ./bin/build.sh
 
 .PHONY: docs
 docs: clean-docs  ## Generate the User Guide and API documentation locally
