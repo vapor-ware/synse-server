@@ -16,6 +16,7 @@ httptools==0.0.11         # via sanic
 idna==2.7                 # via requests
 ipaddress==1.0.22         # via kubernetes
 kubernetes==6.0.0
+multidict==4.4.2          # via sanic
 oauthlib==2.1.0           # via requests-oauthlib
 protobuf==3.5.2.post1     # via grpcio
 pyasn1-modules==0.2.1     # via google-auth
@@ -25,11 +26,11 @@ pyyaml==3.12
 requests-oauthlib==1.0.0  # via kubernetes
 requests==2.19.1          # via kubernetes, requests-oauthlib
 rsa==3.4.2                # via google-auth
-sanic==0.7.0
+sanic==0.8.3
 six==1.11.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, websocket-client
 synse-grpc==1.0.1
 ujson==1.35               # via sanic
 urllib3==1.23             # via kubernetes, requests
 uvloop==0.9.1             # via sanic
 websocket-client==0.48.0  # via kubernetes
-websockets==4.0.1         # via sanic
+websockets==5.0.1         # via sanic

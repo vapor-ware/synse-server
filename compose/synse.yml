@@ -10,9 +10,6 @@ services:
   synse-server:
     container_name: synse-server
     image: vaporio/synse-server:local
-    build:
-      context: ..
-      dockerfile: dockerfile/synse.dockerfile
     environment:
       - SYNSE_LOGGING=debug
     ports:
