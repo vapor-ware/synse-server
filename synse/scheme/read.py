@@ -10,7 +10,7 @@ class ReadResponse(SynseResponse):
 
     Response Example:
         {
-          "type": "humidity",
+          "kind": "humidity",
           "data": [
             {
               "info": "",

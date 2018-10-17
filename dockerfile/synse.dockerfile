@@ -61,6 +61,9 @@ LABEL org.label-schema.schema-version="1.0" \
 COPY . /synse
 WORKDIR /synse
 
+RUN pip uninstall -y synse-grpc && \
+    pip install synse_grpc-1.1.0.tar.gz
+
 # Create directories for plugin sockets and configuration, then
 # install Synse Server as a python package
 RUN mkdir -p /tmp/synse/procs \

@@ -16,6 +16,7 @@ from .fan_sensors import fan_sensors
 from .info import info
 from .plugins import get_plugins
 from .read import read
+from .read_cached import read_cached
 from .scan import scan
 from .test import test
 from .transaction import check_transaction
