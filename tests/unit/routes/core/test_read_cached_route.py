@@ -1,12 +1,14 @@
 """Test the 'synse.routes.core' Synse Server module's read cached route."""
+# pylint: disable=unused-argument
 
-from sanic.response import StreamingHTTPResponse
-from synse.routes.core import read_cached_route
-from tests import utils
-from synse.scheme.base_response import SynseResponse
-import synse.commands
 import asynctest
 import pytest
+from sanic.response import StreamingHTTPResponse
+
+import synse.commands
+from synse.routes.core import read_cached_route
+from synse.scheme.base_response import SynseResponse
+from tests import utils
 
 
 @pytest.mark.asyncio

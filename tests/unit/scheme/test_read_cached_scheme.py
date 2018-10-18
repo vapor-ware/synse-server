@@ -68,4 +68,3 @@ def test_read_cached_scheme():
             }
         ]
     }
-

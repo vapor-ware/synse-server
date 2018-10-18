@@ -91,7 +91,7 @@ async def read_cached_route(request):
 
     # define the streaming function
     async def response_streamer(response):
-        async for reading in commands.read_cached(start, end):
+        async for reading in commands.read_cached(start, end):  # pylint: disable=not-an-iterable
             await response.write(reading.dump())
 
     return stream(response_streamer, content_type='application/json')

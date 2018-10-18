@@ -1,18 +1,15 @@
 """Test the 'synse.commands.read' Synse Server module."""
+# pylint: disable=redefined-outer-name,unused-argument,line-too-long,not-an-iterable
 
-import os
-import shutil
-
-import grpc
 import asynctest
+import grpc
 import pytest
 from synse_grpc import api
-from synse.proto.client import PluginClient, PluginTCPClient
-
-from synse.commands.read_cached import read_cached
 
 import synse.cache
 from synse import errors, plugin
+from synse.commands.read_cached import read_cached
+from synse.proto.client import PluginClient, PluginTCPClient
 
 
 @pytest.fixture()
@@ -180,7 +177,7 @@ async def test_read_cached_command_2(monkeypatch, patch_get_device_info, clear_m
     """Read the plugin cache for multiple plugins."""
 
     # Add plugins to the manager (this is done by the constructor)
-    p1 = plugin.Plugin(
+    plugin.Plugin(
         metadata=api.Metadata(
             name='foo',
             tag='vaporio/foo',
@@ -190,7 +187,7 @@ async def test_read_cached_command_2(monkeypatch, patch_get_device_info, clear_m
             address='localhost:5001',
         ),
     )
-    p2 = plugin.Plugin(
+    plugin.Plugin(
         metadata=api.Metadata(
             name='bar',
             tag='vaporio/bar',
@@ -246,23 +243,23 @@ async def test_read_cached_command_no_device(monkeypatch, add_plugin):
     """Read a plugin cache for an existing plugin."""
 
     # monkeypatch the read_cached method so it yields some data
-    def _mock(*args, **kwargs):
+    def _mock_read(*args, **kwargs):
         yield api.DeviceReading(
-                rack='rack',
-                board='board',
-                device='device',
-                reading=api.Reading(
-                    timestamp='2018-10-18T16:43:18+00:00',
-                    type='temperature',
-                    int64_value=10,
-                )
+            rack='rack',
+            board='board',
+            device='device',
+            reading=api.Reading(
+                timestamp='2018-10-18T16:43:18+00:00',
+                type='temperature',
+                int64_value=10,
             )
-    monkeypatch.setattr(PluginClient, 'read_cached', _mock)
+        )
+    monkeypatch.setattr(PluginClient, 'read_cached', _mock_read)
 
     # monkeypatch get_device_info to raise a DeviceNotFoundError
-    def _mock(*args, **kwargs):
+    def _mock_device(*args, **kwargs):
         raise errors.DeviceNotFoundError('')
-    mocked = asynctest.CoroutineMock(synse.cache.get_device_info, side_effect=_mock)
+    mocked = asynctest.CoroutineMock(synse.cache.get_device_info, side_effect=_mock_device)
     monkeypatch.setattr(synse.cache, 'get_device_info', mocked)
 
     assert len(plugin.Plugin.manager.plugins) == 1
