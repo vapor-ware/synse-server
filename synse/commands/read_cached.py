@@ -34,6 +34,10 @@ async def read_cached(start=None, end=None):
         # Get the cached data from the plugin
         try:
             for reading in plugin_handler.client.read_cached(start, end):
+                # If there is no reading, we're done iterating
+                if reading is None:
+                    return
+
                 try:
                     __, device = await cache.get_device_info(
                         reading.rack,

@@ -24,6 +24,22 @@ def mock_read(req, timeout):
     ]
 
 
+def mock_read_cached(req, timeout):
+    """Mock the internal read cached call."""
+    return [
+        synse_grpc.api.DeviceReading(
+            rack='rack',
+            board='board',
+            device='device',
+            reading=synse_grpc.api.Reading(
+                timestamp='october',
+                type='test',
+                int32_value=10,
+            )
+        )
+    ]
+
+
 def mock_write(req, timeout):
     """Mock the internal write call."""
     return synse_grpc.api.Transactions(
@@ -167,6 +183,18 @@ def test_client_read():
     assert isinstance(resp, list)
     assert len(resp) == 1
     assert isinstance(resp[0], synse_grpc.api.Reading)
+
+
+def test_client_read_cached():
+    """Test reading plugin cache via the client."""
+
+    c = client.PluginUnixClient('foo/bar/test.sock')
+    c.grpc.ReadCached = mock_read_cached
+
+    resp = [x for x in c.read_cached()]
+
+    assert len(resp) == 1
+    assert isinstance(resp[0], synse_grpc.api.DeviceReading)
 
 
 def test_client_write():
