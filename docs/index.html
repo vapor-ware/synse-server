@@ -218,64 +218,67 @@
           <input type="text" class="search" id="input-search" placeholder="Search">
         </div>
         <ul class="search-results"></ul>
-      <div id="toc" class="toc-list-h1">
+      <ul id="toc" class="toc-list-h1">
           <li>
-            <a href="#overview" class="toc-h1 toc-link" data-title="overview">Overview</a>
+            <a href="#overview" class="toc-h1 toc-link" data-title="Overview">Overview</a>
           </li>
           <li>
-            <a href="#errors" class="toc-h1 toc-link" data-title="errors">Errors</a>
+            <a href="#errors" class="toc-h1 toc-link" data-title="Errors">Errors</a>
           </li>
           <li>
-            <a href="#device-types" class="toc-h1 toc-link" data-title="device-types">Device Types</a>
+            <a href="#device-types" class="toc-h1 toc-link" data-title="Device Types">Device Types</a>
           </li>
           <li>
-            <a href="#endpoints" class="toc-h1 toc-link" data-title="endpoints">Endpoints</a>
+            <a href="#endpoints" class="toc-h1 toc-link" data-title="Endpoints">Endpoints</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#test" class="toc-h2 toc-link" data-title="test">Test</a>
+                    <a href="#test" class="toc-h2 toc-link" data-title="Test">Test</a>
                   </li>
                   <li>
-                    <a href="#version" class="toc-h2 toc-link" data-title="version">Version</a>
+                    <a href="#version" class="toc-h2 toc-link" data-title="Version">Version</a>
                   </li>
                   <li>
-                    <a href="#config" class="toc-h2 toc-link" data-title="config">Config</a>
+                    <a href="#config" class="toc-h2 toc-link" data-title="Config">Config</a>
                   </li>
                   <li>
-                    <a href="#capabilities" class="toc-h2 toc-link" data-title="capabilities">Capabilities</a>
+                    <a href="#capabilities" class="toc-h2 toc-link" data-title="Capabilities">Capabilities</a>
                   </li>
                   <li>
-                    <a href="#plugins" class="toc-h2 toc-link" data-title="plugins">Plugins</a>
+                    <a href="#plugins" class="toc-h2 toc-link" data-title="Plugins">Plugins</a>
                   </li>
                   <li>
-                    <a href="#scan" class="toc-h2 toc-link" data-title="scan">Scan</a>
+                    <a href="#scan" class="toc-h2 toc-link" data-title="Scan">Scan</a>
                   </li>
                   <li>
-                    <a href="#read" class="toc-h2 toc-link" data-title="read">Read</a>
+                    <a href="#read" class="toc-h2 toc-link" data-title="Read">Read</a>
                   </li>
                   <li>
-                    <a href="#write" class="toc-h2 toc-link" data-title="write">Write</a>
+                    <a href="#read-cached" class="toc-h2 toc-link" data-title="Read Cached">Read Cached</a>
                   </li>
                   <li>
-                    <a href="#transaction" class="toc-h2 toc-link" data-title="transaction">Transaction</a>
+                    <a href="#write" class="toc-h2 toc-link" data-title="Write">Write</a>
                   </li>
                   <li>
-                    <a href="#info" class="toc-h2 toc-link" data-title="info">Info</a>
+                    <a href="#transaction" class="toc-h2 toc-link" data-title="Transaction">Transaction</a>
                   </li>
                   <li>
-                    <a href="#led" class="toc-h2 toc-link" data-title="led">LED</a>
+                    <a href="#info" class="toc-h2 toc-link" data-title="Info">Info</a>
                   </li>
                   <li>
-                    <a href="#fan" class="toc-h2 toc-link" data-title="fan">Fan</a>
+                    <a href="#led" class="toc-h2 toc-link" data-title="LED">LED</a>
                   </li>
                   <li>
-                    <a href="#power" class="toc-h2 toc-link" data-title="power">Power</a>
+                    <a href="#fan" class="toc-h2 toc-link" data-title="Fan">Fan</a>
                   </li>
                   <li>
-                    <a href="#boot-target" class="toc-h2 toc-link" data-title="boot-target">Boot Target</a>
+                    <a href="#power" class="toc-h2 toc-link" data-title="Power">Power</a>
+                  </li>
+                  <li>
+                    <a href="#boot-target" class="toc-h2 toc-link" data-title="Boot Target">Boot Target</a>
                   </li>
               </ul>
           </li>
-      </div>
+      </ul>
         <ul class="toc-footer">
             <li>Vapor IO • Synse Server • v2</li>
         </ul>
@@ -1119,6 +1122,56 @@ as reads not permitted.</p>
 <td>The symbol (or short name) of the unit. <em>(e.g. &quot;m/s^2&quot;)</em></td>
 </tr>
 </tbody></table>
+<h2 id='read-cached'>Read Cached</h2>
+<blockquote>
+<p>The response for the <code>readcached</code> endpoint is streamed JSON. </p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/v2/readcached"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/v2/readcached'</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c"># get each line of the streamed response as json</span>
+<span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">iter_lines</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> 
+</code></pre>
+<blockquote>
+<p>A single line of the streamed response JSON would be structured as:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">{</span><span class="s2">"location"</span><span class="p">:{</span><span class="s2">"rack"</span><span class="p">:</span><span class="s2">"rack-1"</span><span class="p">,</span><span class="s2">"board"</span><span class="p">:</span><span class="s2">"vec"</span><span class="p">,</span><span class="s2">"device"</span><span class="p">:</span><span class="s2">"34c226b1afadaae5f172a4e1763fd1a6"</span><span class="p">},</span><span class="s2">"kind"</span><span class="p">:</span><span class="s2">"humidity"</span><span class="p">,</span><span class="s2">"value"</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="s2">"timestamp"</span><span class="p">:</span><span class="s2">"2018-10-19T19:13:00.9184028Z"</span><span class="p">,</span><span class="s2">"unit"</span><span class="p">:{</span><span class="s2">"symbol"</span><span class="p">:</span><span class="s2">"C"</span><span class="p">,</span><span class="s2">"name"</span><span class="p">:</span><span class="s2">"celsius"</span><span class="p">},</span><span class="s2">"type"</span><span class="p">:</span><span class="s2">"temperature"</span><span class="p">,</span><span class="s2">"info"</span><span class="p">:</span><span class="s2">""</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<p>Stream reading data from all configured plugins.</p>
+
+<p>All plugins have the capability of caching their readings locally in order to maintain a higher
+resolution of state beyond the poll frequency which Synse Server may request at. This is particularly
+useful for push-based plugins, where we would lose the pushed reading if it were not cached. </p>
+
+<p>At the plugin level, caching read data can be enabled, but is disabled by default. Even if disabled,
+this route will still return data for every device that supports reading on each of the configured
+plugins. When read caching is disabled, this will just return a dump of the &quot;current&quot; reading state
+that is maintained by the plugin.</p>
+<h3 id='http-request-8'>HTTP Request</h3>
+<p><code>GET http://host:5000/synse/v2/readcached</code></p>
+<h3 id='query-parameters-2'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>start</em></td>
+<td>An RFC3339 or RFC3339Nano formatted timestamp which specifies a starting bound on the cache data to return. If no timestamp is specified, there will not be a starting bound.</td>
+</tr>
+<tr>
+<td><em>end</em></td>
+<td>An RFC3339 or RFC3339Nano formatted timestamp which specifies an ending bound on the cache data to return. If no timestamp is specified, there will not be an ending bound.</td>
+</tr>
+</tbody></table>
+<h3 id='response-fields-6'>Response Fields</h3>
+<p>See the responses for <a href="#read">read</a>. The data here is the same, with the addition of a <em>kind</em> field, which
+specifies the device kind and <em>location</em> object, which provides the routing info for the corresponding device.</p>
 <h2 id='write'>Write</h2><pre class="highlight shell tab-shell"><code>curl <span class="se">\</span>
   -H <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
   -X POST <span class="se">\</span>
@@ -1171,7 +1224,7 @@ change based on the device type/plugin, but in general the <code>action</code> s
  In Synse Server v2, the <i>data</i> field was called <i>raw</i>. For backwards compatibility,
  <i>raw</i> is still allowed, but will be phased out in the future.
 </aside>
-<h3 id='http-request-8'>HTTP Request</h3>
+<h3 id='http-request-9'>HTTP Request</h3>
 <p><code>POST http://host:5000/synse/v2/write/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-3'>URI Parameters</h3>
 <table><thead>
@@ -1233,7 +1286,7 @@ implementation. For example, an <code>LED</code> device supports the actions: <c
 <p>Some devices may only need an <code>action</code> specified. Some may need both <code>action</code> and <code>data</code> specified.
 While it is up to the underlying plugin to determine what are valid values for a device, generally,
 the <code>action</code> should be the attribute to set and <code>data</code> should be the value to set it to.</p>
-<h3 id='response-fields-6'>Response Fields</h3>
+<h3 id='response-fields-7'>Response Fields</h3>
 <table><thead>
 <tr>
 <th>Field</th>
@@ -1292,7 +1345,7 @@ the <code>action</code> should be the attribute to set and <code>data</code> sho
 of time that a transaction is cached for is configurable. See the Synse Server configuration
 <a href="http://synse-server.readthedocs.io/en/latest/user/configuration.html">Configuration Documentation</a>
 for more.</p>
-<h3 id='http-request-9'>HTTP Request</h3>
+<h3 id='http-request-10'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/v2/transaction[/{transaction id}]</code></p>
 <h3 id='uri-parameters-4'>URI Parameters</h3>
 <table><thead>
@@ -1308,7 +1361,7 @@ for more.</p>
 <td>The ID of the write transaction to get the status of. This is given by the corresponding <a href="#write">write</a>.</td>
 </tr>
 </tbody></table>
-<h3 id='response-fields-7'>Response Fields</h3>
+<h3 id='response-fields-8'>Response Fields</h3>
 <table><thead>
 <tr>
 <th>Field</th>
@@ -1441,7 +1494,7 @@ a rack-level request:</p>
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 <p>Get the available information for the specified resource.</p>
-<h3 id='http-request-10'>HTTP Request</h3>
+<h3 id='http-request-11'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/v2/info/{rack}[/{board}[/{device}]]</code></p>
 <h3 id='uri-parameters-5'>URI Parameters</h3>
 <table><thead>
@@ -1467,7 +1520,7 @@ a rack-level request:</p>
 <td>The id of the device to get info for.</td>
 </tr>
 </tbody></table>
-<h3 id='response-fields-8'>Response Fields</h3>
+<h3 id='response-fields-9'>Response Fields</h3>
 <p><strong><em>Rack Level Response</em></strong></p>
 
 <table><thead>
@@ -1620,7 +1673,7 @@ that the given query parameter value(s), if any, are permissible.</p>
 of valid query parameters are specified, the endpoint will write to the specified device.</p>
 
 <p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
-<h3 id='http-request-11'>HTTP Request</h3>
+<h3 id='http-request-12'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/v2/led/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-6'>URI Parameters</h3>
 <table><thead>
@@ -1646,7 +1699,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <td>The id of the LED device to read from/write to.</td>
 </tr>
 </tbody></table>
-<h3 id='query-parameters-2'>Query Parameters</h3>
+<h3 id='query-parameters-3'>Query Parameters</h3>
 <table><thead>
 <tr>
 <th>Parameter</th>
@@ -1667,7 +1720,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>LED</i> instances may result in error.
 </aside>
-<h3 id='response-fields-9'>Response Fields</h3>
+<h3 id='response-fields-10'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 <h2 id='fan'>Fan</h2>
 <blockquote>
@@ -1729,7 +1782,7 @@ that the given query parameter value(s), if any, are permissible.</p>
 of valid query parameters are specified, the endpoint will write to the specified device.</p>
 
 <p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
-<h3 id='http-request-12'>HTTP Request</h3>
+<h3 id='http-request-13'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/v2/fan/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-7'>URI Parameters</h3>
 <table><thead>
@@ -1755,7 +1808,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <td>The id of the fan device to read from/write to.</td>
 </tr>
 </tbody></table>
-<h3 id='query-parameters-3'>Query Parameters</h3>
+<h3 id='query-parameters-4'>Query Parameters</h3>
 <table><thead>
 <tr>
 <th>Parameter</th>
@@ -1776,7 +1829,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>fan</i> instances may result in error.
 </aside>
-<h3 id='response-fields-10'>Response Fields</h3>
+<h3 id='response-fields-11'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 <h2 id='power'>Power</h2>
 <blockquote>
@@ -1835,7 +1888,7 @@ that the given query parameter value(s), if any, are permissible.</p>
 of valid query parameters are specified, the endpoint will write to the specified device.</p>
 
 <p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
-<h3 id='http-request-13'>HTTP Request</h3>
+<h3 id='http-request-14'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/v2/power/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-8'>URI Parameters</h3>
 <table><thead>
@@ -1861,7 +1914,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <td>The id of the power device to read from/write to.</td>
 </tr>
 </tbody></table>
-<h3 id='query-parameters-4'>Query Parameters</h3>
+<h3 id='query-parameters-5'>Query Parameters</h3>
 <table><thead>
 <tr>
 <th>Parameter</th>
@@ -1882,7 +1935,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <p>The power <code>state</code>, commonly <code>on</code>/<code>off</code>, is not bound to those values. It is up to the underlying
 plugin what power actions are available. For example, the IPMI plugin supports <code>on</code>, <code>off</code>, <code>reset</code>,
 and <code>cycle</code>.</p>
-<h3 id='response-fields-11'>Response Fields</h3>
+<h3 id='response-fields-12'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 <h2 id='boot-target'>Boot Target</h2>
 <blockquote>
@@ -1941,7 +1994,7 @@ that the given query parameter value(s), if any, are permissible.</p>
 of valid query parameters are specified, the endpoint will write to the specified device.</p>
 
 <p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
-<h3 id='http-request-14'>HTTP Request</h3>
+<h3 id='http-request-15'>HTTP Request</h3>
 <p><code>GET http://host:5000/synse/v2/boot_target/{rack}/{board}/{device}</code></p>
 <h3 id='uri-parameters-9'>URI Parameters</h3>
 <table><thead>
@@ -1967,7 +2020,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <td>The id of the boot_target device to read from/write to.</td>
 </tr>
 </tbody></table>
-<h3 id='query-parameters-5'>Query Parameters</h3>
+<h3 id='query-parameters-6'>Query Parameters</h3>
 <table><thead>
 <tr>
 <th>Parameter</th>
@@ -1984,7 +2037,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
  While Synse Server supports the listed Query Parameters, not all devices will support the 
  corresponding actions. As a result, writing to some <i>boot_target</i> instances may result in error.
 </aside>
-<h3 id='response-fields-12'>Response Fields</h3>
+<h3 id='response-fields-13'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 
       </div>
