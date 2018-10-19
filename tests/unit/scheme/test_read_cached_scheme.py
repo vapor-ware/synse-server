@@ -49,22 +49,18 @@ def test_read_cached_scheme():
     response_scheme = ReadCachedResponse(dev, reading)
 
     assert response_scheme.data == {
-        'provenance': {
+        'location': {
             'rack': 'rack-1',
             'board': 'vec',
             'device': '12345'
         },
         'kind': 'thermistor',
-        'data': [
-            {
-                'info': '',
-                'type': 'temperature',
-                'value': 10.0,
-                'timestamp': 'november',
-                'unit': {
-                    'name': 'celsius',
-                    'symbol': 'C'
-                }
-            }
-        ]
+        'info': '',
+        'type': 'temperature',
+        'value': 10.0,
+        'timestamp': 'november',
+        'unit': {
+            'name': 'celsius',
+            'symbol': 'C'
+        }
     }

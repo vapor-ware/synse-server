@@ -13,34 +13,20 @@ class ReadCachedResponse(SynseResponse):
 
     Response Example:
         {
-          "provenance": {
+          "location": {
             "rack": "rack-1",
             "board": "vec",
             "device": "12ea5644d052c6bf1bca3c9864fd8a44"
           },
           "kind": "humidity",
-          "data": [
-            {
-              "info": "",
-              "type": "temperature",
-              "value": 123,
-              "unit": {
-                "symbol": "C",
-                "name": "degrees celsius"
-              },
-              "timestamp": "2017-11-10 09:08:07"
-            },
-            {
-              "info": "",
-              "type": "humidity",
-              "value": 123,
-              "unit": {
-                "symbol": "%",
-                "name": "percent"
-              },
-              "timestamp": "2017-11-10 09:08:07"
-            }
-          ]
+          "info": "",
+          "type": "temperature",
+          "value": 123,
+          "unit": {
+            "symbol": "C",
+            "name": "degrees celsius"
+          },
+          "timestamp": "2017-11-10 09:08:07"
         }
 
     Args:
@@ -50,15 +36,25 @@ class ReadCachedResponse(SynseResponse):
 
     def __init__(self, device, device_reading):
         self.device = device
-        self.reading = ReadResponse(device, [device_reading.reading])
+        self.readings = ReadResponse(device, [device_reading.reading])
+
+        read_data = self.readings.data['data']
+        if len(read_data) != 1:
+            raise ValueError(
+                'Expected a single reading for the cache read, but got {}'.format(
+                    len(read_data)
+                )
+            )
+        reading = read_data[0]
 
         self.data = {
-            'provenance': {
+            'location': {
                 'rack': device_reading.rack,
                 'board': device_reading.board,
                 'device': device_reading.device,
             },
-            **self.reading.data
+            'kind': self.readings.data['kind'],
+            **reading,
         }
 
     def dump(self):

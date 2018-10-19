@@ -27,6 +27,11 @@ async def read_cached(start=None, end=None):
     start, end = start or '', end or ''
     logger.debug(_('Read Cached command (start: {}, end: {})').format(start, end))
 
+    # If the plugins have not yet been registered, register them now.
+    if len(plugin.Plugin.manager.plugins) == 0:
+        logger.debug(_('Re-registering plugins'))
+        plugin.register_plugins()
+
     # For each plugin, we'll want to request a dump of its readings cache.
     async for plugin_name, plugin_handler in plugin.get_plugins():  # pylint: disable=not-an-iterable
         logger.debug(_('Getting readings cache for plugin: {}').format(plugin_name))

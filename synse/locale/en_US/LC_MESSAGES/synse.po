@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-10-18 14:31-0400\n"
+"POT-Creation-Date: 2018-10-19 11:12-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -247,11 +247,15 @@ msgstr ""
 msgid "Read Cached command (start: {}, end: {})"
 msgstr ""
 
-#: synse/commands/read_cached.py:32
+#: synse/commands/read_cached.py:32 synse/commands/scan.py:31
+msgid "Re-registering plugins"
+msgstr ""
+
+#: synse/commands/read_cached.py:37
 msgid "Getting readings cache for plugin: {}"
 msgstr ""
 
-#: synse/commands/read_cached.py:48
+#: synse/commands/read_cached.py:53
 msgid ""
 "Did not find device {}-{}-{} locally. Skipping device; server cache may "
 "be out of sync."
@@ -259,10 +263,6 @@ msgstr ""
 
 #: synse/commands/scan.py:20
 msgid "Scan Command (args: {}, {}, force: {})"
-msgstr ""
-
-#: synse/commands/scan.py:31
-msgid "Re-registering plugins"
 msgstr ""
 
 #: synse/commands/scan.py:40

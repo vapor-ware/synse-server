@@ -168,8 +168,8 @@ async def test_read_cached_command(monkeypatch, patch_get_device_info, add_plugi
     assert len(plugin.Plugin.manager.plugins) == 1
     results = [i async for i in read_cached()]
     assert len(results) == 2
-    assert results[0].data['data'][0]['type'] == 'temperature'
-    assert results[1].data['data'][0]['type'] == 'humidity'
+    assert results[0].data['type'] == 'temperature'
+    assert results[1].data['type'] == 'humidity'
 
 
 @pytest.mark.asyncio
@@ -232,10 +232,10 @@ async def test_read_cached_command_2(monkeypatch, patch_get_device_info, clear_m
 
     # two plugins with two patched readings each
     assert len(results) == 4
-    assert results[0].data['data'][0]['type'] == 'temperature'
-    assert results[1].data['data'][0]['type'] == 'humidity'
-    assert results[2].data['data'][0]['type'] == 'temperature'
-    assert results[3].data['data'][0]['type'] == 'humidity'
+    assert results[0].data['type'] == 'temperature'
+    assert results[1].data['type'] == 'humidity'
+    assert results[2].data['type'] == 'temperature'
+    assert results[3].data['type'] == 'humidity'
 
 
 @pytest.mark.asyncio
