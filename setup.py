@@ -42,7 +42,7 @@ setup(
         'kubernetes',
         'pyyaml',
         'sanic>=0.8.0',
-        'synse-grpc>=1.0.1',
+        'synse-grpc>=1.1.0',
     ],
     tests_require=[
         'aiohttp',
