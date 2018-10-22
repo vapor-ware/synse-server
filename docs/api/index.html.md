@@ -578,7 +578,7 @@ response = requests.get('http://host:5000/synse/v2/read/rack-1/vec/eb100067acb0c
 
 ```json
 {
-  "type": "temperature",
+  "kind": "temperature",
   "data": [
     {
       "value": 20.3,
@@ -598,7 +598,7 @@ response = requests.get('http://host:5000/synse/v2/read/rack-1/vec/eb100067acb0c
 
 ```json
 {
-  "type": "led",
+  "kind": "led",
   "data": [
     {
       "value": "off",
@@ -645,7 +645,7 @@ These values can be found via the [scan](#scan) command.
 
 | Field | Description |
 | ----- | ----------- |
-| *type*  | The type of the device that was read. See [Device Types](#device-types) for more info. |
+| *kind*  | The kind of device that was read. See [Device Types](#device-types) for more info. |
 | *data*  | An object where the keys specify the *reading type* and the values are the corresponding reading objects. Note that a reading type is not the same as the device type. |
 | *{reading}.value* | The value for the given reading type. |
 | *{reading}.timestamp* | The time at which the reading was taken. |
@@ -1024,7 +1024,7 @@ response = requests.get('http://host:5000/synse/v2/led/rack-1/vec/f52d29fecf05a1
 
 ```json
 {
-  "type": "led",
+  "kind": "led",
   "data": [
     {
       "value": "off",
@@ -1137,7 +1137,7 @@ response = requests.get('http://host:5000/synse/v2/fan/rack-1/vec/eb9a56f95b5bd6
 
 ```json
 {
-  "type": "fan",
+  "kind": "fan",
   "data": [
     {
       "value": 0,
@@ -1238,7 +1238,7 @@ response = requests.get('http://host:5000/synse/v2/power/rack-1/vec/fd8e4bd57f04
 
 ```json
 {
-  "type": "power",
+  "kind": "power",
   "data": [
     {
       "value": "on",
@@ -1340,7 +1340,7 @@ response = requests.get('http://host:5000/synse/v2/boot_target/rack-1/vec/558828
 
 ```json
 {
-  "type": "boot_target",
+  "kind": "boot_target",
   "data": [
     {
       "value": "disk",
