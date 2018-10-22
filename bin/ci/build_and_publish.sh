@@ -98,23 +98,12 @@ IMAGE_TAGS="${tags[@]}" make docker
 #
 # Since we built the images from the Makefile, we do not have a complete
 # list of all tags for the image that we tagged (e.g. especially since some
-# have the added -slim suffix. Here, we get the images by filtering on the
-# image labels.
+# have the added -slim suffix.
 #
 
-images=($(docker images \
-    --filter "label=org.label-schema.vcs-ref=`git rev-parse --short HEAD 2> /dev/null || true`" \
-    --filter "label=org.label-schema.name=vaporio/synse-server" \
-    --filter "dangling=false" \
-    --format "{{.Repository}}:{{.Tag}}"))
-
-echo "images to push: ${images}"
-
-for image in "${images[@]}"; do
-    # We want to not push the vaporio/synse-server:base image, since it is
-    # only built as the base for the release dockerfile and other tags. It
-    # is not intended to be pushed to DockerHub.
-    if [ "${image}" != "vaporio/synse-server:base" ]; then
-        docker push ${image}
-    fi
+# For all tags, push the base tag and the slim tag. These should have been
+# built in previous steps and therefore should exist at this point.
+for tag in "${tags[@]}"; do
+    docker push ${IMAGE_NAME}:${tag}
+    docker push ${IMAGE_NAME}:${tag}-slim
 done
