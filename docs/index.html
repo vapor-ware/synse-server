@@ -218,64 +218,64 @@
           <input type="text" class="search" id="input-search" placeholder="Search">
         </div>
         <ul class="search-results"></ul>
-      <div id="toc" class="toc-list-h1">
+      <ul id="toc" class="toc-list-h1">
           <li>
-            <a href="#overview" class="toc-h1 toc-link" data-title="overview">Overview</a>
+            <a href="#overview" class="toc-h1 toc-link" data-title="Overview">Overview</a>
           </li>
           <li>
-            <a href="#errors" class="toc-h1 toc-link" data-title="errors">Errors</a>
+            <a href="#errors" class="toc-h1 toc-link" data-title="Errors">Errors</a>
           </li>
           <li>
-            <a href="#device-types" class="toc-h1 toc-link" data-title="device-types">Device Types</a>
+            <a href="#device-types" class="toc-h1 toc-link" data-title="Device Types">Device Types</a>
           </li>
           <li>
-            <a href="#endpoints" class="toc-h1 toc-link" data-title="endpoints">Endpoints</a>
+            <a href="#endpoints" class="toc-h1 toc-link" data-title="Endpoints">Endpoints</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#test" class="toc-h2 toc-link" data-title="test">Test</a>
+                    <a href="#test" class="toc-h2 toc-link" data-title="Test">Test</a>
                   </li>
                   <li>
-                    <a href="#version" class="toc-h2 toc-link" data-title="version">Version</a>
+                    <a href="#version" class="toc-h2 toc-link" data-title="Version">Version</a>
                   </li>
                   <li>
-                    <a href="#config" class="toc-h2 toc-link" data-title="config">Config</a>
+                    <a href="#config" class="toc-h2 toc-link" data-title="Config">Config</a>
                   </li>
                   <li>
-                    <a href="#capabilities" class="toc-h2 toc-link" data-title="capabilities">Capabilities</a>
+                    <a href="#capabilities" class="toc-h2 toc-link" data-title="Capabilities">Capabilities</a>
                   </li>
                   <li>
-                    <a href="#plugins" class="toc-h2 toc-link" data-title="plugins">Plugins</a>
+                    <a href="#plugins" class="toc-h2 toc-link" data-title="Plugins">Plugins</a>
                   </li>
                   <li>
-                    <a href="#scan" class="toc-h2 toc-link" data-title="scan">Scan</a>
+                    <a href="#scan" class="toc-h2 toc-link" data-title="Scan">Scan</a>
                   </li>
                   <li>
-                    <a href="#read" class="toc-h2 toc-link" data-title="read">Read</a>
+                    <a href="#read" class="toc-h2 toc-link" data-title="Read">Read</a>
                   </li>
                   <li>
-                    <a href="#write" class="toc-h2 toc-link" data-title="write">Write</a>
+                    <a href="#write" class="toc-h2 toc-link" data-title="Write">Write</a>
                   </li>
                   <li>
-                    <a href="#transaction" class="toc-h2 toc-link" data-title="transaction">Transaction</a>
+                    <a href="#transaction" class="toc-h2 toc-link" data-title="Transaction">Transaction</a>
                   </li>
                   <li>
-                    <a href="#info" class="toc-h2 toc-link" data-title="info">Info</a>
+                    <a href="#info" class="toc-h2 toc-link" data-title="Info">Info</a>
                   </li>
                   <li>
-                    <a href="#led" class="toc-h2 toc-link" data-title="led">LED</a>
+                    <a href="#led" class="toc-h2 toc-link" data-title="LED">LED</a>
                   </li>
                   <li>
-                    <a href="#fan" class="toc-h2 toc-link" data-title="fan">Fan</a>
+                    <a href="#fan" class="toc-h2 toc-link" data-title="Fan">Fan</a>
                   </li>
                   <li>
-                    <a href="#power" class="toc-h2 toc-link" data-title="power">Power</a>
+                    <a href="#power" class="toc-h2 toc-link" data-title="Power">Power</a>
                   </li>
                   <li>
-                    <a href="#boot-target" class="toc-h2 toc-link" data-title="boot-target">Boot Target</a>
+                    <a href="#boot-target" class="toc-h2 toc-link" data-title="Boot Target">Boot Target</a>
                   </li>
               </ul>
           </li>
-      </div>
+      </ul>
         <ul class="toc-footer">
             <li>Vapor IO • Synse Server • v2</li>
         </ul>
@@ -1001,7 +1001,7 @@ the given rack or board.</p>
 <p>The response JSON would be structured as:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">20.3</span><span class="p">,</span><span class="w">
@@ -1020,7 +1020,7 @@ the given rack or board.</p>
 <p>Devices can provide multiple readings, e.g. an LED device could give a JSON response like:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"led"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"led"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"off"</span><span class="p">,</span><span class="w">
@@ -1083,8 +1083,8 @@ as reads not permitted.</p>
 </tr>
 </thead><tbody>
 <tr>
-<td><em>type</em></td>
-<td>The type of the device that was read. See <a href="#device-types">Device Types</a> for more info.</td>
+<td><em>kind</em></td>
+<td>The kind of device that was read. See <a href="#device-types">Device Types</a> for more info.</td>
 </tr>
 <tr>
 <td><em>data</em></td>
@@ -1562,7 +1562,7 @@ a rack-level request:</p>
 <p>The response JSON will be the same as read response:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"led"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"led"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"off"</span><span class="p">,</span><span class="w">
@@ -1682,7 +1682,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <p>The response JSON will be the same as read response:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fan"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fan"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
@@ -1791,7 +1791,7 @@ of valid query parameters are specified, the endpoint will write to the specifie
 <p>The response JSON will be the same as read response:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"power"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"power"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"on"</span><span class="p">,</span><span class="w">
@@ -1897,7 +1897,7 @@ and <code>cycle</code>.</p>
 <p>The response JSON will be the same as read response:</p>
 </blockquote>
 <pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boot_target"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boot_target"</span><span class="p">,</span><span class="w">
   </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="p">{</span><span class="w">
       </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"disk"</span><span class="p">,</span><span class="w">
