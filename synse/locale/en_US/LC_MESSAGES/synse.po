@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-09-04 09:17-0400\n"
+"POT-Creation-Date: 2018-10-19 11:12-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -243,12 +243,26 @@ msgid ""
 "error/misconfiguration."
 msgstr ""
 
-#: synse/commands/scan.py:20
-msgid "Scan Command (args: {}, {}, force: {})"
+#: synse/commands/read_cached.py:28
+msgid "Read Cached command (start: {}, end: {})"
 msgstr ""
 
-#: synse/commands/scan.py:31
+#: synse/commands/read_cached.py:32 synse/commands/scan.py:31
 msgid "Re-registering plugins"
+msgstr ""
+
+#: synse/commands/read_cached.py:37
+msgid "Getting readings cache for plugin: {}"
+msgstr ""
+
+#: synse/commands/read_cached.py:53
+msgid ""
+"Did not find device {}-{}-{} locally. Skipping device; server cache may "
+"be out of sync."
+msgstr ""
+
+#: synse/commands/scan.py:20
+msgid "Scan Command (args: {}, {}, force: {})"
 msgstr ""
 
 #: synse/commands/scan.py:40
@@ -379,11 +393,15 @@ msgstr ""
 msgid "Issuing gRPC read request"
 msgstr ""
 
-#: synse/proto/client.py:225
+#: synse/proto/client.py:231
+msgid "Issuing gRPC read cached request"
+msgstr ""
+
+#: synse/proto/client.py:255
 msgid "Issuing gRPC write request"
 msgstr ""
 
-#: synse/proto/client.py:250
+#: synse/proto/client.py:280
 msgid "Issuing gRPC transaction request"
 msgstr ""
 
@@ -455,19 +473,19 @@ msgstr ""
 msgid "Boot target alias route: reading"
 msgstr ""
 
-#: synse/routes/core.py:52
+#: synse/routes/core.py:53
 msgid "Forcing re-scan? {}"
 msgstr ""
 
-#: synse/routes/core.py:97
+#: synse/routes/core.py:121
 msgid "Invalid JSON specified: {}"
 msgstr ""
 
-#: synse/routes/core.py:100
+#: synse/routes/core.py:124
 msgid "Write route: POSTed JSON: {}"
 msgstr ""
 
-#: synse/routes/core.py:106
+#: synse/routes/core.py:130
 msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\""
 msgstr ""
 

@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument
 
 from sanic import Blueprint
+from sanic.response import stream
 
 from synse import commands, errors, validate
 from synse.i18n import _
@@ -71,6 +72,29 @@ async def read_route(request, rack, board, device):
     """
     response = await commands.read(rack, board, device)
     return response.to_json()
+
+
+@bp.route('/readcached')
+async def read_cached_route(request):
+    """Get cached readings from the configured plugins.
+
+    Query Parameters:
+        start: An RFC3339 or RFC3339Nano formatted timestamp which specifies a
+            starting bound on the cache data to return. If no timestamp is
+            specified, there will not be a starting bound.
+        end: An RFC3339 or RFC3339Nano formatted timestamp which specifies an
+            ending bound on the cache data to return. If no timestamp is
+            specified, there will not be an ending bound.
+    """
+    qparams = validate.validate_query_params(request.raw_args, 'start', 'end')
+    start, end = qparams.get('start'), qparams.get('end')
+
+    # define the streaming function
+    async def response_streamer(response):
+        async for reading in commands.read_cached(start, end):  # pylint: disable=not-an-iterable
+            await response.write(reading.dump())
+
+    return stream(response_streamer, content_type='application/json')
 
 
 @bp.route('/write/<rack>/<board>/<device>', methods=['POST'])

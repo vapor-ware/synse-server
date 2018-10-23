@@ -656,6 +656,59 @@ These values can be found via the [scan](#scan) command.
 | *{unit}.symbol* | The symbol (or short name) of the unit. *(e.g. "m/s^2")* |
 
 
+## Read Cached
+
+> The response for the `readcached` endpoint is streamed JSON. 
+
+```shell
+curl "http://host:5000/synse/v2/readcached"
+```
+
+```python
+import requests
+import json
+
+response = requests.get('http://host:5000/synse/v2/readcached', stream=True)
+
+# get each line of the streamed response as json
+for chunk in response.iter_lines():
+    data = json.loads(chunk) 
+```
+
+> A single line of the streamed response JSON would be structured as:
+
+```json
+{"location":{"rack":"rack-1","board":"vec","device":"34c226b1afadaae5f172a4e1763fd1a6"},"kind":"humidity","value":31,"timestamp":"2018-10-19T19:13:00.9184028Z","unit":{"symbol":"C","name":"celsius"},"type":"temperature","info":""}
+```
+
+Stream reading data from all configured plugins.
+
+All plugins have the capability of caching their readings locally in order to maintain a higher
+resolution of state beyond the poll frequency which Synse Server may request at. This is particularly
+useful for push-based plugins, where we would lose the pushed reading if it were not cached. 
+
+At the plugin level, caching read data can be enabled, but is disabled by default. Even if disabled,
+this route will still return data for every device that supports reading on each of the configured
+plugins. When read caching is disabled, this will just return a dump of the "current" reading state
+that is maintained by the plugin.
+
+### HTTP Request
+
+`GET http://host:5000/synse/v2/readcached`
+
+### Query Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| *start*   | An RFC3339 or RFC3339Nano formatted timestamp which specifies a starting bound on the cache data to return. If no timestamp is specified, there will not be a starting bound. |
+| *end*     | An RFC3339 or RFC3339Nano formatted timestamp which specifies an ending bound on the cache data to return. If no timestamp is specified, there will not be an ending bound. |
+
+### Response Fields
+
+See the responses for [read](#read). The data here is the same, with the addition of a *kind* field, which
+specifies the device kind and *location* object, which provides the routing info for the corresponding device.
+
+
 ## Write
 
 ```shell

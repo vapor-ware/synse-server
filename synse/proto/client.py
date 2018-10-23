@@ -209,6 +209,36 @@ class PluginClient:
 
         return resp
 
+    def read_cached(self, start=None, end=None):
+        """Get the cached readings from a plugin. If caching readings
+        is disabled for the plugin, this will get a dump of the current
+        reading state.
+
+        Args:
+            start (str): An RFC3339 or RFC3339Nano formatted timestamp
+                which defines a starting bound on the cache data to
+                return. If no timestamp is specified, there will not
+                be a starting bound. (default: None)
+            end (str): An RFC3339 or RFC3339Nano formatted timestamp
+                which defines an ending bound on the cache data to
+                return. If no timestamp is specified, there will not
+                be an ending bound. (default: None)
+
+        Yields:
+            synse_grpc.api.DeviceReading: A cached reading value
+                with its associated device routing info.
+        """
+        logger.debug(_('Issuing gRPC read cached request'))
+
+        bounds = synse_grpc.api.Bounds(
+            start=start or '',
+            end=end or '',
+        )
+
+        timeout = config.options.get('grpc.timeout', None)
+        for reading in self.grpc.ReadCached(bounds, timeout=timeout):
+            yield reading
+
     def write(self, rack, board, device, data):
         """Write data to the specified device.
 

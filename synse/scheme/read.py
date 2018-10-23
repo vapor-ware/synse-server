@@ -10,7 +10,7 @@ class ReadResponse(SynseResponse):
 
     Response Example:
         {
-          "type": "humidity",
+          "kind": "humidity",
           "data": [
             {
               "info": "",
@@ -56,7 +56,6 @@ class ReadResponse(SynseResponse):
         Returns:
             dict: A properly formatted Read response.
         """
-        logger.debug(_('Formatting read response'))
         formatted = []
 
         dev_output = self.device.output

@@ -16,6 +16,7 @@ FAILED_SCAN_COMMAND = 5002
 FAILED_TRANSACTION_COMMAND = 5003
 FAILED_WRITE_COMMAND = 5004
 FAILED_PLUGIN_COMMAND = 5005
+FAILED_READ_CACHED_COMMAND = 5006
 
 # Internal API (gRPC) errors
 INTERNAL_API_FAILURE = 6000
@@ -204,6 +205,13 @@ class FailedPluginCommandError(SynseServerError):
 
     def __init__(self, message):
         super(FailedPluginCommandError, self).__init__(message, FAILED_PLUGIN_COMMAND)
+
+
+class FailedReadCachedCommandError(SynseServerError):
+    """Error in executing a "read cached" command."""
+
+    def __init__(self, message):
+        super(FailedReadCachedCommandError, self).__init__(message, FAILED_READ_CACHED_COMMAND)
 
 
 class InternalApiError(SynseServerError):

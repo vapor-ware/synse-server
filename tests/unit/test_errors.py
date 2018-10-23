@@ -150,6 +150,32 @@ def test_synse_error_failed_write_command():
     assert e.args[0] == 'message'
 
 
+def test_synse_error_failed_plugin_command():
+    """Check for FAILED_PLUGIN_COMMAND error"""
+    e = errors.FailedPluginCommandError('message')
+
+    assert isinstance(e, exceptions.ServerError)
+    assert isinstance(e, errors.SynseError)
+    assert isinstance(e, errors.SynseServerError)
+
+    assert e.status_code == 500
+    assert e.error_id == errors.FAILED_PLUGIN_COMMAND
+    assert e.args[0] == 'message'
+
+
+def test_synse_error_failed_read_cached_command():
+    """Check for FAILED_READ_CACHED_COMMAND error"""
+    e = errors.FailedReadCachedCommandError('message')
+
+    assert isinstance(e, exceptions.ServerError)
+    assert isinstance(e, errors.SynseError)
+    assert isinstance(e, errors.SynseServerError)
+
+    assert e.status_code == 500
+    assert e.error_id == errors.FAILED_READ_CACHED_COMMAND
+    assert e.args[0] == 'message'
+
+
 def test_synse_error_internal_api():
     """Check for INTERNAL_API_FAILURE error"""
     e = errors.InternalApiError('message')
