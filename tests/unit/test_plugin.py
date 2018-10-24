@@ -400,6 +400,30 @@ def test_register_plugins_old(grpc_timeout, mock_client_test_ok, mock_client_met
     assert p.protocol == 'unix'
 
 
+def test_register_plugins_from_discovery(grpc_timeout, monkeypatch, mock_client_test_ok, mock_client_meta_ok):
+    """Register plugins that we get back from discovery."""
+
+    assert len(plugin.Plugin.manager.plugins) == 0
+
+    monkeypatch.setattr(plugin.kubernetes, 'discover', lambda: ['10.0.0.1:5001', '10.0.0.2:5001'])
+
+    plugin.register_plugins()
+
+    assert len(plugin.Plugin.manager.plugins) == 2
+
+    assert 'vaporio/test-plugin+tcp@10.0.0.1:5001' in plugin.Plugin.manager.plugins
+    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+tcp@10.0.0.1:5001']
+    assert p.name == 'test-plugin'
+    assert p.address == '10.0.0.1:5001'
+    assert p.protocol == 'tcp'
+
+    assert 'vaporio/test-plugin+tcp@10.0.0.2:5001' in plugin.Plugin.manager.plugins
+    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+tcp@10.0.0.2:5001']
+    assert p.name == 'test-plugin'
+    assert p.address == '10.0.0.2:5001'
+    assert p.protocol == 'tcp'
+
+
 def test_register_unix_plugin_none_defined(grpc_timeout):
     """Test registering unix based plugins when none is specified."""
     assert len(plugin.Plugin.manager.plugins) == 0
