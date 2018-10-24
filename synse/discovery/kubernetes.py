@@ -73,22 +73,23 @@ def _register_from_endpoints(cfg):
 
     # Now we parse out the endpoints to get the routing info to a plugin.
     # There are some assumptions here:
-    #  - There is only one Pod address for the endpoint (e.g. the first address
-    #    in the addresses list that is for kind Pod is used)
     #  - The port must have the name 'http'
     for endpoint in endpoints.items:
         name = endpoint.metadata.name
         logger.debug(_('Found endpoint with name: {}').format(name))
 
-        ip = None
-        port = None
-
         for subset in endpoint.subsets:
+            ips = []
+            port = None
+
             addresses = subset.addresses
-            if addresses is None:
+            if not addresses:
                 logger.debug(_('No addresses for subset of endpoint - skipping ({})').format(name))
                 continue
 
+            # Iterate over all of the addresses. If there are multiple instances of a plugin
+            # sitting behind a service, e.g. a DaemonSet or Deployment with replica count > 1,
+            # then we will want to reach all of the plugins.
             for address in addresses:
                 ref = address.target_ref
                 if ref is None:
@@ -100,38 +101,47 @@ def _register_from_endpoints(cfg):
                     logger.debug(_('Address is not a pod address - skipping ({})').format(address))
                     continue
 
-                ip = address.ip
-                break
+                ips.append(address.ip)
 
-            # If we don't have the IP yet, there is no point in getting the port for
+            # If we don't have any IPs yet, there is no point in getting the port for
             # for this subset, so just continue.
-            if not ip:
-                logger.debug(_('No ip found for endpoint, will not search for port'))
+            if not ips:
+                logger.debug(_('No ips found for endpoint, will not search for port'))
                 continue
 
+            # Parse the ports. If there is only one port, use that port. Otherwise, use the
+            # port named 'http'.
             ports = subset.ports
-            if ports is None:
+            if not ports:
                 logger.debug(_('No ports for subset of endpoint - skipping ({})').format(name))
                 continue
 
-            for port in ports:
-                if port.name != 'http':
-                    logger.debug(
-                        _('skipping port (want name:http, but found name:{})')
-                        .format(port.get('name'))
-                    )
-                    continue
+            if len(ports) == 1:
+                port = ports[0].port
+            else:
+                # Search for a port with name 'http'
+                for p in ports:
+                    if p.name != 'http':
+                        logger.debug(
+                            _('skipping port (want name:http, but found name:{})')
+                            .format(p.name)
+                        )
+                        continue
 
-                port = port.port
-                break
+                    port = p.port
+                    break
 
-            if ip is not None and port is not None:
-                break
+            # If we have addresses and we have a port, we can register those endpoints
+            # as plugins. Otherwise, we move on.
+            if ips and port is not None:
+                for ip in ips:
+                    logger.debug(_('found plugin: endpoint.name={}, ip={}, port={}').format(
+                        name, ip, port
+                    ))
+                    found.append('{}:{}'.format(ip, port))
 
-        logger.debug(_('endpoint.name={}, ip={}, port={}').format(name, ip, port))
-        if ip is None or port is None:
-            logger.debug(_('No ip/port found for endpoint {} - skipping').format(name))
-            continue
-
-        found.append('{}:{}'.format(ip, port))
+    if not found:
+        logger.debug(
+            _('Did not find any plugins via kubernetes endpoints (labels={})').format(labels)
+        )
     return found

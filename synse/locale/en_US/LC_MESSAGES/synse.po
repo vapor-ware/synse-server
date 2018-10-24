@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-10-19 11:12-0400\n"
+"POT-Creation-Date: 2018-10-24 11:18-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -325,40 +325,40 @@ msgstr ""
 msgid "Using endpoint label selector: {}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:81
+#: synse/discovery/kubernetes.py:79
 msgid "Found endpoint with name: {}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:89
+#: synse/discovery/kubernetes.py:87
 msgid "No addresses for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:95
+#: synse/discovery/kubernetes.py:96
 msgid "Address has no target_ref - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:100
+#: synse/discovery/kubernetes.py:101
 msgid "Address is not a pod address - skipping ({})"
 msgstr ""
 
 #: synse/discovery/kubernetes.py:109
-msgid "No ip found for endpoint, will not search for port"
+msgid "No ips found for endpoint, will not search for port"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:114
+#: synse/discovery/kubernetes.py:116
 msgid "No ports for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:120
+#: synse/discovery/kubernetes.py:126
 msgid "skipping port (want name:http, but found name:{})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:131
-msgid "endpoint.name={}, ip={}, port={}"
+#: synse/discovery/kubernetes.py:138
+msgid "found plugin: endpoint.name={}, ip={}, port={}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:133
-msgid "No ip/port found for endpoint {} - skipping"
+#: synse/discovery/kubernetes.py:145
+msgid "Did not find any plugins via kubernetes endpoints (labels={})"
 msgstr ""
 
 #: synse/proto/client.py:86
@@ -489,11 +489,7 @@ msgstr ""
 msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\""
 msgstr ""
 
-#: synse/scheme/read.py:59
-msgid "Formatting read response"
-msgstr ""
-
-#: synse/scheme/read.py:91
+#: synse/scheme/read.py:90
 msgid "Found unexpected reading type \"{}\" for device {}"
 msgstr ""
 
@@ -714,5 +710,17 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Reading value for {} came back as empty/null"
+#~ msgstr ""
+
+#~ msgid "No ip found for endpoint, will not search for port"
+#~ msgstr ""
+
+#~ msgid "endpoint.name={}, ip={}, port={}"
+#~ msgstr ""
+
+#~ msgid "No ip/port found for endpoint {} - skipping"
+#~ msgstr ""
+
+#~ msgid "Formatting read response"
 #~ msgstr ""
 
