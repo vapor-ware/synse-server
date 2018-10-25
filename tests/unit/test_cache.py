@@ -476,12 +476,51 @@ def test_build_scan_cache_ok():
     device_info = {
         'rack-1-vec-12345': make_device_info_response('rack-1', 'vec', '12345'),
         'rack-1-board-12345': make_device_info_response('rack-1', 'board', '12345'),
-        'rack-1-board-56789': make_device_info_response('rack-1', 'board', '456789')
+        'rack-1-board-56789': make_device_info_response('rack-1', 'board', '456789'),
+        'rack-1-board-abcd': make_device_info_response('rack-1', 'board', 'abcd')
     }
     scan_cache = cache._build_scan_cache(device_info)
-    validate_scan_cache(scan_cache, 'rack-1', 'vec', '12345')
-    validate_scan_cache(scan_cache, 'rack-1', 'board', '12345')
-    validate_scan_cache(scan_cache, 'rack-1', 'board', '456789')
+
+    # Test that the scan cache comes back in the expected sorted order
+    assert scan_cache == {
+        'racks': [
+            {
+                'id': 'rack-1',
+                'boards': [
+                    {
+                        'id': 'board',
+                        'devices': [
+                            {
+                                'id': '12345',
+                                'info': 'bar',
+                                'type': 'thermistor'
+                            },
+                            {
+                                'id': '456789',
+                                'info': 'bar',
+                                'type': 'thermistor'
+                            },
+                            {
+                                'id': 'abcd',
+                                'info': 'bar',
+                                'type': 'thermistor'
+                            },
+                        ]
+                    },
+                    {
+                        'id': 'vec',
+                        'devices': [
+                            {
+                                'id': '12345',
+                                'info': 'bar',
+                                'type': 'thermistor'
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
 
 
 def test_build_scan_cache_no_device_info():
