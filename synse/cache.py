@@ -609,7 +609,7 @@ def _build_scan_cache(device_info):
                 # Sort all devices on each board by plugin and sort ordinal
                 board['devices'] = sorted(
                     board['devices'],
-                    key=lambda d: (d['plugin'], d['sort_ordinal'])
+                    key=lambda d: (d['plugin'], d['sort_ordinal'], d['id'])
                 )
 
                 # Delete the plugin and sort_ordinal from the scan result after sorting.
