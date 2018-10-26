@@ -7,6 +7,7 @@ from sanic import Sanic
 from sanic.exceptions import InvalidUsage, NotFound, ServerError
 from sanic.response import text
 
+import synse
 from synse import config, errors, utils
 from synse.cache import configure_cache
 from synse.log import LOGGING, logger, setup_logger
@@ -61,7 +62,13 @@ def make_app():
 
     configure_cache()
 
-    logger.info('Synse Configuration: {}'.format(config.options.config))
+    # Log out metadata for Synse Server and the application configuration
+    logger.info('Synse Server:')
+    logger.info('  version: {}'.format(synse.__version__))
+    logger.info('  author:  {}'.format(synse.__author__))
+    logger.info('  url:     {}'.format(synse.__url__))
+    logger.info('  license: {}'.format(synse.__license__))
+    logger.info('Configuration: {}'.format(config.options.config))
     return app
 
 
