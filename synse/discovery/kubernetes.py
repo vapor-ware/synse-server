@@ -22,29 +22,50 @@ def discover():
     if not cfg:
         return addresses
 
+    # Currently, everything we want to be able to discover (namely, endpoints)
+    # should all be in the same namespace, so we define it globally. If other
+    # methods of lookup are added later, we could also have a namespace per
+    # resource, e.g. so we can look for endpoints in namespace X and pods in
+    # namespace Y, etc.
+    #
+    # If no namespace is provided via user configuration, if will default to
+    # the 'default' namespace.
+    ns = config.options.get('plugin.discover.kubernetes.namespace', 'default')
+    logger.debug(_('Using namespace "{}" for k8s discovery').format(ns))
+
     # Currently, we only support plugin discovery via kubernetes service
     # endpoints, under the `plugin.discover.kubernetes.endpoints` config
     # field.
     #
     # We can support other means later.
-    from_endpoints = _register_from_endpoints(cfg.get('endpoints'))
-    addresses.extend(from_endpoints)
+    endpoints_cfg = cfg.get('endpoints')
+    if endpoints_cfg:
+        addresses.extend(_register_from_endpoints(ns=ns, cfg=endpoints_cfg))
 
     return addresses
 
 
-def _register_from_endpoints(cfg):
+def _register_from_endpoints(ns, cfg):
     """Register plugins with Synse Server discovered via kubernetes
     service endpoints.
 
     Args:
-        cfg (dict): The configuration for service discovery via kubernetes
-            endpoints.
+        ns (str): The namespace to get the endpoints from.
+        cfg (dict): The configuration for service discovery via
+            kubernetes endpoints.
 
     Returns:
         list[str]: A list of host:port addresses for the plugin endpoints
             that matched the config.
+
+    Raises:
+        ValueError: The given namespace is empty.
     """
+    if not ns:
+        raise ValueError(
+            'A namespace must be provided for discovery via k8s service endpoints.'
+        )
+
     found = []
 
     # Gather the filters/options needed to find the endpoints we are interested
@@ -69,7 +90,7 @@ def _register_from_endpoints(cfg):
     kubernetes.config.load_incluster_config()
     v1 = kubernetes.client.CoreV1Api()
 
-    endpoints = v1.list_endpoints_for_all_namespaces(label_selector=label_selector)
+    endpoints = v1.list_namespaced_endpoints(namespace=ns, label_selector=label_selector)
 
     # Now we parse out the endpoints to get the routing info to a plugin.
     # There are some assumptions here:

@@ -1,4 +1,5 @@
 """Synse Server configuration and scheme definition."""
+# pylint: disable=line-too-long
 
 from bison import Bison, DictOption, ListOption, Option, Scheme
 
@@ -12,6 +13,7 @@ scheme = Scheme(
         ListOption('unix', default=[], member_type=str, bind_env=True),
         DictOption('discover', required=False, bind_env=True, scheme=Scheme(
             DictOption('kubernetes', required=False, bind_env=True, scheme=Scheme(
+                Option('namespace', required=False, bind_env=True, field_type=str),
                 DictOption('endpoints', required=False, bind_env=True, scheme=Scheme(
                     DictOption('labels', bind_env=True, scheme=None)
                 )),
