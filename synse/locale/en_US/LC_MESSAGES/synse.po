@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-10-24 11:18-0400\n"
+"POT-Creation-Date: 2018-10-26 09:17-0400\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -317,47 +317,51 @@ msgstr ""
 msgid "Failed to add transaction {} to the cache"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:55
+#: synse/discovery/kubernetes.py:36
+msgid "Using namespace \"{}\" for k8s discovery"
+msgstr ""
+
+#: synse/discovery/kubernetes.py:78
 msgid "No labels found for kubernetes service discovery via endpoints"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:65
+#: synse/discovery/kubernetes.py:88
 msgid "Using endpoint label selector: {}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:79
+#: synse/discovery/kubernetes.py:102
 msgid "Found endpoint with name: {}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:87
+#: synse/discovery/kubernetes.py:110
 msgid "No addresses for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:96
+#: synse/discovery/kubernetes.py:119
 msgid "Address has no target_ref - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:101
+#: synse/discovery/kubernetes.py:124
 msgid "Address is not a pod address - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:109
+#: synse/discovery/kubernetes.py:132
 msgid "No ips found for endpoint, will not search for port"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:116
+#: synse/discovery/kubernetes.py:139
 msgid "No ports for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:126
+#: synse/discovery/kubernetes.py:149
 msgid "skipping port (want name:http, but found name:{})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:138
+#: synse/discovery/kubernetes.py:161
 msgid "found plugin: endpoint.name={}, ip={}, port={}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:145
+#: synse/discovery/kubernetes.py:168
 msgid "Did not find any plugins via kubernetes endpoints (labels={})"
 msgstr ""
 
