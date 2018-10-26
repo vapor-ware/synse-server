@@ -2,6 +2,7 @@
 # pylint: disable=unused-argument,missing-docstring
 
 import kubernetes
+import pytest
 
 from synse import config
 from synse.discovery import kubernetes as k8s
@@ -22,10 +23,20 @@ def test_discovery_empty_endpoints():
     assert res == []
 
 
+def test_register_from_endpoints_no_ns():
+    """An empty namespace string is provided to the _register_from_endpoints function."""
+
+    with pytest.raises(ValueError):
+        k8s._register_from_endpoints('', {})
+
+
 def test_register_from_endpoints_empty_cfg():
     """Pass an empty config to _register_from_endpoints."""
 
-    res = k8s._register_from_endpoints({})
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={}
+    )
     assert res == []
 
 
@@ -35,16 +46,17 @@ def test_no_endpoints():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[])
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == []
 
 
@@ -54,10 +66,10 @@ def test_one_endpoint_no_subsets():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -69,9 +81,10 @@ def test_one_endpoint_no_subsets():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == []
 
 
@@ -81,10 +94,10 @@ def test_one_endpoint_no_addresses():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -107,9 +120,10 @@ def test_one_endpoint_no_addresses():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == []
 
 
@@ -119,10 +133,10 @@ def test_one_endpoint_no_ports():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -150,9 +164,10 @@ def test_one_endpoint_no_ports():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == []
 
 
@@ -162,10 +177,10 @@ def test_endpoint_no_addr_match():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -199,9 +214,10 @@ def test_endpoint_no_addr_match():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == []
 
 
@@ -211,10 +227,10 @@ def test_one_endpoint():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -248,9 +264,10 @@ def test_one_endpoint():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == ['127.0.0.1:7766']
 
 
@@ -260,10 +277,10 @@ def test_one_endpoint_multiple_ports_ok():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -302,9 +319,10 @@ def test_one_endpoint_multiple_ports_ok():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == ['127.0.0.1:7788']
 
 
@@ -314,10 +332,10 @@ def test_one_endpoint_multiple_ports_invalid():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -356,9 +374,10 @@ def test_one_endpoint_multiple_ports_invalid():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == []
 
 
@@ -370,10 +389,10 @@ def test_one_endpoint_multiple_addrs():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -436,9 +455,10 @@ def test_one_endpoint_multiple_addrs():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == ['127.0.0.1:7766', '127.0.0.4:7766']
 
 
@@ -448,10 +468,10 @@ def test_one_endpoint_multiple_subsets():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -506,9 +526,10 @@ def test_one_endpoint_multiple_subsets():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == ['127.0.0.1:7766', '129.0.0.1:7799']
 
 
@@ -518,10 +539,10 @@ def test_multiple_endpoints():
     # mock out the 'load incluster config' fn so it does nothing
     k8s.kubernetes.config.load_incluster_config = lambda: None
 
-    # mock out the CoreV1Api object's list_endpoints_for_all_namespaces
+    # mock out the CoreV1Api object's list_namespaced_endpoints
     # to return no endpoints.
     class MockCoreV1Api:
-        def list_endpoints_for_all_namespaces(self, *args, **kwargs):
+        def list_namespaced_endpoints(self, *args, **kwargs):
             return kubernetes.client.V1EndpointsList(items=[
                 kubernetes.client.V1Endpoints(
                     metadata=kubernetes.client.V1ObjectMeta(
@@ -583,7 +604,8 @@ def test_multiple_endpoints():
 
     k8s.kubernetes.client.CoreV1Api = MockCoreV1Api
 
-    res = k8s._register_from_endpoints({
-        'labels': {'foo': 'bar'}
-    })
+    res = k8s._register_from_endpoints(
+        ns='default',
+        cfg={'labels': {'foo': 'bar'}}
+    )
     assert res == ['127.0.0.1:7766', '128.0.0.1:7755']
