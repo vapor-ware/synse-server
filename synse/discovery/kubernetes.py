@@ -30,9 +30,7 @@ def discover():
     #
     # If no namespace is provided via user configuration, if will default to
     # the 'default' namespace.
-    ns = config.options.get('plugin.discover.kubernetes.namespace')
-    if not ns:
-        ns = 'default'
+    ns = config.options.get('plugin.discover.kubernetes.namespace', 'default')
     logger.debug(_('Using namespace "{}" for k8s discovery').format(ns))
 
     # Currently, we only support plugin discovery via kubernetes service
