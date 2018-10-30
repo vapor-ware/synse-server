@@ -24,7 +24,7 @@ pyasn1==0.4.3             # via pyasn1-modules, rsa
 python-dateutil==2.7.3    # via kubernetes
 pyyaml==3.12
 requests-oauthlib==1.0.0  # via kubernetes
-requests==2.19.1          # via kubernetes, requests-oauthlib
+requests==2.20.0
 rsa==3.4.2                # via google-auth
 sanic==0.8.3
 six==1.11.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, websocket-client

@@ -41,6 +41,7 @@ setup(
         'grpcio',
         'kubernetes',
         'pyyaml',
+        'requests>=2.20.0',
         'sanic>=0.8.0',
         'synse-grpc>=1.1.0',
     ],
