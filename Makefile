@@ -49,6 +49,10 @@ endif
 api-doc:  ## Open the locally generated HTML API reference
 	@open ./docs/index.html || echo "${RED}API doc not found locally. To generate, run: 'make docs'${NC}"
 
+.PHONY: clean
+clean: pycache-clean  ## Clean up build/test artifacts
+	rm -rf build/ dist/ *.egg-info results/ .coverage* .pytest_cache
+
 .PHONY: clean-docs
 clean-docs:  ## Clean out the documentation build artifacts
 	@bin/clean_docs.sh

@@ -35,29 +35,35 @@
 **/__pycache__
 **/.tox
 .pep8
+*.egg-info
+build
+dist
+
+# Test Artifacts
+results
+.circleci
+.coverage
+.pytest_cache
 
 # Logs
 logs/
 *.log
 
 # Docker
+dockerfile
 Dockerfile.*
-**/*.dockerfile
-
-# Deployment Configs
-deploy/
 
 # Docs
-docs/
+docs
 **/*.md
 **/*.rst
 NOTICE
 
-# Images
-**/*.png
+# Scripts
+bin/ci
 
-# Test Artifacts
-prof/
-results/
-.circleci/
-.coverage
+# Other
+**/*.png
+assets
+compose
+deploy
