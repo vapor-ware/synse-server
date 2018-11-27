@@ -47,7 +47,7 @@ A custom tag can be used as well
     docker build -f dockerfile/release.dockerfile -t my/custom:tag
 
 
-python install
+Python Install
 --------------
 Synse Server can be installed onto your local system directly from the repo. The package is not
 currently hosted in PyPi, so you must have a clone of the repo. In the repo root, you can simply
@@ -58,6 +58,34 @@ run
     python setup.py install
 
 and Synse Server will be installed locally as the ``synse`` package.
+
+
+Helm Chart
+----------
+A `Helm <https://helm.sh/>`_ chart for Synse Server and Synse plugins are available from
+the `Synse Charts <https://github.com/vapor-ware/synse-charts>`_ repo at ``https://charts.vapor.io``.
+
+You can add the repo to a local helm http web server (``helm serve``) with
+
+.. code-block:: none
+
+    helm repo add synse https://charts.vapor.io
+
+The repo can be updated with
+
+.. code-block:: none
+
+    helm repo update synse
+
+To see the available helm charts that the Synse Charts repo provides, simply search for 'synse'
+
+.. code-block:: none
+
+    $ helm search synse
+    synse/synse-server 	0.1.1        	2.2.4      	An HTTP API for the monitoring and control of physical an...
+    synse/emulator     	0.1.0        	2.2.0      	Emulator plugin for Synse Server.
+    synse/modbus       	0.2.0        	1.1.0      	Synse Modbus Over IP Plugin.
+    synse/snmp         	0.1.0        	           	snmp
 
 
 Updating
