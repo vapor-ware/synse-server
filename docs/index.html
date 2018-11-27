@@ -276,6 +276,9 @@
                   <li>
                     <a href="#boot-target" class="toc-h2 toc-link" data-title="Boot Target">Boot Target</a>
                   </li>
+                  <li>
+                    <a href="#lock" class="toc-h2 toc-link" data-title="Lock">Lock</a>
+                  </li>
               </ul>
           </li>
       </ul>
@@ -896,9 +899,14 @@ check elements here make up a snapshot of the plugin&#39;s health at a given tim
               </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="w">
             </span><span class="p">},</span><span class="w">
             </span><span class="p">{</span><span class="w">
-              </span><span class="s2">"id"</span><span class="p">:</span><span class="s2">" f838b2d6afceb01e7a2634893f6f935c"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"f838b2d6afceb01e7a2634893f6f935c"</span><span class="p">,</span><span class="w">
               </span><span class="s2">"info"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Synse Pressure Sensor 2"</span><span class="p">,</span><span class="w">
               </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pressure"</span><span class="w">
+            </span><span class="p">},</span><span class="w">
+            </span><span class="p">{</span><span class="w">
+              </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"da7fbdfc8e962922685af9d0fac53379"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"info"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Synse Door Lock"</span><span class="p">,</span><span class="w">
+              </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"lock"</span><span class="w">
             </span><span class="p">}</span><span class="w">
           </span><span class="p">]</span><span class="w">
         </span><span class="p">}</span><span class="w">
@@ -2038,6 +2046,107 @@ of valid query parameters are specified, the endpoint will write to the specifie
  corresponding actions. As a result, writing to some <i>boot_target</i> instances may result in error.
 </aside>
 <h3 id='response-fields-13'>Response Fields</h3>
+<p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
+<h2 id='lock'>Lock</h2>
+<blockquote>
+<p>If no <em>valid</em> query parameters are specified, this will <strong>read</strong> from the lock device.</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON will be the same as read response:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"lock"</span><span class="p">,</span><span class="w">
+  </span><span class="s2">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"locked"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2018-11-27T13:47:19.998713947Z"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"unit"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"state"</span><span class="p">,</span><span class="w">
+      </span><span class="s2">"info"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+<blockquote>
+<p>If any <em>valid</em> query parameters are specified, this will <strong>write</strong> to the lock device.</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl <span class="s2">"http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379?action=unlock"</span>
+</code></pre><pre class="highlight python tab-python"><code><span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379?action=unlock'</span><span class="p">)</span>
+</code></pre>
+<blockquote>
+<p>The response JSON will be the same as a write response:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"context"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">"action"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unlock"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="s2">"gbo5t0a8atig19jnhue1"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre>
+<p>An alias to <code>read</code> from or <code>write</code> to a known lock device.</p>
+
+<p>While a lock device can be read directly via the <a href="#read">read</a> route or written to directly from the
+<a href="#write">write</a> route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a lock device and
+that the given query parameter value(s), if any, are permissible.</p>
+
+<p>If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.</p>
+
+<p>Invalid query parameters will result in a 400 Invalid Arguments error.</p>
+<h3 id='http-request-16'>HTTP Request</h3>
+<p><code>GET http://host:5000/synse/v2/lock/{rack}/{board}/{device}</code></p>
+<h3 id='uri-parameters-10'>URI Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>rack</em></td>
+<td>yes</td>
+<td>The id of the rack containing the lock device to read from/write to.</td>
+</tr>
+<tr>
+<td><em>board</em></td>
+<td>yes</td>
+<td>The id of the board containing the lock device to read from/write to.</td>
+</tr>
+<tr>
+<td><em>device</em></td>
+<td>yes</td>
+<td>The id of the lock device to read from/write to.</td>
+</tr>
+</tbody></table>
+<h3 id='query-parameters-7'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><em>action</em></td>
+<td>The state to set the fan to. <em>Valid values:</em> (<code>lock</code>, <code>unlock</code>, <code>pulseUnlock</code>)</td>
+</tr>
+</tbody></table>
+
+<aside class="notice">
+ While Synse Server supports the listed Query Parameters, not all devices will support the 
+ corresponding actions. As a result, writing to some <i>lock</i> instances may result in error.
+</aside>
+<h3 id='response-fields-14'>Response Fields</h3>
 <p>See the responses for <a href="#read">read</a> and <a href="#write">write</a>.</p>
 
       </div>

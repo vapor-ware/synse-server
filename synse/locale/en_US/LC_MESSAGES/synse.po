@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-10-26 09:17-0400\n"
+"POT-Creation-Date: 2018-11-27 16:01-0500\n"
 "PO-Revision-Date: 2018-04-23 14:33-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -317,51 +317,51 @@ msgstr ""
 msgid "Failed to add transaction {} to the cache"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:36
+#: synse/discovery/kubernetes.py:34
 msgid "Using namespace \"{}\" for k8s discovery"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:78
+#: synse/discovery/kubernetes.py:76
 msgid "No labels found for kubernetes service discovery via endpoints"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:88
+#: synse/discovery/kubernetes.py:86
 msgid "Using endpoint label selector: {}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:102
+#: synse/discovery/kubernetes.py:100
 msgid "Found endpoint with name: {}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:110
+#: synse/discovery/kubernetes.py:108
 msgid "No addresses for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:119
+#: synse/discovery/kubernetes.py:117
 msgid "Address has no target_ref - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:124
+#: synse/discovery/kubernetes.py:122
 msgid "Address is not a pod address - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:132
+#: synse/discovery/kubernetes.py:130
 msgid "No ips found for endpoint, will not search for port"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:139
+#: synse/discovery/kubernetes.py:137
 msgid "No ports for subset of endpoint - skipping ({})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:149
+#: synse/discovery/kubernetes.py:147
 msgid "skipping port (want name:http, but found name:{})"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:161
+#: synse/discovery/kubernetes.py:159
 msgid "found plugin: endpoint.name={}, ip={}, port={}"
 msgstr ""
 
-#: synse/discovery/kubernetes.py:168
+#: synse/discovery/kubernetes.py:166
 msgid "Did not find any plugins via kubernetes endpoints (labels={})"
 msgstr ""
 
@@ -469,12 +469,20 @@ msgstr ""
 msgid "Boot target alias route: writing (query parameters: {})"
 msgstr ""
 
-#: synse/routes/aliases.py:269
+#: synse/routes/aliases.py:269 synse/routes/aliases.py:321
 msgid "Invalid boot target \"{}\". Must be one of: {}"
 msgstr ""
 
 #: synse/routes/aliases.py:282
 msgid "Boot target alias route: reading"
+msgstr ""
+
+#: synse/routes/aliases.py:317
+msgid "Lock alias route: writing (query parameters: {})"
+msgstr ""
+
+#: synse/routes/aliases.py:333
+msgid "Lock alias route: reading"
 msgstr ""
 
 #: synse/routes/core.py:53
