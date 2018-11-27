@@ -301,5 +301,35 @@ async def lock_route(request, rack, board, device): # pylint: disable=unused-arg
     Returns:
         sanic.response.HTTPResponse: The endpoint response.
     """
-    # FIXME (etd) - error out until a lock backend is actually implemented
-    return errors.SynseError('Endpoint not yet implemented')
+    await validate.validate_device_type(const.LOCK_TYPES, rack, board, device)
+
+    # Get the valid query parameters. If unsupported query parameters
+    # are specified, this will raise an error.
+    qparams = validate.validate_query_params(
+        request.raw_args,
+        'action'
+    )
+    param_action = qparams.get('action')
+
+    # If any of the parameters are specified, this will be a write request
+    # using those parameters.
+    if param_action is not None:
+        logger.debug(_('Lock alias route: writing (query parameters: {})').format(qparams))
+
+        if param_action not in const.lock_actions:
+            raise errors.InvalidArgumentsError(
+                _('Invalid boot target "{}". Must be one of: {}').format(
+                    param_action, const.lock_actions)
+            )
+
+        data = {
+            'action': param_action,
+        }
+        transaction = await commands.write(rack, board, device, data)
+        return transaction.to_json()
+
+    # Otherwise, we just read from the device.
+    else:
+        logger.debug(_('Lock alias route: reading'))
+        reading = await commands.read(rack, board, device)
+        return reading.to_json()

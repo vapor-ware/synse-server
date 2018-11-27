@@ -67,7 +67,11 @@ class EmulatorDevices:
         '12835beffd3e6c603aa4dd92127707b5'
     ]
 
-    all = airflow + temperature + pressure + humidity + led + fan
+    lock = [
+        'da7fbdfc8e962922685af9d0fac53379'
+    ]
+
+    all = airflow + temperature + pressure + humidity + led + fan + lock
 
     @classmethod
     def is_airflow(cls, device):
@@ -98,6 +102,12 @@ class EmulatorDevices:
     def is_fan(cls, device):
         """Check if the device ID corresponds to a fan type device."""
         return device in cls.fan
+
+    @classmethod
+    def is_lock(cls, device):
+        """Check if the device ID corresponds to a lock type device."""
+        return device in cls.lock
+
 
 
 def url_unversioned(uri):
@@ -203,7 +213,8 @@ def validate_read(data):
         'fan': ['speed'],
         'airflow': ['airflow'],
         'pressure': ['pressure'],
-        'humidity': ['temperature', 'humidity']
+        'humidity': ['temperature', 'humidity'],
+        'lock': ['state']
     }
 
     keys = lookup.get(k)
@@ -299,6 +310,8 @@ def validate_scan_board(board):
             assert device['type'] == 'airflow'
         elif EmulatorDevices.is_fan(_id):
             assert device['type'] == 'fan'
+        elif EmulatorDevices.is_lock(_id):
+            assert device['type'] == 'lock'
         else:
             pytest.fail('Unexpected device type: {}'.format(device))
 
@@ -587,7 +600,7 @@ class TestWrite:
             assert transaction['status'] == 'done'
 
     @pytest.mark.parametrize(
-        'device', filter(lambda x: x not in EmulatorDevices.fan + EmulatorDevices.led, EmulatorDevices.all)
+        'device', filter(lambda x: x not in EmulatorDevices.fan + EmulatorDevices.led + EmulatorDevices.lock, EmulatorDevices.all)
     )
     def test_write_error(self, device):
         """Test Synse Server's 'write' route, specifying non-writable devices."""
@@ -921,6 +934,80 @@ class TestFan:
     def test_fan_write_bad_params(self, device, params):
         """Test Synse Server's 'fan' route, specifying invalid query parameters for write."""
         response = requests.get(url('fan/rack-1/vec/{}'.format(device)), params=params)
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+
+
+#
+# Lock
+#
+
+class TestLock:
+    """Tests for the 'lock' route."""
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.lock
+    )
+    def test_lock_read_ok(self, device):
+        """Test Synse Server's 'lock' route, specifying valid lock devices to read from."""
+        response = requests.get(url('lock/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_read(data)
+
+    @pytest.mark.parametrize(
+        'device', EmulatorDevices.lock
+    )
+    def test_lock_write_ok(self, device):
+        """Test Synse Server's 'lock' route, specifying valid lock devices to write to."""
+        response = requests.get(url('lock/rack-1/vec/{}'.format(device)), params={'action': 'unlock'})
+        assert response.status_code == 200
+
+        data = response.json()
+        validate_write_ok(data, 1)
+
+        for t in data:
+            transaction_id = t['transaction']
+            transaction = wait_for_transaction(transaction_id)
+
+            assert transaction['state'] == 'ok'
+            assert transaction['status'] == 'done'
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.lock, EmulatorDevices.all)
+    )
+    def test_lock_read_bad_device(self, device):
+        """Test Synse Server's 'lock' route, specifying non-lock devices to read from."""
+        response = requests.get(url('lock/rack-1/vec/{}'.format(device)))
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+    @pytest.mark.parametrize(
+        'device', filter(lambda x: x not in EmulatorDevices.lock, EmulatorDevices.all)
+    )
+    def test_lock_write_bad_device(self, device):
+        """Test Synse Server's 'lock' route, specifying non-lock devices to write to."""
+        response = requests.get(url('lock/rack-1/vec/{}'.format(device)), params={'action': 'unlock'})
+        assert response.status_code == 400
+
+        data = response.json()
+        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+
+    @pytest.mark.parametrize(
+        'device,params', [(device, params) for params in [
+            {'foo': 'bar'},
+            {'action': 'unlock', 'foo': 'bar'},
+            {'action': 'invalid-action'}
+        ] for device in EmulatorDevices.lock]
+    )
+    def test_lock_write_bad_params(self, device, params):
+        """Test Synse Server's 'lock' route, specifying invalid query parameters for write."""
+        response = requests.get(url('lock/rack-1/vec/{}'.format(device)), params=params)
         assert response.status_code == 400
 
         data = response.json()
