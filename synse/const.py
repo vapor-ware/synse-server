@@ -59,11 +59,11 @@ boot_targets = (
 # Lock action definitions
 LOCK_LOCK = 'lock'
 LOCK_UNLOCK = 'unlock'
-LOCK_MUNLOCK = 'munlock'  # momentary unlock
+LOCK_PULSEUNLOCK = 'pulseUnlock'
 
 # All lock actions
 lock_actions = (
     LOCK_LOCK,
     LOCK_UNLOCK,
-    LOCK_MUNLOCK
+    LOCK_PULSEUNLOCK,
 )
