@@ -504,9 +504,14 @@ response = requests.get('http://host:5000/synse/v2/scan')
               "type": "temperature"
             },
             {
-              "id":" f838b2d6afceb01e7a2634893f6f935c",
+              "id": "f838b2d6afceb01e7a2634893f6f935c",
               "info": "Synse Pressure Sensor 2",
               "type": "pressure"
+            },
+            {
+              "id": "da7fbdfc8e962922685af9d0fac53379",
+              "info": "Synse Door Lock",
+              "type": "lock"
             }
           ]
         }
@@ -1470,3 +1475,100 @@ Invalid query parameters will result in a 400 Invalid Arguments error.
 ### Response Fields
 
 See the responses for [read](#read) and [write](#write).
+
+
+## Lock
+
+> If no *valid* query parameters are specified, this will **read** from the lock device.
+
+```shell
+curl "http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379')
+```
+
+> The response JSON will be the same as read response:
+
+```json
+{
+  "kind": "lock",
+  "data": [
+    {
+      "value": "locked",
+      "timestamp": "2018-11-27T13:47:19.998713947Z",
+      "unit": null,
+      "type": "state",
+      "info": ""
+    }
+  ]
+}
+```
+
+> If any *valid* query parameters are specified, this will **write** to the lock device.
+
+```shell
+curl "http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379?action=unlock"
+```
+
+```python
+import requests
+
+response = requests.get('http://host:5000/synse/v2/lock/rack-1/vec/da7fbdfc8e962922685af9d0fac53379?action=unlock')
+```
+
+> The response JSON will be the same as a write response:
+
+```json
+[
+  {
+    "context": {
+      "action": "unlock"
+    },
+    "transaction": "gbo5t0a8atig19jnhue1"
+  }
+]
+```
+
+An alias to `read` from or `write` to a known lock device.
+
+While a lock device can be read directly via the [read](#read) route or written to directly from the
+[write](#write) route, this route provides some additional checks and validation before dispatching to
+the appropriate plugin handler. In particular, it checks if the specified device is a lock device and
+that the given query parameter value(s), if any, are permissible.
+
+If no valid query parameters are specified, this endpoint will read the specified device. If any number
+of valid query parameters are specified, the endpoint will write to the specified device.
+
+Invalid query parameters will result in a 400 Invalid Arguments error.
+
+### HTTP Request
+
+`GET http://host:5000/synse/v2/lock/{rack}/{board}/{device}`
+
+### URI Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *rack*    | yes      | The id of the rack containing the lock device to read from/write to. |
+| *board*   | yes      | The id of the board containing the lock device to read from/write to. |
+| *device*  | yes      | The id of the lock device to read from/write to. |
+
+### Query Parameters
+
+| Parameter | Description |
+| --------- | ----------- |
+| *action* | The state to set the fan to. *Valid values:* (`lock`, `unlock`, `pulseUnlock`) |
+
+<aside class="notice">
+ While Synse Server supports the listed Query Parameters, not all devices will support the 
+ corresponding actions. As a result, writing to some <i>lock</i> instances may result in error.
+</aside>
+
+### Response Fields
+
+See the responses for [read](#read) and [write](#write).
+
