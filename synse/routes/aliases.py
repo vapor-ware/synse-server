@@ -330,6 +330,6 @@ async def lock_route(request, rack, board, device): # pylint: disable=unused-arg
 
     # Otherwise, we just read from the device.
     else:
-        logger.debug(_('Alias alias route: reading'))
+        logger.debug(_('Lock alias route: reading'))
         reading = await commands.read(rack, board, device)
         return reading.to_json()
