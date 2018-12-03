@@ -8,21 +8,23 @@ import ujson
 import yaml
 
 from synse import config, errors, factory
-from tests import data_dir
 
 
 @pytest.fixture()
-def make_config():
+def make_config(tmpdir):
     """Fixture to make a simple config file in the datadir"""
-    # this file gets cleaned out via a fixture in conftest.py
-    with open(os.path.join(data_dir, 'config.yml'), 'w') as f:
+    datadir = tmpdir.mkdir('appconfig')
+
+    with open(os.path.join(datadir, 'config.yml'), 'w') as f:
         yaml.dump({'log': 'debug'}, f)
+
+    return datadir
 
 
 def test_make_app(make_config):
     """Create a new instance of the Synse Server app."""
     config.options.set('locale', 'en_US')
-    config.options.add_config_paths(data_dir)
+    config.options.add_config_paths(make_config)
     app = factory.make_app()
 
     # check that the app we create has the expected blueprints registered

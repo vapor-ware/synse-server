@@ -1,8 +1,6 @@
 """Test the 'synse.cache' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
-import os
-
 import aiocache
 import asynctest
 import grpc
@@ -11,7 +9,6 @@ from synse_grpc import api
 
 from synse import cache, errors, plugin
 from synse.proto import client
-from tests import data_dir
 
 # -- Helper Methods ---
 
@@ -82,12 +79,13 @@ def patch_device_info(monkeypatch):
 
 
 @pytest.fixture()
-def plugin_context():
+def plugin_context(tmpdir):
     """Fixture to setup and teardown the test context for creating plugins."""
 
     # create dummy 'socket' files for the plugins
-    open(os.path.join(data_dir, 'foo'), 'w').close()
-    open(os.path.join(data_dir, 'bar'), 'w').close()
+    sockdir = tmpdir.mkdir('socks')
+    sockdir.join('foo')
+    sockdir.join('bar')
 
 
 # --- Test Cases ---
