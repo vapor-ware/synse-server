@@ -1,6 +1,5 @@
 <p align="center"><a href="https://www.vapor.io/"><img src="assets/logo.png" width="360"></a></p>
 <p align="center">
-    <a href="https://circleci.com/gh/vapor-ware/synse-server"><img src="https://circleci.com/gh/vapor-ware/synse-server.svg?style=shield"></a>
     <a href="https://codecov.io/gh/vapor-ware/synse-server"><img src="https://codecov.io/gh/vapor-ware/synse-server/branch/master/graph/badge.svg" /></a>
     <a href='http://synse-server.readthedocs.io/en/latest/?badge=latest'><img src='https://readthedocs.org/projects/synse-server/badge/?version=latest' alt='Documentation Status' /></a>
     <a href="https://app.fossa.io/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server.svg?type=shield"/></a>

@@ -42,7 +42,6 @@ dist
 # Test Artifacts
 results
 .jenkins
-.circleci
 .coverage
 .pytest_cache
 
