@@ -25,7 +25,7 @@ pipeline {
                 status: 'success',
                 context: 'vio-build/lint',
                 description: 'Source code linting succeeded',
-                targetUrl: "${env.JOB_URL}"
+                targetUrl: "${env.RUN_DISPLAY_URL}"
               )
             }
           }
@@ -37,7 +37,7 @@ pipeline {
                 status: 'failure',
                 context: 'vio-build/lint',
                 description: 'Source code linting failed',
-                targetUrl: "${env.JOB_URL}"
+                targetUrl: "${env.RUN_DISPLAY_URL}"
               )
             }
           }
@@ -46,6 +46,9 @@ pipeline {
     }
     // Run unit and integration tests, generate and upload coverage report.
     stage('Test') {
+      environment {
+        CODECOV_TOKEN = credentials('codecov-token')
+      }
       steps {
         sh 'make test-unit'
         sh 'codecov'
@@ -59,7 +62,7 @@ pipeline {
                 status: 'success',
                 context: 'vio-build/test',
                 description: 'Tests passed',
-                targetUrl: "${env.JOB_URL}"
+                targetUrl: "${env.RUN_DISPLAY_URL}"
               )
             }
           }
@@ -71,7 +74,7 @@ pipeline {
                 status: 'success',
                 context: 'vio-build/test',
                 description: 'Tests failed',
-                targetUrl: "${env.JOB_URL}"
+                targetUrl: "${env.RUN_DISPLAY_URL}"
               )
             }
           }
@@ -91,7 +94,7 @@ pipeline {
                 status: 'success',
                 context: 'vio-build/build-image',
                 description: 'Successfully built docker image',
-                targetUrl: "${env.JOB_URL}"
+                targetUrl: "${env.RUN_DISPLAY_URL}"
               )
             }
           }
@@ -103,7 +106,7 @@ pipeline {
                 status: 'success',
                 context: 'vio-build/build-image',
                 description: 'Failed to build docker image',
-                targetUrl: "${env.JOB_URL}"
+                targetUrl: "${env.RUN_DISPLAY_URL}"
               )
             }
           }
