@@ -24,12 +24,16 @@ RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
 #
 # SLIM
 #
-FROM vaporio/python:3.6 as slim
+FROM vaporio/python:3.6-lite as slim
 COPY --from=builder /build /usr/local
 
-RUN wget https://github.com/krallin/tini/releases/download/v0.18.0/tini_0.18.0-amd64.deb \
+RUN apt-get update && apt-get install --no-install-recommends -y wget \
+ && wget https://github.com/krallin/tini/releases/download/v0.18.0/tini_0.18.0-amd64.deb \
  && dpkg -i tini_*.deb \
- && rm tini_*.deb
+ && rm tini_*.deb \
+ && apt-get purge -y wget \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY . /synse
 WORKDIR /synse
@@ -68,8 +72,8 @@ ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
     PLUGIN_CONFIG="/synse/emulator"
 
 RUN apt-get update \
- && apt-get install --no-install-recommends -y jq \
+ && apt-get install --no-install-recommends -y jq curl \
  && EMULATOR_OUT=/usr/local/bin/emulator ./bin/install_emulator.sh \
- && apt-get purge -y jq \
+ && apt-get purge -y jq curl \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
