@@ -8,9 +8,8 @@ import pytest
 from synse_grpc import api
 
 import synse.proto.client
-from synse import config, errors, plugin
+from synse import config, const, errors, plugin
 from synse.proto.client import PluginClient, PluginTCPClient, PluginUnixClient
-from tests import data_dir
 
 
 @pytest.fixture()
@@ -152,12 +151,11 @@ def test_plugin_path_not_exist():
     assert p.name == 'test'
 
 
-def test_plugin_unix_ok():
+def test_plugin_unix_ok(tmpdir):
     """Create a UNIX plugin successfully"""
-
-    # create a file in the tmp dir for the test
-    path = os.path.join(data_dir, 'test')
-    # open(path, 'w').close()
+    sockdir = tmpdir.mkdir('socks')
+    path = str(sockdir.join('test'))
+    const.SOCKET_DIR = str(sockdir)
 
     p = plugin.Plugin(
         metadata=api.Metadata(
@@ -237,11 +235,13 @@ def test_register_plugins_no_default_socks(grpc_timeout):
     assert len(plugin.Plugin.manager.plugins) == 0
 
 
-def test_register_plugins_no_socks(grpc_timeout):
+def test_register_plugins_no_socks(tmpdir, grpc_timeout):
     """Register plugins when no sockets are in the plugin path."""
+    sockdir = tmpdir.mkdir('socks')
+    const.SOCKET_DIR = str(sockdir)
 
     # create a non-socket file
-    path = os.path.join(data_dir, 'test.txt')
+    path = '{}/test.txt'.format(sockdir)
     open(path, 'w').close()
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -249,11 +249,14 @@ def test_register_plugins_no_socks(grpc_timeout):
     assert len(plugin.Plugin.manager.plugins) == 0
 
 
-def test_register_plugins_ok(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_ok(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Register plugins successfully."""
+    sockdir = tmpdir.mkdir('socks')
+    path = str(sockdir.join('test'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = '{}/test'.format(data_dir)
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -276,11 +279,14 @@ def test_register_plugins_ok(grpc_timeout, mock_client_test_ok, mock_client_meta
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_already_exists(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_already_exists(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Register plugins when the plugins were already registered."""
+    sockdir = tmpdir.mkdir('socks')
+    path = str(sockdir.join('test'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = '{}/test'.format(data_dir)
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -309,11 +315,14 @@ def test_register_plugins_already_exists(grpc_timeout, mock_client_test_ok, mock
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_new(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_new(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Re-register, adding a new plugin."""
+    sockdir = tmpdir.mkdir('socks')
+    path1 = str(sockdir.join('foo'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path1 = '{}/foo'.format(data_dir)
     sock1.bind(path1)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -329,8 +338,8 @@ def test_register_plugins_new(grpc_timeout, mock_client_test_ok, mock_client_met
     assert p.protocol == 'unix'
 
     # now, re-register
+    path2 = str(sockdir.join('bar'))
     sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path2 = '{}/bar'.format(data_dir)
     sock2.bind(path2)
 
     assert len(plugin.Plugin.manager.plugins) == 1
@@ -352,15 +361,18 @@ def test_register_plugins_new(grpc_timeout, mock_client_test_ok, mock_client_met
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_old(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_old(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Re-register, removing an old plugin."""
+    sockdir = tmpdir.mkdir('socks')
+    path1 = str(sockdir.join('foo'))
+    path2 = str(sockdir.join('bar'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path1 = '{}/foo'.format(data_dir)
     sock1.bind(path1)
 
     sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path2 = '{}/bar'.format(data_dir)
     sock2.bind(path2)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -435,11 +447,14 @@ def test_register_unix_plugin_none_defined(grpc_timeout):
     assert len(registered) == 0
 
 
-def test_register_unix_plugin(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_unix_plugin(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Test registering unix plugin when a configuration is specified"""
+    sockdir = tmpdir.mkdir('socks')
+    path = str(sockdir.join('foo'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = os.path.join(data_dir, 'foo')
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -462,15 +477,18 @@ def test_register_unix_plugin(grpc_timeout, mock_client_test_ok, mock_client_met
     assert p.address == path
 
 
-def test_register_unix_plugins(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_unix_plugins(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Test registering unix plugins when multiple configurations are specified"""
+    sockdir = tmpdir.mkdir('socks')
+    path1 = str(sockdir.join('foo'))
+    path2 = str(sockdir.join('bar'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create sockets
     sock1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path1 = os.path.join(data_dir, 'foo')
     sock1.bind(path1)
 
     sock2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path2 = os.path.join(data_dir, 'bar')
     sock2.bind(path2)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -500,11 +518,14 @@ def test_register_unix_plugins(grpc_timeout, mock_client_test_ok, mock_client_me
     assert p2.address == path2
 
 
-def test_register_unix_plugin_already_exists(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_unix_plugin_already_exists(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Test registering unix plugin when the plugin was already registered."""
+    sockdir = tmpdir.mkdir('socks')
+    path = str(sockdir.join('test'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = '{}/test'.format(data_dir)
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -527,7 +548,7 @@ def test_register_unix_plugin_already_exists(grpc_timeout, mock_client_test_ok, 
     assert len(plugin.Plugin.manager.plugins) == 1
 
     # set the same configuration
-    config.options.set('plugin.unix', [data_dir])
+    config.options.set('plugin.unix', [str(sockdir)])
 
     registered = plugin.register_unix()
 
@@ -544,12 +565,14 @@ def test_register_unix_plugin_already_exists(grpc_timeout, mock_client_test_ok, 
     assert p.protocol == 'unix'
 
 
-def test_register_unix_plugin_no_socket(grpc_timeout):
+def test_register_unix_plugin_no_socket(tmpdir, grpc_timeout):
     """Test registering unix plugin when no socket is bound"""
+    sockdir = tmpdir.mkdir('socks')
+    const.SOCKET_DIR = str(sockdir)
 
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options.set('plugin.unix', [data_dir])
+    config.options.set('plugin.unix', [sockdir])
 
     registered = plugin.register_unix()
 
@@ -562,7 +585,7 @@ def test_register_unix_plugin_no_socket_no_path(grpc_timeout):
     """Test registering unix plugin when the path does not exist"""
     assert len(plugin.Plugin.manager.plugins) == 0
 
-    config.options.set('plugin.unix', [os.path.join(data_dir, 'some', 'other', 'path')])
+    config.options.set('plugin.unix', [os.path.join('some', 'nonexistent', 'other', 'path')])
 
     registered = plugin.register_unix()
 
@@ -571,11 +594,14 @@ def test_register_unix_plugin_no_socket_no_path(grpc_timeout):
     assert len(registered) == 0
 
 
-def test_register_unix_plugin_no_config_path(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_unix_plugin_no_config_path(tmpdir, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
     """Test registering unix plugin when a configuration without a path is specified"""
+    sockdir = tmpdir.mkdir('socks')
+    path = str(sockdir.join('foo'))
+    const.SOCKET_DIR = str(sockdir)
+
     # create the socket
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    path = '{}/foo'.format(data_dir)
     sock.bind(path)
 
     assert len(plugin.Plugin.manager.plugins) == 0

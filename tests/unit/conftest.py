@@ -6,7 +6,6 @@ import bison
 import pytest
 
 from synse import cache, config, const, plugin
-from tests import data_dir
 
 
 @pytest.fixture(autouse=True)
@@ -14,7 +13,7 @@ def reset_state():
     """Fixture to reset all Synse Server state between tests."""
 
     _old = const.SOCKET_DIR
-    const.SOCKET_DIR = data_dir
+    #const.SOCKET_DIR = data_dir
 
     yield
 
