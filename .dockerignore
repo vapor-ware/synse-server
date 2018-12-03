@@ -41,9 +41,10 @@ dist
 
 # Test Artifacts
 results
-.circleci
+.jenkins
 .coverage
 .pytest_cache
+tests/testdata
 
 # Logs
 logs/

@@ -188,4 +188,4 @@ ci-check-version:
 
 .PHONY: ci-package
 ci-package:
-	python setup.py sdist --formats=gztar,zip,bztar,tar
+	tox -e dist
