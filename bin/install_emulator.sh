@@ -33,6 +33,6 @@ bin_url=$(echo ${data} | jq --arg bin "$EMULATOR_BIN" '.assets[] | select(.name 
 curl -L -H "Accept: application/octet-stream" -o ${EMULATOR_BIN} ${bin_url}
 chmod +x ${EMULATOR_BIN}
 
-if [ "$EMULATOR_OUT" ]; then
+if [[ "$EMULATOR_OUT" ]]; then
     mv ${EMULATOR_BIN} ${EMULATOR_OUT}
 fi
