@@ -24,7 +24,7 @@ RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
 #
 # SLIM
 #
-FROM vaporio/python:3.6-lite as slim
+FROM vaporio/python:3.6-slim as slim
 COPY --from=builder /build /usr/local
 
 RUN apt-get update && apt-get install --no-install-recommends -y wget \
