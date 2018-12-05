@@ -63,8 +63,8 @@ Other actions that are useful when developing:
 
 CI
 ---
-All commits and pull requests to Synse Server trigger a build in `Circle CI <https://circleci.com/gh/vapor-ware/synse-server>`_.
-The CI configuration can be found in the repo's ``.circleci/config.yml`` file. In summary,
+All commits and pull requests to Synse Server trigger a build on our Jenkins CI server.
+The CI configuration can be found in the repo's ``.jenkins`` file. In summary,
 a build triggered by a commit will:
 
 - Run unit tests
