@@ -3,7 +3,6 @@
 #
 # The Dockerfile for the release build of Synse Server. This
 # Dockerfile has multiple stages:
-#   * base: defines the base image and adds image metadata
 #   * builder: build synse server package dependencies
 #   * slim: a synse server build without emulator
 #   * full: a synse server build with emulator
@@ -27,12 +26,7 @@ RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
 FROM vaporio/python:3.6-slim as slim
 COPY --from=builder /build /usr/local
 
-RUN apt-get update && apt-get install --no-install-recommends -y wget \
- && wget https://github.com/krallin/tini/releases/download/v0.18.0/tini_0.18.0-amd64.deb \
- && dpkg -i tini_*.deb \
- && rm tini_*.deb \
- && apt-get purge -y wget \
- && apt-get autoremove -y \
+RUN apt-get update && apt-get install -y --no-install-recommends tini \
  && rm -rf /var/lib/apt/lists/*
 
 COPY . /synse
