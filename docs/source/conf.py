@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Synse Server'
-copyright = '2018, Vapor IO'
+copyright = '2015-2019, Vapor IO'
 author = 'Vapor IO'
 
 # The short X.Y version
