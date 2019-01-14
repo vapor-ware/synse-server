@@ -22,7 +22,7 @@ protobuf==3.5.2.post1     # via grpcio
 pyasn1-modules==0.2.1     # via google-auth
 pyasn1==0.4.3             # via pyasn1-modules, rsa
 python-dateutil==2.7.3    # via kubernetes
-pyyaml==3.12
+pyyaml==4.2b4
 requests-oauthlib==1.0.0  # via kubernetes
 requests==2.20.0
 rsa==3.4.2                # via google-auth

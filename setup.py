@@ -40,7 +40,7 @@ setup(
         'bison>=0.1.0',
         'grpcio',
         'kubernetes',
-        'pyyaml',
+        'pyyaml>=4.2b1',
         'requests>=2.20.0',  # used by 'kubernetes'
         'sanic>=0.8.0',
         'synse-grpc>=1.1.0',
