@@ -489,8 +489,7 @@ metadata could be converted into prometheus labels for the reading.
 
 | Key | Description |
 | --- | ----------- |
-| namespace | The default namespace to use for the specified labels. (default: `default`) |
-| ns | Same as `namespace`, above. |
+| ns | The default namespace to use for the specified labels. (default: `default`) |
 | tags | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
 
 #### Response
@@ -675,45 +674,154 @@ See: [Errors](#errors)
 POST http://HOST:5000/synse/v3/write
 ```
 
-> **Question**: Similar to how there is a "read device" endpoint for reading a
-> single device, we could have a "write device" endpoint to write to a single device.
+Write data to devices.
+
+The write endpoint supports both single device writes and bulk device writes. This
+is mediated through the [tag](tags.md) based routing system.
+- To write to a single device, the unique `id` tag for the target device should be used.
+- To write to multiple devices, any number of non-`id` tags can be used.
+
+If writing to multiple devices, each device write will be resolved asynchronously. Each
+device write will have its own internal transaction. This means that even if some of the
+devices matching the specified tags fail (either from a precondition check or actual write
+failure), all other device writes will not be cancelled or blocked.
+
+Separate from multi-device writes are multi-value writes, where a single write command
+can write multiple values to a device. Each value to be written is passed as an action/data
+pair within the POST body. Writes are evaluated in order of their position in the list, e.g.
+for the following POST body, the color value would be written first, then the state value.
+
+```json
+[
+  {
+    "action": "color",
+    "data": "f38ac2"
+  },
+  {
+    "action": "state",
+    "data": "blink"
+  }
+]
+```
 
 For more details on the changes to the `/write` endpoint, see the 
 [Synse Writes Document](./writes.md)
 
 #### POST Body
-Example:
+Example for a single-value write:
 ```json
-{
-  "action": "color",
-  "data": "f38ac2"
-}
+[
+  {
+    "action": "color",
+    "data": "f38ac2"
+  }
+]
+```
+
+Example for a multi-value write:
+```json
+[
+  {
+    "action": "color",
+    "data": "f38ac2"
+  },
+  {
+    "action": "state",
+    "data": "blink"
+  }
+]
 ```
 
 #### Query Parameters
 
-| Key | Description |
-| --- | ----------- |
-| namespace | The default namespace to use for the specified labels. (default: `default`) |
-| ns | Same as `namespace`, above. |
-| tags | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
+| Key | Required | Description |
+| --- | -------- | ----------- |
+| ns | no | The default namespace to use for the specified labels. (default: `default`) |
+| tags | yes | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
+| transaction | no | A user-defined transaction ID which will be used as the primary write transaction id. If this conflicts with an existing transaction ID, an error is returned. |
 
 See [Writes](writes.md) for more info on writing to devices using tags.
 
 #### Response
 
 ##### OK (200)
+The write response consists of a "primary write transaction id" (e.g. `56a32eba-1aa6-4868-84ee-fe01af8b2e6d`, below)
+and a collection of individual device writes. The primary transaction id is used to identify the API
+write action as a whole, while the individual device writes each represent a write to a device. In cases
+where a single device is written to, there will only be one device write under the *"writes"* field.
+In cases where multiple devices are written to, there will be multiple device writes.
+
 ```json
-[
-  {
-    "context": {
-      "action": "color",
-      "data": "f38ac2"
-    },
-    "transaction": "b9keavu8n63001v6bnm0"
-  }
-]
+{
+  "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d",
+  "writes": [
+    {
+      "context": [
+        {
+          "action": "color",
+          "data": "f38ac2"
+        }
+      ],
+      "device": "0fe8f06229aa9a01ef6032d1ddaf18a2",
+      "transaction": "b9keavu8n63001v6bnm0"
+    }
+  ]
+}
 ```
+
+For multiple device writes:
+```json
+{
+  "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6b",
+  "writes": [
+    {
+      "context": [
+        {
+          "action": "color",
+          "data": "f38ac2"
+        }
+      ],
+      "device": "0fe8f06229aa9a01ef6032d1ddaf18a3",
+      "transaction": "b9keavu8n63001v6bnm1"
+    },
+    {
+      "context": [
+        {
+          "action": "color",
+          "data": "f38ac2"
+        }
+      ],
+      "device": "0fe8f06229aa9a01ef6032d1ddaf18a4",
+      "transaction": "b9keavu8n63001v6bnm2"
+    },
+    {
+      "context": [
+        {
+          "action": "color",
+          "data": "f38ac2"
+        }
+      ],
+      "device": "0fe8f06229aa9a01ef6032d1ddaf18a5",
+      "transaction": "b9keavu8n63001v6bnm3"
+    }
+  ]
+}
+```
+
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *transaction* | The primary write transaction id. If a user-defined transaction is provided via the `transaction` query parameter, this field will hold that ID. Otherwise, a new ID is generated. |
+| *writes* | The collection of individual device writes which make up the write request. |
+
+Each device write object has the following fields:
+
+| Field | Description |
+| ----- | ----------- |
+| *context* | The data written to the device. This is provided as context info to help identify the action. |
+| *device* | The GUID of the device being written to. |
+| *transaction* | The internal ID for the device write. |
 
 ##### Error (500, 400)
 See: [Errors](#errors)
@@ -727,9 +835,24 @@ GET http://HOST:5000/synse/v3/transaction[/{transaction_id}]
 
 Check the state and status of a write transaction.
 
-If no transaction ID is given, a list of all cached transactions, sorted by
+The *transaction_id* parameter can be either the primary write transaction id, or the id of an
+individual device write. 
+
+When a primary write transaction id is provided, the return state and status are an aggregate of
+all component device writes, where both state and status contain the "least complete" value from
+their component device writes. That is to say, if a write contained two device writes, one of which
+was complete and the other was pending, the overall state and status returned would be that of the
+pending device write. If *any* component write fails, the primary write will resolve to an error
+state/status.
+
+When a component device write transaction id is provided, the return state will be that of the
+device write.
+
+If no transaction ID is given, a list of all cached primary transaction IDs, sorted by
 transaction ID (the `id` response field), is returned. The length of time that a transaction
 is cached is configurable (see the Synse Server [configuration documentation]()).
+
+If the provided transaction ID does not exist, an error is returned.
 
 #### URI Parameters
 
@@ -741,12 +864,37 @@ is cached is configurable (see the Synse Server [configuration documentation]())
 #### Response
 
 ##### OK (200)
-An example of the 200 OK response from the `/transaction` endpoint when a transaction ID
+Below is an example of the 200 OK response from the `/transaction` endpoint when a primary transaction ID
 is provided:
 
 ```json
 {
+  "id": "56a32eba-1aa6-4868-84ee-fe01af8b2e6b",
+  "state": "ok",
+  "status": "done",
+  "message": "",
+  "components": [
+    "b9pin8ofmg5g01vmt77g"
+  ]
+}
+```
+
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *id* | The primary ID of the transaction. |
+| *state* | The "least complete" state of the component transactions. (`ok`, `error`) |
+| *status* | The "least complete" status of the component transactions. (`unknown`, `pending`, `writing`, `done`) |
+| *message* | Any context information relating to a transaction's error state. If there is no error, this will be an empty string. |
+| *components* | The ID(s) for the component device write transaction(s). |
+
+Below is an example of the 200 OK response from the `/transaction` endpoint when a component device write transaction ID
+is provided:
+```json
+{
   "id": "b9pin8ofmg5g01vmt77g",
+  "device": "0fe8f06229aa9a01ef6032d1ddaf18a5",
   "context": {
     "action": "color",
     "data": "f38ac2"
@@ -759,49 +907,30 @@ is provided:
 }
 ```
 
-An example of the 200 OK response from the `/transaction` endpoint when no transaction ID
-is provided:
-
-```json
-[
-  {
-    "id": "b9pin8ofmg5g01vmt77g",
-    "context": {
-      "action": "color",
-      "data": "f38ac2"
-    },
-    "state": "ok",
-    "status": "done",
-    "created": "2018-02-01T15:00:51.132823149Z",
-    "updated": "2018-02-01T15:00:51.132823149Z",
-    "message": ""
-  },
-  {
-    "id": "b9pin8ofmg5g01vmt782",
-    "context": {
-      "action": "color",
-      "data": "f38ac2"
-    },
-    "state": "ok",
-    "status": "done",
-    "created": "2018-02-01T15:00:51.132823149Z",
-    "updated": "2018-02-01T15:00:51.132823149Z",
-    "message": ""
-  }
-]
-```
-
 **Fields**
 
 | Field | Description |
 | ----- | ----------- |
 | *id* | The ID of the transaction. This is generated and assigned by the plugin being written to. |
+| *device* | The GUID of the device being written to. |
 | *context* | The POSTed write data for the given write transaction. |
 | *state* | The current state of the transaction. (`ok`, `error`) |
 | *status* | The current status of the transaction. (`unknown`, `pending`, `writing`, `done`) |
 | *created* | The time at which the transaction was created. This timestamp is generated by the plugin. |
 | *updated* | The last time the transaction state *or* status was updated. Once the transaction reaches a `done` status or `error` state, no further updates will occur. |
 | *message* | Any context information relating to a transaction's error state. If there is no error, this will be an empty string. |
+
+
+Below is an example of the 200 OK response from the `/transaction` endpoint when no transaction ID
+is provided:
+
+```json
+[
+  "56a32eba-1aa6-4868-84ee-fe01af8b2e6b",
+  "56a32eba-1aa6-4868-84ee-fe01af8b2e6c",
+  "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+]
+```
 
 ##### Error (500, 404)
 See: [Errors](#errors)

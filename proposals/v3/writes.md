@@ -6,6 +6,7 @@ write behavior more generally.
 ## High Level Work Items
 - Update `/write` [API](api.md#write)
 - Add support for group writes
+- Remove `raw` keyword support from write payload 
 
 ## Proposal
 ### Payload
@@ -13,6 +14,10 @@ The JSON payload for a write is similar to what it was in Synse v2. It consists
 of:
 * **action**: (required) what does the device do?
 * **data**: (optional) how does the device do it?
+
+> **Note**: In v2, `raw` was deprecated in favor of `data`, but the `raw` keyword
+> was still supported for backwards compatibility. With this major version bump,
+> the `raw` keyword will be removed.
 
 An example of this would be changing the color of an LED device
 ```json
@@ -22,12 +27,20 @@ An example of this would be changing the color of an LED device
 }
 ```
 
-The *action* and the *data* it requires (if it requires data at all) is defined by the
-plugin.
+The *action* and the *data* required by a write (note: *data* is optional) is defined by
+the plugin.
 
-> **Question**: Is the "action", "data" naming intuitive enough, or are there
-> better names for the fields? Suggestions welcome.
+### Query Parameters
+In addition to the namespace and tag-based query parameters needed for device routing,
+writes will support the following:
 
+#### `transaction`
+The *transaction* query parameter allows the caller to specify their own transaction ID
+for the write. This is particularly useful for external services (e.g. a frontend) which
+would manage and track their own global transaction ids.
+
+If the user-specified transaction id conflicts with something already in the transaction
+cache, an error is returned.
 
 ### Single Write
 Synse v2 only supports single device writes, where the write target is specified
@@ -39,13 +52,11 @@ support [group writes](#group-writes) as well. The reserved `id` (tag name still
 is the exception, as only a single device may be associated with a given `id`; this
 allows unique device identification.
 
-> **Note**: This assumes we are able to have globally unique device ids.
+> **Note**: This assumes we are able to have [globally unique device ids](ids.md).
 
-To write to a single device, the id must be supplied to the `/write` endpoint. (TBD
-on whether this is an `?id` query param, or a "single device write" endpoint `/write/{device}`).
-If the provided id does not exist/is not associated with a known device, an error
-will be returned.
-
+To write to a single device, the id must be supplied to the `/write` endpoint
+(See: [API Write](api.md#write)). This can be done using the `id` query parameter.
+If the provided id is not known, an error is returned.
 
 ### Group Writes
 *Group Writing* is new in Synse v3 and is enabled by the tag-based routing system.
@@ -84,9 +95,6 @@ By allowing multiple action-data pairs to be specified for a single write, Synse
 be able to issue multiple write actions in a single request. This ensures that both
 writes will either be received or not received by the plugin simultaneously, making the
 error handling for these multi-state changes simpler. 
-
-> **Question**: It isn't clear what the best approach for this is, but it would
-> likely require a change to the payload data.
 
 ```json
 [
