@@ -106,6 +106,27 @@ human-readable description.
 | 6500 | no | Plugin state error |
 
 
+
+### API Endpoints
+Below is a table of contents for the API Endpoints.
+
+0. [Test](#test)
+0. [Version](#version)
+0. [Config](#config)
+0. [Plugins](#plugins)
+0. [Plugin Health](#plugin-health)
+0. [Scan](#scan)
+0. [Health](#health)
+0. [Capabilities](#capabilities)
+0. [Read](#read)
+0. [Read Device](#read-device)
+0. [Read Cached](#read-cached)
+0. [Write](#write)
+0. [Transaction](#transaction)
+
+
+---
+
 ### Test
 > No changes from v2
 
@@ -143,6 +164,7 @@ indicate Synse Server not being up and serving.
 No JSON - route not reachable/service not ready
 
 
+---
 
 ### Version
 > No changes from v2
@@ -175,6 +197,7 @@ provided by this endpoint should be used in subsequent requests.
 No JSON - route not reachable/service not ready
 
 
+---
 
 ### Config
 ```
@@ -198,65 +221,93 @@ The response JSON will match the configuration scheme.
 See: [Errors](#errors)
 
 
+---
+
 ### Plugins
 > **Changed**: Added an `id` field to the response.
 
-
-> **Question**: Add route to get info for single plugin by id?
 ```
-GET http://HOST:5000/synse/v3/plugins
+GET http://HOST:5000/synse/v3/plugin[/{plugin_id}]
 ```
 
 Get info on the plugins currently registered with Synse Server.
 
+If no URI parameters are supplied, a summary of all plugins is returned. See below
+for an example response.
+
+#### URI Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *id* | no | The ID of the plugin to get more information for. Plugin IDs can be enumerated via the `/plugin` endpoint without specifying a URI parameter. |
+
 #### Response
 
 ##### OK (200)
+
+Below is an example response when no query parameters are provided. This will
+result in a summary of all registered plugins.
 ```json
 [
   {
+    "description": "a plugin with emulated devices and data",
     "id": "12835beffd3e6c603aa4dd92127707b5",
-    "tag": "vaporio\/emulator-plugin",
     "name": "emulator plugin",
-    "description": "A plugin with emulated devices and data",
-    "maintainer": "vaporio",
-    "vcs": "github.com\/vapor-ware\/synse-emulator-plugin",
-    "version": {
-      "plugin_version": "2.0.0",
-      "sdk_version": "1.0.0",
-      "build_date": "2018-06-14T16:24:09",
-      "git_commit": "13e6478",
-      "git_tag": "1.0.2-5-g13e6478",
-      "arch": "amd64",
-      "os": "linux"
-    },
-    "network": {
-      "protocol": "tcp",
-      "address": "emulator-plugin:5001"
-    },
-    "health": {
-      "timestamp": "2018-06-15T20:04:33.4393472Z",
-      "status": "ok",
-      "message": "",
-      "checks": [
-        {
-          "name": "read buffer health",
-          "status": "ok",
-          "message": "",
-          "timestamp": "2018-06-15T20:04:06.3524458Z",
-          "type": "periodic"
-        },
-        {
-          "name": "write buffer health",
-          "status": "ok",
-          "message": "",
-          "timestamp": "2018-06-15T20:04:06.3523946Z",
-          "type": "periodic"
-        }
-      ]
-    }
+    "maintainer": "vapor io"
+  },
+  {
+    "description": "a custom third party plugin",
+    "id": "12835beffd3e6c603aa4dd92127707b6",
+    "name": "custom-plugin",
+    "maintainer": "third-party"
   }
 ]
+```
+
+Below is an example response when the `id` URI parameter is provided.
+```json
+{
+  "id": "12835beffd3e6c603aa4dd92127707b5",
+  "tag": "vaporio\/emulator-plugin",
+  "name": "emulator plugin",
+  "description": "A plugin with emulated devices and data",
+  "maintainer": "vaporio",
+  "vcs": "github.com\/vapor-ware\/synse-emulator-plugin",
+  "version": {
+    "plugin_version": "2.0.0",
+    "sdk_version": "1.0.0",
+    "build_date": "2018-06-14T16:24:09",
+    "git_commit": "13e6478",
+    "git_tag": "1.0.2-5-g13e6478",
+    "arch": "amd64",
+    "os": "linux"
+  },
+  "network": {
+    "protocol": "tcp",
+    "address": "emulator-plugin:5001"
+  },
+  "health": {
+    "timestamp": "2018-06-15T20:04:33.4393472Z",
+    "status": "ok",
+    "message": "",
+    "checks": [
+      {
+        "name": "read buffer health",
+        "status": "ok",
+        "message": "",
+        "timestamp": "2018-06-15T20:04:06.3524458Z",
+        "type": "periodic"
+      },
+      {
+        "name": "write buffer health",
+        "status": "ok",
+        "message": "",
+        "timestamp": "2018-06-15T20:04:06.3523946Z",
+        "type": "periodic"
+      }
+    ]
+  }
+}
 ```
 
 **Fields**
@@ -302,6 +353,51 @@ The health check elements here make up a snapshot of the plugin's health at a gi
 See: [Errors](#errors)
 
 
+---
+
+### Plugin Health
+```
+GET http://HOST:5000/synse/v3/plugins/health
+```
+
+Get a summary of the health of registered plugins.
+
+This endpoint provides an easy way to programmatically determine whether the plugins
+registered with Synse Server are considered healthy by Synse Server. This can also be
+done by iterating through the values returned by the `/plugins` endpoint; this endpoint
+just makes that information easier and faster to access.
+
+*See also: [Health](health.md)*
+
+#### Response
+
+##### OK (200)
+```json
+{
+  "status": "healthy",
+  "updated": "2018-06-15T20:04:33.4393472Z",
+  "healthy": [
+    "12835beffd3e6c603aa4dd92127707b5",
+    "12835beffd3e6c603aa4dd92127707b6",
+    "12835beffd3e6c603aa4dd92127707b7"
+  ],
+  "unhealthy": []
+}
+```
+
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *status* | A string describing the overall health state of the registered plugins. This can be either `"healthy"` or `"unhealthy"`. It will only be healthy if *all* plugins are found to be healthy, otherwise the overall state is unhealthy. |
+| *updated* | An RFC3339 timestamp describing the time that the plugin health state was last updated. |
+| *healthy* | A list containing the plugin IDs for those plugins deemed to be healthy. |
+| *unhealthy* | A list containing the plugin IDs for those plugins deemed to be unhealthy. |
+
+##### Error (500)
+See: [Errors](#errors)
+
+---
 
 ### Scan
 ```
@@ -360,6 +456,7 @@ The scan results are sorted by device id.
 See: [Errors](#errors)
 
 
+---
 
 ### Health
 ```
@@ -376,6 +473,8 @@ GET http://HOST:5000/synse/v3/health
 See: [Errors](#errors)
 
 
+---
+
 ### Capabilities?
 > Not sure this endpoint is needed, but can't hurt to have...
 
@@ -391,6 +490,7 @@ GET http://HOST:5000/synse/v3/capabilities
 See: [Errors](#errors)
 
 
+---
 
 ### Info
 > **Changes**: There is no longer a need for a distinction between rack/board/device
@@ -426,9 +526,14 @@ Get the full set of metainfo for a specified device.
   },
   "plugin": "emulator plugin",
   "info": "Synse Humidity Sensor",
-  "location": {
-    "rack": "rack-1",
-    "board": "vec"
+  "tags": [
+      "type:humidity",
+      "humidity",
+      "vio/fan-sensor"
+  ],
+  "capabilities": {
+    "read": true,
+    "write": false,
   },
   "output": [
     {
@@ -459,6 +564,7 @@ Get the full set of metainfo for a specified device.
 See: [Errors](#errors)
 
 
+---
 
 ### Read
 ```
@@ -554,6 +660,7 @@ the changes to the read response.
 See: [Errors](#errors)
 
 
+---
 
 ### Read Device
 ```
@@ -609,6 +716,7 @@ device reading info.
 See: [Errors](#errors)
 
 
+---
 
 ### Read Cached
 ```
@@ -668,6 +776,7 @@ more suitable for streaming.
 See: [Errors](#errors)
 
 
+---
 
 ### Write
 ```
@@ -827,6 +936,7 @@ Each device write object has the following fields:
 See: [Errors](#errors)
 
 
+---
 
 ### Transaction
 ```
