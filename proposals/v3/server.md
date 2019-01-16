@@ -64,11 +64,6 @@ For example, we should no longer need the *scan* cache -- with the tag-based sys
 there is no routing hierarchy, so the devices in the scan response do not need special
 organization/formatting (see the [Scan API](api.md#scan) changes for details). 
 
-> **TODO**: Discussion on transactions and the best way to handle them, especially
-> w.r.t. front-end consumers, e.g. do we want transaction IDs to be global through
-> the whole system, or should there be a set of backend transaction IDs mapped to
-> frontend transaction IDs?
-
 A lot of the info between caches, e.g. the *devices*, *plugin*, and *info* caches,
 could probably also be consolidated into a single model.
 
