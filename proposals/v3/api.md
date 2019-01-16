@@ -533,7 +533,7 @@ Get the full set of metainfo for a specified device.
   ],
   "capabilities": {
     "read": true,
-    "write": false,
+    "write": false
   },
   "output": [
     {
