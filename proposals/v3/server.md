@@ -147,6 +147,10 @@ logging.
 
 In addition, the log levels of logs messages should be adjusted to the appropriate severity.
 
+We will also want to add structured logging, particularly around reads, writes, and transactions.
+This will be useful for tracing calls across multiple contains/VMs/machines. A potential
+solution for structured logging is: https://github.com/hynek/structlog
+
 ### Python 3.7
 Bumping Python to 3.7 will bring some improved performance. Support for Python 3.6 will not
 be dropped.
