@@ -11,6 +11,7 @@ Additionally, there are a number of areas in the SDK that could be improved upon
   - [plugin id namespaces](ids.md)
   - [monitoring](monitoring.md)
 - Improvements to the SDK API
+- Plugin health checks
 
 ## Proposal
 Many of the larger work items are discussed in their own documents (see links
@@ -64,3 +65,6 @@ behavior (e.g. serial v. parallel), and to identify memory leaks, if any exist.
 It would not be necessary to implement any optimizations unless a serious problem
 was detected, but having any kind of performance data is useful as it can serve as
 a baseline for any future changes.
+
+### Support for plugin health checks
+See: [Health](health.md#synse-plugins)

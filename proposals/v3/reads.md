@@ -155,37 +155,3 @@ For the v3 read response scheme, we need to:
   ]
 }
 ```
-
-
-> **For Consideration**: 
->
-> We could also simplify this (it is a lot of data to return, especially if we are
-> reading in bulk) by having some of the info be a separate lookup, e.g.
->
-> ```
-> GET /read?tags="id=something"
-> {
->   "a72cs6519ee675b": [
->     "value": 20.3,
->     "timestamp": "...",
->     "type_id": 123235235134235,
->     "context": {
->       ...
->     }
->   ] 
-> }
-> ```
->
-> ```
-> GET /type?id=123235235134235
-> {
->   "name": "temperature",
->   "unit": {
->     "symbol": "C",
->     "name": "degrees celsius"
->   }
-> }
-> ```
->
-> I'm not sure that this saves much, but it is a possible route to take. Open for thoughts
-> and discussion.
