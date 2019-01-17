@@ -140,6 +140,26 @@ transport:
 
 The valid options for `protocol` will be: `websocket`, `http`. The default value is `http`.
 
+### Plugin Activity
+To provide better insight into Synse Server's operation with its plugins, a notion of
+"plugin activity" is introduced. Simply put, an "active" plugin is one that has successfully
+registered with Synse Server and has not failed to communicate with Synse Server in a
+number of previous requests.
+
+Plugin activity is surfaced to the user via the [`/plugin`](api.md#plugins) endpoint.
+
+If a plugin is configured but fails to register, it will be considered inactive.
+
+If a plugin stops working and stops responding to Synse, it will be marked as inactive.
+Commands are still routed to inactive plugins. The inactive designation is purely for
+the API consumer; it does not alter the command dispatching logic in Synse.
+
+If an inactive plugin registers or starts responding again, it will be marked active.
+
+Plugin health is only computed on active plugins. The [`/plugin/health`](api.md#plugin-health)
+endpoint provides information on number of active vs. inactive plugins for the consumer
+to use, should they wish to include that as a health condition.
+
 ### Logging
 Logging in Synse Server is not terrible, but it is inconsistent between different regions
 of the code. Some areas have many log messages that are verbose, while others lack meaningful
@@ -154,3 +174,39 @@ solution for structured logging is: https://github.com/hynek/structlog
 ### Python 3.7
 Bumping Python to 3.7 will bring some improved performance. Support for Python 3.6 will not
 be dropped.
+
+### Configuration
+This section contains an example of a complete configuration for Synse Server in v3. This
+includes the various new configuration options proposed in these documents.
+
+```yaml
+logging: info
+prettyy_json: true
+locale: en_US
+transport:  ## New in v3
+  protocol: http
+plugin:
+  tcp:
+  - emulator-plugin:5001
+  unix:
+  - /tmp/synse/plugin/foo.sock
+  discover:
+    kubernetes:
+      namespace: vapor
+      endpoints:
+        labels:
+          app: synse
+          component: server
+cache:
+  device:
+    ttl: 20
+  transaction:
+    ttl: 300
+grpc:
+  timeout: 3
+  tls:
+    cert: /tmp/ssl/synse.crt
+metrics:  ## New in v3
+  enabled: false
+
+```

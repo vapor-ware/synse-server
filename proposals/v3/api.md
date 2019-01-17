@@ -18,40 +18,19 @@ the URI prefix for requests will be `/synse/{API_VERSION}`, except for the two
 unversioned endpoints (`/test` and `/version`) where the URI prefix is just
 `/synse`.
 
-> **Highlights of Major Changes**:
->  - `/scan` response change: removes device hierarchy, returns flattened list of devices
->  - `/read` behavior change: no longer uses hierarchical routing, uses tags
->  - `/write` behavior change: no longer uses hierarchical routing, uses tags
->  - removes alias routes - behavior similar to alias routes can now be done via vanilla `/read` and `/write`
-
-> We could keep the alias routes around, but looking forward, it doesn't seem scalable since we could
-> have tens or hundreds of different device types supported by the system. In addition, not all of the
-> "LED" type devices may support the same thing, e.g., so it doesn't make sense to handle all LEDs the
-> same way. We could make a more generic means of checking inputs per device, not just per device type,
-> so it wouldn't matter how many device types there are and how they vary -- they could be checked automatically
-> and the API wouldn't need to be updated/modified for each of them.
-
-> Do we want to support more ways to access the API? Just HTTP? Add external gRPC api? websockets?
-> We probably don't need this configurability right now, but it could be worth considering or looking
-> in to, particularly if we start measuring system performance and need to improve it.
-
 ### Errors
 Most errors returned from Synse Server will come back with a JSON payload in order to
 provide additional context for the error. Some errors will not return a JSON payload;
 this class of error is generally due to the service not being ready, available, or
 reachable.
 
-#### Codes
+#### HTTP Codes
 An error response will be returned with one of the following HTTP codes:
 
 * **400**: Invalid user input. This can range from invalid POSTed JSON, unsupported query
   parameters being used, or invalid resource types.
 * **404**: Invalid URL or the specified resource is not found.
 * **500**: Server-side processing error.
-
-> **Question**: Should we support more error codes (finer grained)? In the past we've tried to use
-> as few codes as we can get away with to keep things simple. Does it make sense to return more
-> fine-grained error codes, or do these "high level" buckets suffice?
 
 #### Scheme
 Below is an example of an error's JSON response:
@@ -68,11 +47,11 @@ Below is an example of an error's JSON response:
 
 | Field | Description |
 | ----- | ----------- |
-| *http_code* | The HTTP code corresponding to the error (e.g. 400, 404, 500 -- see [codes](#codes). |
+| *http_code* | The HTTP code corresponding to the error (e.g. 400, 404, 500 -- see [http codes](#http-codes)). |
 | *error_id* | The [internal ID](#error-ids) for the error. This can be used to further identify the error origin. |
 | *description* | A short description of the error. This is the human-readable version of the `error_id`. |
 | *timestamp* | The RFC3339Nano-formatted timestamp at which the error occurred. |
-| *context* | Additional contextual message associated with the error to provide root cause info. This will typically include the pertinent internal state. |
+| *context* | Contextual message associated with the error to provide root cause info. This will typically include the pertinent internal state. |
 
 
 #### Error IDs
@@ -128,8 +107,6 @@ Below is a table of contents for the API Endpoints.
 ---
 
 ### Test
-> No changes from v2
-
 ```
 GET http://HOST:5000/synse/test
 ```
@@ -167,8 +144,6 @@ No JSON - route not reachable/service not ready
 ---
 
 ### Version
-> No changes from v2
-
 ```
 GET http://HOST:5000/synse/version
 ```
@@ -201,7 +176,7 @@ No JSON - route not reachable/service not ready
 
 ### Config
 ```
-GET http://HOST:5000/synse/config
+GET http://HOST:5000/synse/v3/config
 ```
 
 Get a the unified configuration of the Synse Server instance.
@@ -215,7 +190,7 @@ configuration that Synse Server ultimately runs with.
 #### Response
 
 ##### OK (200)
-The response JSON will match the configuration scheme.
+The response JSON will match the configuration scheme. See: [Config](server.md#configuration).
 
 ##### Error (500)
 See: [Errors](#errors)
@@ -224,8 +199,6 @@ See: [Errors](#errors)
 ---
 
 ### Plugins
-> **Changed**: Added an `id` field to the response.
-
 ```
 GET http://HOST:5000/synse/v3/plugin[/{plugin_id}]
 ```
@@ -234,6 +207,17 @@ Get info on the plugins currently registered with Synse Server.
 
 If no URI parameters are supplied, a summary of all plugins is returned. See below
 for an example response.
+
+If a plugin has registered with Synse Server and is communicating successfully,
+it will be marked as "active". If registration or communication fail, it will be
+marked as "inactive".
+
+> *Note*: There is no guarantee that all plugins are represented in the plugins list
+> if Synse is configured to use plugin discovery. When discovering plugins, it will
+> only register them as the plugins make themselves available.
+>
+> If all plugins are registered directly via Synse Server configuration, the plugins
+> list should always contain all configured plugins.
 
 #### URI Parameters
 
@@ -253,13 +237,15 @@ result in a summary of all registered plugins.
     "description": "a plugin with emulated devices and data",
     "id": "12835beffd3e6c603aa4dd92127707b5",
     "name": "emulator plugin",
-    "maintainer": "vapor io"
+    "maintainer": "vapor io",
+    "active": true
   },
   {
     "description": "a custom third party plugin",
     "id": "12835beffd3e6c603aa4dd92127707b6",
     "name": "custom-plugin",
-    "maintainer": "third-party"
+    "maintainer": "third-party",
+    "active": true
   }
 ]
 ```
@@ -267,6 +253,7 @@ result in a summary of all registered plugins.
 Below is an example response when the `id` URI parameter is provided.
 ```json
 {
+  "active": true,
   "id": "12835beffd3e6c603aa4dd92127707b5",
   "tag": "vaporio\/emulator-plugin",
   "name": "emulator plugin",
@@ -314,6 +301,7 @@ Below is an example response when the `id` URI parameter is provided.
 
 | Field | Description |
 | ----- | ----------- |
+| *active* | This field specifies whether the plugin is active or not. For more see [plugin activity](server.md#plugin-activity) |
 | *id* | An id hash for identifying the plugin, generated from plugin metadata. |
 | *tag* | The plugin tag. This is a normalized string made up of its name and maintainer. |
 | *name* | The name of plugin. |
@@ -349,7 +337,7 @@ The health check elements here make up a snapshot of the plugin's health at a gi
 | *timestamp* | The timestamp for which the status applies. |
 | *type* | The type of health check (e.g. periodic) |
 
-##### Error (500)
+##### Error (500, 404)
 See: [Errors](#errors)
 
 
@@ -357,14 +345,14 @@ See: [Errors](#errors)
 
 ### Plugin Health
 ```
-GET http://HOST:5000/synse/v3/plugins/health
+GET http://HOST:5000/synse/v3/plugin/health
 ```
 
 Get a summary of the health of registered plugins.
 
 This endpoint provides an easy way to programmatically determine whether the plugins
 registered with Synse Server are considered healthy by Synse Server. This can also be
-done by iterating through the values returned by the `/plugins` endpoint; this endpoint
+done by iterating through the values returned by the `/plugin` endpoint; this endpoint
 just makes that information easier and faster to access.
 
 *See also: [Health](health.md)*
@@ -381,7 +369,9 @@ just makes that information easier and faster to access.
     "12835beffd3e6c603aa4dd92127707b6",
     "12835beffd3e6c603aa4dd92127707b7"
   ],
-  "unhealthy": []
+  "unhealthy": [],
+  "active": 3,
+  "inactive": 0
 }
 ```
 
@@ -393,6 +383,8 @@ just makes that information easier and faster to access.
 | *updated* | An RFC3339 timestamp describing the time that the plugin health state was last updated. |
 | *healthy* | A list containing the plugin IDs for those plugins deemed to be healthy. |
 | *unhealthy* | A list containing the plugin IDs for those plugins deemed to be unhealthy. |
+| *active* | The count of active plugins. (see: [plugin activity](server.md#plugin-activity)) |
+| *inactive* | The count of inactive plugins. (see: [plugin activity](server.md#plugin-activity)) |
 
 ##### Error (500)
 See: [Errors](#errors)
