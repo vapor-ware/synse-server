@@ -79,3 +79,27 @@ See: [Default Plugin Path](server.md#default-plugin-path)
 For the `/info` endpoint, we will provide details on what actions a device supports
 for writing. This will be surfaced through the grpc api. The SDK needs a way of defining
 these in such a manner that the data can be passed up to Synse Server.
+
+### Adding a plugin configurable write timeout
+The SDK should always resolve a write and update the transaction state assuming that
+the `Write` interface that it calls resolves. Each plugin will write differently and
+have different expectations for how long it may take a write to complete, so we can not
+have a single global write timeout; it must be configurable by the plugin to fit within
+the expected bounds of the protocol it supports.
+
+If the SDK is writing to a device and the timeout is exceeded, the write should terminate
+and the SDK should put that transaction into an error state, where the message specifies
+that the write action timed out.
+
+A write could time out for a number of reasons ranging from a hardware failure,
+the communication between the plugin and hardware hanging, or the plugin implements
+error handling improperly causing it to hang. For example, a plugin communicating
+over HTTP may not set a timeout for requests causing it to hang forever. Adding this
+functionality will prevent these kinds of failures from:
+- keeping a transaction blocked from completing
+- blocking the write loop/read loop (especially when configured in serial mode)
+
+The plugin-configured write timeout should be surfaced to Synse Server via the
+GRPC API and ultimately exposed through the [Synse API](api.md#transaction) so
+any front end consumer can know the maximum time they should wait for the write to
+resolve. 

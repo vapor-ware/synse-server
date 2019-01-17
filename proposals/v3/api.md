@@ -576,25 +576,21 @@ See: [Errors](#errors)
 GET http://HOST:5000/synse/v3/read
 ```
 
+Read data from devices which match the set of provided tags. 
+
+Passing in the `id` tag here is functionally equivalent to using the [read device](#read-device)
+endpoint.
+
+Reading data will be returned for devices which match *all* of the specified tags.
+The contents of prior reads is not necessarily indicative of the content of future
+reads. That is to say, if a plugin terminates and a read command is issued, the
+devices managed by that plugin which would have matched the tags are no longer available
+to Synse (until the plugin comes back up), and as such, can not be read from.
+When the plugin becomes available again, the devices from that plugin are available
+to be read from.
+
 For more details on the changes to the `/read` endpoint, see the 
 [Synse Reads Document](./reads.md)
-
-
-> As part of the response scheme, we want to add an optional "context" or "metadata"
-> field. This field should hold a dict that can contain arbitrary values.
-
-Having some optional context associated with a reading (or group of readings) would make
-it easier to model certain types of data, and would ultimately make the data more usable
-upstream. An example of this would be that a plugin could provide additional metadata
-for a reading (e.g. which host the data came from, a sampling rate, etc). Upstream, this
-metadata could be converted into prometheus labels for the reading.
-
-> **Open Question**:
-> For the 'context' field, described above, do we want it at an individual reading
-> level, at the level of the entire reading response, or for it to be possible at
-> both (e.g. ctx for this reading value in particular vs. ctx that applies to all
-> the readings)
-
 
 #### Query Parameters
 
@@ -661,6 +657,32 @@ the changes to the read response.
 }
 ```
 
+The `context` field of a reading is optional and allows the plugin to specify additional
+context for the reading. This can be useful in modeling the data for various kinds of
+plugins/read behavior.
+
+As an example, a plugin could provide additional data for a reading such as which host
+the data originated from, a sample rate, etc (for something like sFlow). Since the context
+can contain arbitrary data, it can also be used to label particular readings making them
+easier to parse upstream. An example of this would be associating multiple lock devices
+with their physical location.
+
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *kind* | The device kind, as specified by the plugin. |
+| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *value* | The value of the reading. |
+| *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
+| *info* | A string containing any additional info related to the reading. |
+| *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
+| *context* | A mapping of arbitrary values to provide additional context for the reading. |
+
+
+> **Question**: Do we need to have an `info` field at all? It seems like whatever could be
+> stored there could just as well be stored in the `context` field.
+
 ##### Error (500, 400)
 See: [Errors](#errors)
 
@@ -680,7 +702,7 @@ endpoint where the label matches the [device id tag](tags.md#auto-generated), e.
 
 | Parameter | Description |
 | --------- | ----------- |
-| *device_id* | The ID of the device to read. IDs should be globally unique. |
+| *device_id* | The ID of the device to read. [Device IDs](ids.md) are globally unique. |
 
 
 #### Response
@@ -738,7 +760,7 @@ reading if it were not cached.
 At the plugin level, caching read data can be enabled, but is disabled by default. Even if
 disabled, this route will still return data for every device that supports reading on each
 of the configured plugins. When read caching is disabled, this will just return a dump of
-the "current" reading state that is maintained by the plugin.
+the current reading state that is maintained by the plugin.
 
 #### Query Parameters
 
@@ -1009,6 +1031,7 @@ is provided:
 ```json
 {
   "id": "b9pin8ofmg5g01vmt77g",
+  "timeout": "10s",
   "device": "0fe8f06229aa9a01ef6032d1ddaf18a5",
   "context": {
     "action": "color",
@@ -1027,6 +1050,7 @@ is provided:
 | Field | Description |
 | ----- | ----------- |
 | *id* | The ID of the transaction. This is generated and assigned by the plugin being written to. |
+| *timeout* | A string representing the timeout for the write transaction after which it will be cancelled. This is effectively the maximum wait time for the transaction to resolve. |
 | *device* | The GUID of the device being written to. |
 | *context* | The POSTed write data for the given write transaction. |
 | *state* | The current state of the transaction. (`ok`, `error`) |
