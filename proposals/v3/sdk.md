@@ -68,3 +68,9 @@ a baseline for any future changes.
 
 ### Support for plugin health checks
 See: [Health](health.md#synse-plugins)
+
+### Update Default Plugin Path
+The default plugin path in Synse Server will change - any related pathing changes
+in the SDK should be updated as well.
+
+See: [Default Plugin Path](server.md#default-plugin-path)

@@ -12,6 +12,7 @@ to improve usability and performance.
 - Simplify internal caching
 - Caching/handling for user-defined and system-generated primary transaction IDs on write
 - Add support for websockets
+- Change default plugin path
 - Improve logging
 - Update to python3.7 for performance improvements (maintain support for 3.6)
 
@@ -159,6 +160,14 @@ If an inactive plugin registers or starts responding again, it will be marked ac
 Plugin health is only computed on active plugins. The [`/plugin/health`](api.md#plugin-health)
 endpoint provides information on number of active vs. inactive plugins for the consumer
 to use, should they wish to include that as a health condition.
+
+### Default Plugin Path
+Early in v2 development, the default plugin path was chosen to be `/etc/synse/procs`.
+
+Semantically, this does not make as much sense any more since plugins are their own
+separate entities and not separate processes within the Synse Server container.
+
+In v3, this path will change to `/etc/synse/plugin`. 
 
 ### Logging
 Logging in Synse Server is not terrible, but it is inconsistent between different regions

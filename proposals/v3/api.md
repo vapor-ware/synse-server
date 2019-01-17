@@ -404,7 +404,8 @@ Server by each of the registered plugins. This endpoint provides a high-level
 view of what exists in the system. Scan info can be filtered to show only those
 devices which match a set of provided tags.
 
-The scan results are sorted by device id.
+By default, scan results are sorted by device id. The `sort` query parameter
+can be used to modify the sort behavior.
 
 #### Query Parameters
 
@@ -413,7 +414,7 @@ The scan results are sorted by device id.
 | ns | The default namespace to use for the specified labels. (default: `default`) |
 | tags | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
 | force | Force a re-scan (do not use the cache). This will take longer than scanning using the cache, since it needs to rebuild the cache. (default: false) |
-| sort | Specify the fields to sort by. Multiple fields can be specified as a comma separated string, e.g. `"plugin,id"`. (default: "id") |
+| sort | Specify the fields to sort by. Multiple fields can be specified as a comma separated string, e.g. `"plugin,id"`. The "tags" field can not be used for sorting. (default: "id") |
 
 #### Response
 
@@ -445,23 +446,6 @@ The scan results are sorted by device id.
 ```
 
 ##### Error (500, 400)
-See: [Errors](#errors)
-
-
----
-
-### Health
-```
-GET http://HOST:5000/synse/v3/health
-```
-
-*See also: [Health](health.md)*
-
-#### Response
-
-##### OK (200)
-
-##### Error (500)
 See: [Errors](#errors)
 
 

@@ -19,15 +19,16 @@ Synse Server had a `/test` endpoint which can be used for basic readiness and li
 probes. This endpoint does not have any internal checks, so it is just a measure of
 whether or not the webserver is running and reachable. In many cases, this is fine.
 
-Additional heath checking behavior can provide finer-grained detail on whether or not
-Synse Server is ready and healthy. This may or may not necessarily be useful for a
-probe, but at the very least it provides insight into Synse Server's operational state.
+At the moment there are no meaningful metrics which can be used to determine whether
+a Synse Server instance is itself "healthy". For the purpose of health checking on
+Synse Server (e.g. via Kubernetes or Docker), the `/test` endpoint will suffice.
 
-Potential points that could constitute a measure of health for Synse Server include:
-- Cache readiness (are all of the caches built and okay?)
-- Plugin responsiveness (is Synse Server able to reach all of the configured plugins?)
-  - A question arises here about partial failures and how that may impact overall health state
- 
+Finer-grained health checks can be added to Synse Server in the future should they
+be deemed necessary.
+
+Synse Server does expose the health of its registered plugins via a [`/plugin/health`](api.md#plugin-health)
+endpoint, but this information relates more to plugin state than Synse Server state.
+
 ### Synse Plugins
 Synse Plugins (aka. the SDK) do not currently expose any sort of liveness or readiness
 state. A plugin should be considered ready when it reaches its main run loop and starts
