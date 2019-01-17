@@ -469,9 +469,9 @@ Get the full set of metainfo and capabilities for a specified device.
 
 #### URI Parameters
 
-| Parameter | Description |
-| --------- | ----------- |
-| *device_id* | The ID of the device to get info for. IDs should be globally unique. |
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *device_id* | yes | The ID of the device to get info for. IDs should be globally unique. |
 
 #### Response
 
@@ -700,9 +700,9 @@ endpoint where the label matches the [device id tag](tags.md#auto-generated), e.
 
 #### URI Parameters
 
-| Parameter | Description |
-| --------- | ----------- |
-| *device_id* | The ID of the device to read. [Device IDs](ids.md) are globally unique. |
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *device_id* | yes | The ID of the device to read. [Device IDs](ids.md) are globally unique. |
 
 
 #### Response
