@@ -95,8 +95,6 @@ Below is a table of contents for the API Endpoints.
 0. [Plugins](#plugins)
 0. [Plugin Health](#plugin-health)
 0. [Scan](#scan)
-0. [Health](#health)
-0. [Capabilities](#capabilities)
 0. [Read](#read)
 0. [Read Device](#read-device)
 0. [Read Cached](#read-cached)
@@ -445,43 +443,29 @@ can be used to modify the sort behavior.
 ]
 ```
 
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *id* | The globally unique ID for the device. |
+| *info* | A human readable string providing identifying info about a device. |
+| *type* | The type of the device, as defined by its plugin. |
+| *plugin* | The ID of the plugin which the device is managed by. |
+| *tags* | A list of the tags associated with this device. One of the tags will be the `id` tag. |
+
 ##### Error (500, 400)
 See: [Errors](#errors)
 
 
 ---
 
-### Capabilities?
-> Not sure this endpoint is needed, but can't hurt to have...
-
-```
-GET http://HOST:5000/synse/v3/capabilities
-```
-
-#### Response
-
-##### OK (200)
-
-##### Error (500)
-See: [Errors](#errors)
-
-
----
-
 ### Info
-> **Changes**: There is no longer a need for a distinction between rack/board/device
-> info -- its all just device info now.
-
 ```
 GET http://HOST:5000/synse/v3/info/{device_id}
 ```
 
-Get the full set of metainfo for a specified device.
+Get the full set of metainfo and capabilities for a specified device.
 
-> **Question**: Should we include additional information here, e.g. whether the device
-> supports reading/writing, what actions/data it will accept for writes, etc. This seems
-> like it would be good to expose *somewhere* in the API, but it is unclear whether we
-> should include it here in the device info, or somewhere else (like device capabilities?)
 
 #### URI Parameters
 
@@ -495,7 +479,8 @@ Get the full set of metainfo for a specified device.
 ```json
 {
   "timestamp": "2018-06-18T13:30:15.6554449Z",
-  "uid": "34c226b1afadaae5f172a4e1763fd1a6",
+  "id": "34c226b1afadaae5f172a4e1763fd1a6",
+  "type": "humidity",
   "kind": "humidity",
   "metadata": {
     "model": "emul8-humidity"
@@ -508,8 +493,14 @@ Get the full set of metainfo for a specified device.
       "vio/fan-sensor"
   ],
   "capabilities": {
-    "read": true,
-    "write": false
+    "mode": "rw",
+    "read": {},
+    "write": {
+      "actions": [
+        "color", 
+        "state"
+      ]
+    }
   },
   "output": [
     {
@@ -535,6 +526,44 @@ Get the full set of metainfo for a specified device.
   ]
 }
 ```
+
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *timestamp* | An RFC3339 timestamp describing the time that the device info was gathered. |
+| *id* | The globally unique ID for the device. |
+| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *kind* | The device kind, as specified by the plugin. |
+| *metadata* | A map of arbitrary values that provide additional data for the device.. |
+| *plugin* | The ID of the plugin that manages the device. |
+| *info* | A human readable string providing identifying info about a device. |
+| *tags* | A list of the tags associated with this device. One of the tags will be the 'id' tag which should match the `id` field. |
+| *capabilities* | Specifies the actions which the device is able to perform (e.g. read, write). See below for more. |
+| *output* | A list of the output types that the device supports. |
+
+
+**Capabilities Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *mode* | A string specifying the device capabilities. This can be "ro" (read only), "rw" (read write), "wo" (write only). |
+| *read* | Any additional information regarding the device reads. This will currently remain empty. |
+| *write* | Any additional information regarding device writes. |
+| *write.actions* | A list of actions which the device supports for writing. |
+
+
+**Output Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *name* | The name of the output type. This can be namespaced. |
+| *type* | The type of the output, as defined by the plugin. |
+| *precision* | The number of decimal places the value will be rounded to. |
+| *scaling_factor* | A scaling factor which will be applied to the raw reading value. |
+| *unit* | Information for the reading's unit of measure. |
+| *unit.name* | The complete name of the unit of measure (e.g. "meters per second"). |
+| *unit.symbol* | A symbolic representation of the unit of measure (e.g. m/s). |
 
 ##### Error (500, 404)
 See: [Errors](#errors)
@@ -936,7 +965,7 @@ device write.
 
 If no transaction ID is given, a list of all cached primary transaction IDs, sorted by
 transaction ID (the `id` response field), is returned. The length of time that a transaction
-is cached is configurable (see the Synse Server [configuration documentation]()).
+is cached is configurable (see the Synse Server [configuration](server.md#configuration)).
 
 If the provided transaction ID does not exist, an error is returned.
 

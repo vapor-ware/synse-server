@@ -74,3 +74,8 @@ The default plugin path in Synse Server will change - any related pathing change
 in the SDK should be updated as well.
 
 See: [Default Plugin Path](server.md#default-plugin-path)
+
+### Expose additional data for device info
+For the `/info` endpoint, we will provide details on what actions a device supports
+for writing. This will be surfaced through the grpc api. The SDK needs a way of defining
+these in such a manner that the data can be passed up to Synse Server.
