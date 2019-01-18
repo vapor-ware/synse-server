@@ -387,6 +387,7 @@ just makes that information easier and faster to access.
 ##### Error (500)
 See: [Errors](#errors)
 
+
 ---
 
 ### Scan
@@ -452,6 +453,49 @@ can be used to modify the sort behavior.
 | *type* | The type of the device, as defined by its plugin. |
 | *plugin* | The ID of the plugin which the device is managed by. |
 | *tags* | A list of the tags associated with this device. One of the tags will be the `id` tag. |
+
+##### Error (500, 400)
+See: [Errors](#errors)
+
+
+---
+
+### Tags
+```
+GET http://HOST:5000/synse/v3/tags
+```
+
+List all of the tags currently associated with devices.
+
+This will list the tags in the specified tag namespace. If no tag namespace
+is specified (via query parameters), the default tag namespace is used.
+
+By default, this endpoint will omit the `id` tags since they match the
+device id enumerated by the [`/scan`](#scan) endpoint. The `id` tags can
+be included in the response by setting the `ids` query parameter to `true`.
+
+Multiple tag namespaces can be queried at once by using a comma delimiter
+between namespaces in the `ns` query parameter value string, e.g.
+`?ns=default,ns1,ns2`.
+
+Tags are sorted alphanumerically.
+
+#### Query Parameters
+
+| Key | Description |
+| --- | ----------- |
+| ns | The tag namespace(s) to use when searching for tags. (default: `default`) |
+| ids | A flag which determines whether `id` tags are included in the response. (default: `false`) |
+
+#### Response
+
+##### OK (200)
+```json
+[
+  "default/tag1",
+  "default/type:temperature"
+]
+```
 
 ##### Error (500, 400)
 See: [Errors](#errors)
