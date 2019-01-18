@@ -5,7 +5,7 @@ write behavior more generally.
 
 ## High Level Work Items
 - Update `/write` [API](api.md#write)
-- Add support for group writes
+- Add support for batch writes
 - Remove `raw` keyword support from write payload 
 
 ## Proposal
