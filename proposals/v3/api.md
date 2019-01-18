@@ -633,6 +633,8 @@ to Synse (until the plugin comes back up), and as such, can not be read from.
 When the plugin becomes available again, the devices from that plugin are available
 to be read from.
 
+For easier readability, the returned readings are sorted by device id.
+
 For more details on the changes to the `/read` endpoint, see the 
 [Synse Reads Document](./reads.md)
 
@@ -649,56 +651,51 @@ the changes to the read response.
 
 ##### OK (200)
 ```json
-{
-  "a72cs6519ee675b": [
-    {
-      "kind": "temperature",
-      "type": "temperature",
-      "value": 20.3,
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
-      "info": "",
-      "unit": {
-        "symbol": "C",
-        "name": "degrees celsius"
-      },
-      "context": {
-        "host": "127.0.0.1",
-        "sample_rate": 8
-      }
-    }
-  ],
-  "929b923de65a811": [
-    {
-      "kind": "led",
-      "type": "state",
-      "value": "off",
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
-      "info": "",
-      "unit": null
+[
+  {
+    "device": "a72cs6519ee675b",
+    "kind": "temperature",
+    "type": "temperature",
+    "value": 20.3,
+    "timestamp": "2018-02-01T13:47:40.395939895Z",
+    "unit": {
+      "symbol": "C",
+      "name": "degrees celsius"
     },
-    {
-      "kind": "led",
-      "type": "color",
-      "value": "000000",
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
-      "info": "",
-      "unit": null
+    "context": {
+      "host": "127.0.0.1",
+      "sample_rate": 8
     }
-  ],
-  "12bb12c1f86a86e": [
-    {
-      "kind": "door_lock",
-      "type": "lock",
-      "value": "locked",
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
-      "info": "Zone 6B",
-      "unit": null,
-      "context": {
-        "wedge": 1
-      }
+  },
+  {
+    "device": "929b923de65a811",
+    "kind": "led",
+    "type": "state",
+    "value": "off",
+    "timestamp": "2018-02-01T13:47:40.395939895Z",
+    "unit": null
+  },
+  {
+    "device": "929b923de65a811",
+    "kind": "led",
+    "type": "color",
+    "value": "000000",
+    "timestamp": "2018-02-01T13:47:40.395939895Z",
+    "unit": null
+  },
+  {
+    "device": "12bb12c1f86a86e",
+    "kind": "door_lock",
+    "type": "lock",
+    "value": "locked",
+    "timestamp": "2018-02-01T13:47:40.395939895Z",
+    "unit": null,
+    "context": {
+      "wedge": 1,
+      "zone": "6B"
     }
-  ]
-}
+  }
+ ]
 ```
 
 The `context` field of a reading is optional and allows the plugin to specify additional
@@ -715,17 +712,13 @@ with their physical location.
 
 | Field | Description |
 | ----- | ----------- |
+| *device* | The ID of the device which the reading originated from. |
 | *kind* | The device kind, as specified by the plugin. |
 | *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
 | *value* | The value of the reading. |
 | *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
-| *info* | A string containing any additional info related to the reading. |
 | *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
 | *context* | A mapping of arbitrary values to provide additional context for the reading. |
-
-
-> **Question**: Do we need to have an `info` field at all? It seems like whatever could be
-> stored there could just as well be stored in the `context` field.
 
 ##### Error (500, 400)
 See: [Errors](#errors)
@@ -752,25 +745,17 @@ endpoint where the label matches the [device id tag](tags.md#auto-generated), e.
 #### Response
 
 ##### OK (200)
-The response here is similar to the response for the `/read` endpoint, except it just returns
-the list of readings for the device, instead of a collection of 1 `device_id` keyed to this
-device reading info. 
-
-> **Question**: We have a bunch of different response formats for reads - "read", "read device", 
-> and "read cached". They all convey the same data, just structured a bit differently to make it
-> convenient for each of their use cases (bulk read, single read, streamed read -- respectively).
-> Would it make sense to try and unify the response data structures into a more uniform response
-> or just accept that since the endpoints are catered towards different use cases, the format of
-> the data they return will vary?
+The response schema for the `/read/{device_id}` endpoint is the same as the response schema
+for the [`/read`](#read) endpoint.
 
 ```json
 [
   {
+    "device": "12bb12c1f86a86e",
     "kind": "temperature",
     "type": "temperature",
     "value": 20.3,
     "timestamp": "2018-02-01T13:47:40.395939895Z",
-    "info": "",
     "unit": {
       "symbol": "C",
       "name": "degrees celsius"
@@ -782,6 +767,18 @@ device reading info.
   }
 ]
 ```
+
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *device* | The ID of the device which the reading originated from. |
+| *kind* | The device kind, as specified by the plugin. |
+| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *value* | The value of the reading. |
+| *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
+| *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
+| *context* | A mapping of arbitrary values to provide additional context for the reading. |
 
 ##### Error (500, 404)
 See: [Errors](#errors)
@@ -804,7 +801,7 @@ reading if it were not cached.
 At the plugin level, caching read data can be enabled, but is disabled by default. Even if
 disabled, this route will still return data for every device that supports reading on each
 of the configured plugins. When read caching is disabled, this will just return a dump of
-the current reading state that is maintained by the plugin.
+the current state for all readings which is maintained by the plugin.
 
 #### Query Parameters
 
@@ -816,32 +813,44 @@ the current reading state that is maintained by the plugin.
 #### Response
 
 ##### OK (200)
-The response will be streamed JSON. One block of the streamed JSON will appear as follows:
+The response schema for the `/readcached` endpoint is the same as the response schema
+for the [`/read`](#read) endpoint.
+
+Unlike the [`/read`](#read) and [`/read/{device_id}`](#read-device) endpoints, the response for this endpoint is
+streamed JSON. One block of the streamed JSON will appear as follows:
+
 ```json
-{
-  "id": "a72cs6519ee675b",
-  "data": [
-    {
-      "kind": "temperature",
-      "type": "temperature",
-      "value": 20.3,
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
-      "info": "",
-      "unit": {
-        "symbol": "C",
-        "name": "degrees celsius"
-      },
-      "context": {
-        "host": "127.0.0.1",
-        "sample_rate": 8
-      }
+[
+  {
+    "device": "a72cs6519ee675b",
+    "kind": "temperature",
+    "type": "temperature",
+    "value": 20.3,
+    "timestamp": "2018-02-01T13:47:40.395939895Z",
+    "unit": {
+      "symbol": "C",
+      "name": "degrees celsius"
+    },
+    "context": {
+      "host": "127.0.0.1",
+      "sample_rate": 8
     }
-  ]
-}
+  }
+]
 ```
 
-This is similar to the [read](#read) response, but organized a bit differently to make it
-more suitable for streaming.
+**Fields**
+
+| Field | Description |
+| ----- | ----------- |
+| *device* | The ID of the device which the reading originated from. |
+| *kind* | The device kind, as specified by the plugin. |
+| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *value* | The value of the reading. |
+| *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
+| *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
+| *context* | A mapping of arbitrary values to provide additional context for the reading. |
+
 
 ##### Error (500, 400)
 See: [Errors](#errors)
@@ -851,44 +860,44 @@ See: [Errors](#errors)
 
 ### Write
 ```
-POST http://HOST:5000/synse/v3/write
+POST http://HOST:5000/synse/v3/write/{device_id}
 ```
 
-Write data to devices.
+Write data to a device.
 
-The write endpoint supports both single device writes and bulk device writes. This
-is mediated through the [tag](tags.md) based routing system.
-- To write to a single device, the unique `id` tag for the target device should be used.
-- To write to multiple devices, any number of non-`id` tags can be used.
+Not all devices support writing. The [`/info`](#info) endpoint specifies whether the device
+supports writing under the *capabilities* field. 
 
-If writing to multiple devices, each device write will be resolved asynchronously. Each
-device write will have its own internal transaction. This means that even if some of the
-devices matching the specified tags fail (either from a precondition check or actual write
-failure), all other device writes will not be cancelled or blocked.
+The write behavior is defined at the plugin level, so devices with of the same type but
+managed by different plugins may require different inputs to complete.
 
-Separate from multi-device writes are multi-value writes, where a single write command
-can write multiple values to a device. Each value to be written is passed as an action/data
-pair within the POST body. Writes are evaluated in order of their position in the list, e.g.
-for the following POST body, the color value would be written first, then the state value.
+If the specified device does not support writing, or the provided device ID does not match
+any known device, an error is returned.
 
-```json
-[
-  {
-    "action": "color",
-    "data": "f38ac2"
-  },
-  {
-    "action": "state",
-    "data": "blink"
-  }
-]
-```
+Validation of the POSTed write data is done at the plugin level. An unsupported write action
+or invalid write data will result in an error.
 
 For more details on the changes to the `/write` endpoint, see the 
 [Synse Writes Document](./writes.md)
 
+#### URI Parameters
+
+| Parameter | Required | Description |
+| --------- | -------- | ----------- |
+| *device_id* | yes | The ID of the device that is being written to. |
+
+#### Query Parameters
+
+| Key | Description |
+| --- | ----------- |
+| transaction | A user-defined transaction ID which will be used as the transaction id for the write. If this conflicts with an existing transaction ID, an error is returned. If this is not provided, a transaction ID will be automatically generated for the write action. |
+
+> **Question**: Should we allow transaction ID to be specified via query parameters? Since
+> we will support batching writes, we need to allow transaction ID to be specified in the POST
+> body. At that point, having it as a query parameter as well becomes somewhat redundant.
+> For more details on specifying transaction ID in the POST body, see the POST Body section below.
+
 #### POST Body
-Example for a single-value write:
 ```json
 [
   {
@@ -898,7 +907,31 @@ Example for a single-value write:
 ]
 ```
 
-Example for a multi-value write:
+Optionally, a user-defined transaction ID can be supplied in the POST body. If a transaction ID
+is supplied in the POST body and via the `transaction` query parameter, Synse will check to ensure
+they match. If they do match, that transaction ID is used. If they do not match, an error is returned.
+It is recommended to supply a user-defined transaction ID either via query parameter or in the POST
+body -- not both.
+
+```json
+[
+  {
+    "action": "color",
+    "data": "f38ac2",
+    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+  }
+]
+```
+
+To reduce the number of requests made, Synse supports batching writes into a single request.
+Each of these writes are processed as a separate write event by Synse, so it is still up to
+the caller to gather and check each returned transaction ID appropriately. This functionality
+is added as a convenience to reduce the number of network requests.
+
+When multiple writes are batched, they will be queued an processed in the order by which they
+are provided in the POST body list. In the example below, "color" will be processed first, then
+"state".
+
 ```json
 [
   {
@@ -912,96 +945,59 @@ Example for a multi-value write:
 ]
 ```
 
-#### Query Parameters
+If multiple writes are batched together and a user-defined transaction IDs are desired, they
+must be supplied in the POST body. If a transaction ID is specified as a query parameter when
+there are batched writes, an error is returned.
 
-| Key | Required | Description |
-| --- | -------- | ----------- |
-| ns | no | The default namespace to use for the specified labels. (default: `default`) |
-| tags | yes | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
-| transaction | no | A user-defined transaction ID which will be used as the primary write transaction id. If this conflicts with an existing transaction ID, an error is returned. |
-
-See [Writes](writes.md) for more info on writing to devices using tags.
+```json
+[
+  {
+    "action": "color",
+    "data": "f38ac2",
+    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+  },
+  {
+    "action": "state",
+    "data": "blink",
+    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6e"
+  }
+]
+```
 
 #### Response
 
 ##### OK (200)
-The write response consists of a "primary write transaction id" (e.g. `56a32eba-1aa6-4868-84ee-fe01af8b2e6d`, below)
-and a collection of individual device writes. The primary transaction id is used to identify the API
-write action as a whole, while the individual device writes each represent a write to a device. In cases
-where a single device is written to, there will only be one device write under the *"writes"* field.
-In cases where multiple devices are written to, there will be multiple device writes.
-
 ```json
-{
-  "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d",
-  "writes": [
-    {
-      "context": [
-        {
-          "action": "color",
-          "data": "f38ac2"
-        }
-      ],
-      "device": "0fe8f06229aa9a01ef6032d1ddaf18a2",
-      "transaction": "b9keavu8n63001v6bnm0"
-    }
-  ]
-}
-```
-
-For multiple device writes:
-```json
-{
-  "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6b",
-  "writes": [
-    {
-      "context": [
-        {
-          "action": "color",
-          "data": "f38ac2"
-        }
-      ],
-      "device": "0fe8f06229aa9a01ef6032d1ddaf18a3",
-      "transaction": "b9keavu8n63001v6bnm1"
+[
+  {
+    "context": {
+      "action": "color",
+      "data": "f38ac2"
     },
-    {
-      "context": [
-        {
-          "action": "color",
-          "data": "f38ac2"
-        }
-      ],
-      "device": "0fe8f06229aa9a01ef6032d1ddaf18a4",
-      "transaction": "b9keavu8n63001v6bnm2"
+    "device": "0fe8f06229aa9a01ef6032d1ddaf18a2",
+    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d",
+    "timeout": "10s"
+  },
+  {
+    "context": {
+      "action": "state",
+      "data": "blink"
     },
-    {
-      "context": [
-        {
-          "action": "color",
-          "data": "f38ac2"
-        }
-      ],
-      "device": "0fe8f06229aa9a01ef6032d1ddaf18a5",
-      "transaction": "b9keavu8n63001v6bnm3"
-    }
-  ]
-}
+    "device": "0fe8f06229aa9a01ef6032d1ddaf18a2",
+    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6e",
+    "timeout": "10s"
+  }
+]
 ```
 
 **Fields**
 
 | Field | Description |
 | ----- | ----------- |
-| *transaction* | The primary write transaction id. If a user-defined transaction is provided via the `transaction` query parameter, this field will hold that ID. Otherwise, a new ID is generated. |
-| *writes* | The collection of individual device writes which make up the write request. |
-
-Each device write object has the following fields:
-
-| Field | Description |
-| ----- | ----------- |
-| *context* | The data written to the device. This is provided as context info to help identify the action. |
+| *context* | The data written to the device. This is provided as context info to help identify the write action. |
 | *device* | The GUID of the device being written to. |
-| *transaction* | The internal ID for the device write. |
+| *transaction* | The ID for the device write transaction. This can be passed to the [`/transaction`](#transaction) endpoint to get the status of the write action. |
+| *timeout* | A string representing the timeout for the write transaction after which it will be cancelled. This is effectively the maximum wait time for the transaction to resolve. |
 
 ##### Error (500, 400)
 See: [Errors](#errors)
@@ -1016,22 +1012,8 @@ GET http://HOST:5000/synse/v3/transaction[/{transaction_id}]
 
 Check the state and status of a write transaction.
 
-The *transaction_id* parameter can be either the primary write transaction id, or the id of an
-individual device write. 
-
-When a primary write transaction id is provided, the return state and status are an aggregate of
-all component device writes, where both state and status contain the "least complete" value from
-their component device writes. That is to say, if a write contained two device writes, one of which
-was complete and the other was pending, the overall state and status returned would be that of the
-pending device write. If *any* component write fails, the primary write will resolve to an error
-state/status.
-
-When a component device write transaction id is provided, the return state will be that of the
-device write.
-
-If no transaction ID is given, a list of all cached primary transaction IDs, sorted by
-transaction ID (the `id` response field), is returned. The length of time that a transaction
-is cached is configurable (see the Synse Server [configuration](server.md#configuration)).
+If no *transaction_id* is given, a sorted list of all cached transaction IDs is returned. The
+length of time that a transaction is cached is configurable (see the Synse Server [configuration](server.md#configuration)).
 
 If the provided transaction ID does not exist, an error is returned.
 
