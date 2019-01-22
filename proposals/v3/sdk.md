@@ -12,6 +12,7 @@ Additionally, there are a number of areas in the SDK that could be improved upon
   - [monitoring](monitoring.md)
 - Improvements to the SDK API
 - Plugin health checks
+- Update SDK to use the updated [GRPC API](grpc.md)
 
 ## Proposal
 Many of the larger work items are discussed in their own documents (see links

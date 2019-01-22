@@ -29,7 +29,8 @@ them together are considered the proposal/spec for Synse v3.
 0. **[Health Check](health.md)** - implementing service health checks
 0. **[Synse Server](server.md)** - general updates and changes to Synse Server 
 0. **[Synse SDK](sdk.md)** - general updates and changes to Synse SDK 
-0. **[Synse CLI](cli.md)** - updates and new features for the Synse CLI 
+0. **[Synse CLI](cli.md)** - updates and new features for the Synse CLI
+0. **[GRPC API](grpc.md)** - updates to the GRPC API for communicating with plugins
 0. **[Monitoring & Metrics](monitoring.md)** - exposing Synse server metrics
 0. **[Third Party Usage](third-party.md)** - goals and requirements for direct third party usage
 0. **[Security](security.md)** - updates and enhancements to security capabilities

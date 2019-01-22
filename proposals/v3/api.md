@@ -669,7 +669,7 @@ the changes to the read response.
   },
   {
     "device": "929b923de65a811",
-    "kind": "led",
+    "kind": "led.state",
     "type": "state",
     "value": "off",
     "timestamp": "2018-02-01T13:47:40.395939895Z",
@@ -677,7 +677,7 @@ the changes to the read response.
   },
   {
     "device": "929b923de65a811",
-    "kind": "led",
+    "kind": "led.color",
     "type": "color",
     "value": "000000",
     "timestamp": "2018-02-01T13:47:40.395939895Z",
@@ -686,7 +686,7 @@ the changes to the read response.
   {
     "device": "12bb12c1f86a86e",
     "kind": "door_lock",
-    "type": "lock",
+    "type": "door_lock",
     "value": "locked",
     "timestamp": "2018-02-01T13:47:40.395939895Z",
     "unit": null,
