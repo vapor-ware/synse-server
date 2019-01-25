@@ -27,7 +27,8 @@ and the messages for each RPC route.
   * [Test](#test)
   * [Transaction](#transaction)
   * [Version](#version)
-  * [Write](#write) 
+  * [Write Async](#writeasync) 
+  * [Write Sync](#writesync) 
 * [Messages](#messages)
   * [Empty](#empty)
   * [v3 Bounds](#v3bounds)
@@ -56,7 +57,7 @@ and the messages for each RPC route.
 Gets all devices that a plugin manages.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [V3DeviceSelector](#v3deviceselector) |
 | *Response* | [V3Device](#v3device) (stream) |
 
@@ -65,7 +66,7 @@ Gets all devices that a plugin manages.
 Get the health status of a plugin.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [Empty](#empty) |
 | *Response* | [V3Health](#v3health) |
 
@@ -74,7 +75,7 @@ Get the health status of a plugin.
 Get the plugin meta-information.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [Empty](#empty) |
 | *Response* | [V3Metadata](#v3metadata) |
 
@@ -83,7 +84,7 @@ Get the plugin meta-information.
 Read from the specified plugin device(s).
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [V3DeviceSelector](#v3deviceselector) |
 | *Response* | [V3Reading](#v3reading) (stream) |
 
@@ -94,7 +95,7 @@ to cache readings, it will return the readings maintained in the current
 read state.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [V3Bounds](#v3bounds) |
 | *Response* | [V3Reading](#v3reading) (stream) |
 
@@ -103,7 +104,7 @@ read state.
 Check if the plugin is reachable available.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [Empty](#empty) |
 | *Response* | [V3TestStatus](#v3teststatus) |
 
@@ -112,7 +113,7 @@ Check if the plugin is reachable available.
 Get the state and status for the specified write transaction.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [V3TransactionSelector](#v3transactionselector) |
 | *Response* | [V3TransactionState](#v3transactionstate) (stream) |
 
@@ -121,19 +122,26 @@ Get the state and status for the specified write transaction.
 Get the version information for the plugin.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [Empty](#empty) |
 | *Response* | [V3Version](#v3version) |
 
 
-#### Write
-Write data to the specified plugin device.
+#### WriteAsync
+Write data to the specified plugin device in an asynchronous request.
 
 | Message | Link |
-| ------- | ---- |
+| :------ | :--- |
 | *Request* | [V3WritePayload](#v3writepayload) |
 | *Response* | [V3WriteTransaction](#v3writetransaction) |
 
+#### WriteSync
+Write data to the specified plugin device in a synchronous request.
+
+| Message | Link |
+| :------ | :--- |
+| *Request* | [V3WritePayload](#v3writepayload) |
+| *Response* | [V3TransactionState](#v3transactionstate) (stream) |
 
 
 ### Messages
@@ -147,7 +155,7 @@ any input.
 Specifies time bounds. Bounds should be given in RFC3339(Nano) format.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *start* | string | RFC3339 timestamp specifying the beginning of the time bound. If left unspecified, the start is unbound. |
 | *end* | string | RFC3339 timestamp specifying the ending of the time bound. If left unspecified, the end is unbound. |
 
@@ -157,7 +165,7 @@ Device metadata. This provides all of the pertinent known data associated with
 a device managed by the plugin.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *timestamp* | string | RFC3339 timestamp for when the device info was gathered. |
 | *id* | string | The globally unique ID for the device. |
 | *kind* | string | The device kind, as defined by the plugin. |
@@ -167,7 +175,7 @@ a device managed by the plugin.
 | *info* | string | Additional information for the device. |
 | *tags* | repeated [V3tag](#v3tag) | The tags that are associated with the device. |
 | *sortIndex* | int32 | A 1-based sort ordinal for the device. This will help determine where the device shows up in the scan. |
-| *capabilities* | [V3DeviceCapability](#v3devicecapability) |  |
+| *capabilities* | [V3DeviceCapability](#v3devicecapability) | The read/write capabilities of the device. |
 | *output* | repeated [V3Output](#v3deviceoutput) | The reading outputs that the device can generate on read. |
 
 
@@ -175,8 +183,8 @@ a device managed by the plugin.
 Specifies the capabilities that a device exposes via Synse.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
-| *mode* | string | The capability mode of the device ("ro", "wo", "rw"). |
+| :---- | :--- | :---------- |
+| *mode* | string | The capability mode of the device ("r" *(read only)*, "w" *(write only)*, "rw" *(read-write)*). |
 | *write* | [V3WriteCapability](#v3writecapability) | The write capabilities of the device. |
 
 
@@ -184,7 +192,7 @@ Specifies the capabilities that a device exposes via Synse.
 Specifies the output types for a device's readings.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *name* | string | The name of the device output. This can be namespaced. |
 | *type* | string | The type of the output. This is the last element of the namespaced output name. |
 | *precision* | int | The decimal precision of the output. A precision of 0 (default) means no precision is applied. |
@@ -196,7 +204,7 @@ Specifies the output types for a device's readings.
 A selector for choosing devices for various operations.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *tags* | repeated [V3Tag](#v3tag) | A collection of all the tags to be used as selectors. |
 
 
@@ -204,7 +212,7 @@ A selector for choosing devices for various operations.
 Health status for the plugin.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *timestamp* | string | RFC3339 timestamp of the time when the health was checked. |
 | *status* | enum HealthStatus | The overall status (one of: unknown, ok, failing). |
 | *checks* | repeated [V3HealthCheck](#v3healthcheck) | All of the health checks which make up the overall health of a plugin. |
@@ -214,7 +222,7 @@ Health status for the plugin.
 Health check status for a plugin.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *name* | string | The name of the health check. |
 | *status* | enum HealthStatus | The status of the health check. |
 | *message* | string | Any additional information associated with the health check. |
@@ -226,7 +234,7 @@ Health check status for a plugin.
 Plugin metadata. This information static information about the plugin.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *name* | string | The name of the plugin. |
 | *maintainer* | string | The maintainer of the plugin. |
 | *tag* | string | The normalized tag for the plugin metainfo. |
@@ -238,7 +246,7 @@ Plugin metadata. This information static information about the plugin.
 The unit of measure for a [v3 Device Output](#v3deviceoutput).
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *name* | string | The full name of the unit, e.g. "degrees celsius". |
 | *symbol* | string | The symbolic representation of the unit, e.g. "C". |
 
@@ -247,7 +255,7 @@ The unit of measure for a [v3 Device Output](#v3deviceoutput).
 A reading response from a device.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *id* | string | The ID of the device being read from. |
 | *timestamp* | string | RFC3339 timestamp for when the reading was taken. |
 | *type* | string | The type of the reading. |
@@ -261,7 +269,7 @@ A reading response from a device.
 Specification for a single [tag](tags.md).
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *namespace* | string | The namespace for the tag. |
 | *annotation* | string | The annotation for the tag. |
 | *label* | string | The tag label. |
@@ -271,7 +279,7 @@ Specification for a single [tag](tags.md).
 Plugin status response for reachability and availability.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *ok* | bool | A flag that describes whether the plugin is reachable or not. |
 
 
@@ -279,7 +287,7 @@ Plugin status response for reachability and availability.
 Identifying information for a write transaction.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *id* | string | The ID of a transaction. |
 
 
@@ -287,7 +295,7 @@ Identifying information for a write transaction.
 The state and status for a write transaction.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *id* | string | The ID of the write transaction. |
 | *created* | string | RFC3339 timestamp of when the transaction was created. |
 | *updated* | string | RFC3339 timestamp of when the transaction was last updated. |
@@ -302,7 +310,7 @@ The state and status for a write transaction.
 Version information for a plugin.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *pluginVersion* | string | The semantic version of the plugin. |
 | *sdkVersion* | string | The version of the SDK that the plugin uses. |
 | *buildDate* | string | The timestamp from when the plugin was built. |
@@ -316,7 +324,7 @@ Version information for a plugin.
 The write capabilities for a device.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *actions* | repeated string | The actions that the device supports when writing. |
 
 
@@ -324,7 +332,7 @@ The write capabilities for a device.
 The data to write to a device.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *action* | string | The action string for the write. |
 | *data* | bytes | The action data for the write. |
 
@@ -333,7 +341,7 @@ The data to write to a device.
 The selector for the device write, as well as the data to write to that device.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *selector* | [V3DeviceSelector](#v3deviceselector) | The selector for the device to write to. This should resolve to a single device. |
 | *data* | repeated [V3WriteData](#v3writedata) | The data to write to the device. |
 
@@ -342,7 +350,7 @@ The selector for the device write, as well as the data to write to that device.
 Information associating a write action with a transaction for asynchronous tracking.
 
 | Field | Type | Description |
-| ----- | ---- | ----------- |
+| :---- | :--- | :---------- |
 | *context* | [V3WriteData](#v3writedata) | The data that was written for the write transaction. |
 | *id* | string | The ID of the write transaction. |
 | *device* | string | The ID of the device written to. |

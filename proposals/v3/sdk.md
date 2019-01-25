@@ -103,4 +103,47 @@ functionality will prevent these kinds of failures from:
 The plugin-configured write timeout should be surfaced to Synse Server via the
 GRPC API and ultimately exposed through the [Synse API](api.md#transaction) so
 any front end consumer can know the maximum time they should wait for the write to
-resolve. 
+resolve.
+
+### Changes to Device Configuration
+Parts of the device configuration for plugins can be confusing, overly verbose,
+or at a level of detail that the configurer should not care about. Part of this
+stems from the consolidation of previous configuration schemes and from the
+iterative additions and updates to the SDK after tackling different classes of
+plugins.
+
+Various changes can be made to the device configurations both to support the
+[tag](tags.md) based routing system, as well as reducing and simplifying the
+number of configurable pieces.
+
+* Simplify `kind`, perhaps rename to `name`
+  * The kind does not really need to be as complex as it is (namespaced, final element being
+    the type). Its primary function is to provide identity for the device prototype both
+    for a user (e.g. human readable) and to match it to a plugin handler. Simplifying this
+    will reduce the ambiguity around the `kind`/`type` relationship.
+  * It is questionable whether it even needs to be something that an upstream user sees. This
+    may only need to be an internal thing. TBD.
+* Keep `type` in the device config, but provide a clear updated definition for what
+  it actually is.
+  * The "type" is really just metadata that is useful to the consumer for grouping devices
+    around general behavior. The type of a device doesn't guarantee its capabilities or
+    behavior (e.g. one LED could just power on/power off, another one could have on/off/blink
+    and allow you to set the color).
+  * This needs to remain defined in the config because device handlers are not guaranteed
+    to be tied to a specific device. There are generic device handlers which exist (e.g.
+    modbus 'input_register').
+* Remove `locations` block
+  * Will no longer be using `rack/board/device` designation
+* Add `tags` config fields
+  * Should exist at multiple levels (e.g. prototype, instance, ...)
+  * Tags are additive, e.g. an instance's tags add any prototype tags which are defined
+* Remove `outputs`, no need to define output types in config
+  * The supported output types for a given device really won't change per handler,
+    so there is no need for them to be configurable. They can be defined in code
+    as part of the device handler struct. 
+    
+
+For examples of how the configuration would look for different kinds of plugins,
+see [Appendix A-1](appendix-a.md#1-sdk-device-configurations).
+ 
+> **TODO**: If the above is accepted, HTTP/GRPC API schemes will need some changes.
