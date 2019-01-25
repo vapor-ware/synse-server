@@ -108,6 +108,8 @@ indicate Synse Server not being up and serving.
 ##### Error (500)
 No JSON - route not reachable/service not ready
 
+* **500** - Catchall processing error
+
 
 ---
 
@@ -136,8 +138,10 @@ provided by this endpoint should be used in subsequent requests.
 | *version* | The full version (major.minor.micro) of the Synse Server instance. |
 | *api_version* | The API version (major.minor) that can be used to construct subsequent API requests. |
 
-##### Error (500)
+##### Error
 No JSON - route not reachable/service not ready
+
+* **500** - Catchall processing error
 
 
 ---
@@ -160,8 +164,10 @@ configuration that Synse Server ultimately runs with.
 ##### OK (200)
 The response JSON will match the configuration scheme. See: [Config](server.md#configuration).
 
-##### Error (500)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
 
 
 ---
@@ -305,8 +311,11 @@ The health check elements here make up a snapshot of the plugin's health at a gi
 | *timestamp* | The timestamp for which the status applies. |
 | *type* | The type of health check (e.g. periodic) |
 
-##### Error (500, 404)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **404** - Plugin not found
 
 
 ---
@@ -354,8 +363,10 @@ just makes that information easier and faster to access.
 | *active* | The count of active plugins. (see: [plugin activity](server.md#plugin-activity)) |
 | *inactive* | The count of inactive plugins. (see: [plugin activity](server.md#plugin-activity)) |
 
-##### Error (500)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
 
 
 ---
@@ -424,8 +435,11 @@ can be used to modify the sort behavior.
 | *plugin* | The ID of the plugin which the device is managed by. |
 | *tags* | A list of the tags associated with this device. One of the tags will be the `id` tag. |
 
-##### Error (500, 400)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **400** - Invalid parameter(s)
 
 
 ---
@@ -467,8 +481,11 @@ Tags are sorted alphanumerically.
 ]
 ```
 
-##### Error (500, 400)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **400** - Invalid parameter(s)
 
 
 ---
@@ -579,8 +596,11 @@ Get the full set of metainfo and capabilities for a specified device.
 | *unit.name* | The complete name of the unit of measure (e.g. "meters per second"). |
 | *unit.symbol* | A symbolic representation of the unit of measure (e.g. m/s). |
 
-##### Error (500, 404)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **404** - Device not found
 
 
 ---
@@ -694,8 +714,11 @@ with their physical location.
 | *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
 | *context* | A mapping of arbitrary values to provide additional context for the reading. |
 
-##### Error (500, 400)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **400** - Invalid parameter(s)
 
 
 ---
@@ -757,8 +780,11 @@ for the [`/read`](#read) endpoint.
 | *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
 | *context* | A mapping of arbitrary values to provide additional context for the reading. |
 
-##### Error (500, 404)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **404** - Device not found
 
 
 ---
@@ -832,8 +858,11 @@ streamed JSON. One block of the streamed JSON will appear as follows:
 | *context* | A mapping of arbitrary values to provide additional context for the reading. |
 
 
-##### Error (500, 400)
+##### Error
 See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **400** - Invalid query parameters
 
 
 ---
