@@ -517,3 +517,27 @@ will have an ID field which contains the ID of the event which triggered the res
   }
 }
 ```
+
+
+#### Error
+| | |
+| :--- | :--- |
+| **Name** | response/error |
+| **Description** | A Synse error. |
+
+##### Event Data
+> *Note*: See [HTTP API: Scan](api.md#errors) Response.
+
+
+```json
+{
+  "id": 1,
+  "event": "response/error",
+  "data": {
+    "http_code": 404,
+    "description": "Device not found",
+    "timestamp": "2018-01-24 19:22:28Z",
+    "context": "f52d29fecf05a195af13f14c73065252d does not correspond with a known device ID"
+  }
+}
+```
