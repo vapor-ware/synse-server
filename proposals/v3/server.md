@@ -169,6 +169,15 @@ separate entities and not separate processes within the Synse Server container.
 
 In v3, this path will change to `/etc/synse/plugin`. 
 
+### FQDN Devices
+To support fully-qualified domain names for devices, Synse needs to expose each device via
+a unique URL via its API.
+
+The [`/device/{device_id}`](api.md#device) endpoint provides read and write access to a
+single device via a unique URL. This together with the deterministic device GUIDs means
+that as long as the plugin is up, we can always have read/write access to the same device
+from the same URL.
+
 ### Logging
 Logging in Synse Server is not terrible, but it is inconsistent between different regions
 of the code. Some areas have many log messages that are verbose, while others lack meaningful

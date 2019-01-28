@@ -72,6 +72,7 @@ Below is a table of contents for the API Endpoints.
 0. [Write (Asynchronous)](#write-asynchronous)
 0. [Write (Synchronous)](#write-synchronous)
 0. [Transaction](#transaction)
+0. [Device](#device)
 
 
 ---
@@ -1008,7 +1009,6 @@ user to define a sane timeout such that the request does not prematurely termina
 ```json
 [
   {
-    "device:": "0fe8f06229aa9a01ef6032d1ddaf18a2",
     "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d",
     "action": "color",
     "data": "f38ac2"
@@ -1161,3 +1161,106 @@ Transaction can have one of four statuses:
 | *writing* | The write has been taken off the queue and is being processed. |
 | *done* | The write has been processed and completed successfully. (terminal state) |
 | *error* | The write failed for any reason. (terminal state) |
+
+
+---
+
+### Device
+```
+GET  http://HOST:5000/synse/v3/device/{device_id}
+POST http://HOST:5000/synse/v3/device/{device_id}
+```
+
+Read and write to a device.
+
+This endpoint allows read and write access to a device through a single URL,
+allowing for FQDN devices. A device can be read via `GET` and written to via `POST`.
+The underlying implementations for read and write are the same as the [`/read/{device}`](#read-device)
+and [`/write/wait/{device}`](#write-synchronous) requests, respectively.
+
+#### URI Parameters
+
+| Parameter | Required | Description |
+| :-------- | :------- | :---------- |
+| *device_id* | yes | The ID of the device that is being read from/written to. |
+
+#### POST Body
+```json
+[
+  {
+    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d",
+    "action": "color",
+    "data": "f38ac2"
+  }
+]
+```
+
+**Fields**
+
+| Field | Required | Description |
+| :---- | :------- | :---------- |
+| *device* | yes | The ID of the device being written to. |
+| *transaction* | no | A user-defined transaction ID for the write. If this conflicts with an existing transaction ID, an error is returned. If this is not specified, a transaction ID will be automatically generated for the write action. |
+| *action* | yes | The action that the device will perform. This is set at the plugin level and exposed in the [`/info`](#info) endpoint. |
+| *data* | sometimes | Any data that an action may require. Not all actions require data. This is plugin-defined. |
+
+
+#### Response
+
+##### OK (200)
+**`GET`**
+(See: [`/read`](#read-device))
+
+> **Note**: In the examples below, the key-value pairs in the `context` field
+> are arbitrary and only serve as an example of possible values.
+
+```json
+[
+  {
+    "device": "12bb12c1f86a86e",
+    "kind": "temperature",
+    "type": "temperature",
+    "value": 20.3,
+    "timestamp": "2018-02-01T13:47:40Z",
+    "unit": {
+      "symbol": "C",
+      "name": "degrees celsius"
+    },
+    "context": {
+      "host": "127.0.0.1",
+      "sample_rate": 8
+    }
+  }
+]
+```
+
+
+
+**`POST`**
+(See: [`/write`](#write-synchronous))
+
+```json
+[
+ {
+   "id": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d",
+   "timeout": "10s",
+   "device": "0fe8f06229aa9a01ef6032d1ddaf18a5",
+   "context": {
+     "action": "color",
+     "data": "f38ac2"
+   },
+   "status": "done",
+   "created": "2018-02-01T15:00:51Z",
+   "updated": "2018-02-01T15:00:51Z",
+   "message": ""
+ }
+]
+```
+
+##### Error
+See: [Errors](#errors)
+
+* **500** - Catchall processing error
+* **400** - Invalid JSON provided/Invalid parameters
+* **404** - Device not found
+* **405** - Device does not support reading/writing
