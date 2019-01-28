@@ -119,8 +119,18 @@ func (t *Temperature) ToCelsius() { ... }
 
 // Convert to a fahrenheit-based temperature reading
 func (t *Temperature) ToFanrenheit() { ... }
-
 ```
+
+> **Question**: Where should we configure the system of measurement (SoM) (e.g., imperial/metric)?
+>  * Should it be at a plugin level, and leave it up to the deployer to ensure all plugins
+>    are deployed with the same system?
+>  * Should it be at Synse Server level, where it sends the SoM it wants for a read request
+>    and just leaves it up to the plugin to do the appropriate conversion prior to response?
+>
+> I think I am leaning towards having it be something defined in Synse Server as it seems more
+> flexible and can allow for queries which could change the system, e.g. `/read/123234235?som=imperial`.
+> The result of this question could have impacts on other components (configuration, grpc api, ...)
+
 
 ### Simplify Device Configuration
 Parts of the device configuration for plugins can be confusing, overly verbose,

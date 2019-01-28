@@ -4,7 +4,8 @@ This document provides details on the changes to the `/write` endpoint and the
 write behavior more generally.
 
 ## High Level Work Items
-- Update `/write` [API](api.md#write)
+- Update `/write` [API](api.md#write-asynchronous)
+- Add synchronous write capabilities
 - Add support for batch writes
 - Remove `raw` keyword support from write payload 
 
@@ -49,7 +50,7 @@ particularly around partial write failures and state tracking.
 Since [device IDs](ids.md) are globally unique in Synse v3, only the device ID is needed
 to route a write request to a particular device.
 
-For more, see the [API write](api.md#write) endpoint. 
+For more, see the [API write](api.md#write-asynchronous) endpoint. 
 
 ### Batch Writes
 For convenience and to reduce the number of network requests needed to issue multiple

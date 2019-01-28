@@ -9,14 +9,6 @@ read behavior in Synse more generally.
 - Update scheme for read response
 
 ## Proposal
-
-> **Open Questions**:
->  - It seems like there are a few different types of read that we are all
->    shoving through the `/read` endpoint. Should this be broken down a bit
->    more (either at the endpoint level or some other way?)
->      - Different types of read: pull data, poll data, push data, read cached, ...
-
-
 ### Tag-Based Reads
 > See: [Tags](tags.md)
 
@@ -82,7 +74,7 @@ of what a read response looks like in API v2, for reference.
   "data": [
     {
       "value": 20.3,
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
+      "timestamp": "2018-02-01T13:47:40Z",
       "unit": {
         "symbol": "C",
         "name": "degrees celsius"
@@ -110,7 +102,7 @@ For the v3 read response scheme, we need to:
       "kind": "temperature",
       "type": "temperature",
       "value": 20.3,
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
+      "timestamp": "2018-02-01T13:47:40Z",
       "info": "",
       "unit": {
         "symbol": "C",
@@ -127,7 +119,7 @@ For the v3 read response scheme, we need to:
       "kind": "led",
       "type": "state",
       "value": "off",
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
+      "timestamp": "2018-02-01T13:47:40Z",
       "info": "",
       "unit": null
     },
@@ -135,7 +127,7 @@ For the v3 read response scheme, we need to:
       "kind": "led",
       "type": "color",
       "value": "000000",
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
+      "timestamp": "2018-02-01T13:47:40Z",
       "info": "",
       "unit": null
     }
@@ -145,7 +137,7 @@ For the v3 read response scheme, we need to:
       "kind": "door_lock",
       "type": "lock",
       "value": "locked",
-      "timestamp": "2018-02-01T13:47:40.395939895Z",
+      "timestamp": "2018-02-01T13:47:40Z",
       "info": "Zone 6B",
       "unit": null,
       "context": {
