@@ -18,6 +18,8 @@ The response `data` JSON here is similar to that of the [HTTP API](api.md) and i
 linked appropriately in order to prevent duplicate definitions for these
 documents.
 
+> Synse also exposes an [HTTP API](api.md).
+
 ### Connect
 ```
 GET http://HOST:5000/synse/v3/connect

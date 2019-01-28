@@ -2,7 +2,9 @@
 ## Summary
 Synse v3 brings a number of changes to Synse, particularly with the modeling and
 routing of devices in the system. The SDK will need to be updated to accommodate this.
-Additionally, there are a number of areas in the SDK that could be improved upon.
+
+There are also a number of areas in the SDK that can be improved to make it easier
+to use and to make aspects of it less confusing.
 
 ## High Level Work Items
 - Update device modeling for [tag based routing](tags.md)
@@ -23,40 +25,8 @@ the additional SDK-specific items to improve SDK usage.
 This has already been started and noted in the [SDK source](https://github.com/vapor-ware/synse-sdk/blob/ee3e84f602c74c6e499a36f7f58916f08eeb74b6/sdk/config.go#L88-L102).
 This version check at each individual field was excessive and while interesting
 in theory, burdensome in practice. Instead of versioning the fields with a major/minor
-version, we should just version the config structs at a major version. Any changes
-to an existing config struct should always be backwards compatible for that version.
-
-### Remove requirement to specify output type per device in config
-The SDK currently requires the device config to specify the supported output types
-for a given device kind, e.g.
-```yaml
-devices:
-  - name: humidity
-    metadata:
-      model: emul8-humidity
-    outputs:
-      - type: humidity
-      - type: temperature
-```
-
-This isn't too bad in some cases, like the one above, but once the complexities of
-things like dynamic registration (e.g. IPMI, SNMP), extensive non-homogeneous device
-configuration (e.g. Modbus-IP), variable push-driven metrics (sFlow) are taken into
-account, this feature becomes burdensome and does not provide us with much.
-
-The initial idea was to include it as a means of "type safety" for an output of a
-device, but since plugin definitions are relatively static and the output type of
-a device generally should not change, it now seems superfluous to mandate that the
-outputs be defined for each supported device type.
-
-Instead, we can just define outputs as we currently do (either directly in the
-plugin code, or as a separate config file, or both) and when constructing the
-device reading for a given type, look at the global pool of available output
-types, not just the ones specifically configured for the device.
-
-This would also allow us to define generic output types directly in the SDK that all
-plugins could use without having to define their own. This could make authoring a
-plugin easier.
+version, we should just version the config structs at a major version. Any future
+changes to a config struct should always be backwards compatible for that version.
 
 ### Profile the SDK
 It would be beneficial to profile a set of plugins to determine whether there
@@ -67,7 +37,7 @@ It would not be necessary to implement any optimizations unless a serious proble
 was detected, but having any kind of performance data is useful as it can serve as
 a baseline for any future changes.
 
-### Support for plugin health checks
+### Support for configurable plugin health checks
 See: [Health](health.md#synse-plugins)
 
 ### Update Default Plugin Path
@@ -77,7 +47,7 @@ in the SDK should be updated as well.
 See: [Default Plugin Path](server.md#default-plugin-path)
 
 ### Expose additional data for device info
-For the `/info` endpoint, we will provide details on what actions a device supports
+Synse's `/info` endpoint will provide details on what actions a device supports
 for writing. This will be surfaced through the grpc api. The SDK needs a way of defining
 these in such a manner that the data can be passed up to Synse Server.
 
@@ -105,9 +75,56 @@ GRPC API and ultimately exposed through the [Synse API](api.md#transaction) so
 any front end consumer can know the maximum time they should wait for the write to
 resolve.
 
-### Changes to Device Configuration
+
+### Improve `OutputType` design and usage
+`OutputType`s have been required in the device configuration as a means of type safety.
+Plugin definitions are fairly static and this constraint and added complexity to the
+configuration and plugin setup are unnecessary.
+
+Across plugins, there may be similar types defined (e.g. "temperature"), which would
+lead to duplicate definitions. While not necessarily bad, it does mean that the way
+temperature is defined in one case may differ from another (or there may be an error
+in one definition).
+
+To try and simplify how `OutputTypes` are used and to make them more extensible
+across plugins, a number of changes can happen:
+
+0. Remove the requirement to specify output types in the device config. (For an
+   example, see: [Appendix A-1](appendix-a.md#1-sdk-device-configurations).)
+0. Create a "library" of types in the SDK itself, reducing the number of definitions
+   a plugin will need to define.
+0. Add functionality for common actions on output types, e.g. conversion
+
+
+The type library would just be a sub-package of the SDK, and would contain common
+pre-defined outputs (temperature, humidity, voltage, etc.). Plugins would still have
+the ability to define their own output types should they need to.
+
+Extending the `OutputType` to support things like unit conversion would be useful
+for setting a measurement system (imperial, metric) or normalizing all readings
+across potentially disparate devices to the same unit of measure to add system-wide
+consistency. A pseudocode example:
+
+```
+type Temperature struct { ... }
+
+// Create a celsius-based temperature reading
+func (t *Temperature) AsCelsius(value float64) { ... }
+
+// Create a fahrenheit-based temperature reading
+func (t *Temperature) AsFahrenheit(value float64) { ... }
+
+// Convert to a celsius-based temperature reading
+func (t *Temperature) ToCelsius() { ... }
+
+// Convert to a fahrenheit-based temperature reading
+func (t *Temperature) ToFanrenheit() { ... }
+
+```
+
+### Simplify Device Configuration
 Parts of the device configuration for plugins can be confusing, overly verbose,
-or at a level of detail that the configurer should not care about. Part of this
+or at a level of detail that the configurer should not need to care about. Part of this
 stems from the consolidation of previous configuration schemes and from the
 iterative additions and updates to the SDK after tackling different classes of
 plugins.
@@ -116,13 +133,16 @@ Various changes can be made to the device configurations both to support the
 [tag](tags.md) based routing system, as well as reducing and simplifying the
 number of configurable pieces.
 
-* Simplify `kind`, perhaps rename to `name`
+* Simplify `kind`
   * The kind does not really need to be as complex as it is (namespaced, final element being
     the type). Its primary function is to provide identity for the device prototype both
     for a user (e.g. human readable) and to match it to a plugin handler. Simplifying this
     will reduce the ambiguity around the `kind`/`type` relationship.
   * It is questionable whether it even needs to be something that an upstream user sees. This
     may only need to be an internal thing. TBD.
+  * This could be renamed to `name`?
+  * This could probably also be removed entirely if we standardize on using the `handler`
+    field to specify the device handler for the device.
 * Keep `type` in the device config, but provide a clear updated definition for what
   it actually is.
   * The "type" is really just metadata that is useful to the consumer for grouping devices
@@ -135,12 +155,12 @@ number of configurable pieces.
 * Remove `locations` block
   * Will no longer be using `rack/board/device` designation
 * Add `tags` config fields
-  * Should exist at multiple levels (e.g. prototype, instance, ...)
-  * Tags are additive, e.g. an instance's tags add any prototype tags which are defined
+  * Should exist at multiple levels (e.g. global, prototype, instance, ...)
+  * In configuration, tags are additive, e.g. an instance's tags add any prototype tags which are defined
 * Remove `outputs`, no need to define output types in config
   * The supported output types for a given device really won't change per handler,
     so there is no need for them to be configurable. They can be defined in code
-    as part of the device handler struct. 
+    as part of the device handler struct.
     
 
 For examples of how the configuration would look for different kinds of plugins,

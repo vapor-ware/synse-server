@@ -18,6 +18,8 @@ the URI prefix for requests will be `/synse/{API_VERSION}`, except for the two
 unversioned endpoints (`/test` and `/version`) where the URI prefix is just
 `/synse`.
 
+> Synse also exposes a [WebSocket API](api-websocket.md).
+
 ### Errors
 Most errors returned from Synse Server will come back with a JSON payload in order to
 provide additional context for the error. Some errors will not return a JSON payload;
