@@ -38,6 +38,7 @@ them together are considered the proposal/spec for Synse v3.
 0. **[Tests](tests.md)** - updates to Synse tests and testing methodologies
 0. **[API Clients](api-clients.md)** - updates to the various Synse HTTP API clients
 0. **[Blackbox](blackbox.md)** - updates to the internal Blackbox project
+0. **[Versioning](versioning.md)** - project versioning and component comaptibility
 
 ## Appendix
 0. [Appendix A](appendix-a.md): Configuration Examples
