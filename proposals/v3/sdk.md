@@ -77,6 +77,12 @@ resolve.
 
 
 ### Improve `OutputType` design and usage
+> **Note**: See [Appendix B](appendix-b.md) for more information on this. This
+> section contains some initial high level thoughts, whereas the appendix expands
+> upon this and digs deeper down to the implementation level to see how this could
+> actually be achieved. Just keeping this section as-is for now for posterity and
+> further review.
+
 `OutputType`s have been required in the device configuration as a means of type safety.
 Plugin definitions are fairly static and this constraint and added complexity to the
 configuration and plugin setup are unnecessary.
@@ -177,3 +183,9 @@ For examples of how the configuration would look for different kinds of plugins,
 see [Appendix A-1](appendix-a.md#1-sdk-device-configurations).
  
 > **TODO**: If the above is accepted, HTTP/GRPC API schemes will need some changes.
+
+
+> Question: If we are not requiring the device to be tied to any specific outputs
+> in the config anymore, can we still surface the OutputTypes that a device returns
+> to Synse Server for upstream API consumers?
+
