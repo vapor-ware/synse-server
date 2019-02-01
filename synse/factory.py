@@ -78,10 +78,20 @@ def make_app():
 
 async def periodic_cache_invalidation():
     """Periodically invalidate the caches so they are rebuilt."""
+    interval = 3 * 60  # 3 minutes
+
     while True:
-        await asyncio.sleep(5 * 60)  # 5 minutes
-        logger.info('task [periodic cache invalidation]: clearing device caches')
-        await clear_all_meta_caches()
+        await asyncio.sleep(interval)
+        logger.info('task [periodic cache invalidation]: Clearing device caches')
+
+        try:
+            await clear_all_meta_caches()
+        except Exception as e:
+            logger.error(
+                'task [periodic cache invalidation]: Failed to clear device caches, '
+                'will try again in {}s: {}'
+                .format(interval, e)
+            )
 
 
 def _disable_favicon(app):
