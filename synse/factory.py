@@ -1,6 +1,7 @@
 """Factory for creating Synse Server Sanic application instances."""
 # pylint: disable=unused-variable,unused-argument
 
+import asyncio
 import os
 
 from sanic import Sanic
@@ -9,7 +10,7 @@ from sanic.response import text
 
 import synse
 from synse import config, errors, utils
-from synse.cache import configure_cache
+from synse.cache import clear_all_meta_caches, configure_cache
 from synse.log import LOGGING, logger, setup_logger
 from synse.response import json
 from synse.routes import aliases, base, core
@@ -62,6 +63,9 @@ def make_app():
 
     configure_cache()
 
+    # Add background tasks
+    app.add_task(periodic_cache_invalidation)
+
     # Log out metadata for Synse Server and the application configuration
     logger.info('Synse Server:')
     logger.info('  version: {}'.format(synse.__version__))
@@ -70,6 +74,14 @@ def make_app():
     logger.info('  license: {}'.format(synse.__license__))
     logger.info('Configuration: {}'.format(config.options.config))
     return app
+
+
+async def periodic_cache_invalidation():
+    """Periodically invalidate the caches so they are rebuilt."""
+    while True:
+        await asyncio.sleep(5 * 60)  # 5 minutes
+        logger.info('task [periodic cache invalidation]: clearing device caches')
+        await clear_all_meta_caches()
 
 
 def _disable_favicon(app):
