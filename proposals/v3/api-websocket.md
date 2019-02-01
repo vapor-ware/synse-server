@@ -22,10 +22,16 @@ documents.
 
 ### Connect
 ```
-GET http://HOST:5000/synse/v3/connect
+GET http://HOST:5000/v3/connect
 ```
 
 Connect to Synse Server, starting the WebSocket session.
+
+If WebSockets are disabled for the instance, this endpoint will accept the WebSocket
+connection and immediately close it with a [4000 code](https://tools.ietf.org/html/rfc6455#section-7.4.2).
+
+The client can look at the [CloseEvent](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent)
+code to determine the cause.
 
 
 ### Events

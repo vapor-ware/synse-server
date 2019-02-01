@@ -30,9 +30,15 @@ so this document will not go into detail on that process.
 The process of assigning each plugin a unique namespace is the primary focus of this document.
 
 ### Plugin Namespaces
-The source of a plugin namespace will depend on the deployment model of that plugin.
+The source of a plugin namespace will depend on the deployment strategy of that plugin. This does
+not mean that it depends on what is running/managing the plugin (e.g. docker, kubernetes, systemd,
+something else, ...). It means that it depends on:
+- Where the plugin will run (bound to a single machine, schedule-able across multiple machines)
+- How many instances of the plugin will be running.
 
-1. The plugin is bound to the machine *(examples: runs as DaemonSet, runs directly on host)*
+To break down the use cases a bit further:
+
+1. The plugin is bound to the machine *(examples: runs as k8s DaemonSet, runs directly on host)*
    - In this case, the machine ID (or any other machine-specific property, like
      static IP) may be used as the primary component of the plugin namespace.
      - *Caveat*: With plugins being run in containers, this information will need to passed

@@ -13,10 +13,9 @@ new routing system and a result of feedback from v2 API usage.
 ## Proposal
 This section contains the proposed HTTP API specification for Synse v3.
 
-Following the pattern established in previous versions of Synse Server,
-the URI prefix for requests will be `/synse/{API_VERSION}`, except for the two
-unversioned endpoints (`/test` and `/version`) where the URI prefix is just
-`/synse`.
+In Synse v1 and v2, the URI was prefixed with `/synse/{version}`. This is a historical
+artifact and is no longer needed. To simplify, `v3` will remove the `synse` prefix, so
+versioned requests are prefixed with only the API version, e.g. `/v3`.
 
 > Synse also exposes a [WebSocket API](api-websocket.md).
 
@@ -79,7 +78,7 @@ Below is a table of contents for the API Endpoints.
 
 ### Test
 ```
-GET http://HOST:5000/synse/test
+GET http://HOST:5000/test
 ```
 
 A dependency and side-effect free check to see whether Synse Server is
@@ -118,7 +117,7 @@ No JSON - route not reachable/service not ready
 
 ### Version
 ```
-GET http://HOST:5000/synse/version
+GET http://HOST:5000/version
 ```
 
 Get the version info of the Synse Server instance. The API version
@@ -151,7 +150,7 @@ No JSON - route not reachable/service not ready
 
 ### Config
 ```
-GET http://HOST:5000/synse/v3/config
+GET http://HOST:5000/v3/config
 ```
 
 Get a the unified configuration of the Synse Server instance.
@@ -177,7 +176,7 @@ See: [Errors](#errors)
 
 ### Plugins
 ```
-GET http://HOST:5000/synse/v3/plugin[/{plugin_id}]
+GET http://HOST:5000/v3/plugin[/{plugin_id}]
 ```
 
 Get info on the plugins currently registered with Synse Server.
@@ -325,7 +324,7 @@ See: [Errors](#errors)
 
 ### Plugin Health
 ```
-GET http://HOST:5000/synse/v3/plugin/health
+GET http://HOST:5000/v3/plugin/health
 ```
 
 Get a summary of the health of registered plugins.
@@ -376,7 +375,7 @@ See: [Errors](#errors)
 
 ### Scan
 ```
-GET http://HOST:5000/synse/v3/scan
+GET http://HOST:5000/v3/scan
 ```
 
 List the devices that Synse knows about and can read from/write to via
@@ -449,7 +448,7 @@ See: [Errors](#errors)
 
 ### Tags
 ```
-GET http://HOST:5000/synse/v3/tags
+GET http://HOST:5000/v3/tags
 ```
 
 List all of the tags currently associated with devices.
@@ -495,7 +494,7 @@ See: [Errors](#errors)
 
 ### Info
 ```
-GET http://HOST:5000/synse/v3/info/{device_id}
+GET http://HOST:5000/v3/info/{device_id}
 ```
 
 Get the full set of metainfo and capabilities for a specified device.
@@ -569,7 +568,7 @@ Get the full set of metainfo and capabilities for a specified device.
 | *id* | The globally unique ID for the device. |
 | *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
 | *kind* | The device kind, as specified by the plugin. |
-| *metadata* | A map of arbitrary values that provide additional data for the device.. |
+| *metadata* | A map of arbitrary values that provide additional data for the device. |
 | *plugin* | The ID of the plugin that manages the device. |
 | *info* | A human readable string providing identifying info about a device. |
 | *tags* | A list of the tags associated with this device. One of the tags will be the 'id' tag which should match the `id` field. |
@@ -581,7 +580,7 @@ Get the full set of metainfo and capabilities for a specified device.
 
 | Field | Description |
 | :---- | :---------- |
-| *mode* | A string specifying the device capabilities. This can be "ro" (read only), "rw" (read write), "wo" (write only). |
+| *mode* | A string specifying the device capabilities. This can be "r" (read only), "rw" (read write), "w" (write only). |
 | *read* | Any additional information regarding the device reads. This will currently remain empty. |
 | *write* | Any additional information regarding device writes. |
 | *write.actions* | A list of actions which the device supports for writing. |
@@ -610,7 +609,7 @@ See: [Errors](#errors)
 
 ### Read
 ```
-GET http://HOST:5000/synse/v3/read
+GET http://HOST:5000/v3/read
 ```
 
 Read data from devices which match the set of provided tags. 
@@ -728,12 +727,12 @@ See: [Errors](#errors)
 
 ### Read Device
 ```
-GET http://HOST:5000/synse/v3/read/{device_id}
+GET http://HOST:5000/v3/read/{device_id}
 ```
 
 Read from the specified device. This endpoint is effectively the same as using the [`/read`](#read)
 endpoint where the label matches the [device id tag](tags.md#auto-generated), e.g.
-`http://HOST:5000/synse/v3/read?tags=id:b33f7ac0`.
+`http://HOST:5000/v3/read?tags=id:b33f7ac0`.
 
 #### URI Parameters
 
@@ -794,7 +793,7 @@ See: [Errors](#errors)
 
 ### Read Cache
 ```
-GET http://HOST:5000/synse/v3/readcache
+GET http://HOST:5000/v3/readcache
 ```
 
 Stream reading data from the registered plugins.
@@ -872,7 +871,7 @@ See: [Errors](#errors)
 
 ### Write (Asynchronous)
 ```
-POST http://HOST:5000/synse/v3/write/{device_id}
+POST http://HOST:5000/v3/write/{device_id}
 ```
 
 Write data to a device, in an asynchronous manner.
@@ -985,7 +984,7 @@ See: [Errors](#errors)
 
 ### Write (Synchronous)
 ```
-POST http://HOST:5000/synse/v3/write/wait/{device_id}
+POST http://HOST:5000/v3/write/wait/{device_id}
 ```
 
 Write data to a device, waiting for the write to complete.
@@ -1085,7 +1084,7 @@ See: [Errors](#errors)
 
 ### Transaction
 ```
-GET http://HOST:5000/synse/v3/transaction[/{transaction_id}]
+GET http://HOST:5000/v3/transaction[/{transaction_id}]
 ```
 
 Check the state and status of a write transaction.
@@ -1167,8 +1166,8 @@ Transaction can have one of four statuses:
 
 ### Device
 ```
-GET  http://HOST:5000/synse/v3/device/{device_id}
-POST http://HOST:5000/synse/v3/device/{device_id}
+GET  http://HOST:5000/v3/device/{device_id}
+POST http://HOST:5000/v3/device/{device_id}
 ```
 
 Read and write to a device.

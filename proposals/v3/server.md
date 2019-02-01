@@ -122,24 +122,24 @@ See the API doc for more details on [write](api.md#write) and [transaction](api.
 behavior.
 
 ### Websocket Support
-As an alternative to the current method of interfacing with Synse Server (HTTP), support can
-be added to configure it to use [websockets](https://tools.ietf.org/html/rfc6455). This can be
-useful for different deployment scenarios.
+In addition to the HTTP API, Synse Server can expose a [WebSocket](https://tools.ietf.org/html/rfc6455)
+API which provides a different usage pattern, giving more flexibility to client needs.
 
 While these updates would need to be reflected in any [API clients](api-clients.md), the
 change here is relatively straightforward since [websocket support is build into the Sanic
 framework](https://sanic.readthedocs.io/en/latest/sanic/websocket.html). Adding this support
 will require updates to how the server is initialized, but should generally be low-impact.
 
-The transport option will default to HTTP for backwards compatibility. It can be set via
-a configuration option.
+The HTTP API and WebSocket API can coexist and be served simultaneously, which will be the
+default behavior. Both the WebSocket and HTTP API can be disabled via config, but at least
+one must be enabled for Synse to run. If both are disabled, Synse Server will terminate in
+error.
 
 ```yaml
-transport: 
-  protocol: websocket
+transport:
+  http: true
+  websocket: true
 ```
-
-The valid options for `protocol` will be: `websocket`, `http`. The default value is `http`.
 
 ### Plugin Activity
 To provide better insight into Synse Server's operation with its plugins, a notion of
@@ -161,13 +161,20 @@ Plugin health is only computed on active plugins. The [`/plugin/health`](api.md#
 endpoint provides information on number of active vs. inactive plugins for the consumer
 to use, should they wish to include that as a health condition.
 
-### Default Plugin Path
-Early in v2 development, the default plugin path was chosen to be `/etc/synse/procs`.
+### Default Plugin Socket Path
+Early in v2 development, the default plugin socket path was chosen to be `/tmp/synse/procs`.
 
-Semantically, this does not make as much sense any more since plugins are their own
-separate entities and not separate processes within the Synse Server container.
+Semantically, `procs` fell out of the old idea that plugins would be "background processes".
+To simplify and remove this incorrect semantic, the default path for plugin sockets will
+change to `/tmp/synse`.
 
-In v3, this path will change to `/etc/synse/plugin`. 
+```
+/tmp
+  /synse
+    emulator.sock
+    i2c.sock
+    plugin3.sock
+```
 
 ### FQDN Devices
 To support fully-qualified domain names for devices, Synse needs to expose each device via
@@ -199,10 +206,22 @@ includes the various new configuration options proposed in these documents.
 
 ```yaml
 logging: info
-prettyy_json: true
+pretty_json: true
 locale: en_US
+cache:
+  device:
+    ttl: 20
+  transaction:
+    ttl: 300
+grpc:
+  timeout: 3
+  tls:
+    cert: /tmp/ssl/synse.crt
+metrics:  ## New in v3
+  enabled: false
 transport:  ## New in v3
-  protocol: http
+  http: true
+  websocket: true
 plugin:
   tcp:
   - emulator-plugin:5001
@@ -215,16 +234,4 @@ plugin:
         labels:
           app: synse
           component: server
-cache:
-  device:
-    ttl: 20
-  transaction:
-    ttl: 300
-grpc:
-  timeout: 3
-  tls:
-    cert: /tmp/ssl/synse.crt
-metrics:  ## New in v3
-  enabled: false
-
 ```
