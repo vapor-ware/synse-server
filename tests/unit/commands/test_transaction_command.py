@@ -12,7 +12,7 @@ from synse_server import errors, plugin
 from synse_server.commands.transaction import check_transaction
 from synse_server.proto.client import PluginClient, PluginTCPClient
 from synse_server.scheme.transaction import (TransactionListResponse,
-                                      TransactionResponse)
+                                             TransactionResponse)
 
 
 def mockgettransaction(transaction):

@@ -33,7 +33,10 @@ def mockreturn():
 @pytest.fixture()
 def mock_info(monkeypatch):
     """Fixture to monkeypatch the underlying Synse cache lookup."""
-    mock = asynctest.CoroutineMock(synse_server.cache.get_resource_info_cache, side_effect=mockreturn)
+    mock = asynctest.CoroutineMock(
+        synse_server.cache.get_resource_info_cache,
+        side_effect=mockreturn
+    )
     monkeypatch.setattr(synse_server.cache, 'get_resource_info_cache', mock)
     return mock_info
 

@@ -8,7 +8,8 @@ from synse_grpc import api
 
 import synse_server.proto.client
 from synse_server import config, const, errors, plugin
-from synse_server.proto.client import PluginClient, PluginTCPClient, PluginUnixClient
+from synse_server.proto.client import (PluginClient, PluginTCPClient,
+                                       PluginUnixClient)
 
 
 @pytest.fixture()
