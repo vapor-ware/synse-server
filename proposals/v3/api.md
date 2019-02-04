@@ -57,6 +57,7 @@ Below is an example of an error's JSON response:
 ### API Endpoints
 Below is a table of contents for the API Endpoints.
 
+0. [Metrics](#metrics)
 0. [Test](#test)
 0. [Version](#version)
 0. [Config](#config)
@@ -73,6 +74,15 @@ Below is a table of contents for the API Endpoints.
 0. [Transaction](#transaction)
 0. [Device](#device)
 
+
+---
+
+### Metrics
+```
+GET http://HOST:5000/metrics
+```
+
+An endpoint to get application-based [metrics](monitoring.md#synse-server) for Synse Server.
 
 ---
 
@@ -703,7 +713,7 @@ the changes to the read response.
       "zone": "6B"
     }
   }
- ]
+]
 ```
 
 The `context` field of a reading is optional and allows the plugin to specify additional

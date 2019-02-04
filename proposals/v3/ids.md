@@ -51,6 +51,9 @@ instance running at any given time.
 3. The plugin is not bound to a machine (can be scheduled anywhere) and may have any number
 of instances running at a given time (1..N). *(e.g. multiple IPMI plugins for different customers)*
    - **TODO**
+   - This could be as simple as specifying an additional field in the Plugin configuration and
+     requiring it be filled in which defines a name/identifier/description for the instance, e.g.
+     `desc: "Modbus-IP for Chamber-wide power metering"`
 4. There are multiple instances of a plugin which can be scheduled anywhere and are load-balancing
 against the same backend devices.
    - *This is outside the scope of Synse v3* as there is no current plugin which demonstrates this.

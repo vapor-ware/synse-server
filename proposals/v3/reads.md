@@ -96,54 +96,50 @@ For the v3 read response scheme, we need to:
 
 **v3 read response scheme example**
 ```json
-{
-  "a72cs6519ee675b": [
-    {
-      "kind": "temperature",
-      "type": "temperature",
-      "value": 20.3,
-      "timestamp": "2018-02-01T13:47:40Z",
-      "info": "",
-      "unit": {
-        "symbol": "C",
-        "name": "degrees celsius"
-      },
-      "context": {
-        "host": "127.0.0.1",
-        "sample_rate": 8
-      }
-    }
-  ],
-  "929b923de65a811": [
-    {
-      "kind": "led",
-      "type": "state",
-      "value": "off",
-      "timestamp": "2018-02-01T13:47:40Z",
-      "info": "",
-      "unit": null
+[
+  {
+    "device": "a72cs6519ee675b",
+    "device_type": "temperature",
+    "type": "temperature",
+    "value": 20.3,
+    "timestamp": "2018-02-01T13:47:40Z",
+    "unit": {
+      "system": "metric",
+      "symbol": "C",
+      "name": "degrees celsius"
     },
-    {
-      "kind": "led",
-      "type": "color",
-      "value": "000000",
-      "timestamp": "2018-02-01T13:47:40Z",
-      "info": "",
-      "unit": null
+    "context": {
+      "host": "127.0.0.1",
+      "sample_rate": 8
     }
-  ],
-  "12bb12c1f86a86e": [
-    {
-      "kind": "door_lock",
-      "type": "lock",
-      "value": "locked",
-      "timestamp": "2018-02-01T13:47:40Z",
-      "info": "Zone 6B",
-      "unit": null,
-      "context": {
-        "wedge": 1
-      }
+  },
+  {
+    "device": "929b923de65a811",
+    "device_type": "led",
+    "type": "state",
+    "value": "off",
+    "timestamp": "2018-02-01T13:47:40Z",
+    "unit": null
+  },
+  {
+    "device": "929b923de65a811",
+    "device_type": "led",
+    "type": "color",
+    "value": "000000",
+    "timestamp": "2018-02-01T13:47:40Z",
+    "unit": null
+  },
+  {
+    "device": "12bb12c1f86a86e",
+    "device_type": "door_lock",
+    "type": "status",
+    "value": "locked",
+    "timestamp": "2018-02-01T13:47:40Z",
+    "unit": null,
+    "context": {
+      "wedge": 1,
+      "zone": "6B"
     }
-  ]
-}
+  }
+]
 ```
