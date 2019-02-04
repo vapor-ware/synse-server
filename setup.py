@@ -45,6 +45,7 @@ setup(
         'requests>=2.21.0',  # used by 'kubernetes'
         'urllib3>=1.24.2',
         'sanic>=0.8.0',
+        'structlog',
         'synse-grpc>=1.1.0',
     ],
     tests_require=[
