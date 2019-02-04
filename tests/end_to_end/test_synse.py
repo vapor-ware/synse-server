@@ -17,8 +17,8 @@ import pytest
 import requests
 import ujson
 
-from synse import errors
-from synse.version import __api_version__, __version__
+from synse_server import errors
+from synse_server.version import __api_version__, __version__
 
 # get the host information via ENV, or use the default of localhost
 host = os.environ.get('SYNSE_TEST_HOST', 'localhost')

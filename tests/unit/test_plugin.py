@@ -1,4 +1,4 @@
-"""Test the 'synse.plugin' Synse Server module."""
+"""Test the 'synse_server.plugin' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
@@ -6,9 +6,9 @@ import os
 import pytest
 from synse_grpc import api
 
-import synse.proto.client
-from synse import config, const, errors, plugin
-from synse.proto.client import PluginClient, PluginTCPClient, PluginUnixClient
+import synse_server.proto.client
+from synse_server import config, const, errors, plugin
+from synse_server.proto.client import PluginClient, PluginTCPClient, PluginUnixClient
 
 
 @pytest.fixture()
@@ -17,7 +17,7 @@ def mock_client_test_ok(monkeypatch):
     def patch(self):
         """Patch function for the client 'test' method."""
         return api.Status(ok=True)
-    monkeypatch.setattr(synse.proto.client.PluginClient, 'test', patch)
+    monkeypatch.setattr(synse_server.proto.client.PluginClient, 'test', patch)
     return mock_client_test_ok
 
 

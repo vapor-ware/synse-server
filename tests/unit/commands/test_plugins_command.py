@@ -1,4 +1,4 @@
-"""Test the 'synse.commands.plugins' Synse Server module."""
+"""Test the 'synse_server.commands.plugins' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import os
@@ -7,10 +7,10 @@ import shutil
 import pytest
 from synse_grpc import api
 
-from synse import config, plugin
-from synse.commands.plugins import get_plugins
-from synse.proto import client
-from synse.scheme.plugins import PluginsResponse
+from synse_server import config, plugin
+from synse_server.commands.plugins import get_plugins
+from synse_server.proto import client
+from synse_server.scheme.plugins import PluginsResponse
 
 
 @pytest.fixture()

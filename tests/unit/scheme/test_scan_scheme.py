@@ -1,6 +1,6 @@
-"""Test the 'synse.scheme.scan' Synse Server module."""
+"""Test the 'synse_server.scheme.scan' Synse Server module."""
 
-from synse.scheme.scan import ScanResponse
+from synse_server.scheme.scan import ScanResponse
 
 
 def test_scan_scheme():

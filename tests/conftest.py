@@ -8,7 +8,7 @@ import socket
 import pytest
 import yaml
 
-from synse import config, const, factory
+from synse_server import config, const, factory
 
 _app = None
 

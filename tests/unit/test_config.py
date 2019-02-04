@@ -1,6 +1,6 @@
-"""Test the 'synse.config' Synse Server module."""
+"""Test the 'synse_server.config' Synse Server module."""
 
-from synse.config import options
+from synse_server.config import options
 
 
 def test_defaults():

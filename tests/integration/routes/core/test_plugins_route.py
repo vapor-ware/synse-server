@@ -1,9 +1,9 @@
-"""Test the 'synse.routes.core' module's plugin route."""
+"""Test the 'synse_server.routes.core' module's plugin route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import ujson
 
-from synse.version import __api_version__
+from synse_server.version import __api_version__
 
 plugins_url = '/synse/{}/plugins'.format(__api_version__)
 

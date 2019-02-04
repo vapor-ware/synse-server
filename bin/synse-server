@@ -32,7 +32,7 @@
 
 set -o errexit -o pipefail
 
-version="$(python -c "import synse ; print(synse.__version__)")"
+version="$(python -c "import synse_server ; print(synse_server.__version__)")"
 
 # name: -h, --help
 # desc: Print usage information
@@ -125,4 +125,4 @@ do
 done
 
 # start synse
-python synse
+python synse_server

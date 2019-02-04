@@ -1,11 +1,3 @@
-#
-# .dockerignore.default
-#
-# The dockerignore file used for default Synse Server image builds.
-# By default, Synse Server includes the emulator. For a version of
-# Synse Server without the emulator, use the 'slim' build.
-#
-
 # JetBrains (PyCharm, WebStorm, etc.)
 .idea
 *.iws

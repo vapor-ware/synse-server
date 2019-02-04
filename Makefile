@@ -2,12 +2,12 @@
 # Synse Server
 #
 
-PKG_NAME    := synse
-PKG_VERSION := $(shell python -c "import synse ; print(synse.__version__)")
+PKG_NAME    := synse-server
+PKG_VERSION := $(shell python -c "import synse_server ; print(synse_server.__version__)")
 IMAGE_NAME  := vaporio/synse-server
 IMAGE_TAGS  ?= latest local
 
-HAS_TRANSLATIONS := $(shell find synse -name '*.mo')
+HAS_TRANSLATIONS := $(shell find synse_server -name '*.mo')
 HAS_PY36         := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
 HAS_PIP_COMPILE  := $(shell which pip-compile)
 

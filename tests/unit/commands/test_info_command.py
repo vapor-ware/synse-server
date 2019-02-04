@@ -1,13 +1,13 @@
-"""Test the 'synse.commands.info' Synse Server module."""
+"""Test the 'synse_server.commands.info' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
 
-import synse.cache
-from synse import errors
-from synse.commands.info import get_resources, info
-from synse.scheme.info import InfoResponse
+import synse_server.cache
+from synse_server import errors
+from synse_server.commands.info import get_resources, info
+from synse_server.scheme.info import InfoResponse
 
 
 def mockreturn():
@@ -33,8 +33,8 @@ def mockreturn():
 @pytest.fixture()
 def mock_info(monkeypatch):
     """Fixture to monkeypatch the underlying Synse cache lookup."""
-    mock = asynctest.CoroutineMock(synse.cache.get_resource_info_cache, side_effect=mockreturn)
-    monkeypatch.setattr(synse.cache, 'get_resource_info_cache', mock)
+    mock = asynctest.CoroutineMock(synse_server.cache.get_resource_info_cache, side_effect=mockreturn)
+    monkeypatch.setattr(synse_server.cache, 'get_resource_info_cache', mock)
     return mock_info
 
 

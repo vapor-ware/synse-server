@@ -1,9 +1,9 @@
-"""Test the 'synse.response' Synse Server module."""
+"""Test the 'synse_server.response' Synse Server module."""
 
 import pytest
 from sanic.response import HTTPResponse
 
-from synse import config, response
+from synse_server import config, response
 
 
 @pytest.mark.parametrize(
