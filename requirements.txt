@@ -27,7 +27,8 @@ requests-oauthlib==1.0.0  # via kubernetes
 requests==2.21.0
 rsa==3.4.2                # via google-auth
 sanic==0.8.3
-six==1.11.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, websocket-client
+six==1.11.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, structlog, websocket-client
+structlog==19.1.0
 synse-grpc==1.1.0
 ujson==1.35               # via sanic
 urllib3==1.24.2
