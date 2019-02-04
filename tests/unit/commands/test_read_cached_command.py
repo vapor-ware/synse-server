@@ -1,4 +1,4 @@
-"""Test the 'synse.commands.read' Synse Server module."""
+"""Test the 'synse_server.commands.read' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long,not-an-iterable
 
 import asynctest
@@ -6,10 +6,10 @@ import grpc
 import pytest
 from synse_grpc import api
 
-import synse.cache
-from synse import errors, plugin
-from synse.commands.read_cached import read_cached
-from synse.proto.client import PluginClient, PluginTCPClient
+import synse_server.cache
+from synse_server import errors, plugin
+from synse_server.commands.read_cached import read_cached
+from synse_server.proto.client import PluginClient, PluginTCPClient
 
 
 @pytest.fixture()
@@ -64,8 +64,8 @@ def patch_get_device_info(monkeypatch):
                 )
             ]
         )
-    mocked = asynctest.CoroutineMock(synse.cache.get_device_info, side_effect=_mock)
-    monkeypatch.setattr(synse.cache, 'get_device_info', mocked)
+    mocked = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=_mock)
+    monkeypatch.setattr(synse_server.cache, 'get_device_info', mocked)
     return patch_get_device_info
 
 
@@ -259,8 +259,8 @@ async def test_read_cached_command_no_device(monkeypatch, add_plugin):
     # monkeypatch get_device_info to raise a DeviceNotFoundError
     def _mock_device(*args, **kwargs):
         raise errors.DeviceNotFoundError('')
-    mocked = asynctest.CoroutineMock(synse.cache.get_device_info, side_effect=_mock_device)
-    monkeypatch.setattr(synse.cache, 'get_device_info', mocked)
+    mocked = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=_mock_device)
+    monkeypatch.setattr(synse_server.cache, 'get_device_info', mocked)
 
     assert len(plugin.Plugin.manager.plugins) == 1
     results = [i async for i in read_cached()]

@@ -1,6 +1,6 @@
-"""Test the 'synse.scheme.test' Synse Server module."""
+"""Test the 'synse_server.scheme.test' Synse Server module."""
 
-from synse.scheme.test import TestResponse as TResp
+from synse_server.scheme.test import TestResponse as TResp
 
 
 def test_test_scheme():

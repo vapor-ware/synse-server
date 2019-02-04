@@ -1,14 +1,14 @@
-"""Test the 'synse.commands.scan' Synse Server module."""
+"""Test the 'synse_server.commands.scan' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
 
-import synse.cache
-import synse.plugin
-from synse import errors
-from synse.commands.scan import scan
-from synse.scheme.scan import ScanResponse
+import synse_server.cache
+import synse_server.plugin
+from synse_server import errors
+from synse_server.commands.scan import scan
+from synse_server.scheme.scan import ScanResponse
 
 
 def mockreturn():
@@ -47,15 +47,15 @@ def mockregister():
 @pytest.fixture()
 def mock_scan(monkeypatch):
     """Fixture to monkeypatch the underlying Synse cache lookup."""
-    mock = asynctest.CoroutineMock(synse.cache.get_scan_cache, side_effect=mockreturn)
-    monkeypatch.setattr(synse.cache, 'get_scan_cache', mock)
+    mock = asynctest.CoroutineMock(synse_server.cache.get_scan_cache, side_effect=mockreturn)
+    monkeypatch.setattr(synse_server.cache, 'get_scan_cache', mock)
     return mock_scan
 
 
 @pytest.fixture()
 def mock_register(monkeypatch):
     """Fixture to monkeypatch the plugin's register_plugins method."""
-    monkeypatch.setattr(synse.plugin, 'register_plugins', mockregister)
+    monkeypatch.setattr(synse_server.plugin, 'register_plugins', mockregister)
     return mock_register
 
 

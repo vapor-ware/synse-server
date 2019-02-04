@@ -1,4 +1,4 @@
-"""Test the 'synse.cache' Synse Server module."""
+"""Test the 'synse_server.cache' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import aiocache
@@ -7,8 +7,8 @@ import grpc
 import pytest
 from synse_grpc import api
 
-from synse import cache, errors, plugin
-from synse.proto import client
+from synse_server import cache, errors, plugin
+from synse_server.proto import client
 
 # -- Helper Methods ---
 

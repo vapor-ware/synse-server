@@ -1,16 +1,15 @@
-"""Test the 'synse.version' Synse Server module."""
+"""Test the 'synse_server.version' Synse Server module."""
 
-import synse
-import synse.version
+import synse_server
+import synse_server.version
 
 
 def test_version():
     """Test that the version module returns the version correctly."""
-    actual = synse.__version__
+    actual = synse_server.__version__
 
     act_maj, act_min, _ = actual.split('.')
 
-    assert synse.version.major == act_maj
-    assert synse.version.minor == act_min
-    assert synse.version.__api_version__ == 'v' + act_maj
-    assert synse.version.__version__ == actual
+    assert synse_server.version.major == act_maj
+    assert synse_server.version.minor == act_min
+    assert synse_server.version.__api_version__ == 'v' + act_maj

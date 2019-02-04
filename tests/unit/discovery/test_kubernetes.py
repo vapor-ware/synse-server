@@ -1,11 +1,11 @@
-"""Test the 'synse.discovery.kubernetes' Synse Server module."""
+"""Test the 'synse_server.discovery.kubernetes' Synse Server module."""
 # pylint: disable=unused-argument,missing-docstring
 
 import kubernetes
 import pytest
 
-from synse import config
-from synse.discovery import kubernetes as k8s
+from synse_server import config
+from synse_server.discovery import kubernetes as k8s
 
 
 def test_discover_no_cfg():

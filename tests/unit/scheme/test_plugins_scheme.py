@@ -1,6 +1,6 @@
-"""Test the 'synse.scheme.plugins' Synse Server module."""
+"""Test the 'synse_server.scheme.plugins' Synse Server module."""
 
-from synse.scheme.plugins import PluginsResponse
+from synse_server.scheme.plugins import PluginsResponse
 
 
 def test_plugins_scheme():

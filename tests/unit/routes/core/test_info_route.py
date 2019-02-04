@@ -1,13 +1,13 @@
-"""Test the 'synse.routes.core' Synse Server module's info route."""
+"""Test the 'synse_server.routes.core' Synse Server module's info route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
 from sanic.response import HTTPResponse
 
-import synse.commands
-from synse.routes.core import info_route
-from synse.scheme.base_response import SynseResponse
+import synse_server.commands
+from synse_server.routes.core import info_route
+from synse_server.scheme.base_response import SynseResponse
 from tests import utils
 
 
@@ -21,8 +21,8 @@ def mockreturn(rack, board, device):
 @pytest.fixture()
 def mock_info(monkeypatch):
     """Fixture to monkeypatch the underlying Synse command."""
-    mock = asynctest.CoroutineMock(synse.commands.info, side_effect=mockreturn)
-    monkeypatch.setattr(synse.commands, 'info', mock)
+    mock = asynctest.CoroutineMock(synse_server.commands.info, side_effect=mockreturn)
+    monkeypatch.setattr(synse_server.commands, 'info', mock)
     return mock_info
 
 

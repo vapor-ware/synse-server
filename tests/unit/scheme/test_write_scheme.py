@@ -1,8 +1,8 @@
-"""Test the 'synse.scheme.write' Synse Server module."""
+"""Test the 'synse_server.scheme.write' Synse Server module."""
 
 from synse_grpc import api
 
-from synse.scheme.write import WriteResponse
+from synse_server.scheme.write import WriteResponse
 
 
 def test_write_scheme():

@@ -1,12 +1,12 @@
-"""Test the 'synse.routes.base' Synse Server module's version route."""
+"""Test the 'synse_server.routes.base' Synse Server module's version route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import pytest
 import ujson
 from sanic.response import HTTPResponse
 
-from synse import version
-from synse.routes.base import version_route
+from synse_server import version
+from synse_server.routes.base import version_route
 from tests import utils
 
 
