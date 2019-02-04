@@ -44,6 +44,7 @@ setup(
         'pyyaml>=4.2b1',
         'requests>=2.20.0',  # used by 'kubernetes'
         'sanic>=0.8.0',
+        'structlog',
         'synse-grpc>=1.1.0',
     ],
     tests_require=[

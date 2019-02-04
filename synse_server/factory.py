@@ -11,7 +11,7 @@ from sanic.response import text
 import synse_server
 from synse_server import config, errors, utils
 from synse_server.cache import clear_all_meta_caches, configure_cache
-from synse_server.log import LOGGING, logger, setup_logger
+from synse_server.log import logger, setup_logger
 from synse_server.response import json
 from synse_server.routes import aliases, base, core
 
@@ -26,7 +26,8 @@ def make_app():
         Sanic: A Sanic application setup and configured to serve
             Synse Server routes.
     """
-    app = Sanic(__name__, log_config=LOGGING)
+    #app = Sanic(__name__, log_config=LOGGING)
+    app = Sanic(__name__)
     app.config.LOGO = None
 
     # Get the application configuration(s)
