@@ -32,8 +32,9 @@ setup(
     include_package_data=True,
     package_data={
         '': ['LICENSE'],
-        'synse': ['locale/*/LC_MESSAGES/*.mo']
+        'synse': ['locale/*/LC_MESSAGES/*.mo'],
     },
+    scripts=['bin/synse-server'],
     python_requires='>=3.6',
     install_requires=[
         'aiocache',
