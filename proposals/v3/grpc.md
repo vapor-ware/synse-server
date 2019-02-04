@@ -41,6 +41,7 @@ and the messages for each RPC route.
   * [v3 Metadata](#v3metadata)
   * [v3 Output Unit](#v3outputunit)
   * [v3 Reading](#v3reading)
+  * [v3 Read Request](#v3readrequest)
   * [v3 Tag](#v3tag)
   * [v3 Test Status](#v3teststatus)
   * [v3 Transaction Selector](#v3transactionselector)
@@ -85,7 +86,7 @@ Read from the specified plugin device(s).
 
 | Message | Link |
 | :------ | :--- |
-| *Request* | [V3DeviceSelector](#v3deviceselector) |
+| *Request* | [V3ReadRequest](#v3readrequest) |
 | *Response* | [V3Reading](#v3reading) (stream) |
 
 
@@ -168,7 +169,6 @@ a device managed by the plugin.
 | :---- | :--- | :---------- |
 | *timestamp* | string | RFC3339 timestamp for when the device info was gathered. |
 | *id* | string | The globally unique ID for the device. |
-| *kind* | string | The device kind, as defined by the plugin. |
 | *type* | string | The type of device. |
 | *metadata* | map<string,string> | Any arbitrary metadata associated with the device. |
 | *plugin* | string | The name of the plugin that the device is managed by. |
@@ -206,6 +206,7 @@ A selector for choosing devices for various operations.
 | Field | Type | Description |
 | :---- | :--- | :---------- |
 | *tags* | repeated [V3Tag](#v3tag) | A collection of all the tags to be used as selectors. |
+| *id* | string | The ID of the device. If this is set, tags will be ignored. |
 
 
 #### V3Health
@@ -247,6 +248,7 @@ The unit of measure for a [v3 Device Output](#v3deviceoutput).
 
 | Field | Type | Description |
 | :---- | :--- | :---------- |
+| *system* | string | The System of Measure of the unit. (imperial, metric) |
 | *name* | string | The full name of the unit, e.g. "degrees celsius". |
 | *symbol* | string | The symbolic representation of the unit, e.g. "C". |
 
@@ -259,10 +261,19 @@ A reading response from a device.
 | *id* | string | The ID of the device being read from. |
 | *timestamp* | string | RFC3339 timestamp for when the reading was taken. |
 | *type* | string | The type of the reading. |
-| *kind* | string | The device kind, as specified by the plugin. |
+| *deviceType* | string | The type of the device, as specified by the plugin. |
 | *context* | map<string,string> | Any additional info associated with the reading. |
 | *unit* | [V3OutputUnit](#v3outputunit) | The unit of measure for the reading. |
 | *value* | * | The value of the reading. |
+
+
+#### V3ReadRequest
+A request for device readings.
+
+| Field | Type | Description |
+| :---- | :--- | :---------- |
+| selector | [V3DeviceSelector](#v3deviceselector) | The selector for the device(s) to read from. |
+| systemOfMeasure | string | The system of measure (imperial, metric) to convert the device readings to. |
 
 
 #### V3Tag

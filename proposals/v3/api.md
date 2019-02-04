@@ -514,11 +514,10 @@ Get the full set of metainfo and capabilities for a specified device.
   "timestamp": "2018-06-18T13:30:15Z",
   "id": "34c226b1afadaae5f172a4e1763fd1a6",
   "type": "humidity",
-  "kind": "humidity",
   "metadata": {
     "model": "emul8-humidity"
   },
-  "plugin": "emulator plugin",
+  "plugin": "12835beffd3e6c603aa4dd92127707b5",
   "info": "Synse Humidity Sensor",
   "tags": [
       "type:humidity",
@@ -541,20 +540,31 @@ Get the full set of metainfo and capabilities for a specified device.
       "type": "humidity",
       "precision": 3,
       "scaling_factor": 1.0,
-      "unit": {
-        "name": "percent humidity",
-        "symbol": "%"
-      }
+      "units": [
+        {
+          "system": null,
+          "name": "percent humidity",
+          "symbol": "%"
+        }
+      ]
     },
     {
       "name": "temperature",
       "type": "temperature",
       "precision": 3,
       "scaling_factor": 1.0,
-      "unit": {
-        "name": "celsius",
-        "symbol": "C"
-      }
+      "units": [
+        {
+          "system": "metric",
+          "name": "celsius",
+          "symbol": "C"
+        },
+        {
+          "system": "imperial",
+          "name": "fahrenheit",
+          "symbol": "F"
+        }
+      ]
     }
   ]
 }
@@ -566,8 +576,7 @@ Get the full set of metainfo and capabilities for a specified device.
 | :---- | :---------- |
 | *timestamp* | An RFC3339 timestamp describing the time that the device info was gathered. |
 | *id* | The globally unique ID for the device. |
-| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
-| *kind* | The device kind, as specified by the plugin. |
+| *type* | The device type, as specified by the plugin. |
 | *metadata* | A map of arbitrary values that provide additional data for the device. |
 | *plugin* | The ID of the plugin that manages the device. |
 | *info* | A human readable string providing identifying info about a device. |
@@ -594,7 +603,8 @@ Get the full set of metainfo and capabilities for a specified device.
 | *type* | The type of the output, as defined by the plugin. |
 | *precision* | The number of decimal places the value will be rounded to. |
 | *scaling_factor* | A scaling factor which will be applied to the raw reading value. |
-| *unit* | Information for the reading's unit of measure. |
+| *units* | Information for the reading's units of measure. |
+| *unit.system* | The system of measure that the unit belongs to. |
 | *unit.name* | The complete name of the unit of measure (e.g. "meters per second"). |
 | *unit.symbol* | A symbolic representation of the unit of measure (e.g. m/s). |
 
@@ -637,6 +647,7 @@ For more details on the changes to the `/read` endpoint, see the
 | :--- | :---------- |
 | ns | The default namespace to use for the specified labels. (default: `default`) |
 | tags | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
+| som | The System of Measure for the response reading(s). This should be one of: imperial, metric. (default: `metric`) |
 
 #### Response
 It is recommended to read the document on [v3 reads](reads.md), as it explains in detail
@@ -650,11 +661,12 @@ the changes to the read response.
 [
   {
     "device": "a72cs6519ee675b",
-    "kind": "temperature",
+    "device_type": "temperature",
     "type": "temperature",
     "value": 20.3,
     "timestamp": "2018-02-01T13:47:40Z",
     "unit": {
+      "system": "metric",
       "symbol": "C",
       "name": "degrees celsius"
     },
@@ -665,7 +677,7 @@ the changes to the read response.
   },
   {
     "device": "929b923de65a811",
-    "kind": "led.state",
+    "device_type": "led",
     "type": "state",
     "value": "off",
     "timestamp": "2018-02-01T13:47:40Z",
@@ -673,7 +685,7 @@ the changes to the read response.
   },
   {
     "device": "929b923de65a811",
-    "kind": "led.color",
+    "device_type": "led",
     "type": "color",
     "value": "000000",
     "timestamp": "2018-02-01T13:47:40Z",
@@ -681,8 +693,8 @@ the changes to the read response.
   },
   {
     "device": "12bb12c1f86a86e",
-    "kind": "door_lock",
-    "type": "door_lock",
+    "device_type": "door_lock",
+    "type": "status",
     "value": "locked",
     "timestamp": "2018-02-01T13:47:40Z",
     "unit": null,
@@ -709,8 +721,8 @@ with their physical location.
 | Field | Description |
 | :---- | :---------- |
 | *device* | The ID of the device which the reading originated from. |
-| *kind* | The device kind, as specified by the plugin. |
-| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *device_type* | The type of the device. |
+| *type* | The type of the reading. |
 | *value* | The value of the reading. |
 | *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
 | *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
@@ -740,6 +752,11 @@ endpoint where the label matches the [device id tag](tags.md#auto-generated), e.
 | :-------- | :------- | :---------- |
 | *device_id* | yes | The ID of the device to read. [Device IDs](ids.md) are globally unique. |
 
+#### Query Parameters
+
+| Key  | Description |
+| :--- | :---------- |
+| som | The System of Measure for the response reading(s). This should be one of: imperial, metric. (default: `metric`) |
 
 #### Response
 
@@ -754,11 +771,12 @@ for the [`/read`](#read) endpoint.
 [
   {
     "device": "12bb12c1f86a86e",
-    "kind": "temperature",
+    "device_type": "temperature",
     "type": "temperature",
     "value": 20.3,
     "timestamp": "2018-02-01T13:47:40Z",
     "unit": {
+      "system": "metric",
       "symbol": "C",
       "name": "degrees celsius"
     },
@@ -775,8 +793,8 @@ for the [`/read`](#read) endpoint.
 | Field | Description |
 | :---- | :---------- |
 | *device* | The ID of the device which the reading originated from. |
-| *kind* | The device kind, as specified by the plugin. |
-| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *device_type* | The type of the device. |
+| *type* | The type of the reading. |
 | *value* | The value of the reading. |
 | *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
 | *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
@@ -831,11 +849,12 @@ streamed JSON. One block of the streamed JSON will appear as follows:
 [
   {
     "device": "a72cs6519ee675b",
-    "kind": "temperature",
+    "device_type": "temperature",
     "type": "temperature",
     "value": 20.3,
     "timestamp": "2018-02-01T13:47:40Z",
     "unit": {
+      "system": "metric",
       "symbol": "C",
       "name": "degrees celsius"
     },
@@ -852,8 +871,8 @@ streamed JSON. One block of the streamed JSON will appear as follows:
 | Field | Description |
 | :---- | :---------- |
 | *device* | The ID of the device which the reading originated from. |
-| *kind* | The device kind, as specified by the plugin. |
-| *type* | The device type, as specified by the plugin. This is the last element in the namespaced device kind. |
+| *device_type* | The type of the device. |
+| *type* | The type of the reading. |
 | *value* | The value of the reading. |
 | *timestamp* | An RFC3339 timestamp describing the time at which the reading was taken. |
 | *unit* | The unit of measure for the reading. If there is no unit, this will be `null`. |
@@ -1217,11 +1236,12 @@ and [`/write/wait/{device}`](#write-synchronous) requests, respectively.
 [
   {
     "device": "12bb12c1f86a86e",
-    "kind": "temperature",
+    "device_type": "temperature",
     "type": "temperature",
     "value": 20.3,
     "timestamp": "2018-02-01T13:47:40Z",
     "unit": {
+      "system": "metric",
       "symbol": "C",
       "name": "degrees celsius"
     },

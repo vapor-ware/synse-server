@@ -12,7 +12,7 @@ version: 2
 tags: # optional: global plugin tags (applies to all devices)
 - "plugin:i2c"
 devices:
-- name: pca9632  # this name can be anything
+- handler: pca9632
   type: led
   metadata:
     model: PCA9632
@@ -36,7 +36,7 @@ version: 2
 tags: # optional: global plugin tags (applies to all devices)
 - "plugin:modbus-ip"
 devices:
-- name: eg4115  # this name can be anything
+- handler: input_register
   type: power
   metadata:
     manufacturer: eGauge
@@ -46,7 +46,6 @@ devices:
   - info: eGauge Power Meter
     tags: # optional: instance tag (applies to only this device)
     - "vapor/foo:bar"
-    handlerName: input_register
     data:
       host: 127.0.0.1
       port: 502
@@ -91,7 +90,7 @@ version: 2
 tags: # optional: global plugin tags (applies to all devices)
 - "plugin:sflow"
 devices:
-- name: collector  # this name can be anything
+- handler: collector
   metadata:
     protocol: sflow
   tags: # optional: prototype tag (applies to the following instances)

@@ -12,9 +12,10 @@ to use and to make aspects of it less confusing.
   - [health checks](health.md)
   - [plugin id namespaces](ids.md)
   - [monitoring](monitoring.md)
+- Simplify configuration and internal modeling where possible
 - Improvements to the SDK API
 - Plugin health checks
-- Update SDK to use the updated [GRPC API](grpc.md)
+- Update SDK to use the v3 [GRPC API](grpc.md)
 
 ## Proposal
 Many of the larger work items are discussed in their own documents (see links
@@ -48,8 +49,9 @@ See: [Default Plugin Path](server.md#default-plugin-path)
 
 ### Expose additional data for device info
 Synse's `/info` endpoint will provide details on what actions a device supports
-for writing. This will be surfaced through the grpc api. The SDK needs a way of defining
-these in such a manner that the data can be passed up to Synse Server.
+for writing. This will be surfaced through the [GRPC API](grpc.md#v3device). The
+SDK needs a way of defining these in such a manner that the data can be passed up
+to Synse Server.
 
 ### Adding a plugin configurable write timeout
 The SDK should always resolve a write and update the transaction state assuming that
@@ -74,6 +76,15 @@ The plugin-configured write timeout should be surfaced to Synse Server via the
 GRPC API and ultimately exposed through the [Synse API](api.md#transaction) so
 any front end consumer can know the maximum time they should wait for the write to
 resolve.
+
+There are a number of ways that the write timeout can be defined:
+- SDK default (defined in SDK code) (this should be short, perhaps 1-2s?)
+- Plugin default (defined in plugin code)
+- Plugin override (defined in config)
+- Device prototype override (defined in device config)
+- Device instance override (defined in device config)
+
+Each item in the list above takes precedence over the item before it.
 
 
 ### Improve `OutputType` design and usage
@@ -109,33 +120,11 @@ the ability to define their own output types should they need to.
 Extending the `OutputType` to support things like unit conversion would be useful
 for setting a measurement system (imperial, metric) or normalizing all readings
 across potentially disparate devices to the same unit of measure to add system-wide
-consistency. A pseudocode example:
+consistency.
 
-```
-type Temperature struct { ... }
-
-// Create a celsius-based temperature reading
-func (t *Temperature) AsCelsius(value float64) { ... }
-
-// Create a fahrenheit-based temperature reading
-func (t *Temperature) AsFahrenheit(value float64) { ... }
-
-// Convert to a celsius-based temperature reading
-func (t *Temperature) ToCelsius() { ... }
-
-// Convert to a fahrenheit-based temperature reading
-func (t *Temperature) ToFanrenheit() { ... }
-```
-
-> **Question**: Where should we configure the system of measurement (SoM) (e.g., imperial/metric)?
->  * Should it be at a plugin level, and leave it up to the deployer to ensure all plugins
->    are deployed with the same system?
->  * Should it be at Synse Server level, where it sends the SoM it wants for a read request
->    and just leaves it up to the plugin to do the appropriate conversion prior to response?
->
-> I think I am leaning towards having it be something defined in Synse Server as it seems more
-> flexible and can allow for queries which could change the system, e.g. `/read/123234235?som=imperial`.
-> The result of this question could have impacts on other components (configuration, grpc api, ...)
+The system of measure will default to metric. Requests from Synse Server can specify
+imperial as the system of measure, if desired. This will be an option passed via the
+GRPC API.
 
 
 ### Simplify Device Configuration
