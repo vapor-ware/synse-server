@@ -1,4 +1,4 @@
-"""Test the 'synse.proto.client' Synse Server module."""
+"""Test the 'synse_server.proto.client' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import os
@@ -7,8 +7,8 @@ import grpc
 import pytest
 import synse_grpc
 
-from synse import config
-from synse.proto import client
+from synse_server import config
+from synse_server.proto import client
 
 # --- Mock Methods ---
 

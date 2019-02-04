@@ -1,4 +1,4 @@
-"""Test the 'synse.commands.write' Synse Server module."""
+"""Test the 'synse_server.commands.write' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
@@ -9,11 +9,11 @@ import grpc
 import pytest
 from synse_grpc import api
 
-import synse.cache
-from synse import errors, plugin
-from synse.commands.write import write
-from synse.proto.client import PluginClient, PluginUnixClient
-from synse.scheme.write import WriteResponse
+import synse_server.cache
+from synse_server import errors, plugin
+from synse_server.commands.write import write
+from synse_server.proto.client import PluginClient, PluginUnixClient
+from synse_server.scheme.write import WriteResponse
 
 
 @pytest.fixture(scope='module')
@@ -89,16 +89,16 @@ def mockwritefail(self, rack, board, device, data):
 @pytest.fixture()
 def mock_get_device_info(monkeypatch):
     """Fixture to monkeypatch the cache device info lookup."""
-    mock = asynctest.CoroutineMock(synse.cache.get_device_info, side_effect=mockgetdeviceinfo)
-    monkeypatch.setattr(synse.cache, 'get_device_info', mock)
+    mock = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=mockgetdeviceinfo)
+    monkeypatch.setattr(synse_server.cache, 'get_device_info', mock)
     return mock_get_device_info
 
 
 @pytest.fixture()
 def mock_transaction_add(monkeypatch):
     """Fixture to monkeypatch the cache transaction add."""
-    mock = asynctest.CoroutineMock(synse.cache.add_transaction, side_effect=mocktransactionadd)
-    monkeypatch.setattr(synse.cache, 'add_transaction', mock)
+    mock = asynctest.CoroutineMock(synse_server.cache.add_transaction, side_effect=mocktransactionadd)
+    monkeypatch.setattr(synse_server.cache, 'add_transaction', mock)
     return mock_transaction_add
 
 

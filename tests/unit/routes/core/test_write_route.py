@@ -1,14 +1,14 @@
-"""Test the 'synse.routes.core' Synse Server module's write route."""
+"""Test the 'synse_server.routes.core' Synse Server module's write route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
 from sanic.response import HTTPResponse
 
-import synse.commands
-from synse.errors import InvalidJsonError, SynseError
-from synse.routes.core import write_route
-from synse.scheme.base_response import SynseResponse
+import synse_server.commands
+from synse_server.errors import InvalidJsonError, SynseError
+from synse_server.routes.core import write_route
+from synse_server.scheme.base_response import SynseResponse
 from tests import utils
 
 
@@ -22,8 +22,8 @@ def mockreturn(rack, board, device, data):
 @pytest.fixture()
 def mock_write(monkeypatch):
     """Fixture to monkeypatch the underlying Synse command."""
-    mock = asynctest.CoroutineMock(synse.commands.write, side_effect=mockreturn)
-    monkeypatch.setattr(synse.commands, 'write', mock)
+    mock = asynctest.CoroutineMock(synse_server.commands.write, side_effect=mockreturn)
+    monkeypatch.setattr(synse_server.commands, 'write', mock)
     return mock_write
 
 

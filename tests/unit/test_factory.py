@@ -1,4 +1,4 @@
-"""Test the 'synse.factory' Synse Server module."""
+"""Test the 'synse_server.factory' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import os
@@ -7,7 +7,7 @@ import pytest
 import ujson
 import yaml
 
-from synse import config, errors, factory
+from synse_server import config, errors, factory
 
 
 @pytest.fixture()
@@ -28,9 +28,9 @@ def test_make_app(make_config):
     app = factory.make_app()
 
     # check that the app we create has the expected blueprints registered
-    assert 'synse.routes.core' in app.blueprints
-    assert 'synse.routes.base' in app.blueprints
-    assert 'synse.routes.aliases' in app.blueprints
+    assert 'synse_server.routes.core' in app.blueprints
+    assert 'synse_server.routes.base' in app.blueprints
+    assert 'synse_server.routes.aliases' in app.blueprints
 
 
 def test_disable_favicon(app):

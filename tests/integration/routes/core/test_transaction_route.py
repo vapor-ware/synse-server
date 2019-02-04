@@ -1,8 +1,8 @@
-"""Test the 'synse.routes.core' module's transaction route."""
+"""Test the 'synse_server.routes.core' module's transaction route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-from synse import errors
-from synse.version import __api_version__
+from synse_server import errors
+from synse_server.version import __api_version__
 from tests import utils
 
 invalid_transaction_url = '/synse/{}/transaction/invalid-id'.format(__api_version__)

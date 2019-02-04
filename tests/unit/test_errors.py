@@ -1,9 +1,9 @@
-"""Test the 'synse.errors' Synse Server module."""
+"""Test the 'synse_server.errors' Synse Server module."""
 # pylint: disable=unsubscriptable-object
 
 from sanic import exceptions
 
-from synse import errors
+from synse_server import errors
 
 
 def test_synse_error_unknown():

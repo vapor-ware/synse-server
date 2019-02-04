@@ -1,7 +1,7 @@
-"""Test the 'synse.scheme.version' Synse Server module."""
+"""Test the 'synse_server.scheme.version' Synse Server module."""
 
-from synse import version
-from synse.scheme.version import VersionResponse
+from synse_server import version
+from synse_server.scheme.version import VersionResponse
 
 
 def test_version_scheme():

@@ -1,8 +1,8 @@
-"""Test the 'synse.utils' Synse Server module."""
+"""Test the 'synse_server.utils' Synse Server module."""
 
 import pytest
 
-from synse import utils
+from synse_server import utils
 
 
 @pytest.mark.parametrize(

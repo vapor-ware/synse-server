@@ -1,10 +1,10 @@
-"""Test the 'synse.scheme.read' Synse Server module."""
+"""Test the 'synse_server.scheme.read' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-variable
 
 import pytest
 from synse_grpc import api
 
-from synse.scheme.read import ReadResponse
+from synse_server.scheme.read import ReadResponse
 
 
 def make_device_response():

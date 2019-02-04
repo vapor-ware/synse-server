@@ -1,4 +1,4 @@
-"""Test the 'synse.commands.read' Synse Server module."""
+"""Test the 'synse_server.commands.read' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
@@ -9,11 +9,11 @@ import grpc
 import pytest
 from synse_grpc import api
 
-import synse.cache
-from synse import errors, plugin, utils
-from synse.commands.read import read
-from synse.proto.client import PluginClient, PluginUnixClient
-from synse.scheme.read import ReadResponse
+import synse_server.cache
+from synse_server import errors, plugin, utils
+from synse_server.commands.read import read
+from synse_server.proto.client import PluginClient, PluginUnixClient
+from synse_server.scheme.read import ReadResponse
 
 
 @pytest.fixture(scope='module')
@@ -90,8 +90,8 @@ def patch_client_read_error(self, rack, board, device):
 @pytest.fixture()
 def mock_get_device_info(monkeypatch):
     """Fixture to monkeypatch the cache device meta lookup."""
-    mock = asynctest.CoroutineMock(synse.cache.get_device_info, side_effect=mockgetdevicemeta)
-    monkeypatch.setattr(synse.cache, 'get_device_info', mock)
+    mock = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=mockgetdevicemeta)
+    monkeypatch.setattr(synse_server.cache, 'get_device_info', mock)
     return mock_get_device_info
 
 

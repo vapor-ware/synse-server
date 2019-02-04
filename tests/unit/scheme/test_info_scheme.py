@@ -1,6 +1,6 @@
-"""Test the 'synse.scheme.info' Synse Server module."""
+"""Test the 'synse_server.scheme.info' Synse Server module."""
 
-from synse.scheme.info import InfoResponse
+from synse_server.scheme.info import InfoResponse
 
 
 def test_info_scheme():

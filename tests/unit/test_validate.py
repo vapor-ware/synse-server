@@ -1,11 +1,11 @@
-"""Test the 'synse.validate' Synse Server module."""
+"""Test the 'synse_server.validate' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
 import pytest
 from synse_grpc import api
 
-from synse import cache, errors, validate
+from synse_server import cache, errors, validate
 from tests import utils
 
 
