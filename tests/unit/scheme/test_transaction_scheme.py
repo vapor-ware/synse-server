@@ -1,9 +1,9 @@
-"""Test the 'synse.scheme.transaction' Synse Server module."""
+"""Test the 'synse_server.scheme.transaction' Synse Server module."""
 
 from synse_grpc import api
 
-from synse.scheme.transaction import (TransactionListResponse,
-                                      TransactionResponse)
+from synse_server.scheme.transaction import (TransactionListResponse,
+                                             TransactionResponse)
 
 
 def test_transaction_scheme():

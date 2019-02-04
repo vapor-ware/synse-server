@@ -25,7 +25,7 @@ fi
 
 image="${IMAGE_NAME}"
 tags="${IMAGE_TAGS}"
-version=$(python -c "import synse ; print(synse.__version__)")
+version=$(python -c "import synse_server ; print(synse_server.__version__)")
 build_date=$(date -u +%Y-%m-%dT%T 2> /dev/null)
 git_commit=$(git rev-parse --short HEAD 2> /dev/null || true)
 

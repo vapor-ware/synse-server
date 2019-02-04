@@ -1,9 +1,9 @@
-"""Test the 'synse.routes.core' module's config route."""
+"""Test the 'synse_server.routes.core' module's config route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import ujson
 
-from synse.version import __api_version__
+from synse_server.version import __api_version__
 
 config_url = '/synse/{}/config'.format(__api_version__)
 

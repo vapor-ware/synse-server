@@ -11,7 +11,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 # Load the package's __init__.py file as a dictionary.
 pkg = {}
-with open(os.path.join(here, 'synse', '__init__.py')) as f:
+with open(os.path.join(here, 'synse_server', '__init__.py')) as f:
     exec(f.read(), pkg)
 
 # Load the README
@@ -32,7 +32,7 @@ setup(
     include_package_data=True,
     package_data={
         '': ['LICENSE'],
-        'synse': ['locale/*/LC_MESSAGES/*.mo'],
+        'synse_server': ['locale/*/LC_MESSAGES/*.mo'],
     },
     scripts=['bin/synse-server'],
     python_requires='>=3.6',

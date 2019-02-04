@@ -1,8 +1,8 @@
-"""Test the 'synse.scheme.config' Synse Server module."""
+"""Test the 'synse_server.scheme.config' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument
 
-from synse import config
-from synse.scheme.config import ConfigResponse
+from synse_server import config
+from synse_server.scheme.config import ConfigResponse
 
 
 def test_config_scheme():

@@ -1,4 +1,4 @@
-"""Test the 'synse.routes.aliases' Synse Server module's led route."""
+"""Test the 'synse_server.routes.aliases' Synse Server module's led route."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
@@ -7,12 +7,12 @@ import ujson
 from sanic.response import HTTPResponse
 from synse_grpc import api
 
-import synse.commands
-import synse.validate
-from synse import errors
-from synse.routes.aliases import led_route
-from synse.scheme.base_response import SynseResponse
-from synse.scheme.write import WriteResponse
+import synse_server.commands
+import synse_server.validate
+from synse_server import errors
+from synse_server.routes.aliases import led_route
+from synse_server.scheme.base_response import SynseResponse
+from synse_server.scheme.write import WriteResponse
 from tests import utils
 
 
@@ -30,8 +30,8 @@ def mockwritereturn(rack, board, device, data):
 @pytest.fixture()
 def mock_write(monkeypatch):
     """Fixture to monkeypatch the underlying Synse command."""
-    mock = asynctest.CoroutineMock(synse.commands.write, side_effect=mockwritereturn)
-    monkeypatch.setattr(synse.commands, 'write', mock)
+    mock = asynctest.CoroutineMock(synse_server.commands.write, side_effect=mockwritereturn)
+    monkeypatch.setattr(synse_server.commands, 'write', mock)
     return mock_write
 
 
@@ -45,8 +45,8 @@ def mockreadreturn(rack, board, device):
 @pytest.fixture()
 def mock_read(monkeypatch):
     """Fixture to monkeypatch the underlying Synse command."""
-    mock = asynctest.CoroutineMock(synse.commands.read, side_effect=mockreadreturn)
-    monkeypatch.setattr(synse.commands, 'read', mock)
+    mock = asynctest.CoroutineMock(synse_server.commands.read, side_effect=mockreadreturn)
+    monkeypatch.setattr(synse_server.commands, 'read', mock)
     return mock_read
 
 
@@ -57,8 +57,8 @@ def mockvalidatedevicetype(device_type, rack, board, device):
 @pytest.fixture()
 def mock_validate_device_type(monkeypatch):
     """Fixture to monkeypatch the validate_device_type method."""
-    mock = asynctest.CoroutineMock(synse.validate.validate_device_type, side_effect=mockvalidatedevicetype)
-    monkeypatch.setattr(synse.validate, 'validate_device_type', mock)
+    mock = asynctest.CoroutineMock(synse_server.validate.validate_device_type, side_effect=mockvalidatedevicetype)
+    monkeypatch.setattr(synse_server.validate, 'validate_device_type', mock)
     return mock_validate_device_type
 
 

@@ -1,13 +1,13 @@
-"""Test the 'synse.routes.core' Synse Server module's plugins route."""
+"""Test the 'synse_server.routes.core' Synse Server module's plugins route."""
 # pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest
 from sanic.response import HTTPResponse
 
-import synse.commands
-from synse.routes.core import plugins_route
-from synse.scheme.base_response import SynseResponse
+import synse_server.commands
+from synse_server.routes.core import plugins_route
+from synse_server.scheme.base_response import SynseResponse
 from tests import utils
 
 
@@ -21,8 +21,8 @@ def mockreturn():
 @pytest.fixture()
 def mock_plugins(monkeypatch):
     """Fixture to monkeypatch the underlying Synse command."""
-    mock = asynctest.CoroutineMock(synse.commands.get_plugins, side_effect=mockreturn)
-    monkeypatch.setattr(synse.commands, 'get_plugins', mock)
+    mock = asynctest.CoroutineMock(synse_server.commands.get_plugins, side_effect=mockreturn)
+    monkeypatch.setattr(synse_server.commands, 'get_plugins', mock)
     return mock_plugins
 
 

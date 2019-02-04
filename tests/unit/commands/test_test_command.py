@@ -1,9 +1,9 @@
-"""Test the 'synse.commands.test' Synse Server module."""
+"""Test the 'synse_server.commands.test' Synse Server module."""
 
 import pytest
 
-from synse import commands
-from synse.scheme.test import TestResponse as TR
+from synse_server import commands
+from synse_server.scheme.test import TestResponse as TR
 
 
 @pytest.mark.asyncio

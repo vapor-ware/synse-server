@@ -1,9 +1,9 @@
-"""Test the 'synse.proto.util' Synse Server module."""
+"""Test the 'synse_server.proto.util' Synse Server module."""
 
 import pytest
 from synse_grpc import api
 
-from synse.proto import util
+from synse_server.proto import util
 
 
 def test_write_status_name():

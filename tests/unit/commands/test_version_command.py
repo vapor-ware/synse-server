@@ -1,9 +1,9 @@
-"""Test the 'synse.commands.version' Synse Server module."""
+"""Test the 'synse_server.commands.version' Synse Server module."""
 
 import pytest
 
-from synse.commands import version
-from synse.scheme.version import VersionResponse
+from synse_server.commands import version
+from synse_server.scheme.version import VersionResponse
 
 
 @pytest.mark.asyncio

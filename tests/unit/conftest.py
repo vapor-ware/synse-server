@@ -5,7 +5,7 @@ import os
 import bison
 import pytest
 
-from synse import cache, config, const, plugin
+from synse_server import cache, config, const, plugin
 
 
 @pytest.fixture(autouse=True)

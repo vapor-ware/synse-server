@@ -1,4 +1,4 @@
-"""Test the 'synse.commands.transaction' Synse Server module."""
+"""Test the 'synse_server.commands.transaction' Synse Server module."""
 # pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 
@@ -7,12 +7,12 @@ import grpc
 import pytest
 from synse_grpc import api
 
-import synse.cache
-from synse import errors, plugin
-from synse.commands.transaction import check_transaction
-from synse.proto.client import PluginClient, PluginTCPClient
-from synse.scheme.transaction import (TransactionListResponse,
-                                      TransactionResponse)
+import synse_server.cache
+from synse_server import errors, plugin
+from synse_server.commands.transaction import check_transaction
+from synse_server.proto.client import PluginClient, PluginTCPClient
+from synse_server.scheme.transaction import (TransactionListResponse,
+                                             TransactionResponse)
 
 
 def mockgettransaction(transaction):
@@ -46,8 +46,8 @@ def mockchecktransactionfail(self, transaction_id):
 @pytest.fixture()
 def mock_get_transaction(monkeypatch):
     """Fixture to monkeypatch the cache transaction lookup."""
-    mock = asynctest.CoroutineMock(synse.cache.get_transaction, side_effect=mockgettransaction)
-    monkeypatch.setattr(synse.cache, 'get_transaction', mock)
+    mock = asynctest.CoroutineMock(synse_server.cache.get_transaction, side_effect=mockgettransaction)
+    monkeypatch.setattr(synse_server.cache, 'get_transaction', mock)
     return mock_get_transaction
 
 
@@ -170,7 +170,7 @@ async def test_transaction_none(clear_caches):
 async def test_transaction_none2(clear_caches):
     """Pass None to the transaction command when transactions exist."""
 
-    ok = await synse.cache.add_transaction('abc123', {'some': 'ctx'}, 'test-plugin')
+    ok = await synse_server.cache.add_transaction('abc123', {'some': 'ctx'}, 'test-plugin')
     assert ok
 
     resp = await check_transaction(None)
