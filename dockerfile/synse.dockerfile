@@ -19,6 +19,8 @@ WORKDIR /build
 RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
  && rm -rf /root/.cache
 
+# TODO (etd): Could install synse-server in this stage..
+
 
 #
 # SLIM
@@ -53,7 +55,7 @@ LABEL maintainer="Vapor IO"\
       org.label-schema.vendor="Vapor IO" \
       org.label-schema.version=$BUILD_VERSION
 
-ENTRYPOINT ["/usr/bin/tini", "--", "bin/synse.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "synse-server"]
 
 
 #
@@ -67,7 +69,7 @@ ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
 
 RUN apt-get update \
  && apt-get install --no-install-recommends -y jq curl \
- && EMULATOR_OUT=/usr/local/bin/emulator ./bin/install_emulator.sh \
+ && EMULATOR_OUT=/usr/local/bin/synse-emulator ./bin/install_emulator.sh \
  && apt-get purge -y jq curl \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
