@@ -472,7 +472,7 @@ class TestScan:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.RACK_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     def test_scan_board_ok(self):
         """Test Synse Server's 'scan' route, at board resolution."""
@@ -488,7 +488,7 @@ class TestScan:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.BOARD_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     def test_scan_device_error(self):
         """Test Synse Server's 'scan' route, at device resolution. This is not supported
@@ -498,7 +498,7 @@ class TestScan:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.URL_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     @pytest.mark.parametrize(
         'params', [
@@ -512,7 +512,7 @@ class TestScan:
         assert response.status_code == 400
 
         error = response.json()
-        validate_error_response(error, 400, errors.INVALID_ARGUMENTS)
+        validate_error_response(error, 400, errors.InvalidUsage)
 
 
 #
@@ -553,7 +553,7 @@ class TestRead:
         # all of these errors should be device not found - this may seem strange
         # since we have invalid rack and invalid board here, but we expect device
         # not found because it comes from the check for device resolution.
-        validate_error_response(data, 404, errors.DEVICE_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     def test_read_bad_query_params(self):
         """Test Synse Server's 'read' route, passing in query parameters.
@@ -568,7 +568,7 @@ class TestRead:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+        validate_error_response(data, 400, errors.InvalidUsage)
 
 
 #
@@ -611,7 +611,7 @@ class TestWrite:
         assert response.status_code == 500
 
         data = response.json()
-        validate_error_response(data, 500, errors.FAILED_WRITE_COMMAND)
+        validate_error_response(data, 500, errors.ServerError)
 
     @pytest.mark.parametrize(
         'data', [
@@ -628,7 +628,7 @@ class TestWrite:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+        validate_error_response(data, 400, errors.InvalidUsage)
 
     @pytest.mark.parametrize(
         'data', [
@@ -671,7 +671,7 @@ class TestInfo:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.URL_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     def test_rack_info_ok(self):
         """Test Synse Server's 'info' route at the rack level."""
@@ -696,7 +696,7 @@ class TestInfo:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.RACK_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     def test_board_info_ok(self):
         """Test Synse Server's 'info' route at the board level."""
@@ -727,7 +727,7 @@ class TestInfo:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.BOARD_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
     @pytest.mark.parametrize(
         'device', EmulatorDevices.all
@@ -762,7 +762,7 @@ class TestInfo:
         assert response.status_code == 404
 
         data = response.json()
-        validate_error_response(data, 404, errors.DEVICE_NOT_FOUND)
+        validate_error_response(data, 404, errors.NotFound)
 
 
 #
@@ -835,7 +835,7 @@ class TestLED:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+        validate_error_response(data, 400, errors.ServerError)
 
     @pytest.mark.parametrize(
         'device', filter(lambda x: x not in EmulatorDevices.led, EmulatorDevices.all)
@@ -846,7 +846,7 @@ class TestLED:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+        validate_error_response(data, 400, errors.ServerError)
 
     @pytest.mark.parametrize(
         'device,params', [(device, params) for params in [
@@ -863,7 +863,7 @@ class TestLED:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+        validate_error_response(data, 400, errors.InvalidUsage)
 
 
 #
@@ -911,7 +911,7 @@ class TestFan:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+        validate_error_response(data, 400, errors.ServerError)
 
     @pytest.mark.parametrize(
         'device', filter(lambda x: x not in EmulatorDevices.fan, EmulatorDevices.all)
@@ -922,7 +922,7 @@ class TestFan:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+        validate_error_response(data, 400, errors.ServerError)
 
     @pytest.mark.parametrize(
         'device,params', [(device, params) for params in [
@@ -937,7 +937,7 @@ class TestFan:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+        validate_error_response(data, 400, errors.InvalidUsage)
 
 
 #
@@ -985,7 +985,7 @@ class TestLock:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+        validate_error_response(data, 400, errors.ServerError)
 
     @pytest.mark.parametrize(
         'device', filter(lambda x: x not in EmulatorDevices.lock, EmulatorDevices.all)
@@ -996,7 +996,7 @@ class TestLock:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_DEVICE_TYPE)
+        validate_error_response(data, 400, errors.ServerError)
 
     @pytest.mark.parametrize(
         'device,params', [(device, params) for params in [
@@ -1011,4 +1011,4 @@ class TestLock:
         assert response.status_code == 400
 
         data = response.json()
-        validate_error_response(data, 400, errors.INVALID_ARGUMENTS)
+        validate_error_response(data, 400, errors.InvalidUsage)

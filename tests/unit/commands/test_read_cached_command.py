@@ -115,7 +115,7 @@ async def test_read_cached_grpc_error(monkeypatch, add_plugin):
     monkeypatch.setattr(PluginClient, 'read_cached', _mock)
 
     assert len(plugin.Plugin.manager.plugins) == 1
-    with pytest.raises(errors.FailedReadCachedCommandError):
+    with pytest.raises(errors.ServerError):
         _ = [i async for i in read_cached()]
 
 
@@ -258,7 +258,7 @@ async def test_read_cached_command_no_device(monkeypatch, add_plugin):
 
     # monkeypatch get_device_info to raise a DeviceNotFoundError
     def _mock_device(*args, **kwargs):
-        raise errors.DeviceNotFoundError('')
+        raise errors.NotFound('')
     mocked = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=_mock_device)
     monkeypatch.setattr(synse_server.cache, 'get_device_info', mocked)
 

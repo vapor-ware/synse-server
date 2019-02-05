@@ -98,5 +98,5 @@ async def test_synse_scan_route_bad_param(mock_scan, no_pretty_json):
 
     r = utils.make_request('/synse/scan?unsupported=true')
 
-    with pytest.raises(errors.InvalidArgumentsError):
+    with pytest.raises(errors.InvalidUsage):
         await scan_route(r)

@@ -32,7 +32,7 @@ async def write(rack, board, device, data):
     # Get the plugin context for the device's specified protocol
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
-        raise errors.PluginNotFoundError(
+        raise errors.NotFound(
             _('Unable to find plugin named "{}"').format(plugin_name)
         )
 
@@ -41,7 +41,7 @@ async def write(rack, board, device, data):
     # transport to the plugin.
     write_action = data.get('action')
     if not isinstance(write_action, str):
-        raise errors.InvalidArgumentsError(
+        raise errors.InvalidUsage(
             _('"action" value must be a string, but was {}').format(type(write_action))
         )
 
@@ -54,7 +54,7 @@ async def write(rack, board, device, data):
     if write_data is not None:
         # The data should be an instance of bytes, which in python is a string
         if not isinstance(write_data, str):
-            raise errors.InvalidArgumentsError(
+            raise errors.InvalidUsage(
                 _('"raw"/"data" value must be a string, but was {}').format(type(write_data))
             )
         write_data = str.encode(write_data)
@@ -66,7 +66,7 @@ async def write(rack, board, device, data):
     try:
         t = _plugin.client.write(rack, board, device, [wd])
     except grpc.RpcError as ex:
-        raise errors.FailedWriteCommandError(str(ex)) from ex
+        raise errors.ServerError(str(ex)) from ex
 
     # Now that we have the transaction info, we want to map it to the corresponding
     # process so any subsequent transaction check will know where to look.

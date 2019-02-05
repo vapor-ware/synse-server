@@ -117,7 +117,7 @@ async def write_route(request, rack, board, device):
     try:
         data = request.json
     except Exception as e:
-        raise errors.InvalidJsonError(
+        raise errors.InvalidUsage(
             _('Invalid JSON specified: {}').format(request.body)
         ) from e
 
@@ -126,7 +126,7 @@ async def write_route(request, rack, board, device):
     # For backwards compatibility, keeping 'raw' in. Here, 'data' and 'raw' are
     # the same thing.
     if not any([x in data for x in ['action', 'raw', 'data']]):
-        raise errors.InvalidArgumentsError(
+        raise errors.InvalidUsage(
             _('Invalid data POSTed for write. Must contain "action" and/or "raw"')
         )
 

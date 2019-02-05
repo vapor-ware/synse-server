@@ -4,13 +4,11 @@
 import asyncio
 
 from sanic import Sanic
-from sanic.exceptions import InvalidUsage, NotFound, ServerError
 from sanic.response import text
 
-from synse_server import errors, utils
+from synse_server import errors
 from synse_server.cache import clear_all_meta_caches, configure_cache
 from synse_server.log import logger, setup_logger
-from synse_server.response import json
 from synse_server.routes import aliases, base, core
 
 
@@ -22,7 +20,8 @@ def new_app():
     """
 
     app = Sanic(
-        name='synse-server'
+        name='synse-server',
+        error_handler=errors.SynseErrorHandler(),
     )
 
     # Disable the default Sanic logo.
@@ -40,11 +39,6 @@ def new_app():
     # Server is hit via web browser.
     # TODO (etd): we could add an icon to return here if we wanted.
     app.add_route(lambda *_: text(''), '/favicon.ico')
-
-    # Register the error handler
-    # FIXME (etd): there is probably a better way to do this, will look into
-    #  this in future issue.
-    _register_error_handling(app)
 
     # Set the language environment variable to that set in the config, if
     # it is not already set. This is how we specify the language/locale for
@@ -85,50 +79,3 @@ async def periodic_cache_invalidation():
                 'will try again in {}s: {}'
                 .format(interval, e)
             )
-
-
-def _register_error_handling(app):
-    """Register the 400, 404 and 500 error JSON responses for Synse Server.
-
-    Args:
-        app (sanic.Sanic): The Sanic application to add the handling to.
-    """
-
-    @app.exception(NotFound)
-    def err_404(request, exception):
-        """Handler for a 404 error."""
-        logger.error('Exception for request: {}'.format(request))
-        logger.exception(exception)
-
-        if hasattr(exception, 'error_id'):
-            error_id = exception.error_id
-        else:
-            error_id = errors.URL_NOT_FOUND
-
-        return _make_error(error_id, exception)
-
-    @app.exception(ServerError, InvalidUsage)
-    def err(request, exception):
-        """Handler for a 500 and 400 error."""
-        logger.error('Exception for request: {}'.format(request))
-        logger.exception(exception)
-
-        if hasattr(exception, 'error_id'):
-            error_id = exception.error_id
-        else:
-            error_id = errors.UNKNOWN
-
-        return _make_error(error_id, exception)
-
-
-def _make_error(error_id, exception):
-    """Make a JSON error response."""
-    error = {
-        'http_code': exception.status_code,
-        'error_id': error_id,
-        'description': errors.codes[error_id],
-        'timestamp': utils.rfc3339now(),
-        'context': str(exception)
-
-    }
-    return json(error, status=exception.status_code)
