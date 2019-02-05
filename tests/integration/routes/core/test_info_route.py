@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.core' module's info route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 from synse_server import errors
 from synse_server.version import __api_version__

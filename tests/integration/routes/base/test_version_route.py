@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.base' module's version route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 import ujson
 

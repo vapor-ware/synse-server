@@ -1,5 +1,4 @@
 """Factory for creating Synse Server Sanic application instances."""
-# pylint: disable=unused-variable,unused-argument
 
 import asyncio
 

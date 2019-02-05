@@ -1,5 +1,4 @@
 """The aliased routes that make up the Synse Server HTTP API."""
-# pylint: disable=no-else-return
 
 from sanic import Blueprint
 
@@ -285,7 +284,7 @@ async def boot_target_route(request, rack, board, device):
 
 
 @bp.route('/lock/<rack>/<board>/<device>')
-async def lock_route(request, rack, board, device): # pylint: disable=unused-argument
+async def lock_route(request, rack, board, device):
     """Endpoint to read/write lock device data.
 
     This route is an alias for the core `read` functionality when there

@@ -385,10 +385,7 @@ async def _build_capabilities_cache():
     # Track which plugins failed to provide capability info for any reason.
     failures = {}
 
-    # FIXME (etd): as of pylint 2.1.1, this gets marked with 'not-an-iterable'
-    # It still appears to work just fine, so need to figure out why it is getting
-    # marked as such and what should be done to fix it.
-    async for plugin_id, plugin in get_plugins():  # pylint: disable=not-an-iterable
+    async for plugin_id, plugin in get_plugins():
         logger.debug('{} - {}'.format(plugin_id, plugin))
 
         devices = []
@@ -451,10 +448,7 @@ async def _build_device_info_cache():
     # Track which plugins failed to provide devices for any reason.
     failures = {}
 
-    # FIXME (etd): as of pylint 2.1.1, this gets marked with 'not-an-iterable'
-    # It still appears to work just fine, so need to figure out why it is getting
-    # marked as such and what should be done to fix it.
-    async for plugin_id, plugin in get_plugins():  # pylint: disable=not-an-iterable
+    async for plugin_id, plugin in get_plugins():
         logger.debug('{} -- {}'.format(plugin_id, plugin))
 
         try:

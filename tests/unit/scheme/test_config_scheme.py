@@ -1,5 +1,4 @@
 """Test the 'synse_server.scheme.config' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 from synse_server import config
 from synse_server.scheme.config import ConfigResponse

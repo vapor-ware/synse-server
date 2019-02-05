@@ -9,7 +9,6 @@ IMAGE_TAGS  ?= latest local
 
 HAS_TRANSLATIONS := $(shell find synse_server -name '*.mo')
 HAS_PY36         := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
-HAS_PIP_COMPILE  := $(shell which pip-compile)
 
 RED    := \033[0;31m
 GREEN  := \033[0;32m
@@ -37,7 +36,7 @@ pycache-clean:
 # compile the translations and generate them.
 req-translations:
 ifndef HAS_TRANSLATIONS
-	make i18n-compile
+	make i18n
 endif
 
 
@@ -50,8 +49,9 @@ api-doc:  ## Open the locally generated HTML API reference
 	@open ./docs/index.html || echo "${RED}API doc not found locally. To generate, run: 'make docs'${NC}"
 
 .PHONY: clean
-clean: pycache-clean  ## Clean up build/test artifacts
-	rm -rf build/ dist/ *.egg-info results/ .coverage* .pytest_cache
+clean: pycache-clean  ## Clean up build and test artifacts
+	rm -rf build/ dist/ *.egg-info htmlcov/ .coverage* .pytest_cache/ \
+		synse_server/__pycache__ synse_server/__pycache__ results/
 
 .PHONY: clean-docs
 clean-docs:  ## Clean out the documentation build artifacts
@@ -63,10 +63,7 @@ cover: test-unit  ## Run unit tests and open their resulting HTML coverage repor
 
 .PHONY: deps
 deps:  ## Update the frozen pip dependencies (requirements.txt)
-ifndef HAS_PIP_COMPILE
-	pip install pip-tools
-endif
-	pip-compile --output-file requirements.txt setup.py
+	tox -e deps
 
 .PHONY: docker
 docker: req-translations  ## Build the docker image locally
@@ -90,33 +87,13 @@ github-tag:  ## Create and push a tag with the current version
 	git tag -a v${PKG_VERSION} -m "${PKG_NAME} version v${PKG_VERSION}"
 	git push -u origin v${PKG_VERSION}
 
-.PHONY: i18n-compile
-i18n-compile:  ## Compile translations catalogs into a binary .mo file
-	tox -e i18n-compile
-
-.PHONY: i18n-extract
-i18n-extract:  ## Extract localizable messages from Synse Server source files
-	tox -e i18n-extract
-
-.PHONY: i18n-init
-i18n-init: i18n-extract  ## Create a new translations catalog
-	tox -e i18n-init
-
-.PHONY: i18n-update
-i18n-update: i18n-extract  ## Update an existing translations catalog
-	tox -e i18n-update
+.PHONY: i18n
+i18n:  ## Update the translations catalog
+	tox -e i18n
 
 .PHONY: lint
-lint:  ## Lint the Synse Server source code
-ifdef HAS_PY36
+lint:  ## Run linting checks on the project source code
 	tox -e lint
-else
-	@echo "${YELLOW}python3.6 not found locally - running in container${NC}"
-	docker-compose -f compose/test.yml -f compose/lint.yml up \
-	    --build \
-	    --abort-on-container-exit \
-	    --exit-code-from synse-test
-endif
 
 .PHONY: run
 run: docker  ## Build and run Synse Server with emulator locally (localhost:5000)

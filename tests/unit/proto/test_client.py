@@ -1,5 +1,4 @@
 """Test the 'synse_server.proto.client' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 import os
 

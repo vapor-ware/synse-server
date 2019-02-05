@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.aliases' Synse Server module's power route."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
 import pytest
@@ -50,7 +49,10 @@ def mockvalidatedevicetype(device_type, rack, board, device):
 @pytest.fixture()
 def mock_validate_device_type(monkeypatch):
     """Fixture to monkeypatch the validate_device_type method."""
-    mock = asynctest.CoroutineMock(synse_server.validate.validate_device_type, side_effect=mockvalidatedevicetype)
+    mock = asynctest.CoroutineMock(
+        synse_server.validate.validate_device_type,
+        side_effect=mockvalidatedevicetype
+    )
     monkeypatch.setattr(synse_server.validate, 'validate_device_type', mock)
     return mock_validate_device_type
 

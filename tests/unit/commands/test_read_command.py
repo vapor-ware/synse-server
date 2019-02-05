@@ -1,5 +1,4 @@
 """Test the 'synse_server.commands.read' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
 import shutil
@@ -90,7 +89,10 @@ def patch_client_read_error(self, rack, board, device):
 @pytest.fixture()
 def mock_get_device_info(monkeypatch):
     """Fixture to monkeypatch the cache device meta lookup."""
-    mock = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=mockgetdevicemeta)
+    mock = asynctest.CoroutineMock(
+        synse_server.cache.get_device_info,
+        side_effect=mockgetdevicemeta
+    )
     monkeypatch.setattr(synse_server.cache, 'get_device_info', mock)
     return mock_get_device_info
 
@@ -173,7 +175,8 @@ async def test_read_command_grpc_err(mock_get_device_info, mock_client_read_fail
 
 
 @pytest.mark.asyncio
-async def test_read_command_grpc_err_no_reading(mock_get_device_info, mock_client_read_error, make_plugin, mock_rfc_time):
+async def test_read_command_grpc_err_no_reading(mock_get_device_info, mock_client_read_error,
+                                                make_plugin, mock_rfc_time):
     """Get a ReadResponse when the plugin returns an error indicating no reading."""
 
     resp = await read('rack-1', 'vec', '12345')

@@ -1,5 +1,4 @@
 """Test the 'synse_server.commands.plugins' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 import os
 import shutil

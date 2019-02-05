@@ -33,7 +33,7 @@ async def read_cached(start=None, end=None):
         plugin.register_plugins()
 
     # For each plugin, we'll want to request a dump of its readings cache.
-    async for plugin_name, plugin_handler in plugin.get_plugins():  # pylint: disable=not-an-iterable
+    async for plugin_name, plugin_handler in plugin.get_plugins():
         logger.debug(_('Getting readings cache for plugin: {}').format(plugin_name))
 
         # Get the cached data from the plugin
@@ -44,7 +44,7 @@ async def read_cached(start=None, end=None):
                     return
 
                 try:
-                    __, device = await cache.get_device_info(  # pylint: disable=unused-variable
+                    __, device = await cache.get_device_info(
                         reading.rack,
                         reading.board,
                         reading.device

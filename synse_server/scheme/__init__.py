@@ -3,7 +3,6 @@
 This package contains definitions and modeling for Synse Server endpoint
 response schemes.
 """
-# pylint: disable=unused-import
 
 from .config import ConfigResponse
 from .info import InfoResponse

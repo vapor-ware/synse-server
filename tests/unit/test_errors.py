@@ -1,5 +1,4 @@
 """Test the 'synse_server.errors' Synse Server module."""
-# pylint: disable=unsubscriptable-object
 
 # from sanic import exceptions
 #
