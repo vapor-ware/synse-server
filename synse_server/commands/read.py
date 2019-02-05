@@ -1,5 +1,4 @@
 """Command handler for the `read` route."""
-# pylint: disable=line-too-long
 
 import grpc
 from synse_grpc import api
@@ -45,7 +44,8 @@ async def read(rack, board, device):
         # anytime soon, so this is "safe" for now, but we should see if there
         # is a better way to check this other than comparing strings..
         if hasattr(ex, 'code') and hasattr(ex, 'details'):
-            if grpc.StatusCode.NOT_FOUND == ex.code() and 'no readings found' in ex.details().lower():
+            if grpc.StatusCode.NOT_FOUND == ex.code() and \
+                    'no readings found' in ex.details().lower():
 
                 # FIXME (etd) - with SDK v1.0, is the below correct? We should not longer
                 # have to pass the "null" string. I think an empty string should also not

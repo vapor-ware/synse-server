@@ -1,11 +1,11 @@
 """Test the 'synse_server.routes.aliases' module's power route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 from synse_server import errors
 from synse_server.version import __api_version__
 from tests import utils
 
-invalid_power_route_url = '/synse/{}/power/invalid-rack/invalid-board/invalid-device'.format(__api_version__)
+invalid_power_route_url = '/synse/{}/power/invalid-rack/invalid-board/invalid-device'\
+    .format(__api_version__)
 
 
 def test_power_endpoint_invalid(app):

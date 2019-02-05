@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-02-04 14:21-0500\n"
-"PO-Revision-Date: 2019-02-04 14:21-0500\n"
+"POT-Creation-Date: 2019-02-05 13:25-0500\n"
+"PO-Revision-Date: 2019-02-05 13:25-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -39,7 +39,7 @@ msgstr ""
 msgid "Building the device capabilities cache"
 msgstr ""
 
-#: synse_server/cache.py:379 synse_server/cache.py:445
+#: synse_server/cache.py:379 synse_server/cache.py:442
 msgid "Manager has no plugins - registering plugins"
 msgstr ""
 
@@ -47,35 +47,35 @@ msgstr ""
 msgid "Plugins to get capabilities for: {}"
 msgstr ""
 
-#: synse_server/cache.py:405
+#: synse_server/cache.py:402
 msgid "Failed to get capability for plugin: {}"
 msgstr ""
 
-#: synse_server/cache.py:418
+#: synse_server/cache.py:415
 msgid "Failed to get capabilities for all plugins: {}"
 msgstr ""
 
-#: synse_server/cache.py:437
+#: synse_server/cache.py:434
 msgid "Building the device cache"
 msgstr ""
 
-#: synse_server/cache.py:449
+#: synse_server/cache.py:446
 msgid "Plugins to scan: {}"
 msgstr ""
 
-#: synse_server/cache.py:477
+#: synse_server/cache.py:471
 msgid "Failed to get device info for plugin: {}"
 msgstr ""
 
-#: synse_server/cache.py:484
+#: synse_server/cache.py:478
 msgid "Failed to scan all plugins: {}"
 msgstr ""
 
-#: synse_server/cache.py:502
+#: synse_server/cache.py:496
 msgid "Building the scan cache"
 msgstr ""
 
-#: synse_server/cache.py:637
+#: synse_server/cache.py:631
 msgid "Building the info cache"
 msgstr ""
 
@@ -220,19 +220,19 @@ msgstr ""
 msgid "Plugins Command"
 msgstr ""
 
-#: synse_server/commands/read.py:24
+#: synse_server/commands/read.py:23
 msgid "Read Command (args: {}, {}, {})"
 msgstr ""
 
-#: synse_server/commands/read.py:28
+#: synse_server/commands/read.py:27
 msgid "Device {} is managed by plugin {}"
 msgstr ""
 
-#: synse_server/commands/read.py:32
+#: synse_server/commands/read.py:31
 msgid "Got plugin: {}"
 msgstr ""
 
-#: synse_server/commands/read.py:35
+#: synse_server/commands/read.py:34
 msgid "Unable to find plugin named \"{}\" to read"
 msgstr ""
 
@@ -409,95 +409,95 @@ msgstr ""
 msgid "Issuing gRPC transaction request"
 msgstr ""
 
-#: synse_server/routes/aliases.py:50
+#: synse_server/routes/aliases.py:49
 msgid "LED alias route: writing (query parameters: {})"
 msgstr ""
 
-#: synse_server/routes/aliases.py:56
+#: synse_server/routes/aliases.py:55
 msgid "Invalid LED state \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse_server/routes/aliases.py:70
+#: synse_server/routes/aliases.py:69
 msgid ""
 "Invalid color value ({}). Must be a hexadecimal string between 000000 and"
 " FFFFFF"
 msgstr ""
 
-#: synse_server/routes/aliases.py:79
+#: synse_server/routes/aliases.py:78
 msgid "LED data to write: {}"
 msgstr ""
 
-#: synse_server/routes/aliases.py:92
+#: synse_server/routes/aliases.py:91
 msgid "LED alias route: reading"
 msgstr ""
 
-#: synse_server/routes/aliases.py:136
+#: synse_server/routes/aliases.py:135
 msgid ""
 "Invalid query params: Can only specify one of \"speed\" and "
 "\"speed_percent\", but both were given"
 msgstr ""
 
-#: synse_server/routes/aliases.py:143
+#: synse_server/routes/aliases.py:142
 msgid "Fan alias route: writing (query parameters: {})"
 msgstr ""
 
-#: synse_server/routes/aliases.py:149
+#: synse_server/routes/aliases.py:148
 msgid "Setting fan speed by RPM"
 msgstr ""
 
-#: synse_server/routes/aliases.py:162
+#: synse_server/routes/aliases.py:161
 msgid "Setting fan speed by percent"
 msgstr ""
 
-#: synse_server/routes/aliases.py:172
+#: synse_server/routes/aliases.py:171
 msgid "Fan alias route: reading"
 msgstr ""
 
-#: synse_server/routes/aliases.py:210
+#: synse_server/routes/aliases.py:209
 msgid "Power alias route: writing (query parameters: {})"
 msgstr ""
 
-#: synse_server/routes/aliases.py:214
+#: synse_server/routes/aliases.py:213
 msgid "Invalid power state \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse_server/routes/aliases.py:227
+#: synse_server/routes/aliases.py:226
 msgid "Power alias route: reading"
 msgstr ""
 
-#: synse_server/routes/aliases.py:265
+#: synse_server/routes/aliases.py:264
 msgid "Boot target alias route: writing (query parameters: {})"
 msgstr ""
 
-#: synse_server/routes/aliases.py:269 synse_server/routes/aliases.py:321
+#: synse_server/routes/aliases.py:268 synse_server/routes/aliases.py:320
 msgid "Invalid boot target \"{}\". Must be one of: {}"
 msgstr ""
 
-#: synse_server/routes/aliases.py:282
+#: synse_server/routes/aliases.py:281
 msgid "Boot target alias route: reading"
 msgstr ""
 
-#: synse_server/routes/aliases.py:317
+#: synse_server/routes/aliases.py:316
 msgid "Lock alias route: writing (query parameters: {})"
 msgstr ""
 
-#: synse_server/routes/aliases.py:333
+#: synse_server/routes/aliases.py:332
 msgid "Lock alias route: reading"
 msgstr ""
 
-#: synse_server/routes/core.py:53
+#: synse_server/routes/core.py:52
 msgid "Forcing re-scan? {}"
 msgstr ""
 
-#: synse_server/routes/core.py:121
+#: synse_server/routes/core.py:120
 msgid "Invalid JSON specified: {}"
 msgstr ""
 
-#: synse_server/routes/core.py:124
+#: synse_server/routes/core.py:123
 msgid "Write route: POSTed JSON: {}"
 msgstr ""
 
-#: synse_server/routes/core.py:130
+#: synse_server/routes/core.py:129
 msgid "Invalid data POSTed for write. Must contain \"action\" and/or \"raw\""
 msgstr ""
 

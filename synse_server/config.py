@@ -1,5 +1,4 @@
 """Synse Server configuration and scheme definition."""
-# pylint: disable=line-too-long
 
 from bison import Bison, DictOption, ListOption, Option, Scheme
 

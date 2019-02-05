@@ -1,5 +1,4 @@
 """Test the 'synse_server.scheme.read_cached' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-variable
 
 from synse_grpc import api
 

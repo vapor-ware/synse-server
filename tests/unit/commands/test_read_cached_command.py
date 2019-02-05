@@ -1,5 +1,4 @@
 """Test the 'synse_server.commands.read' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long,not-an-iterable
 
 import asynctest
 import grpc
