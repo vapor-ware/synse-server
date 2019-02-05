@@ -36,7 +36,7 @@ pycache-clean:
 # compile the translations and generate them.
 req-translations:
 ifndef HAS_TRANSLATIONS
-	make i18n-compile
+	make i18n
 endif
 
 
