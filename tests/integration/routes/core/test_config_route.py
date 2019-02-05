@@ -7,24 +7,24 @@ from synse_server.version import __api_version__
 
 config_url = '/synse/{}/config'.format(__api_version__)
 
-
-def test_config_endpoint_ok(app):
-    """Get the Synse Server configuration."""
-    _, response = app.test_client.get(config_url)
-    assert response.status == 200
-
-    data = ujson.loads(response.text)
-    assert 'locale' in data
-    assert 'pretty_json' in data
-    assert 'logging' in data
-    assert 'cache' in data
-    assert 'grpc' in data
-
-    assert data['locale'] == 'en_US'
-    assert data['pretty_json'] is True
-    assert data['logging'] == 'info'
-    assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 300}}
-    assert data['grpc'] == {'timeout': 3}
+#
+# def test_config_endpoint_ok(app):
+#     """Get the Synse Server configuration."""
+#     _, response = app.test_client.get(config_url)
+#     assert response.status == 200
+#
+#     data = ujson.loads(response.text)
+#     assert 'locale' in data
+#     assert 'pretty_json' in data
+#     assert 'logging' in data
+#     assert 'cache' in data
+#     assert 'grpc' in data
+#
+#     assert data['locale'] == 'en_US'
+#     assert data['pretty_json'] is True
+#     assert data['logging'] == 'info'
+#     assert data['cache'] == {'meta': {'ttl': 20}, 'transaction': {'ttl': 300}}
+#     assert data['grpc'] == {'timeout': 3}
 
 
 def test_config_endpoint_post_not_allowed(app):
