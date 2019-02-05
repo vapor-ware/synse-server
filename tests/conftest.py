@@ -8,7 +8,7 @@ import socket
 import pytest
 import yaml
 
-from synse_server import config, const, factory
+from synse_server import config, const, server
 
 _app = None
 
@@ -56,7 +56,8 @@ def app(tmpdir):
         with open(os.path.join(appdir, 'config.yml'), 'w') as f:
             yaml.dump({'log': 'debug'}, f)
         config.options.add_config_paths(appdir)
-        _app = factory.make_app()
+        s = server.Synse()
+        _app = s.app
     return _app
 
 
