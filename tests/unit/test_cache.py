@@ -236,10 +236,8 @@ async def test_get_device_meta_ok(patch_device_info, clear_caches):
 async def test_get_device_meta_not_found(clear_caches):
     """Get device info when the specified device doesn't exist."""
 
-    try:
+    with pytest.raises(errors.NotFound):
         await cache.get_device_info('foo', 'bar', 'baz')
-    except errors.SynseError as e:
-        assert e.error_id == errors.DEVICE_NOT_FOUND
 
 
 @pytest.mark.asyncio
@@ -328,10 +326,8 @@ async def test_get_device_info_cache_total_failure(plugin_context, clear_caches)
     )
     p.client.devices = mock_client_device_info_fail  # override to induce failure
 
-    try:
+    with pytest.raises(errors.ServerError):
         await cache.get_device_info_cache()
-    except errors.SynseError as e:
-        assert e.error_id == errors.INTERNAL_API_FAILURE
 
 
 @pytest.mark.asyncio

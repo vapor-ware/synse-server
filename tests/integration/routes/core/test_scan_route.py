@@ -68,7 +68,7 @@ def test_rack_scan_endpoint_invalid(app):
     the scan is empty, we can't filter on racks/boards.
     """
     _, response = app.test_client.get(invalid_rack_scan_url)
-    utils.test_error_json(response, errors.FAILED_SCAN_COMMAND)
+    utils.test_error_json(response, errors.ServerError)
 
 
 def test_rack_scan_endpoint_post_not_allowed(app):
@@ -114,7 +114,7 @@ def test_board_scan_endpoint_invalid(app):
     the scan is empty, we can't filter on racks/boards.
     """
     _, response = app.test_client.get(invalid_board_scan_url)
-    utils.test_error_json(response, errors.FAILED_SCAN_COMMAND)
+    utils.test_error_json(response, errors.ServerError)
 
 
 def test_board_scan_endpoint_post_not_allowed(app):

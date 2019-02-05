@@ -11,7 +11,7 @@ invalid_lock_route_url = '/synse/{}/lock/invalid-rack/invalid-board/invalid-devi
 def test_lock_endpoint_invalid(app):
     """Get lock info for a nonexistent device."""
     _, response = app.test_client.get(invalid_lock_route_url)
-    utils.test_error_json(response, errors.DEVICE_NOT_FOUND, 404)
+    utils.test_error_json(response, errors.NotFound, 404)
 
 
 def test_lock_endpoint_post_not_allowed(app):

@@ -11,7 +11,7 @@ invalid_power_route_url = '/synse/{}/power/invalid-rack/invalid-board/invalid-de
 def test_power_endpoint_invalid(app):
     """Get power info for a nonexistent device."""
     _, response = app.test_client.get(invalid_power_route_url)
-    utils.test_error_json(response, errors.DEVICE_NOT_FOUND, 404)
+    utils.test_error_json(response, errors.NotFound, 404)
 
 
 def test_power_endpoint_post_not_allowed(app):

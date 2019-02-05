@@ -81,11 +81,8 @@ async def test_synse_led_write_invalid_1(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?state=test')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'test' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -94,11 +91,8 @@ async def test_synse_led_write_invalid_2(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?state=foo')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'foo' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -107,11 +101,8 @@ async def test_synse_led_write_invalid_3(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?color=xyz')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'xyz' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -120,11 +111,8 @@ async def test_synse_led_write_invalid_4(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?state=on&color=bar')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'bar' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -133,11 +121,8 @@ async def test_synse_led_write_invalid_5(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?color=1000000')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert '1000000' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -146,11 +131,8 @@ async def test_synse_led_write_invalid_6(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?color=-FF')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert '-FF' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -231,5 +213,5 @@ async def test_synse_led_route_bad_param(mock_validate_device_type, mock_write, 
 
     r = utils.make_request('/synse/led?unsupported=true')
 
-    with pytest.raises(errors.InvalidArgumentsError):
+    with pytest.raises(errors.InvalidUsage):
         await led_route(r, 'rack-1', 'vec', '123456')

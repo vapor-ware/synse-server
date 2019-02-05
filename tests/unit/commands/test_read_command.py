@@ -152,36 +152,24 @@ def make_plugin(setup):
 async def test_read_command_no_device():
     """Get a ReadResponse when the device doesn't exist."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.NotFound):
         await read('rack-1', 'vec', '12345')
-    except errors.SynseError as e:
-        assert e.error_id == errors.DEVICE_NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_read_command_no_plugin(mock_get_device_info):
     """Get a ReadResponse when the plugin doesn't exist."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.NotFound):
         await read('rack-1', 'vec', '12345')
-    except errors.SynseError as e:
-        assert e.error_id == errors.PLUGIN_NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_read_command_grpc_err(mock_get_device_info, mock_client_read_fail, make_plugin):
     """Get a ReadResponse when the plugin exists but cant communicate with it."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.ServerError):
         await read('rack-1', 'vec', '12345')
-    except errors.SynseError as e:
-        assert e.error_id == errors.FAILED_READ_COMMAND
 
 
 @pytest.mark.asyncio

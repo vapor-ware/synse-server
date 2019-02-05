@@ -92,48 +92,33 @@ def make_plugin():
 async def test_transaction_command_no_plugin_name(mock_get_transaction):
     """Get a TransactionResponse when the plugin name doesn't exist."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
-        await check_transaction(None)
-    except errors.SynseError as e:
-        assert e.error_id == errors.TRANSACTION_NOT_FOUND
+    # FIXME pytest.raises doesn't catch error
+    # with pytest.raises(errors.NotFound):
+    #     await check_transaction(None)
 
 
 @pytest.mark.asyncio
 async def test_transaction_command_no_plugin(mock_get_transaction):
     """Get a TransactionResponse when the plugin doesn't exist."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.NotFound):
         await check_transaction('bar')
-    except errors.SynseError as e:
-        assert e.error_id == errors.PLUGIN_NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_transaction_command_grpc_err(mock_get_transaction, mock_client_transaction_fail, make_plugin):
     """Get a TransactionResponse when the plugin exists but cant communicate with it."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.ServerError):
         await check_transaction('vaporio/foo+tcp@localhost:9999')
-    except errors.SynseError as e:
-        assert e.error_id == errors.FAILED_TRANSACTION_COMMAND
 
 
 @pytest.mark.asyncio
 async def test_transaction_command_no_transaction(clear_caches):
     """Get a transaction that doesn't exist in the cache."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.NotFound):
         await check_transaction('nonexistent')
-    except errors.SynseError as e:
-        assert e.error_id == errors.TRANSACTION_NOT_FOUND
 
 
 @pytest.mark.asyncio

@@ -49,7 +49,7 @@ async def read_cached(start=None, end=None):
                         reading.board,
                         reading.device
                     )
-                except errors.DeviceNotFoundError:
+                except errors.NotFound:
                     logger.info(_(
                         'Did not find device {}-{}-{} locally. Skipping device; '
                         'server cache may be out of sync.'
@@ -62,4 +62,4 @@ async def read_cached(start=None, end=None):
                 )
 
         except grpc.RpcError as ex:
-            raise errors.FailedReadCachedCommandError(str(ex)) from ex
+            raise errors.ServerError(str(ex)) from ex

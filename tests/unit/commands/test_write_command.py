@@ -143,39 +143,27 @@ def make_plugin(setup):
 async def test_write_command_no_device():
     """Get a WriteResponse when the device doesn't exist."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.NotFound):
         data = {'action': 'foo', 'raw': 'bar'}
         await write('rack-1', 'vec', '12345', data)
-    except errors.SynseError as e:
-        assert e.error_id == errors.DEVICE_NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_write_command_no_plugin(mock_get_device_info):
     """Get a WriteResponse when the plugin doesn't exist."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.NotFound):
         data = {'action': 'foo', 'raw': 'bar'}
         await write('rack-1', 'vec', '12345', data)
-    except errors.SynseError as e:
-        assert e.error_id == errors.PLUGIN_NOT_FOUND
 
 
 @pytest.mark.asyncio
 async def test_write_command_grpc_err(mock_get_device_info, mock_client_write_fail, make_plugin):
     """Get a WriteResponse when the plugin exists but cant communicate with it."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.ServerError):
         data = {'action': 'foo', 'raw': 'bar'}
         await write('rack-1', 'vec', '12345', data)
-    except errors.SynseError as e:
-        assert e.error_id == errors.FAILED_WRITE_COMMAND
 
 
 @pytest.mark.asyncio
@@ -223,23 +211,15 @@ async def test_write_command_failed_add(mock_get_device_info, mock_transaction_a
 async def test_write_command_bad_action_value(mock_get_device_info, mock_client_write, make_plugin):
     """Write when an invalid value is passed in for the action field."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.InvalidUsage):
         data = {'action': 1, 'raw': 'bar'}
         await write('rack-1', 'vec', '12345', data)
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
 
 
 @pytest.mark.asyncio
 async def test_write_command_bad_raw_value(mock_get_device_info, mock_client_write, make_plugin):
     """Write when an invalid value is passed in for the raw field."""
 
-    # FIXME - it would be nice to use pytest.raises, but it seems like it isn't
-    # properly trapping the exception for further testing.
-    try:
+    with pytest.raises(errors.InvalidUsage):
         data = {'action': 'foo', 'raw': 1}
         await write('rack-1', 'vec', '12345', data)
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS

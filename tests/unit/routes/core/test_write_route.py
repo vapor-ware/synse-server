@@ -6,7 +6,7 @@ import pytest
 from sanic.response import HTTPResponse
 
 import synse_server.commands
-from synse_server.errors import InvalidJsonError, SynseError
+from synse_server.errors import InvalidUsage, SynseError
 from synse_server.routes.core import write_route
 from synse_server.scheme.base_response import SynseResponse
 from tests import utils
@@ -55,7 +55,7 @@ async def test_synse_write_route_bad_json(mock_write, no_pretty_json):
     r = utils.make_request('/synse/write')
     r.body = data
 
-    with pytest.raises(InvalidJsonError):
+    with pytest.raises(InvalidUsage):
         await write_route(r, 'rack-1', 'vec', '123456')
 
 

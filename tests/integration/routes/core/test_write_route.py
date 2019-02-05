@@ -46,7 +46,7 @@ def test_write_invalid_endpoint_valid_data(app):
 
     for option, payload in valid_post_data.items():
         _, response = app.test_client.post(invalid_write_url, data=ujson.dumps(payload))
-        utils.test_error_json(response, errors.DEVICE_NOT_FOUND, 404)
+        utils.test_error_json(response, errors.NotFound, 404)
 
 
 def test_write_invalid_endpoint_invalid_data(app):
@@ -66,7 +66,7 @@ def test_write_invalid_endpoint_invalid_data(app):
     
     for option, payload in invalid_post_data.items():
         _, response = app.test_client.post(invalid_write_url, data=ujson.dumps(payload))
-        utils.test_error_json(response, errors.INVALID_ARGUMENTS, 400)
+        utils.test_error_json(response, errors.InvalidUsage, 400)
 
 
 def test_write_endpoint_post_not_allowed(app):

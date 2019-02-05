@@ -52,7 +52,7 @@ async def led_route(request, rack, board, device):
 
         if param_state:
             if param_state not in const.led_states:
-                raise errors.InvalidArgumentsError(
+                raise errors.InvalidUsage(
                     _('Invalid LED state "{}". Must be one of: {}').format(
                         param_state, const.led_states)
                 )
@@ -66,7 +66,7 @@ async def led_route(request, rack, board, device):
             try:
                 assert 0x000000 <= int(param_color, 16) <= 0xFFFFFF
             except Exception as e:
-                raise errors.InvalidArgumentsError(
+                raise errors.InvalidUsage(
                     _('Invalid color value ({}). Must be a hexadecimal '
                       'string between 000000 and FFFFFF').format(param_color)
                 ) from e
@@ -132,7 +132,7 @@ async def fan_route(request, rack, board, device):
     # TODO (etd): this could be generalized and incorporated into the validation
     #   done above, e.g. validate_query_params(request.raw_args, OneOf(['speed', 'speed_percent']))
     if all((param_speed_rpm, param_speed_percent)):
-        raise errors.InvalidArgumentsError(
+        raise errors.InvalidUsage(
             _('Invalid query params: Can only specify one of "speed" and '
               '"speed_percent", but both were given')
         )
@@ -210,7 +210,7 @@ async def power_route(request, rack, board, device):
         logger.debug(_('Power alias route: writing (query parameters: {})').format(qparams))
 
         if param_state not in const.power_actions:
-            raise errors.InvalidArgumentsError(
+            raise errors.InvalidUsage(
                 _('Invalid power state "{}". Must be one of: {}').format(
                     param_state, const.power_actions)
             )
@@ -265,7 +265,7 @@ async def boot_target_route(request, rack, board, device):
         logger.debug(_('Boot target alias route: writing (query parameters: {})').format(qparams))
 
         if param_target not in const.boot_targets:
-            raise errors.InvalidArgumentsError(
+            raise errors.InvalidUsage(
                 _('Invalid boot target "{}". Must be one of: {}').format(
                     param_target, const.boot_targets)
             )
@@ -317,7 +317,7 @@ async def lock_route(request, rack, board, device): # pylint: disable=unused-arg
         logger.debug(_('Lock alias route: writing (query parameters: {})').format(qparams))
 
         if param_action not in const.lock_actions:
-            raise errors.InvalidArgumentsError(
+            raise errors.InvalidUsage(
                 _('Invalid boot target "{}". Must be one of: {}').format(
                     param_action, const.lock_actions)
             )
