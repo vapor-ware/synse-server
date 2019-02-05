@@ -74,11 +74,8 @@ async def test_synse_lock_write_invalid(mock_validate_device_type, mock_write, n
 
     r = utils.make_request('/synse/lock?action=test')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await lock_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'test' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -126,5 +123,5 @@ async def test_synse_lock_route_bad_param(mock_validate_device_type, mock_write,
 
     r = utils.make_request('/synse/lock?unsupported=true')
 
-    with pytest.raises(errors.InvalidArgumentsError):
+    with pytest.raises(errors.InvalidUsage):
         await lock_route(r, 'rack-1', 'vec', '123456')

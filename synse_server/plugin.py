@@ -66,13 +66,13 @@ class PluginManager:
                 or a plugin with the same name is already being tracked.
         """
         if not isinstance(plugin, Plugin):
-            raise errors.PluginStateError(
+            raise errors.ServerError(
                 _('Only Plugin instances can be added to the manager')
             )
 
         plugin_id = plugin.id()
         if plugin_id in self.plugins:
-            raise errors.PluginStateError(
+            raise errors.ServerError(
                 _('Plugin ("{}") already exists in the manager').format(plugin_id)
             )
 

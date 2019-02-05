@@ -36,7 +36,7 @@ async def scan(rack=None, board=None, force=False):
     # Filter the scan results by rack.
     if rack is not None:
         if not cache_data:
-            raise errors.FailedScanCommandError(
+            raise errors.ServerError(
                 _('Unable to filter by resource - no scan results returned')
             )
 
@@ -45,7 +45,7 @@ async def scan(rack=None, board=None, force=False):
                 cache_data = r
                 break
         else:
-            raise errors.RackNotFoundError(
+            raise errors.NotFound(
                 _('Rack "{}" not found in scan results').format(rack)
             )
 
@@ -56,7 +56,7 @@ async def scan(rack=None, board=None, force=False):
                     cache_data = b
                     break
             else:
-                raise errors.BoardNotFoundError(
+                raise errors.NotFound(
                     _('Board "{}" not found in scan results').format(board)
                 )
 

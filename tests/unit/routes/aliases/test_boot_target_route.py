@@ -74,11 +74,8 @@ async def test_synse_boot_target_write_invalid(mock_validate_device_type, mock_w
 
     r = utils.make_request('/synse/boot_target?target=test')
 
-    try:
+    with pytest.raises(errors.InvalidUsage):
         await boot_target_route(r, 'rack-1', 'vec', '123456')
-    except errors.SynseError as e:
-        assert e.error_id == errors.INVALID_ARGUMENTS
-        assert 'test' in e.args[0]
 
 
 @pytest.mark.asyncio
@@ -113,5 +110,5 @@ async def test_synse_boot_target_route_bad_param(mock_validate_device_type, mock
 
     r = utils.make_request('/synse/boot_target?unsupported=true')
 
-    with pytest.raises(errors.InvalidArgumentsError):
+    with pytest.raises(errors.InvalidUsage):
         await boot_target_route(r, 'rack-1', 'vec', '123456')

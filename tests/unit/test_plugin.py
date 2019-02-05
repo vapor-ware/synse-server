@@ -97,7 +97,7 @@ def test_plugin_manager_get_no_value():
 def test_plugin_manager_add_invalid():
     """Add an invalid plugin (a string is not a valid plugin)."""
     pm = plugin.PluginManager()
-    with pytest.raises(errors.PluginStateError):
+    with pytest.raises(errors.ServerError):
         pm.add('plugin')
 
 
@@ -105,7 +105,7 @@ def test_plugin_manager_add_already_exists(mock_plugin):
     """Add a plugin that is already managed by the Manager."""
     pm = plugin.PluginManager()
     pm.plugins['+tcp@localhost:9999'] = 'foo'
-    with pytest.raises(errors.PluginStateError):
+    with pytest.raises(errors.ServerError):
         pm.add(mock_plugin)
 
 

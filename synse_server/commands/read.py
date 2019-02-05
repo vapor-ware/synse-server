@@ -31,7 +31,7 @@ async def read(rack, board, device):
     _plugin = plugin.get_plugin(plugin_name)
     logger.debug(_('Got plugin: {}').format(_plugin))
     if not _plugin:
-        raise errors.PluginNotFoundError(
+        raise errors.NotFound(
             _('Unable to find plugin named "{}" to read').format(plugin_name)
         )
 
@@ -96,9 +96,9 @@ async def read(rack, board, device):
                         )
                     )
             else:
-                raise errors.FailedReadCommandError(str(ex)) from ex
+                raise errors.ServerError(str(ex)) from ex
         else:
-            raise errors.FailedReadCommandError(str(ex)) from ex
+            raise errors.ServerError(str(ex)) from ex
 
     return ReadResponse(
         device=dev,

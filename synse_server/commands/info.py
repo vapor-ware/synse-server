@@ -20,7 +20,7 @@ async def info(rack, board=None, device=None):
     logger.debug(_('Info Command (args: {}, {}, {})').format(rack, board, device))
 
     if rack is None:
-        raise errors.InvalidArgumentsError(
+        raise errors.InvalidUsage(
             _('No rack specified when issuing info command')
         )
 
@@ -80,7 +80,7 @@ def get_resources(info_cache, rack=None, board=None, device=None):
         r = info_cache.get(rack)
         logger.debug(_('Rack info from cache: {}').format(r))
         if not r:
-            raise errors.RackNotFoundError(
+            raise errors.NotFound(
                 _('Unable to find rack "{}" in info cache').format(rack)
             )
 
@@ -88,7 +88,7 @@ def get_resources(info_cache, rack=None, board=None, device=None):
         b = r['boards'].get(board)
         logger.debug(_('Board info from cache: {}').format(b))
         if not b:
-            raise errors.BoardNotFoundError(
+            raise errors.NotFound(
                 _('Unable to find board "{}" in info cache').format(board)
             )
 
@@ -96,7 +96,7 @@ def get_resources(info_cache, rack=None, board=None, device=None):
         d = b['devices'].get(device)
         logger.debug(_('Device info from cache: {}').format(d))
         if not d:
-            raise errors.DeviceNotFoundError(
+            raise errors.NotFound(
                 _('Unable to find device "{}" in info cache').format(device)
             )
 
