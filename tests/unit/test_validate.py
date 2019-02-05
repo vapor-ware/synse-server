@@ -78,21 +78,21 @@ async def test_validate_device_type(patch_device_info, clear_caches, device_type
 @pytest.mark.asyncio
 async def test_validate_device_type_no_device():
     """Test validating a device when the specified device doesn't exist."""
-    with pytest.raises(errors.DeviceNotFoundError):
+    with pytest.raises(errors.NotFound):
         await validate.validate_device_type(['thermistor'], 'foo', 'bar', 'baz')
 
 
 @pytest.mark.asyncio
 async def test_validate_device_type_no_match(patch_device_info, clear_caches):
     """Test validating a device when the types don't match."""
-    with pytest.raises(errors.InvalidDeviceType):
+    with pytest.raises(errors.ServerError):
         await validate.validate_device_type(['led'], 'rack-1', 'vec', '12345')
 
 
 @pytest.mark.asyncio
 async def test_validate_device_type_no_match_multiple(patch_device_info, clear_caches):
     """Test validating a device when the types don't match."""
-    with pytest.raises(errors.InvalidDeviceType):
+    with pytest.raises(errors.ServerError):
         await validate.validate_device_type(['led', 'something'], 'rack-1', 'vec', '12345')
 
 
@@ -118,7 +118,7 @@ def test_validate_query_params(params, valid, expected):
 )
 def test_validate_query_params_invalid(params, valid):
     """Test validating query parameters when invalid parameters are given."""
-    with pytest.raises(errors.InvalidArgumentsError):
+    with pytest.raises(errors.InvalidUsage):
         validate.validate_query_params(params, *valid)
 
 
@@ -147,5 +147,5 @@ async def test_validate_no_query_params2():
         """Dummy function for testing the decorator."""
         return request
 
-    with pytest.raises(errors.InvalidArgumentsError):
+    with pytest.raises(errors.InvalidUsage):
         await test_fn(utils.make_request('/synse/endpoint?test=param'))

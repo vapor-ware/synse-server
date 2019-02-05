@@ -142,7 +142,7 @@ async def get_device_info(rack, board, device):
     dev = _cache.get(cid)
 
     if dev is None:
-        raise errors.DeviceNotFoundError(
+        raise errors.NotFound(
             _('{} does not correspond with a known device').format(
                 '/'.join([rack, board, device]))
         )
@@ -414,7 +414,7 @@ async def _build_capabilities_cache():
     # If we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugin_count != 0 and plugin_count == len(failures):
-        raise errors.InternalApiError(
+        raise errors.ServerError(
             _('Failed to get capabilities for all plugins: {}').format(failures)
         )
 
@@ -483,7 +483,7 @@ async def _build_device_info_cache():
     # If we fail to read from all plugins (assuming there were any), then we
     # can raise an error since it is likely something is mis-configured.
     if plugin_count != 0 and plugin_count == len(failures):
-        raise errors.InternalApiError(
+        raise errors.ServerError(
             _('Failed to scan all plugins: {}').format(failures)
         )
 

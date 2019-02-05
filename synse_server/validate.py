@@ -29,7 +29,7 @@ async def validate_device_type(device_type, rack, board, device):
     # The type of a device should be the last element in it's kind namespace.
     _type = device.kind.split('.')[-1].lower()
     if _type not in [t.lower() for t in device_type]:
-        raise errors.InvalidDeviceType(
+        raise errors.ServerError(
             _('Device ({}) is not a supported type {}').format(_type, device_type)
         )
 
@@ -57,7 +57,7 @@ def validate_query_params(raw_args, *valid_params):
     params = {}
     for k, v in raw_args.items():
         if k not in valid_params:
-            raise errors.InvalidArgumentsError(
+            raise errors.InvalidUsage(
                 _('Invalid query param: {} (valid params: {})').format(k, valid_params)
             )
         params[k] = v
@@ -78,7 +78,7 @@ def no_query_params():
         @wraps(f)
         async def inner(request, *args, **kwargs):  # pylint: disable=missing-docstring
             if len(request.raw_args) != 0:
-                raise errors.InvalidArgumentsError(
+                raise errors.InvalidUsage(
                     _('Endpoint does not support query parameters but got: {}').format(
                         request.raw_args)
                 )

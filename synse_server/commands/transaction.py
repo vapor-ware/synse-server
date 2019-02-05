@@ -34,7 +34,7 @@ async def check_transaction(transaction_id):
     # Otherwise, get the specified transaction.
     transaction = await cache.get_transaction(transaction_id)
     if not transaction:
-        raise errors.TransactionNotFoundError(
+        raise errors.NotFound(
             _('Transaction with id "{}" not found').format(transaction_id)
         )
 
@@ -49,20 +49,20 @@ async def check_transaction(transaction_id):
         #
         #   alternatively, we could think about having an internal api command to
         #   essentially dump the active transactions so that we can rebuild the cache.
-        raise errors.TransactionNotFoundError(
+        raise errors.NotFound(
             _('Unable to determine managing plugin for transaction {}.')
             .format(transaction_id)
         )
 
     _plugin = plugin.get_plugin(plugin_name)
     if not _plugin:
-        raise errors.PluginNotFoundError(
+        raise errors.NotFound(
             _('Unable to find plugin "{}"').format(plugin_name)
         )
 
     try:
         resp = _plugin.client.transaction(transaction_id)
     except grpc.RpcError as ex:
-        raise errors.FailedTransactionCommandError(str(ex)) from ex
+        raise errors.ServerError(str(ex)) from ex
 
     return scheme.TransactionResponse(transaction_id, context, resp[0])
