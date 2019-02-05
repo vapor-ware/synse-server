@@ -6,9 +6,9 @@ from sanic import Sanic
 from sanic.response import text
 
 from synse_server import errors
+from synse_server.api import http, websocket
 from synse_server.cache import clear_all_meta_caches, configure_cache
 from synse_server.log import logger, setup_logger
-from synse_server.routes import aliases, base, core
 
 
 def new_app():
@@ -27,9 +27,9 @@ def new_app():
     app.config.LOGO = None
 
     # Register the endpoint blueprints with the application.
-    app.blueprint(aliases.bp)
-    app.blueprint(base.bp)
-    app.blueprint(core.bp)
+    app.blueprint(http.core)
+    app.blueprint(http.v3)
+    app.blueprint(websocket.v3)
 
     # Disable favicon
     #
