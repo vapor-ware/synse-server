@@ -45,7 +45,7 @@ class PluginManager:
             None: The given address does not correspond to a known
                 Plugin instance.
         """
-        for _, plugin in self.plugins.items():
+        for __, plugin in self.plugins.items():
             if plugin.address == address:
                 return plugin
         return None

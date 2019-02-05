@@ -7,7 +7,6 @@ Command functions are imported here for easier importing elsewhere,
 e.g. instead of having to do 'from synse.commands.scan import scan'
 you can simply 'from synse.commands import scan'.
 """
-# pylint: disable=unused-import
 
 from .capabilities import capabilities
 from .config import config

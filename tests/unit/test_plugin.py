@@ -1,5 +1,4 @@
 """Test the 'synse_server.plugin' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
 
@@ -273,7 +272,8 @@ def test_register_plugins_ok(tmpsocket, grpc_timeout, mock_client_test_ok, mock_
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_already_exists(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_already_exists(tmpsocket, grpc_timeout,
+                                         mock_client_test_ok, mock_client_meta_ok):
     """Register plugins when the plugins were already registered."""
 
     # create the socket
@@ -305,7 +305,8 @@ def test_register_plugins_already_exists(tmpsocket, grpc_timeout, mock_client_te
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_new(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_new(tmpsocket, grpc_timeout, mock_client_test_ok,
+                              mock_client_meta_ok):
     """Re-register, adding a new plugin."""
 
     # create the socket
@@ -345,7 +346,8 @@ def test_register_plugins_new(tmpsocket, grpc_timeout, mock_client_test_ok, mock
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_old(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_old(tmpsocket, grpc_timeout, mock_client_test_ok,
+                              mock_client_meta_ok):
     """Re-register, removing an old plugin."""
 
     # create the socket
@@ -389,7 +391,8 @@ def test_register_plugins_old(tmpsocket, grpc_timeout, mock_client_test_ok, mock
     assert p.protocol == 'unix'
 
 
-def test_register_plugins_from_discovery(grpc_timeout, monkeypatch, mock_client_test_ok, mock_client_meta_ok):
+def test_register_plugins_from_discovery(grpc_timeout, monkeypatch, mock_client_test_ok,
+                                         mock_client_meta_ok):
     """Register plugins that we get back from discovery."""
 
     assert len(plugin.Plugin.manager.plugins) == 0
@@ -484,7 +487,8 @@ def test_register_unix_plugins(tmpsocket, grpc_timeout, mock_client_test_ok, moc
     assert p2.address == path2
 
 
-def test_register_unix_plugin_already_exists(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_unix_plugin_already_exists(tmpsocket, grpc_timeout, mock_client_test_ok,
+                                             mock_client_meta_ok):
     """Test registering unix plugin when the plugin was already registered."""
 
     # create the socket
@@ -556,7 +560,8 @@ def test_register_unix_plugin_no_socket_no_path(grpc_timeout):
     assert len(registered) == 0
 
 
-def test_register_unix_plugin_no_config_path(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_unix_plugin_no_config_path(tmpsocket, grpc_timeout, mock_client_test_ok,
+                                             mock_client_meta_ok):
     """Test registering unix plugin when a configuration without a path is specified"""
 
     # create the socket
@@ -639,7 +644,8 @@ def test_register_tcp_plugins(grpc_timeout, mock_client_test_ok, mock_client_met
     assert p.address == 'localhost:5001'
 
 
-def test_register_tcp_plugin_already_exists(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
+def test_register_tcp_plugin_already_exists(grpc_timeout, mock_client_test_ok,
+                                            mock_client_meta_ok):
     """Test registering TCP plugin when the plugin was already registered."""
     assert len(plugin.Plugin.manager.plugins) == 0
 

@@ -13,7 +13,6 @@ def reset_state():
     """Fixture to reset all Synse Server state between tests."""
 
     _old = const.SOCKET_DIR
-    #const.SOCKET_DIR = data_dir
 
     yield
 

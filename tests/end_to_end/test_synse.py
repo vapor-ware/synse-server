@@ -8,7 +8,6 @@ of all components. They do not care about the values that
 are returned as much as that the responses/schemes return
 as expected.
 """
-# pylint: disable=line-too-long
 
 import os
 import time
@@ -107,7 +106,6 @@ class EmulatorDevices:
     def is_lock(cls, device):
         """Check if the device ID corresponds to a lock type device."""
         return device in cls.lock
-
 
 
 def url_unversioned(uri):
@@ -426,7 +424,7 @@ class TestPlugins:
         assert plugin['name'] == 'emulator plugin'
         assert plugin['network'] == {
             'protocol': 'unix',
-            'address':'/tmp/synse/procs/emulator.sock'
+            'address': '/tmp/synse/procs/emulator.sock'
         }
 
 
@@ -600,7 +598,10 @@ class TestWrite:
             assert transaction['status'] == 'done'
 
     @pytest.mark.parametrize(
-        'device', filter(lambda x: x not in EmulatorDevices.fan + EmulatorDevices.led + EmulatorDevices.lock, EmulatorDevices.all)
+        'device', filter(
+            lambda x: x not in EmulatorDevices.fan + EmulatorDevices.led + EmulatorDevices.lock,
+            EmulatorDevices.all
+        )
     )
     def test_write_error(self, device):
         """Test Synse Server's 'write' route, specifying non-writable devices."""
@@ -790,7 +791,10 @@ class TestLED:
         """Test Synse Server's 'led' route, specifying valid LED devices to write to
         for a single writing value.
         """
-        response = requests.get(url('led/rack-1/vec/{}'.format(device)), params={'color': 'ff00ff'})
+        response = requests.get(
+            url('led/rack-1/vec/{}'.format(device)),
+            params={'color': 'ff00ff'}
+        )
         assert response.status_code == 200
 
         data = response.json()
@@ -842,7 +846,10 @@ class TestLED:
     )
     def test_led_write_bad_device(self, device):
         """Test Synse Server's 'led' route, specifying a non-LED device to write to."""
-        response = requests.get(url('led/rack-1/vec/{}'.format(device)), params={'color': 'ff0000'})
+        response = requests.get(
+            url('led/rack-1/vec/{}'.format(device)),
+            params={'color': 'ff0000'}
+        )
         assert response.status_code == 400
 
         data = response.json()
@@ -963,7 +970,10 @@ class TestLock:
     )
     def test_lock_write_ok(self, device):
         """Test Synse Server's 'lock' route, specifying valid lock devices to write to."""
-        response = requests.get(url('lock/rack-1/vec/{}'.format(device)), params={'action': 'unlock'})
+        response = requests.get(
+            url('lock/rack-1/vec/{}'.format(device)),
+            params={'action': 'unlock'}
+        )
         assert response.status_code == 200
 
         data = response.json()
@@ -992,7 +1002,10 @@ class TestLock:
     )
     def test_lock_write_bad_device(self, device):
         """Test Synse Server's 'lock' route, specifying non-lock devices to write to."""
-        response = requests.get(url('lock/rack-1/vec/{}'.format(device)), params={'action': 'unlock'})
+        response = requests.get(
+            url('lock/rack-1/vec/{}'.format(device)),
+            params={'action': 'unlock'}
+        )
         assert response.status_code == 400
 
         data = response.json()

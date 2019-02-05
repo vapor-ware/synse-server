@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.aliases' Synse Server module's led route."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
 import pytest
@@ -57,7 +56,10 @@ def mockvalidatedevicetype(device_type, rack, board, device):
 @pytest.fixture()
 def mock_validate_device_type(monkeypatch):
     """Fixture to monkeypatch the validate_device_type method."""
-    mock = asynctest.CoroutineMock(synse_server.validate.validate_device_type, side_effect=mockvalidatedevicetype)
+    mock = asynctest.CoroutineMock(
+        synse_server.validate.validate_device_type,
+        side_effect=mockvalidatedevicetype
+    )
     monkeypatch.setattr(synse_server.validate, 'validate_device_type', mock)
     return mock_validate_device_type
 
@@ -144,7 +146,8 @@ async def test_synse_led_write_valid_1(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"state","data":"on"},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == \
+        b'[{"context":{"action":"state","data":"on"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -157,7 +160,8 @@ async def test_synse_led_write_valid_2(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"state","data":"off"},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == \
+        b'[{"context":{"action":"state","data":"off"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -170,7 +174,8 @@ async def test_synse_led_write_valid_3(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"state","data":"blink"},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == \
+        b'[{"context":{"action":"state","data":"blink"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 
@@ -183,7 +188,8 @@ async def test_synse_led_write_valid_5(mock_validate_device_type, mock_write, no
     result = await led_route(r, 'rack-1', 'vec', '123456')
 
     assert isinstance(result, HTTPResponse)
-    assert result.body == b'[{"context":{"action":"color","data":"ffffff"},"transaction":"rack-1-vec-123456"}]'
+    assert result.body == \
+        b'[{"context":{"action":"color","data":"ffffff"},"transaction":"rack-1-vec-123456"}]'
     assert result.status == 200
 
 

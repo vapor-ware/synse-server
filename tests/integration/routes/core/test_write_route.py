@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.core' module's write route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 import ujson
 
@@ -7,7 +6,8 @@ from synse_server import errors
 from synse_server.version import __api_version__
 from tests import utils
 
-invalid_write_url = '/synse/{}/write/invalid-rack/invalid-board/invalid-device'.format(__api_version__)
+invalid_write_url = '/synse/{}/write/invalid-rack/invalid-board/invalid-device'\
+    .format(__api_version__)
 
 
 def test_write_invalid_endpoint_valid_data(app):
@@ -63,7 +63,7 @@ def test_write_invalid_endpoint_invalid_data(app):
             'incorrect_key': 'valid'
         }
     }
-    
+
     for option, payload in invalid_post_data.items():
         _, response = app.test_client.post(invalid_write_url, data=ujson.dumps(payload))
         utils.test_error_json(response, errors.InvalidUsage, 400)

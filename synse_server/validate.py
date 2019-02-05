@@ -24,7 +24,7 @@ async def validate_device_type(device_type, rack, board, device):
         errors.InvalidDeviceType: The device does not match the given type.
         errors.DeviceNotFoundError: The specified device is not found.
     """
-    __, device = await cache.get_device_info(rack, board, device)  # pylint: disable=unused-variable
+    __, device = await cache.get_device_info(rack, board, device)
 
     # The type of a device should be the last element in it's kind namespace.
     _type = device.kind.split('.')[-1].lower()
@@ -74,9 +74,9 @@ def no_query_params():
         errors.InvalidArgumentsError: Query parameters were found with
             the request.
     """
-    def decorator(f):  # pylint: disable=missing-docstring
+    def decorator(f):
         @wraps(f)
-        async def inner(request, *args, **kwargs):  # pylint: disable=missing-docstring
+        async def inner(request, *args, **kwargs):
             if len(request.raw_args) != 0:
                 raise errors.InvalidUsage(
                     _('Endpoint does not support query parameters but got: {}').format(

@@ -1,5 +1,4 @@
 """Test the 'synse_server.commands.write' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import os
 import shutil
@@ -89,7 +88,10 @@ def mockwritefail(self, rack, board, device, data):
 @pytest.fixture()
 def mock_get_device_info(monkeypatch):
     """Fixture to monkeypatch the cache device info lookup."""
-    mock = asynctest.CoroutineMock(synse_server.cache.get_device_info, side_effect=mockgetdeviceinfo)
+    mock = asynctest.CoroutineMock(
+        synse_server.cache.get_device_info,
+        side_effect=mockgetdeviceinfo
+    )
     monkeypatch.setattr(synse_server.cache, 'get_device_info', mock)
     return mock_get_device_info
 
@@ -97,7 +99,10 @@ def mock_get_device_info(monkeypatch):
 @pytest.fixture()
 def mock_transaction_add(monkeypatch):
     """Fixture to monkeypatch the cache transaction add."""
-    mock = asynctest.CoroutineMock(synse_server.cache.add_transaction, side_effect=mocktransactionadd)
+    mock = asynctest.CoroutineMock(
+        synse_server.cache.add_transaction,
+        side_effect=mocktransactionadd
+    )
     monkeypatch.setattr(synse_server.cache, 'add_transaction', mock)
     return mock_transaction_add
 
@@ -186,7 +191,8 @@ async def test_write_command(mock_get_device_info, mock_client_write, make_plugi
 
 
 @pytest.mark.asyncio
-async def test_write_command_failed_add(mock_get_device_info, mock_transaction_add, mock_client_write, make_plugin):
+async def test_write_command_failed_add(mock_get_device_info, mock_transaction_add,
+                                        mock_client_write, make_plugin):
     """Get a WriteResponse when the plugin exists but the transaction isn't added."""
 
     data = {'action': 'foo', 'raw': 'bar'}
@@ -208,7 +214,8 @@ async def test_write_command_failed_add(mock_get_device_info, mock_transaction_a
 
 
 @pytest.mark.asyncio
-async def test_write_command_bad_action_value(mock_get_device_info, mock_client_write, make_plugin):
+async def test_write_command_bad_action_value(mock_get_device_info,
+                                              mock_client_write, make_plugin):
     """Write when an invalid value is passed in for the action field."""
 
     with pytest.raises(errors.InvalidUsage):
