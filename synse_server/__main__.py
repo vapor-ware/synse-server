@@ -1,19 +1,21 @@
-"""Entry point for Synse Server.
+"""Entry point script for Synse Server.
 
-This entry point script will run when the Synse Server
-module is called directly. It starts up a default
-configuration of Synse Server listening on host '0.0.0.0'
-and port 5000.
+This entry point script runs when the 'synse_server' module is called directly.
+Synse Server is initialized and run via this entry point in its Docker image.
+
+The application is configured to listen on host 0.0.0.0, port 5000.
 
 Example Usage:
 
-    $ python synse
+    $ python synse_server
 """
 
-from synse_server.factory import make_app
+from synse_server.server import Synse
 
-app = make_app()
-app.run(
+# Initialize a new instance of Synse Server.
+server = Synse(
     host='0.0.0.0',
     port=5000,
 )
+
+server.run()

@@ -2,9 +2,9 @@
 and virtual devices.
 """
 
-__title__ = 'synse'
+__title__ = 'synse_server'
 __version__ = '2.2.8'
-__description__ = 'Synse Server'
+__description__ = 'An API to monitor and control physical and virtual devices.'
 __author__ = 'Vapor IO'
 __author_email__ = 'vapor@vapor.io'
 __url__ = 'https://github.com/vapor-ware/synse-server'
