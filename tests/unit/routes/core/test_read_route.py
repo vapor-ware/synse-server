@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.core' Synse Server module's read route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 import asynctest
 import pytest

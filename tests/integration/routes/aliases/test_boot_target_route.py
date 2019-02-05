@@ -1,11 +1,11 @@
 """Test the 'synse_server.routes.aliases' module's boot target route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 from synse_server import errors
 from synse_server.version import __api_version__
 from tests import utils
 
-invalid_boot_target_route_url = '/synse/{}/boot_target/invalid-rack/invalid-board/invalid-device'.format(__api_version__)
+invalid_boot_target_route_url = '/synse/{}/boot_target/invalid-rack/invalid-board/invalid-device'\
+    .format(__api_version__)
 
 
 def test_boot_target_endpoint_invalid(app):

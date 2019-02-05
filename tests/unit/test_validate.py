@@ -1,5 +1,4 @@
 """Test the 'synse_server.validate' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
 import pytest
@@ -52,7 +51,10 @@ async def mock_get_device_info_cache():
 @pytest.fixture()
 def patch_device_info(monkeypatch):
     """Fixture to monkeypatch the get_device_info_cache method."""
-    mock = asynctest.CoroutineMock(cache.get_device_info_cache, side_effect=mock_get_device_info_cache)
+    mock = asynctest.CoroutineMock(
+        cache.get_device_info_cache,
+        side_effect=mock_get_device_info_cache
+    )
     monkeypatch.setattr(cache, 'get_device_info_cache', mock)
     return patch_device_info
 

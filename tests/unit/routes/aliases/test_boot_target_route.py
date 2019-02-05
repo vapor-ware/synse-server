@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.aliases' Synse Server module's boot target route."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 import asynctest
 import pytest
@@ -50,13 +49,17 @@ def mockvalidatedevicetype(device_type, rack, board, device):
 @pytest.fixture()
 def mock_validate_device_type(monkeypatch):
     """Fixture to monkeypatch the validate_device_type method."""
-    mock = asynctest.CoroutineMock(synse_server.validate.validate_device_type, side_effect=mockvalidatedevicetype)
+    mock = asynctest.CoroutineMock(
+        synse_server.validate.validate_device_type,
+        side_effect=mockvalidatedevicetype
+    )
     monkeypatch.setattr(synse_server.validate, 'validate_device_type', mock)
     return mock_validate_device_type
 
 
 @pytest.mark.asyncio
-async def test_synse_boot_target_read(mock_validate_device_type, mock_read, no_pretty_json):
+async def test_synse_boot_target_read(mock_validate_device_type,
+                                      mock_read, no_pretty_json):
     """Test a successful read."""
 
     r = utils.make_request('/synse/boot_target')
@@ -69,7 +72,8 @@ async def test_synse_boot_target_read(mock_validate_device_type, mock_read, no_p
 
 
 @pytest.mark.asyncio
-async def test_synse_boot_target_write_invalid(mock_validate_device_type, mock_write, no_pretty_json):
+async def test_synse_boot_target_write_invalid(mock_validate_device_type,
+                                               mock_write, no_pretty_json):
     """Test writing boot target with an invalid target specified."""
 
     r = utils.make_request('/synse/boot_target?target=test')
@@ -79,7 +83,8 @@ async def test_synse_boot_target_write_invalid(mock_validate_device_type, mock_w
 
 
 @pytest.mark.asyncio
-async def test_synse_boot_target_write_valid_1(mock_validate_device_type, mock_write, no_pretty_json):
+async def test_synse_boot_target_write_valid_1(mock_validate_device_type,
+                                               mock_write, no_pretty_json):
     """Test writing boot target with a valid target specified."""
 
     r = utils.make_request('/synse/boot_target?target=pxe')
@@ -92,7 +97,8 @@ async def test_synse_boot_target_write_valid_1(mock_validate_device_type, mock_w
 
 
 @pytest.mark.asyncio
-async def test_synse_boot_target_write_valid_2(mock_validate_device_type, mock_write, no_pretty_json):
+async def test_synse_boot_target_write_valid_2(mock_validate_device_type,
+                                               mock_write, no_pretty_json):
     """Test writing boot target with a valid target specified."""
 
     r = utils.make_request('/synse/boot_target?target=hdd')
@@ -105,7 +111,8 @@ async def test_synse_boot_target_write_valid_2(mock_validate_device_type, mock_w
 
 
 @pytest.mark.asyncio
-async def test_synse_boot_target_route_bad_param(mock_validate_device_type, mock_write, no_pretty_json):
+async def test_synse_boot_target_route_bad_param(mock_validate_device_type,
+                                                 mock_write, no_pretty_json):
     """Test setting boot target, passing an unsupported query param."""
 
     r = utils.make_request('/synse/boot_target?unsupported=true')

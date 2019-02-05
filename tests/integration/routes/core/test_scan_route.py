@@ -1,5 +1,4 @@
 """Test the 'synse_server.routes.core' module's scan route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 import ujson
 

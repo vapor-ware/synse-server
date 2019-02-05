@@ -1,5 +1,4 @@
 """Test the 'synse_server.commands.transaction' Synse Server module."""
-# pylint: disable=redefined-outer-name,unused-argument,line-too-long
 
 
 import asynctest
@@ -46,7 +45,10 @@ def mockchecktransactionfail(self, transaction_id):
 @pytest.fixture()
 def mock_get_transaction(monkeypatch):
     """Fixture to monkeypatch the cache transaction lookup."""
-    mock = asynctest.CoroutineMock(synse_server.cache.get_transaction, side_effect=mockgettransaction)
+    mock = asynctest.CoroutineMock(
+        synse_server.cache.get_transaction,
+        side_effect=mockgettransaction
+    )
     monkeypatch.setattr(synse_server.cache, 'get_transaction', mock)
     return mock_get_transaction
 
@@ -106,7 +108,8 @@ async def test_transaction_command_no_plugin(mock_get_transaction):
 
 
 @pytest.mark.asyncio
-async def test_transaction_command_grpc_err(mock_get_transaction, mock_client_transaction_fail, make_plugin):
+async def test_transaction_command_grpc_err(mock_get_transaction,
+                                            mock_client_transaction_fail, make_plugin):
     """Get a TransactionResponse when the plugin exists but cant communicate with it."""
 
     with pytest.raises(errors.ServerError):

@@ -88,14 +88,14 @@ async def fan_sensors():
 
         logger.debug('FAN SENSORS')
         is_temp = v.output[0].name.lower() == 'temperature' \
-                  and v.metadata['model'].lower() == 'max11610'
+            and v.metadata['model'].lower() == 'max11610'
         is_pressure = v.output[0].name.lower() == 'pressure' \
-                      and v.metadata['model'].lower() == 'sdp610'
+            and v.metadata['model'].lower() == 'sdp610'
 
         if is_temp or is_pressure:
-            rack = v.location.rack # string (vec1-c1-wrigley for example)
-            board = v.location.board # string (vec for example)
-            device = v.uid # string (uuid - only unique to one rack)
+            rack = v.location.rack  # string (vec1-c1-wrigley for example)
+            board = v.location.board  # string (vec for example)
+            device = v.uid  # string (uuid - only unique to one rack)
 
             # Find the device in the scan_cache.
             scan_cache_board = None
@@ -118,7 +118,7 @@ async def fan_sensors():
                 logger.warning('Failed to get reading for {}-{}-{} for fan_sensors {}.'.format(
                     rack, board, device, e))
             else:
-                single_reading = resp.data # Single sensor reading.
+                single_reading = resp.data  # Single sensor reading.
                 logger.debug('fan_sensors data: {}.'.format(single_reading))
                 # Wedge in the VEC name that we received this data from.
                 # That way auto_fan can map the data to a VEC.
@@ -156,9 +156,11 @@ async def fan_sensors():
                     # That would imply a mapping issue or some other bug.
                     if fan_sensor_key in new_readings['racks'][rack]:
                         message = 'fan_sensors avoiding overwrite of existing reading [{}] at ' \
-                                  'new_readings[racks][{}][{}] with [{}]'.format(
-                                      new_readings['racks'][rack][fan_sensor_key],
-                                      rack, fan_sensor_key, reading_value)
+                                  'new_readings[racks][{}][{}] with [{}]'\
+                            .format(
+                                new_readings['racks'][rack][fan_sensor_key],
+                                rack, fan_sensor_key, reading_value
+                            )
                         logger.error(message)
                         raise ValueError(message)
                     # No existing reading in the result set, safe to add it.

@@ -1,5 +1,4 @@
 """Test the 'synse_server.discovery.kubernetes' Synse Server module."""
-# pylint: disable=unused-argument,missing-docstring
 
 import kubernetes
 import pytest

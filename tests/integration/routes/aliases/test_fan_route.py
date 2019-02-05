@@ -1,11 +1,11 @@
 """Test the 'synse_server.routes.aliases' module's fan route."""
-# pylint: disable=redefined-outer-name,unused-argument
 
 from synse_server import errors
 from synse_server.version import __api_version__
 from tests import utils
 
-invalid_fan_route_url = '/synse/{}/fan/invalid-rack/invalid-board/invalid-device'.format(__api_version__)
+invalid_fan_route_url = '/synse/{}/fan/invalid-rack/invalid-board/invalid-device'\
+    .format(__api_version__)
 
 
 def test_fan_endpoint_invalid(app):
