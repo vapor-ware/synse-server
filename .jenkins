@@ -52,7 +52,7 @@ pipeline {
       steps {
         sh 'make test-unit'
         sh 'codecov'
-        sh 'make test-integration'
+        // sh 'make test-integration'
       }
       post {
         success {
