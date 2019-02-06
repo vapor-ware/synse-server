@@ -43,7 +43,7 @@ for tag in ${tags}; do
     echo -e "${green}tag: ${image}:${tag}[-slim]${nc}"
 
     # build the SLIM version of the tag
-    docker build -f dockerfile/synse.dockerfile \
+    docker build \
 		--label build-date=${build_date} \
 		--label version=${version} \
 		--label commit=${git_commit} \
@@ -51,7 +51,7 @@ for tag in ${tags}; do
 		-t "${image}:${tag}-slim" .
 
     # build the FULL version of the tag
-    docker build -f dockerfile/synse.dockerfile \
+    docker build \
 		--label build-date=${build_date} \
 		--label version=${version} \
 		--label commit=${git_commit} \
