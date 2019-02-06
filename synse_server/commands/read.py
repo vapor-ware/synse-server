@@ -1,6 +1,7 @@
 """Command handler for the `read` route."""
 
 import grpc
+
 from synse_grpc import api
 
 from synse_server import cache, errors, plugin, utils
