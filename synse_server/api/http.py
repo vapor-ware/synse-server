@@ -3,6 +3,8 @@
 from sanic import Blueprint
 from sanic.response import text
 
+from synse_server.log import logger
+
 # Blueprint for the Synse core (version-less) routes.
 core = Blueprint('core-http')
 

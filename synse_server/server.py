@@ -80,8 +80,8 @@ class Synse:
 
         # Make sure that the filesystem layout needed by Synse Server
         # is present. If not, create the required directories.
-        os.makedirs(path=self._server_config_dir, exist_ok=True)
-        os.makedirs(path=self._socket_dir, exist_ok=True)
+        os.makedirs(self._server_config_dir, exist_ok=True)
+        os.makedirs(self._socket_dir, exist_ok=True)
 
         # Load the application configuration(s).
         self.reload_config()
