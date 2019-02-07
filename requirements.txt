@@ -4,34 +4,39 @@
 #
 #    pip-compile --output-file requirements.txt setup.py
 #
-aiocache==0.8.0
-aiofiles==0.3.2           # via sanic
+adal==1.2.1               # via kubernetes
+aiocache==0.10.1
+aiofiles==0.4.0           # via sanic
+asn1crypto==0.24.0        # via cryptography
 bison==0.1.0
-cachetools==2.1.0         # via google-auth
-certifi==2018.4.16        # via kubernetes, requests
+cachetools==3.1.0         # via google-auth
+certifi==2018.11.29       # via kubernetes, requests
+cffi==1.11.5              # via cryptography
 chardet==3.0.4            # via requests
-google-auth==1.5.0        # via kubernetes
-grpcio==1.10.1
+cryptography==2.5         # via adal
+google-auth==1.6.2        # via kubernetes
+grpcio==1.18.0
 httptools==0.0.11         # via sanic
-idna==2.7                 # via requests
-ipaddress==1.0.22         # via kubernetes
-kubernetes==6.0.0
-multidict==4.4.2          # via sanic
-oauthlib==2.1.0           # via requests-oauthlib
-protobuf==3.5.2.post1     # via grpcio
-pyasn1-modules==0.2.1     # via google-auth
-pyasn1==0.4.3             # via pyasn1-modules, rsa
-python-dateutil==2.7.3    # via kubernetes
+idna==2.8                 # via requests
+kubernetes==8.0.1
+multidict==4.5.2          # via sanic
+oauthlib==3.0.1           # via requests-oauthlib
+protobuf==3.6.1
+pyasn1-modules==0.2.4     # via google-auth
+pyasn1==0.4.5             # via pyasn1-modules, rsa
+pycparser==2.19           # via cffi
+pyjwt==1.7.1              # via adal
+python-dateutil==2.8.0    # via adal, kubernetes
 pyyaml==4.2b4
-requests-oauthlib==1.0.0  # via kubernetes
+requests-oauthlib==1.2.0  # via kubernetes
 requests==2.21.0
-rsa==3.4.2                # via google-auth
-sanic==0.8.3
-six==1.11.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, structlog, websocket-client
+rsa==4.0                  # via google-auth
+sanic==18.12.0
+six==1.12.0               # via cryptography, google-auth, grpcio, kubernetes, protobuf, python-dateutil, structlog, websocket-client
 structlog==19.1.0
 synse-grpc==1.1.0
 ujson==1.35               # via sanic
-urllib3==1.24.2
-uvloop==0.9.1             # via sanic
-websocket-client==0.48.0  # via kubernetes
-websockets==5.0.1         # via sanic
+urllib3==1.24.1           # via kubernetes, requests
+uvloop==0.12.0            # via sanic
+websocket-client==0.54.0  # via kubernetes
+websockets==6.0           # via sanic

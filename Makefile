@@ -3,17 +3,14 @@
 #
 
 PKG_NAME    := synse-server
-PKG_VERSION := $(shell python -c "import synse_server ; print(synse_server.__version__)")
+PKG_VERSION := $(shell python setup.py --version)
 IMAGE_NAME  := vaporio/synse-server
-IMAGE_TAGS  ?= latest local
+
+GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2> /dev/null || true)
+BUILD_DATE := $(shell date -u +%Y-%m-%dT%T 2> /dev/null)
 
 HAS_TRANSLATIONS := $(shell find synse_server -name '*.mo')
 HAS_PY36         := $(shell which python3.6 || python -V 2>&1 | grep 3.6 || python3 -V 2>&1 | grep 3.6)
-
-RED    := \033[0;31m
-GREEN  := \033[0;32m
-YELLOW := \033[0;33m
-NC     := \033[0m
 
 
 #
@@ -67,7 +64,22 @@ deps:  ## Update the frozen pip dependencies (requirements.txt)
 
 .PHONY: docker
 docker: req-translations  ## Build the docker image locally
-	@ IMAGE_TAGS="$(IMAGE_TAGS)" IMAGE_NAME=$(IMAGE_NAME) ./bin/build.sh
+	# Build the slim image
+	docker build -f dockerfile/synse.dockerfile \
+		--label build_date=${BUILD_DATE} \
+		--label version=${PKG_VERSION} \
+		--label commit=${GIT_COMMIT} \
+		--target=slim \
+		-t ${IMAGE_NAME}:local-slim \
+		-t ${IMAGE_NAME}:latest-slim .
+
+	# Build the full image
+	docker build -f dockerfile/synse.dockerfile \
+		--label build_date=${BUILD_DATE} \
+		--label version=${PKG_VERSION} \
+		--label commit=${GIT_COMMIT} \
+		-t ${IMAGE_NAME}:local \
+		-t ${IMAGE_NAME}:latest .
 
 .PHONY: docs
 docs: clean-docs  ## Generate the User Guide and API documentation locally
@@ -96,7 +108,7 @@ lint:  ## Run linting checks on the project source code
 	tox -e lint
 
 .PHONY: run
-run: docker  ## Build and run Synse Server with emulator locally (localhost:5000)
+run:  ## Run Synse Server with emulator locally (localhost:5000)
 	docker run -d \
 		-p 5000:5000 \
 		-e SYNSE_LOGGING=debug \
