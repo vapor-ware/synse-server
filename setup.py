@@ -47,6 +47,8 @@ setup(
         'sanic>=0.8.0',
         'structlog',
         'synse-grpc>=1.1.0',
+        # FIXME: protobuf should be removed here, it should be a dep of synse_grpc
+        'protobuf',
     ],
     tests_require=[
         'aiohttp',
