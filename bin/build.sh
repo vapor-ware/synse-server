@@ -44,7 +44,7 @@ for tag in ${tags}; do
 
     # build the SLIM version of the tag
     docker build -f dockerfile/synse.dockerfile \
-        --label build-date=${build_date} \
+		--label build-date=${build_date} \
 		--label version=${version} \
 		--label commit=${git_commit} \
 		--target=slim \
@@ -52,7 +52,7 @@ for tag in ${tags}; do
 
     # build the FULL version of the tag
     docker build -f dockerfile/synse.dockerfile \
-        --label build-date=${build_date} \
+		--label build-date=${build_date} \
 		--label version=${version} \
 		--label commit=${git_commit} \
 		-t "${image}:${tag}" .
