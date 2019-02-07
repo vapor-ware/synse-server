@@ -14,8 +14,7 @@
 FROM vaporio/python:3.6 as builder
 COPY requirements.txt .
 
-# FIXME: protobuf should be removed here, it should be a dep of synse_grpc
-RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location protobuf \
+RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
  && rm -rf /root/.cache
 
 COPY . /synse
@@ -50,16 +49,23 @@ ENTRYPOINT ["/usr/bin/tini", "--", "synse-server"]
 #
 FROM slim as full
 
-# Environment variables for built-in emulator configuration.
+# Environment variables for built-in emulator configuration and
+# installation from GitHub release.
 ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
-    PLUGIN_CONFIG="/synse/emulator"
+    PLUGIN_CONFIG="/synse/emulator" \
+    EMULATOR_VERSION="2.3.1"
 
-COPY emulator /synse/emulator
-COPY bin/install_emulator.sh /tmp/install_emulator.sh
-
+# Install the specified version of the emulator.
 RUN apt-get update \
- && apt-get install --no-install-recommends -y jq curl \
- && EMULATOR_OUT=/usr/local/bin/synse-emulator /tmp/install_emulator.sh \
- && apt-get purge -y jq curl \
+ && apt-get install --no-install-recommends -y curl \
+ && curl -L \
+    -H "Accept: application/octet-stream" \
+    -o /usr/local/bin/synse-emulator \
+    https://github.com/vapor-ware/synse-emulator-plugin/releases/download/${EMULATOR_VERSION}/emulator_linux_amd64 \
+ && chmod +x /usr/local/bin/synse-emulator \
+ && apt-get purge -y curl \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
+
+# Copy in the emulator configurations.
+COPY emulator /synse/emulator

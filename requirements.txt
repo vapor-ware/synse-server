@@ -21,6 +21,7 @@ idna==2.8                 # via requests
 kubernetes==8.0.1
 multidict==4.5.2          # via sanic
 oauthlib==3.0.1           # via requests-oauthlib
+protobuf==3.6.1
 pyasn1-modules==0.2.4     # via google-auth
 pyasn1==0.4.5             # via pyasn1-modules, rsa
 pycparser==2.19           # via cffi
@@ -31,7 +32,7 @@ requests-oauthlib==1.2.0  # via kubernetes
 requests==2.21.0
 rsa==4.0                  # via google-auth
 sanic==18.12.0
-six==1.12.0               # via cryptography, google-auth, grpcio, kubernetes, python-dateutil, structlog, websocket-client
+six==1.12.0               # via cryptography, google-auth, grpcio, kubernetes, protobuf, python-dateutil, structlog, websocket-client
 structlog==19.1.0
 synse-grpc==1.1.0
 ujson==1.35               # via sanic
