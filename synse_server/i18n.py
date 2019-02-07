@@ -3,6 +3,10 @@
 import gettext
 import os
 
+# TODO (etd): see if there is a better way of defining this.. perhaps
+#  in the Synse obj in server.py?
+#  could also look at how other projects handle this
+
 _here = os.path.dirname(os.path.realpath(__file__))
 
 # Here, we are not setting the translation to fall back onto anything.

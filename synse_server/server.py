@@ -1,10 +1,11 @@
 """"""
 
+import os
 import sys
 
 import synse_server
 from synse_server import app, config
-from synse_server.log import logger
+from synse_server.log import logger, setup_logger
 
 
 class Synse:
@@ -57,29 +58,40 @@ class Synse:
     def __init__(self, host='0.0.0.0', port=5000, log_header=True):
         self.host = host
         self.port = port
-
         self.log_header = log_header
 
+        # Prior to initializing the Sanic application, we want to load the
+        # configuration and various other components. This will allow us to
+        # fully setup the app, as well as have logging, etc. ready to go.
+        self._setup()
+
+        # With setup complete, we can initialize a new Sanic application.
         self.app = app.new_app()
 
-        self.is_setup = False
+    def _setup(self):
+        """Setup the Synse Server instance.
 
-    def setup(self):
-        """Setup the Synse Server instance."""
-        # FIXME (etd): this should probably just run on init to ensure
-        #  we have everything set up when needed
-        logger.info('setting up synse server')
+        This is intended to be run on initialization of the Synse class.
+        Setting up on init ensure that we have all the config we need for
+        the backing Sanic application. Additionally, it lets us set up
+        logging early on.
+        """
+        logger.debug('Setting up Synse Server')
 
-        # TODO (etd): on init, we should ensure that the necessary directories
-        #  in the filesystem are present, if not we should create them.
-        self.is_setup = True
+        # Make sure that the filesystem layout needed by Synse Server
+        # is present. If not, create the required directories.
+        os.makedirs(path=self._server_config_dir, exist_ok=True)
+        os.makedirs(path=self._socket_dir, exist_ok=True)
+
+        # Load the application configuration(s).
+        self.reload_config()
+
+        # Configure logging, using the loaded config.
+        setup_logger()
 
     def run(self):
         """Run Synse Server."""
-        logger.info('running synse server')
-
-        if not self.is_setup:
-            self.setup()
+        logger.debug('Running Synse Server...')
 
         # If we are configured to log the header, write it to stdout instead
         # of using the logger, since the structured logger will not format
@@ -92,8 +104,8 @@ class Synse:
             port=self.port,
         )
 
-    def load_config(self):
-        """Load the application configuration.
+    def reload_config(self):
+        """(Re)loads the application configuration.
 
         The application configuration can be loaded from two placed:
           * YAML config file
