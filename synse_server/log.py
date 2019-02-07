@@ -30,9 +30,26 @@ structlog.configure(
 logger = structlog.get_logger('synse-server')
 
 
+# TODO: could do something like this I guess.. see how this could tie in to structlog though.
+import logging
+
+l = logging.getLogger('sanic.access')
+l.addHandler()
+
+d = logging.getLogger('sanic.error')
+d.addHandler()
+
+
 def setup_logger():
     """Configure the Synse Server logger."""
     level = logging.getLevelName(config.options.get('logging', 'info').upper())
+
+    # TODO: instead of using the mallet that is basicConfig, we should exercise
+    #  more care into how the loggers are defined to:
+    #    a.) prevent duplicate logs via logger propagation
+    #    b.) ensure that logs are all output in a common format.
+    #  this might take a little work (and possibly monkeying) with how Sanic
+    #  does its logging.
     logging.basicConfig(
         format='%(message)s',
         stream=sys.stdout,
