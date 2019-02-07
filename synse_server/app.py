@@ -17,6 +17,7 @@ def new_app():
     app = Sanic(
         name='synse-server',
         error_handler=errors.SynseErrorHandler(),
+        configure_logging=False,
     )
 
     # Disable the default Sanic logo.
