@@ -50,7 +50,7 @@ pipeline {
         CODECOV_TOKEN = credentials('codecov-token')
       }
       steps {
-        sh 'make test-unit'
+        sh 'make i18n test-unit'
         sh 'codecov'
         // sh 'make test-integration'
       }

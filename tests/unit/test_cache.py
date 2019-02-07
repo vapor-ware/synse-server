@@ -102,17 +102,6 @@ def plugin_context(tmpdir):
 # --- Test Cases ---
 
 
-def test_configure_cache():
-    """Configure the aiocache namespace."""
-
-    assert aiocache.caches._config != cache.AIOCACHE
-
-    cache.configure_cache()
-
-    assert aiocache.caches._config == cache.AIOCACHE
-    assert 'default' in aiocache.caches._config
-
-
 @pytest.mark.asyncio
 async def test_clear_cache():
     """Test clearing a cache."""

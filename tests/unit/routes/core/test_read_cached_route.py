@@ -19,8 +19,8 @@ async def test_synse_read_cached_route(monkeypatch):
         r = SynseResponse()
         r.data = {'value': 1}  # data doesn't matter here
         return r
-    mocked = asynctest.CoroutineMock(synse_server.commands.read_cached, side_effect=_mock)
-    monkeypatch.setattr(synse_server.commands, 'read_cached', mocked)
+    mocked = asynctest.CoroutineMock(synse_server.commands.read_cache, side_effect=_mock)
+    monkeypatch.setattr(synse_server.commands, 'read_cache', mocked)
 
     result = await read_cached_route(
         utils.make_request('/synse/readcached'),

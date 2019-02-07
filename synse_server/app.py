@@ -1,14 +1,10 @@
 """Factory for creating Synse Server Sanic application instances."""
 
-import asyncio
-
 from sanic import Sanic
 from sanic.response import text
 
-from synse_server import errors
+from synse_server import errors, tasks
 from synse_server.api import http, websocket
-from synse_server.cache import clear_all_meta_caches, configure_cache
-from synse_server.log import logger, setup_logger
 
 
 def new_app():
@@ -52,29 +48,7 @@ def new_app():
     #     logger.info('LANGUAGE set from config: {}'.format(lang))
     #     os.environ['LANGUAGE'] = lang
 
-    # FIXME (etd): this probably belongs in the Synse class
-    setup_logger()
-    configure_cache()
-
     # Add background tasks
-    app.add_task(periodic_cache_invalidation)
+    tasks.register_with_app(app)
 
     return app
-
-
-async def periodic_cache_invalidation():
-    """Periodically invalidate the caches so they are rebuilt."""
-    interval = 3 * 60  # 3 minutes
-
-    while True:
-        await asyncio.sleep(interval)
-        logger.info('task [periodic cache invalidation]: Clearing device caches')
-
-        try:
-            await clear_all_meta_caches()
-        except Exception as e:
-            logger.error(
-                'task [periodic cache invalidation]: Failed to clear device caches, '
-                'will try again in {}s: {}'
-                .format(interval, e)
-            )
