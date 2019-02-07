@@ -27,6 +27,7 @@ pyasn1==0.4.5             # via pyasn1-modules, rsa
 pycparser==2.19           # via cffi
 pyjwt==1.7.1              # via adal
 python-dateutil==2.8.0    # via adal, kubernetes
+python-json-logger==0.1.10
 pyyaml==4.2b4
 requests-oauthlib==1.2.0  # via kubernetes
 requests==2.21.0

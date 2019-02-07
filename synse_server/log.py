@@ -1,11 +1,56 @@
 """Synse Server application logging."""
 
 import logging
+import logging.config
 import sys
 
 import structlog
 
 from synse_server import config
+
+logging.config.dictConfig({
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        'root': {
+            'level': 'INFO',
+            'handlers': ['default']
+        },
+        'sanic.error': {
+            'level': 'INFO',
+            'handlers': ['error'],
+            'propagate': True,
+            'qualname': 'sanic.error'
+        },
+        'sanic.access': {
+            'level': 'INFO',
+            'handlers': ['default'],
+            'propagate': True,
+            'qualname': 'sanic.access'
+        },
+        'synse-server': {
+            'level': 'INFO',
+            'handlers': ['default']
+        },
+    },
+    'handlers': {
+        'default': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+            'stream': sys.stdout
+        },
+        'error': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'json',
+            'stream': sys.stderr
+        },
+    },
+    'formatters': {
+        'json': {
+            'class': 'pythonjsonlogger.jsonlogger.JsonFormatter'
+        },
+    }
+})
 
 structlog.configure(
     processors=[
@@ -16,9 +61,7 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.KeyValueRenderer(
-            key_order=['timestamp', 'level', 'event'],
-        ),
+        structlog.stdlib.render_to_log_kwargs,
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
@@ -26,15 +69,10 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-
 logger = structlog.get_logger('synse-server')
 
 
 def setup_logger():
     """Configure the Synse Server logger."""
     level = logging.getLevelName(config.options.get('logging', 'info').upper())
-    logging.basicConfig(
-        format='%(message)s',
-        stream=sys.stdout,
-        level=level,
-    )
+    logger.setLevel(level)
