@@ -1,7 +1,7 @@
 """"""
 
-import sys
 import os
+import sys
 
 import synse_server
 from synse_server import app, config

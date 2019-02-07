@@ -7,6 +7,7 @@ from synse_server import config
 
 # FIXME (etd) - could move to utils.
 
+
 def _dumps(*arg, **kwargs):
     """Custom JSON dumps implementation to be used when pretty printing.
 
