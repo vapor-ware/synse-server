@@ -12,6 +12,9 @@ def rfc3339now():
     Returns:
         str: The RFC3339 formatted timestamp.
     """
+    # TODO (etd): we are standardizing on timestamps at second resolution,
+    #  this returns sub-second resolution.
+
     now = datetime.datetime.utcnow()
     return now.isoformat('T') + 'Z'
 

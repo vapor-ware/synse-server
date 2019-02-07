@@ -43,11 +43,11 @@ _scan_cache = aiocache.SimpleMemoryCache(namespace=NS_SCAN)
 _info_cache = aiocache.SimpleMemoryCache(namespace=NS_INFO)
 _capabilities_cache = aiocache.SimpleMemoryCache(namespace=NS_CAPABILITIES)
 
-
-def configure_cache():
-    """Set the configuration for the caches used by Synse Server."""
-    logger.debug(_('Setting cache configuration: {}').format(AIOCACHE))
-    aiocache.caches.set_config(AIOCACHE)
+# Configure the caches when the module is loaded.
+# TODO (etd): This used to be a function that was just called in the factory.
+#  need tests to ensure this works and that we aren't configuring the cache
+#  multiple times.
+aiocache.caches.set_config(AIOCACHE)
 
 
 async def clear_cache(namespace):

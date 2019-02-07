@@ -1,6 +1,3 @@
-#
-# synse.dockerfile
-#
 # The Dockerfile for the release build of Synse Server. This
 # Dockerfile has multiple stages:
 #   * builder: build synse server package dependencies
@@ -20,6 +17,7 @@ RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
 COPY . /synse
 RUN pip install --no-deps --prefix=/build --no-warn-script-location /synse \
  && rm -rf /root/.cache
+
 
 #
 # SLIM

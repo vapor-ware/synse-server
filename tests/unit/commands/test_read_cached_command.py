@@ -7,7 +7,7 @@ from synse_grpc import api
 
 import synse_server.cache
 from synse_server import errors, plugin
-from synse_server.commands.read_cached import read_cached
+from synse_server.commands.read_cache import read_cached
 from synse_server.proto.client import PluginClient, PluginTCPClient
 
 
