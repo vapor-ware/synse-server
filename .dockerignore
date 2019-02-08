@@ -58,6 +58,6 @@ bin/ci
 
 # Other
 **/*.png
-assets
+**/*.svg
 compose
 deploy

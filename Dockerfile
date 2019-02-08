@@ -35,9 +35,11 @@ LABEL maintainer="Vapor IO" \
 # install Synse Server as a python package
 # TODO: this will eventually be done via synse-server itself..
 RUN mkdir -p /tmp/synse/procs \
- && mkdir -p /synse/config
+ && mkdir -p /synse/config \
+ && mkdir -p /etc/synse/static
 
 COPY --from=builder /build /usr/local
+COPY ./assets/favicon.ico /etc/synse/static/favicon.ico
 
 ENTRYPOINT ["/usr/bin/tini", "--", "synse-server"]
 
