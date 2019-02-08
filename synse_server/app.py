@@ -1,7 +1,6 @@
 """Factory for creating Synse Server Sanic application instances."""
 
 from sanic import Sanic
-from sanic.response import text
 
 from synse_server import errors, tasks
 from synse_server.api import http, websocket
@@ -28,13 +27,9 @@ def new_app():
     app.blueprint(http.v3)
     app.blueprint(websocket.v3)
 
-    # Disable favicon
-    #
-    # Add a route which provides an empty response for '/favicon.ico' in order
-    # to prevent missing favicon errors from populating the logs when Synse
-    # Server is hit via web browser.
-    # TODO (etd): we could add an icon to return here if we wanted.
-    app.add_route(lambda *_: text(''), '/favicon.ico')
+    # Add favicon. This will add a favicon, preventing errors being logged when
+    # a browser hits an endpoint and can't find the icon.
+    app.static('/favicon.ico', '/etc/synse/static/favicon.ico')
 
     # Set the language environment variable to that set in the config, if
     # it is not already set. This is how we specify the language/locale for
