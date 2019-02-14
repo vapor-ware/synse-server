@@ -855,25 +855,25 @@ streamed JSON. One block of the streamed JSON will appear as follows:
 > **Note**: In the examples below, the key-value pairs in the `context` field
 > are arbitrary and only serve as an example of possible values.
 
+A single block of the streamed response JSON would be structured as:
+
 ```json
-[
-  {
-    "device": "a72cs6519ee675b",
-    "device_type": "temperature",
-    "type": "temperature",
-    "value": 20.3,
-    "timestamp": "2018-02-01T13:47:40Z",
-    "unit": {
-      "system": "metric",
-      "symbol": "C",
-      "name": "degrees celsius"
-    },
-    "context": {
-      "host": "127.0.0.1",
-      "sample_rate": 8
-    }
+{
+  "device": "a72cs6519ee675b",
+  "device_type": "temperature",
+  "type": "temperature",
+  "value": 20.3,
+  "timestamp": "2018-02-01T13:47:40Z",
+  "unit": {
+    "system": "metric",
+    "symbol": "C",
+    "name": "degrees celsius"
+  },
+  "context": {
+    "host": "127.0.0.1",
+    "sample_rate": 8
   }
-]
+}
 ```
 
 **Fields**

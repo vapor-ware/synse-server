@@ -116,7 +116,7 @@ Get the state and status for the specified write transaction.
 | Message | Link |
 | :------ | :--- |
 | *Request* | [V3TransactionSelector](#v3transactionselector) |
-| *Response* | [V3TransactionState](#v3transactionstate) (stream) |
+| *Response* | [V3TransactionStatus](#v3transactionstatus) (stream) |
 
 
 #### Version
@@ -142,7 +142,7 @@ Write data to the specified plugin device in a synchronous request.
 | Message | Link |
 | :------ | :--- |
 | *Request* | [V3WritePayload](#v3writepayload) |
-| *Response* | [V3TransactionState](#v3transactionstate) (stream) |
+| *Response* | [V3TransactionStatus](#v3transactionstatus) (stream) |
 
 
 ### Messages
@@ -302,16 +302,15 @@ Identifying information for a write transaction.
 | *id* | string | The ID of a transaction. |
 
 
-#### V3TransactionState
-The state and status for a write transaction.
+#### V3TransactionStatus
+The status for a write transaction.
 
 | Field | Type | Description |
 | :---- | :--- | :---------- |
 | *id* | string | The ID of the write transaction. |
 | *created* | string | RFC3339 timestamp of when the transaction was created. |
 | *updated* | string | RFC3339 timestamp of when the transaction was last updated. |
-| *status* | enum WriteStatus | The status of the write (unknown, pending, writing, done). |
-| *state* | enum WriteState | The state of the write (ok, error).  |
+| *status* | enum WriteStatus | The status of the write (pending, writing, done, error). |
 | *message* | string | Context information for the asynchronous write when there is an error. |
 | *context* | [V3WriteData](#v3writedata) | The data that was written for the write transaction. |
 | *timeout* | string | The timeout within which the transaction remains valid. |
@@ -346,6 +345,7 @@ The data to write to a device.
 | :---- | :--- | :---------- |
 | *action* | string | The action string for the write. |
 | *data* | bytes | The action data for the write. |
+| *transaction* | string | A custom transaction ID that the user can specify for the write. |
 
 
 #### V3WritePayload
