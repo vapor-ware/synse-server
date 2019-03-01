@@ -534,7 +534,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | A Synse error. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Scan](api.md#errors) Response.
+> *Note*: See [HTTP API: Errors](api.md#errors) Response.
 
 
 ```json
