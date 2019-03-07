@@ -158,9 +158,8 @@ There is no event data for this request. The `data` field is ignored and can be 
 }
 ```
 
-All data fields for this event are optional. If none are specified, `data` can
-be omitted entirely.
-
+If no plugin ID is provided, this will result in a summary of all registered
+plugins.
 
 #### Plugin Health
 | | |
