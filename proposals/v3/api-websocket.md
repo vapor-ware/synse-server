@@ -71,6 +71,7 @@ Below is a table of contents for the Websocket request/response events.
 
 | Request | Response |
 | :------ | :------- |
+| [request/status](#status) | [response/status](#status-1) |
 | [request/version](#version) | [response/version](#version-1) |
 | [request/config](#config) | [response/config](#config-1) |
 | [request/plugin](#plugin) | [response/plugin](#plugin-1) |
@@ -83,6 +84,23 @@ Below is a table of contents for the Websocket request/response events.
 | [request/write](#write) | [response/write_state](#write-state) |
 | [request/transaction](#transaction) | [response/write_state](#write-state) |
 
+
+#### Status
+| | |
+| :--- | :--- |
+| **Name** | request/status|
+| **Description** | Get status information for the Synse Server instance. |
+| **Expected Response** | response/status |
+
+##### Event Data
+There is no event data for this request. The `data` field is ignored and can be omitted.
+
+```json
+{
+  "id": 1,
+  "event": "request/status"
+}
+```
 
 #### Version
 | | |
@@ -355,6 +373,32 @@ will have an ID field which contains the ID of the event which triggered the res
 
 > **NOTE**: For many of the field descriptions, see the [HTTP API](api.md) document. They
 > are intentionally left blank here to avoid having to maintain two copies of the same info.
+
+
+#### Status
+| | |
+| :--- | :--- |
+| **Name** | response/status|
+| **Description** | The status information of a Synse Server instance. |
+
+##### Event Data
+| Field | Type | Required | Description |
+| :---- | :--- | :------- | :---------- |
+| *status* | `string` | yes | "ok" if the endpoint returns successfully. |
+| *timestamp* | `string` | yes | The time at which the status was tested. |
+
+
+```json
+{
+  "id": 1,
+  "event": "response/status",
+  "data": {
+    "status": "ok",
+    "timestamp": "2018-11-09T14:32:47Z"
+  }
+}
+```
+
 
 #### Version
 | | |
