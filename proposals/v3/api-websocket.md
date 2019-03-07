@@ -85,8 +85,6 @@ Below is a table of contents for the Websocket request/response events.
 
 
 #### Version
-| | |
-| :--- | :--- |
 | **Name** | request/version |
 | **Description** | Get version information for the Synse Server instance. |
 | **Expected Response** | response/version |
