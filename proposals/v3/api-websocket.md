@@ -82,6 +82,7 @@ Below is a table of contents for the Websocket request/response events.
 | [request/read](#read) | [response/reading](#reading) |
 | [request/read_device](#read-device) | [response/reading](#reading) |
 | [request/read_cache](#read-cache) | [response/reading](#reading) |
+| [request/write_async](#write-asynchronous) | [response/write_async](#write-asynchronous-1) |
 | [request/write_sync](#write-synchronous) | [response/write_sync](#write-synchronous-1) |
 | [request/transaction](#transaction) | [response/write_state](#write-state) |
 
@@ -335,6 +336,37 @@ If no timestamp is specified, there will not be an starting/ending bound.
     "start": "2018-02-01T13:47:40Z",
     "end": "2018-02-01T13:47:40Z"
   }
+}
+```
+
+
+#### Write (Asynchronous)
+| | |
+| :--- | :--- |
+| **Name** | request/write_async |
+| **Description** | Write data to a device, in an asynchronous manner. |
+| **Expected Response** | response/write_async |
+
+##### Event Data
+| Field | Type | Required | Description |
+| :---- | :--- | :------- | :---------- |
+| *device* | `string` | yes | The GUID of the device that is being written to. |
+| *action* | `string` | yes | The action that the device will perform. This is set at the plugin level. |
+| *data* | `bytes` | sometimes | Any data that an *action* may require. Not all actions require data. This is plugin-defined. |
+| *transaction* | `string` | no | A user-defined transaction ID for the write. This allows the write to be checked later, e.g. in case of failure. |
+
+```json
+{
+   "id": 1,
+   "event": "request/write_async",
+   "data": [
+      {
+         "device": "34c226b1afadaae5f172a4e1763fd1a6",
+         "action": "color",
+         "data": "ff00ff",
+         "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+      }
+   ]
 }
 ```
 
@@ -596,6 +628,26 @@ will have an ID field which contains the ID of the event which triggered the res
 {
   "id": 1,
   "event": "response/reading",
+  "data": [
+    ...
+  ]
+}
+```
+
+#### Write (Asynchronous)
+| | |
+| :--- | :--- |
+| **Name** | response/write_async |
+| **Description** | The state for a write or bulk write actions. |
+
+##### Event Data
+> *Note*: See [HTTP API: Write (Asynchronous)](api.md#write-asynchronous) Response.
+
+
+```json
+{
+  "id": 1,
+  "event": "response/write_async",
   "data": [
     ...
   ]
