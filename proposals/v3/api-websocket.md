@@ -82,7 +82,7 @@ Below is a table of contents for the Websocket request/response events.
 | [request/read](#read) | [response/reading](#reading) |
 | [request/read_device](#read-device) | [response/reading](#reading) |
 | [request/read_cache](#read-cache) | [response/reading](#reading) |
-| [request/write](#write) | [response/write_state](#write-state) |
+| [request/write_sync](#write-synchronous) | [response/write_sync](#write-synchronous-1) |
 | [request/transaction](#transaction) | [response/write_state](#write-state) |
 
 
@@ -339,12 +339,12 @@ If no timestamp is specified, there will not be an starting/ending bound.
 ```
 
 
-#### Write
+#### Write (Synchronous)
 | | |
 | :--- | :--- |
-| **Name** | request/write |
-| **Description** | Write data to a device. |
-| **Expected Response** | response/write_state |
+| **Name** | request/write_sync |
+| **Description** | Write data to a device, waiting for the write to complete |
+| **Expected Response** | response/write_sync |
 
 ##### Event Data
 | Field | Type | Required | Description |
@@ -356,14 +356,16 @@ If no timestamp is specified, there will not be an starting/ending bound.
 
 ```json
 {
-  "id": 1,
-  "event": "request/write",
-  "data": {
-    "device": "34c226b1afadaae5f172a4e1763fd1a6",
-    "action": "color",
-    "data": "ff00ff",
-    "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
-  }
+   "id": 1,
+   "event": "request/write_sync",
+   "data": [
+      {
+         "device": "34c226b1afadaae5f172a4e1763fd1a6",
+         "action": "color",
+         "data": "ff00ff",
+         "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+      }
+   ]
 }
 ```
 
@@ -601,23 +603,23 @@ will have an ID field which contains the ID of the event which triggered the res
 ```
 
 
-#### Write State
+#### Write (Synchronous)
 | | |
 | :--- | :--- |
-| **Name** | response/write_state |
-| **Description** | The state for a write action. |
+| **Name** | response/write_sync |
+| **Description** | The state for a write or bulk write actions. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Transaction](api.md#transaction) Response.
+> *Note*: See [HTTP API: Write (Synchronous)](api.md#write-synchronous) Response.
 
 
 ```json
 {
   "id": 1,
-  "event": "response/write_state",
-  "data": {
+  "event": "response/write_sync",
+  "data": [
     ...
-  }
+  ]
 }
 ```
 
