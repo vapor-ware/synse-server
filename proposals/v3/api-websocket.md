@@ -499,9 +499,9 @@ will have an ID field which contains the ID of the event which triggered the res
 {
   "id": 1,
   "event": "response/reading",
-  "data": {
+  "data": [
     ...
-  }
+  ]
 }
 ```
 
