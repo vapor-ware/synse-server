@@ -67,6 +67,23 @@ for requests and responses is stored in the `data` field.
 Below is an accounting of request events supported by the Synse WebSocket API. These events largely
 correspond to the [HTTP API routes](api.md#api-endpoints).
 
+Below is a table of contents for the Websocket request/response events.
+
+| Request | Response |
+| :------ | :------- |
+| [request/version](#version) | [response/version](#version-1) |
+| [request/config](#config) | [response/config](#config-1) |
+| [request/plugin](#plugin) | [response/plugin](#plugin-1) |
+| [request/plugin_health](#plugin-health) | [response/plugin_health](#plugin-health-1) |
+| [request/scan](#scan) | [response/device_summary](#device-summary) |
+| [request/tags](#tags) | [response/tags](#tags-1) |
+| [request/info](#info) | [response/device](#device) |
+| [request/read](#read) | [response/reading](#reading) |
+| [request/read_cache](#read-cache) | [response/reading](#reading) |
+| [request/write](#write) | [response/write_state](#write-state) |
+| [request/transaction](#transaction) | [response/write_state](#write-state) |
+
+
 #### Version
 | | |
 | :--- | :--- |
@@ -101,7 +118,7 @@ There is no event data for this request. The `data` field is ignored and can be 
 }
 ```
 
-#### Plugins
+#### Plugin
 | | |
 | :--- | :--- |
 | **Name** | request/plugin |
