@@ -80,6 +80,7 @@ Below is a table of contents for the Websocket request/response events.
 | [request/tags](#tags) | [response/tags](#tags-1) |
 | [request/info](#info) | [response/device](#device) |
 | [request/read](#read) | [response/reading](#reading) |
+| [request/read_device](#read-device) | [response/reading](#reading) |
 | [request/read_cache](#read-cache) | [response/reading](#reading) |
 | [request/write](#write) | [response/write_state](#write-state) |
 | [request/transaction](#transaction) | [response/write_state](#write-state) |
@@ -287,6 +288,30 @@ be omitted entirely.
 }
 ```
 
+
+#### Read Device
+| | |
+| :--- | :--- |
+| **Name** | request/read_device |
+| **Description** | Read from the specified device. |
+| **Expected Response** | response/reading |
+
+##### Event Data
+| Field | Type | Required | Description |
+| :---- | :--- | :------- | :---------- |
+| *device* | `string` | yes | The ID of the device to read. |
+
+```json
+{
+  "id": 1,
+  "event": "request/read_device",
+  "data": {
+    "device": "34c226b1afadaae5f172a4e1763fd1a6"
+  }
+}
+```
+
+
 #### Read Cache
 | | |
 | :--- | :--- |
@@ -312,6 +337,7 @@ If no timestamp is specified, there will not be an starting/ending bound.
   }
 }
 ```
+
 
 #### Write
 | | |
