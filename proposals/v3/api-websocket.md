@@ -85,6 +85,8 @@ Below is a table of contents for the Websocket request/response events.
 
 
 #### Version
+| | |
+| :--- | :--- |
 | **Name** | request/version |
 | **Description** | Get version information for the Synse Server instance. |
 | **Expected Response** | response/version |
@@ -276,12 +278,21 @@ be omitted entirely.
 | **Expected Response** | response/reading |
 
 ##### Event Data
-There is no event data for this request. The `data` field is ignored and can be omitted.
+| Field | Type | Required | Description |
+| :---- | :--- | :------- | :---------- |
+| *start* | `string` | no | An RFC3339 formatted timestamp which specifies a starting bound on the cache data to return. |
+| *end* | `string` | no | An RFC3339 formatted timestamp which specifies an ending bound on the cache data to return. |
+
+If no timestamp is specified, there will not be an starting/ending bound.
 
 ```json
 {
   "id": 1,
-  "event": "request/read_cache"
+  "event": "request/read_cache",
+  "data": {
+    "start": "2018-02-01T13:47:40Z",
+    "end": "2018-02-01T13:47:40Z"
+  }
 }
 ```
 
