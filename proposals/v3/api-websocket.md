@@ -84,7 +84,7 @@ Below is a table of contents for the Websocket request/response events.
 | [request/read_cache](#read-cache) | [response/reading](#reading) |
 | [request/write_async](#write-asynchronous) | [response/write_async](#write-asynchronous-1) |
 | [request/write_sync](#write-synchronous) | [response/write_sync](#write-synchronous-1) |
-| [request/transaction](#transaction) | [response/write_state](#write-state) |
+| [request/transaction](#transaction) | [response/transaction](#transaction-1) |
 
 
 #### Status
@@ -407,12 +407,12 @@ If no timestamp is specified, there will not be an starting/ending bound.
 | :--- | :--- |
 | **Name** | request/transaction |
 | **Description** | Get the state of a write from transaction ID. |
-| **Expected Response** | response/write_state |
+| **Expected Response** | response/transaction |
 
 ##### Event Data
 | Field | Type | Required | Description |
 | :---- | :--- | :------- | :---------- |
-| *transaction* | `string` | yes | The transaction ID for the write. Generally, this will only need to be checked if a write fails to return any state. |
+| *transaction* | `string` | no | The transaction ID for the write. |
 
 ```json
 {
@@ -424,6 +424,7 @@ If no timestamp is specified, there will not be an starting/ending bound.
 }
 ```
 
+If no transaction ID is provided, this will return a list of transaction ID.
 
 
 ### Response Events
@@ -672,6 +673,27 @@ will have an ID field which contains the ID of the event which triggered the res
   "data": [
     ...
   ]
+}
+```
+
+
+#### Transaction
+| | |
+| :--- | :--- |
+| **Name** | response/transaction |
+| **Description** | The state for a write or bulk write actions. |
+
+##### Event Data
+> *Note*: See [HTTP API: Transaction](api.md#transaction) Response.
+
+
+```json
+{
+  "id": 1,
+  "event": "response/transaction",
+  "data": {
+    ...
+  }
 }
 ```
 
