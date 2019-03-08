@@ -42,3 +42,7 @@ them together are considered the proposal/spec for Synse v3.
 
 ## Appendix
 0. [Appendix A](appendix-a.md): Configuration Examples
+0. [Appendix B](appendix-b.md): SDK changes
+
+## Amendments
+0. [Amendment 1](amendment-1.md): Device FQDN & Aliases 
