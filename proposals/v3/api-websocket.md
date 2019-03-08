@@ -301,6 +301,7 @@ be omitted entirely.
 | Field | Type | Required | Description |
 | :---- | :--- | :------- | :---------- |
 | *device* | `string` | yes | The ID of the device to read. |
+| *som* | `string` | no | The System of Measure for the response reading(s). This should be one of: imperial, metric. (default: metric) |
 
 ```json
 {
