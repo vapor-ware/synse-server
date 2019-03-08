@@ -178,3 +178,6 @@ see [Appendix A-1](appendix-a.md#1-sdk-device-configurations).
 > in the config anymore, can we still surface the OutputTypes that a device returns
 > to Synse Server for upstream API consumers?
 
+
+### Device FQDN/Aliases
+See: [Amendment 1: Device FQDN & Aliases](amendment-1.md) 

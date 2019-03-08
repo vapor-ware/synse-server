@@ -185,6 +185,8 @@ single device via a unique URL. This together with the deterministic device GUID
 that as long as the plugin is up, we can always have read/write access to the same device
 from the same URL.
 
+See also: [Amendment 1: Device FQDN & Aliases](amendment-1.md)
+
 ### Logging
 Logging in Synse Server is not terrible, but it is inconsistent between different regions
 of the code. Some areas have many log messages that are verbose, while others lack meaningful
