@@ -360,14 +360,16 @@ If no timestamp is specified, there will not be an starting/ending bound.
 {
    "id": 1,
    "event": "request/write_async",
-   "data": [
-      {
-         "device": "34c226b1afadaae5f172a4e1763fd1a6",
-         "action": "color",
-         "data": "ff00ff",
-         "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
-      }
-   ]
+   "data": {
+      "id": "34c226b1afadaae5f172a4e1763fd1a6",
+      "data": [
+         {
+            "action": "color",
+            "data": "ff00ff",
+            "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+         }
+      ]
+   }
 }
 ```
 
@@ -391,14 +393,16 @@ If no timestamp is specified, there will not be an starting/ending bound.
 {
    "id": 1,
    "event": "request/write_sync",
-   "data": [
-      {
-         "device": "34c226b1afadaae5f172a4e1763fd1a6",
-         "action": "color",
-         "data": "ff00ff",
-         "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
-      }
-   ]
+   "data": {
+      "id": "34c226b1afadaae5f172a4e1763fd1a6",
+      "data": [
+         {
+            "action": "color",
+            "data": "ff00ff",
+            "transaction": "56a32eba-1aa6-4868-84ee-fe01af8b2e6d"
+         }
+      ]
+   }
 }
 ```
 
