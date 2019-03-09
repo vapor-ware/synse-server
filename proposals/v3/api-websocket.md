@@ -443,23 +443,18 @@ will have an ID field which contains the ID of the event which triggered the res
 #### Status
 | | |
 | :--- | :--- |
-| **Name** | response/status|
+| **Name** | response/status |
 | **Description** | The status information of a Synse Server instance. |
 
 ##### Event Data
-| Field | Type | Required | Description |
-| :---- | :--- | :------- | :---------- |
-| *status* | `string` | yes | "ok" if the endpoint returns successfully. |
-| *timestamp* | `string` | yes | The time at which the status was tested. |
-
+> *Note*: Fields and description omitted here, see the [HTTP API: Test](api.md#test) response scheme.
 
 ```json
 {
   "id": 1,
   "event": "response/status",
   "data": {
-    "status": "ok",
-    "timestamp": "2018-11-09T14:32:47Z"
+    ...
   }
 }
 ```
@@ -472,10 +467,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | The version information of a Synse Server instance. |
 
 ##### Event Data
-| Field | Type | Required | Description |
-| :---- | :--- | :------- | :---------- |
-| *version* | `string` | yes | - |
-| *api_version* | `string` | yes | - |
+> *Note*: Fields and description omitted here, see the [HTTP API: Version](api.md#version) response scheme.
 
 
 ```json
@@ -483,8 +475,7 @@ will have an ID field which contains the ID of the event which triggered the res
   "id": 1,
   "event": "response/version",
   "data": {
-    "version": "3.0.0",
-    "api_version": "v3"
+    ...
   }
 }
 ```
@@ -497,8 +488,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | The Synse Server instance configuration. |
 
 ##### Event Data
-> *Note*: Fields and description omitted here, see the Synse Server config scheme.
-
+> *Note*: Fields and description omitted here, see the [HTTP API: Config](api.md#config) response scheme.
 
 ```json
 {
@@ -518,7 +508,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | Information on a Synse Plugin. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Plugin](api.md#plugins) Response scheme.
+> *Note*: Fields and description omitted here, see the [HTTP API: Plugins](api.md#plugins) response scheme.
 
 ```json
 {
@@ -538,7 +528,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | Health summary of all plugins. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Plugin Health](api.md#plugin-health) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Plugin Health](api.md#plugin-health) response scheme.
 
 
 ```json
@@ -559,9 +549,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | A list of device tags. |
 
 ##### Event Data
-| Field | Type | Required | Description |
-| :---- | :--- | :------- | :---------- |
-| *tags* | `list[string]` | yes | - |
+> *Note*: Fields and description omitted here, see the [HTTP API: Tags](api.md#tags) response scheme.
 
 
 ```json
@@ -569,10 +557,7 @@ will have an ID field which contains the ID of the event which triggered the res
   "id": 1,
   "event": "response/tags",
   "data": {
-    "tags": [
-      "default/tag1",
-      "default/type:temperature"
-    ]
+    ...
   }
 }
 ```
@@ -585,7 +570,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | Information for a device. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Info](api.md#info) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Info](api.md#info) response scheme.
 
 
 ```json
@@ -606,7 +591,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | A summary of device information. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Scan](api.md#scan) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Scan](api.md#scan) response scheme.
 
 
 ```json
@@ -627,7 +612,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | A single device reading. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Read](api.md#read) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Read](api.md#read) response scheme.
 
 
 ```json
@@ -647,7 +632,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | The state for a write or bulk write actions. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Write (Asynchronous)](api.md#write-asynchronous) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Write (Asynchronous)](api.md#write-asynchronous) response scheme.
 
 
 ```json
@@ -668,7 +653,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | The state for a write or bulk write actions. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Write (Synchronous)](api.md#write-synchronous) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Write (Synchronous)](api.md#write-synchronous) response scheme.
 
 
 ```json
@@ -689,7 +674,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | The state for a write or bulk write actions. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Transaction](api.md#transaction) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Transaction](api.md#transaction) response scheme.
 
 
 ```json
@@ -710,7 +695,7 @@ will have an ID field which contains the ID of the event which triggered the res
 | **Description** | A Synse error. |
 
 ##### Event Data
-> *Note*: See [HTTP API: Errors](api.md#errors) Response.
+> *Note*: Fields and description omitted here, see the [HTTP API: Errors](api.md#errors) response scheme.
 
 
 ```json
@@ -718,10 +703,7 @@ will have an ID field which contains the ID of the event which triggered the res
   "id": 1,
   "event": "response/error",
   "data": {
-    "http_code": 404,
-    "description": "Device not found",
-    "timestamp": "2018-01-24 19:22:28Z",
-    "context": "f52d29fecf05a195af13f14c73065252d does not correspond with a known device ID"
+    ...
   }
 }
 ```
