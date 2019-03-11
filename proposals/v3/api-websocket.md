@@ -362,7 +362,7 @@ If no timestamp is specified, there will not be an starting/ending bound.
    "event": "request/write_async",
    "data": {
       "id": "34c226b1afadaae5f172a4e1763fd1a6",
-      "data": [
+      "payload": [
          {
             "action": "color",
             "data": "ff00ff",
@@ -395,7 +395,7 @@ If no timestamp is specified, there will not be an starting/ending bound.
    "event": "request/write_sync",
    "data": {
       "id": "34c226b1afadaae5f172a4e1763fd1a6",
-      "data": [
+      "payload": [
          {
             "action": "color",
             "data": "ff00ff",
