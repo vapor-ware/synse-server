@@ -1,4 +1,9 @@
 # GRPC API
+
+> **03/20/2019**: [Amendment 2](amendment-2.md) changes have been applied to this document:
+>   - `system` field is no longer supported
+>   - `systemOfMeasure` field is no longer supported
+
 ## Summary
 The Synse GRPC API is used to communicate to Synse Plugins. Synse Server uses this
 API for all plugin communication, including reading and writing,
@@ -248,7 +253,6 @@ The unit of measure for a [v3 Device Output](#v3deviceoutput).
 
 | Field | Type | Description |
 | :---- | :--- | :---------- |
-| *system* | string | The System of Measure of the unit. (imperial, metric) |
 | *name* | string | The full name of the unit, e.g. "degrees celsius". |
 | *symbol* | string | The symbolic representation of the unit, e.g. "C". |
 
@@ -273,7 +277,6 @@ A request for device readings.
 | Field | Type | Description |
 | :---- | :--- | :---------- |
 | selector | [V3DeviceSelector](#v3deviceselector) | The selector for the device(s) to read from. |
-| systemOfMeasure | string | The system of measure (imperial, metric) to convert the device readings to. |
 
 
 #### V3Tag
