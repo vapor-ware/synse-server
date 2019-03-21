@@ -1,4 +1,8 @@
 # Synse v3 WebSocket API
+
+> **03/20/2019**: [Amendment 2](amendment-2.md) changes have been applied to this document:
+>   - `som` is no longer supported as a parameter
+
 ## Summary
 Synse v3 adds support for WebSockets to Synse Server. This document describes
 the the WebSocket API.
@@ -301,7 +305,6 @@ be omitted entirely.
 | Field | Type | Required | Description |
 | :---- | :--- | :------- | :---------- |
 | *device* | `string` | yes | The ID of the device to read. |
-| *som* | `string` | no | The System of Measure for the response reading(s). This should be one of: imperial, metric. (default: metric) |
 
 ```json
 {
