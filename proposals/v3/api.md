@@ -1,4 +1,8 @@
 # Synse v3 HTTP API
+
+> **03/20/2019**: [Amendment 2](amendment-2.md) changes have been applied to this document:
+>   - `som` is no longer supported as a query parameter
+
 ## Summary
 The driving change for Synse v3 is removing `rack/board/device`-based routing
 and using a new [tag](tags.md)-based routing system. This change is reflected in
@@ -614,7 +618,6 @@ Get the full set of metainfo and capabilities for a specified device.
 | *precision* | The number of decimal places the value will be rounded to. |
 | *scaling_factor* | A scaling factor which will be applied to the raw reading value. |
 | *units* | Information for the reading's units of measure. |
-| *unit.system* | The system of measure that the unit belongs to. |
 | *unit.name* | The complete name of the unit of measure (e.g. "meters per second"). |
 | *unit.symbol* | A symbolic representation of the unit of measure (e.g. m/s). |
 
@@ -657,7 +660,6 @@ For more details on the changes to the `/read` endpoint, see the
 | :--- | :---------- |
 | ns | The default namespace to use for the specified labels. (default: `default`) |
 | tags | The [tags](tags.md) to filter devices on. If specifying multiple tags, they should be comma-separated. |
-| som | The System of Measure for the response reading(s). This should be one of: imperial, metric. (default: `metric`) |
 
 #### Response
 It is recommended to read the document on [v3 reads](reads.md), as it explains in detail
@@ -761,12 +763,6 @@ endpoint where the label matches the [device id tag](tags.md#auto-generated), e.
 | Parameter | Required | Description |
 | :-------- | :------- | :---------- |
 | *device_id* | yes | The ID of the device to read. [Device IDs](ids.md) are globally unique. |
-
-#### Query Parameters
-
-| Key  | Description |
-| :--- | :---------- |
-| som | The System of Measure for the response reading(s). This should be one of: imperial, metric. (default: `metric`) |
 
 #### Response
 
