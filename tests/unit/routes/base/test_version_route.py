@@ -4,7 +4,7 @@ import pytest
 import ujson
 from sanic.response import HTTPResponse
 
-from synse_server import version
+import synse_server
 from synse_server.routes.base import version_route
 from tests import utils
 
@@ -22,5 +22,5 @@ async def test_synse_version_route():
     assert 'version' in body
     assert 'api_version' in body
 
-    assert body['version'] == version.__version__
-    assert body['api_version'] == version.__api_version__
+    assert body['version'] == synse_server.__version__
+    assert body['api_version'] == synse_server.__api_version__

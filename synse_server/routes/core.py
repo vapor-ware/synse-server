@@ -3,11 +3,10 @@
 from sanic import Blueprint
 from sanic.response import stream
 
-from synse_server import commands, errors, validate
+from synse_server import commands, errors, validate, __api_version__
 from synse_server.i18n import _
 from synse_server.log import logger
 from synse_server.response import json
-from synse_server.version import __api_version__
 
 bp = Blueprint(__name__, url_prefix='/synse/' + __api_version__)
 

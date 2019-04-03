@@ -2,7 +2,7 @@
 
 import ujson
 
-from synse_server.version import __api_version__
+from synse_server import __api_version__
 
 config_url = '/synse/{}/config'.format(__api_version__)
 

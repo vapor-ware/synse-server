@@ -2,7 +2,7 @@
 
 import ujson
 
-from synse_server import version
+import synse_server
 
 version_url = '/synse/version'
 
@@ -16,8 +16,8 @@ def test_version_endpoint_ok(app):
     assert 'version' in data
     assert 'api_version' in data
 
-    assert data['version'] == version.__version__
-    assert data['api_version'] == version.__api_version__
+    assert data['version'] == synse_server.__version__
+    assert data['api_version'] == synse_server.__api_version__
 
 
 def test_version_endpoint_post_not_allowed(app):

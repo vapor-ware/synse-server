@@ -3,7 +3,7 @@
 import ujson
 
 from synse_server import errors
-from synse_server.version import __api_version__
+from synse_server import __api_version__
 from tests import utils
 
 scan_url = '/synse/{}/scan'.format(__api_version__)
