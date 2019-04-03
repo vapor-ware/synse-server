@@ -1,6 +1,6 @@
 """Test the 'synse_server.scheme.version' Synse Server module."""
 
-from synse_server import version
+import synse_server
 from synse_server.scheme.version import VersionResponse
 
 
@@ -10,6 +10,6 @@ def test_version_scheme():
     response_scheme = VersionResponse()
 
     assert response_scheme.data == {
-        'version': version.__version__,
-        'api_version': version.__api_version__
+        'version': synse_server.__version__,
+        'api_version': synse_server.__api_version__
     }

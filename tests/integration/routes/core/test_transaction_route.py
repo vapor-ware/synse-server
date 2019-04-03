@@ -1,7 +1,7 @@
 """Test the 'synse_server.routes.core' module's transaction route."""
 
 from synse_server import errors
-from synse_server.version import __api_version__
+from synse_server import __api_version__
 from tests import utils
 
 invalid_transaction_url = '/synse/{}/transaction/invalid-id'.format(__api_version__)

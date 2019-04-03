@@ -16,8 +16,8 @@ import pytest
 import requests
 import ujson
 
+import synse_server
 from synse_server import errors
-from synse_server.version import __api_version__, __version__
 
 # get the host information via ENV, or use the default of localhost
 host = os.environ.get('SYNSE_TEST_HOST', 'localhost')
@@ -115,7 +115,7 @@ def url_unversioned(uri):
 
 def url(uri):
     """Create the versioned URL for Synse Server with the given URI."""
-    return 'http://{}:5000/synse/{}/{}'.format(host, __api_version__, uri)
+    return 'http://{}:5000/synse/{}/{}'.format(host, synse_server.__api_version__, uri)
 
 
 def validate_write_ok(data, size):
@@ -351,8 +351,8 @@ class TestVersion:
         data = response.json()
         assert 'version' in data
         assert 'api_version' in data
-        assert data['version'] == __version__
-        assert data['api_version'] == __api_version__
+        assert data['version'] == synse_server.__version__
+        assert data['api_version'] == synse_server.__api_version__
 
 
 #

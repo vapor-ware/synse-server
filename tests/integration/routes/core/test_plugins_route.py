@@ -2,7 +2,7 @@
 
 import ujson
 
-from synse_server.version import __api_version__
+from synse_server import __api_version__
 
 plugins_url = '/synse/{}/plugins'.format(__api_version__)
 
