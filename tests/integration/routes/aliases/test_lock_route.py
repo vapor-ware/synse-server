@@ -1,7 +1,7 @@
 """Test the 'synse_server.routes.aliases' module's lock route."""
 
 from synse_server import errors
-from synse_server.version import __api_version__
+from synse_server import __api_version__
 from tests import utils
 
 invalid_lock_route_url = '/synse/{}/lock/invalid-rack/invalid-board/invalid-device'\
