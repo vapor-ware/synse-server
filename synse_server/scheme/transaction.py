@@ -1,6 +1,7 @@
 """Response scheme for the `transaction` endpoint."""
 
-from synse_server.proto import util as putil
+import synse_grpc.utils
+
 from synse_server.scheme.base_response import SynseResponse
 
 
@@ -34,8 +35,7 @@ class TransactionResponse(SynseResponse):
         self.data = {
             'id': transaction,
             'context': context,
-            'state': putil.write_state_name(write_response.state),
-            'status': putil.write_status_name(write_response.status),
+            'status': synse_grpc.utils.write_status_name(write_response.status),
             'created': write_response.created,
             'updated': write_response.updated,
             'message': write_response.message

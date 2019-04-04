@@ -4,40 +4,33 @@
 #
 #    pip-compile --output-file requirements.txt setup.py
 #
-adal==1.2.1               # via kubernetes
 aiocache==0.10.1
 aiofiles==0.4.0           # via sanic
-asn1crypto==0.24.0        # via cryptography
 bison==0.1.0
 cachetools==3.1.0         # via google-auth
-certifi==2018.11.29       # via kubernetes, requests
-cffi==1.11.5              # via cryptography
+certifi==2019.3.9         # via kubernetes, requests
 chardet==3.0.4            # via requests
-cryptography==2.5         # via adal
-google-auth==1.6.2        # via kubernetes
-grpcio==1.18.0
-httptools==0.0.11         # via sanic
+google-auth==1.6.3        # via kubernetes
+grpcio==1.19.0
+httptools==0.0.13         # via sanic
 idna==2.8                 # via requests
-kubernetes==8.0.1
+kubernetes==9.0.0
 multidict==4.5.2          # via sanic
 oauthlib==3.0.1           # via requests-oauthlib
-protobuf==3.6.1
 pyasn1-modules==0.2.4     # via google-auth
 pyasn1==0.4.5             # via pyasn1-modules, rsa
-pycparser==2.19           # via cffi
-pyjwt==1.7.1              # via adal
-python-dateutil==2.8.0    # via adal, kubernetes
-python-json-logger==0.1.10
-pyyaml==4.2b4
+python-dateutil==2.8.0    # via kubernetes
+python-json-logger==0.1.11
+pyyaml==5.1
 requests-oauthlib==1.2.0  # via kubernetes
 requests==2.21.0
 rsa==4.0                  # via google-auth
-sanic==18.12.0
-six==1.12.0               # via cryptography, google-auth, grpcio, kubernetes, protobuf, python-dateutil, structlog, websocket-client
+sanic==19.3.1
+six==1.12.0               # via google-auth, grpcio, kubernetes, python-dateutil, structlog, websocket-client
 structlog==19.1.0
 synse-grpc==1.1.0
 ujson==1.35               # via sanic
 urllib3==1.24.1           # via kubernetes, requests
-uvloop==0.12.0            # via sanic
-websocket-client==0.54.0  # via kubernetes
+uvloop==0.12.2            # via sanic
+websocket-client==0.56.0  # via kubernetes
 websockets==6.0           # via sanic

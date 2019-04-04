@@ -3,11 +3,12 @@
 import os
 import stat
 
+from synse_grpc import client
+
 from synse_server import config, const, errors
 from synse_server.discovery import kubernetes
 from synse_server.i18n import _
 from synse_server.log import logger
-from synse_server.proto import client
 
 
 class PluginManager:
@@ -243,12 +244,7 @@ def register_plugin(address, protocol):
     # The client does not exist, so we must register it. This means we need to
     # connect with it to (a) make sure its reachable, and (b) get its metadata
     # in order to properly create a new Plugin model for it.
-    if protocol == 'tcp':
-        plugin_client = client.PluginTCPClient(address)
-    elif protocol == 'unix':
-        plugin_client = client.PluginUnixClient(address)
-    else:
-        raise ValueError(_('Invalid protocol specified for registration: {}').format(protocol))
+    plugin_client = client.PluginClientV3(address, protocol)
 
     try:
         status = plugin_client.test()
@@ -263,7 +259,7 @@ def register_plugin(address, protocol):
     # with the plugin. Now, we should get its metainfo and create a Plugin
     # instance with it.
     try:
-        meta = plugin_client.metainfo()
+        meta = plugin_client.metadata()
     except Exception as e:
         logger.warning(_('Failed to get plugin metadata at address {}: {}').format(address, e))
         return None
