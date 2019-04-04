@@ -2,10 +2,11 @@
 
 import grpc
 
+import synse_grpc.utils
+
 from synse_server import plugin, utils
 from synse_server.i18n import _
 from synse_server.log import logger
-from synse_server.proto import util
 from synse_server.scheme.plugins import PluginsResponse
 
 
@@ -65,12 +66,12 @@ async def get_plugins():
         else:
             plugin_data['health'] = {
                 'timestamp': health.timestamp,
-                'status': util.plugin_health_status_name(health.status),
+                'status': synse_grpc.utils.health_status_name(health.status),
                 'message': '',
                 'checks': [
                     {
                         'name': check.name,
-                        'status': util.plugin_health_status_name(check.status),
+                        'status': synse_grpc.utils.health_status_name(check.status),
                         'message': check.message,
                         'timestamp': check.timestamp,
                         'type': check.type,

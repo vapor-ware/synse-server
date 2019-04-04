@@ -5,7 +5,6 @@ import grpc
 from synse_server import cache, errors, plugin
 from synse_server.i18n import _
 from synse_server.log import logger
-from synse_server.proto.client import WriteData
 from synse_server.scheme.write import WriteResponse
 
 
@@ -59,7 +58,7 @@ async def write(rack, board, device, data):
             )
         write_data = str.encode(write_data)
 
-    wd = WriteData(action=write_action, data=write_data)
+    wd = {'action': write_action, 'data': write_data}
     logger.info(_('Writing to {}: {}').format('/'.join((rack, board, device)), wd))
 
     # Perform a gRPC write on the device's managing plugin

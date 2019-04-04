@@ -10,6 +10,10 @@
 #
 FROM vaporio/python:3.6 as builder
 COPY requirements.txt .
+COPY synse_grpc-3.0.0.tar.gz .
+
+RUN pip install --prefix=/build --no-warn-script-location synse_grpc-3.0.0.tar.gz \
+ && rm -rf /root/.cache
 
 RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
  && rm -rf /root/.cache
