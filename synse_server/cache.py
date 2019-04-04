@@ -3,11 +3,12 @@
 import aiocache
 import grpc
 
+import synse_grpc.utils
+
 from synse_server import config, errors, utils
 from synse_server.i18n import _
 from synse_server.log import logger
 from synse_server.plugin import Plugin, get_plugins, register_plugins
-from synse_server.proto import util as putil
 
 # The aiocache configuration
 AIOCACHE = {
@@ -633,7 +634,7 @@ def _build_resource_info_cache(metainfo):
 
     for source in metainfo.values():
 
-        src = putil.device_info_to_dict(source)
+        src = synse_grpc.utils.to_dict(source)
 
         rack = source.location.rack
         board = source.location.board

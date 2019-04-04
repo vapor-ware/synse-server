@@ -46,9 +46,7 @@ setup(
         'requests>=2.20.0',  # used by 'kubernetes'
         'sanic>=0.8.0',
         'structlog',
-        'synse-grpc>=1.1.0',
-        # FIXME: protobuf should be removed here, it should be a dep of synse_grpc
-        'protobuf',
+        'synse-grpc>=1.1.0',  # fixme: this will need to be >= 3.0.0 once that is released
     ],
     tests_require=[
         'aiohttp',
