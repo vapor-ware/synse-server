@@ -1,6 +1,6 @@
 """Synse Server caches and cache utilities."""
 
-
+import asyncio
 import aiocache
 import grpc
 
@@ -18,6 +18,8 @@ transaction_cache = aiocache.SimpleMemoryCache(
 device_cache = aiocache.SimpleMemoryCache(
     ttl=config.options.get('cache.device.ttl', None)
 )
+
+device_cache_lock = asyncio.Lock()
 
 
 async def get_transaction(transaction_id):
@@ -113,20 +115,23 @@ async def update_device_cache():
         logger.debug(_('no plugins found when updating device cache'))
         plugin.manager.update()
 
-    for p in plugin.manager:
-        logger.debug(_('getting devices from plugin'), plugin=p.tag, plugin_id=p.id)
-        try:
-            for device in p.client.devices():
-                for tag in device.tags:
-                    key = synse_grpc.utils.tag_string(tag)
-                    val = await device_cache.get(key)
-                    if val is None:
-                        await device_cache.set(key, [device])
-                    else:
-                        await device_cache.set(key, val + [device])
+    async with device_cache_lock:
+        await device_cache.clear()
 
-        except grpc.RpcError as e:
-            logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
+        for p in plugin.manager:
+            logger.debug(_('getting devices from plugin'), plugin=p.tag, plugin_id=p.id)
+            try:
+                for device in p.client.devices():
+                    for tag in device.tags:
+                        key = synse_grpc.utils.tag_string(tag)
+                        val = await device_cache.get(key)
+                        if val is None:
+                            await device_cache.set(key, [device])
+                        else:
+                            await device_cache.set(key, val + [device])
+
+            except grpc.RpcError as e:
+                logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
 
 
 async def get_device(device_id):
@@ -138,7 +143,8 @@ async def get_device(device_id):
     # Every device has a system-generated ID tag in the format 'system/id:<device id>'
     # which we can use here to get the device. If the ID tag is not in the cache,
     # we take that to mean that there is no such device.
-    return await device_cache.get(f'system/id:{device_id}')
+    async with device_cache_lock:
+        return await device_cache.get(f'system/id:{device_id}')
 
 
 async def get_devices(*tags):
@@ -156,7 +162,8 @@ async def get_devices(*tags):
     """
     results = set()
     for i, tag in enumerate(tags):
-        devices = await device_cache.get(tag)
+        async with device_cache_lock:
+            devices = await device_cache.get(tag)
 
         # If there are no devices matching the first tag, we will ultimately
         # get nothing, as an intersection with nothing is nothing.
