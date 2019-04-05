@@ -16,6 +16,7 @@ def rfc3339now():
     return now.isoformat('T') + 'Z'
 
 
+# fixme: remove--unused
 def composite(rack, board, device):
     """Create a composite string out of a rack, board, and device.
 
@@ -32,6 +33,7 @@ def composite(rack, board, device):
     return '-'.join([rack, board, device])
 
 
+# fixme: remove--unused
 def type_from_kind(kind):
     """Get the device type from the device kind.
 

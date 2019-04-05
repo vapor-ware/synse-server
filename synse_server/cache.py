@@ -1,15 +1,14 @@
 """Synse Server caches and cache utilities."""
 
 import asyncio
+
 import aiocache
 import grpc
-
 import synse_grpc.utils
 
 from synse_server import config, plugin
 from synse_server.i18n import _
 from synse_server.log import logger
-
 
 transaction_cache = aiocache.SimpleMemoryCache(
     ttl=config.options.get('cache.transaction.ttl', None)
@@ -72,8 +71,7 @@ async def add_transaction(transaction_id, context, plugin_name):
     #   transaction info by converting it to dict (commands/write.py)
 
     logger.debug(
-        _('Caching transaction {} from plugin {} ({})').format(
-            transaction_id, plugin_name, context)
+        _('caching transaction'), plugin=plugin_name, id=transaction_id, context=context,
     )
     return await transaction_cache.set(
         transaction_id,
@@ -196,7 +194,6 @@ async def get_plugin(device_id):
     if device is None:
         return None
     return plugin.manager.get(device.plugin)
-
 
 
 # import aiocache

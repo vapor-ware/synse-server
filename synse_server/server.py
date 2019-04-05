@@ -5,6 +5,7 @@ import sys
 
 import synse_server
 from synse_server import app, config
+from synse_server.i18n import _
 from synse_server.log import logger, setup_logger
 
 
@@ -48,8 +49,9 @@ class Synse:
 
     {synse_server.__description__}
 
-    version: {synse_server.__version__}
     author:  {synse_server.__author__}
+    version: {synse_server.__version__}
+    api:     {synse_server.__api_version__}
     url:     {synse_server.__url__}
     license: {synse_server.__license__}
 
@@ -76,7 +78,7 @@ class Synse:
         the backing Sanic application. Additionally, it lets us set up
         logging early on.
         """
-        logger.debug('Setting up Synse Server')
+        logger.debug(_('setting up synse server'))
 
         # Make sure that the filesystem layout needed by Synse Server
         # is present. If not, create the required directories.
@@ -91,7 +93,7 @@ class Synse:
 
     def run(self):
         """Run Synse Server."""
-        logger.debug('Running Synse Server...')
+        logger.info(_('running synse server'))
 
         # If we are configured to log the header, write it to stdout instead
         # of using the logger, since the structured logger will not format
