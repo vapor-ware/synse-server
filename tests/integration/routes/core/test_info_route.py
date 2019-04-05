@@ -1,7 +1,6 @@
 """Test the 'synse_server.routes.core' module's info route."""
 
-from synse_server import errors
-from synse_server import __api_version__
+from synse_server import __api_version__, errors
 from tests import utils
 
 info_url = '/synse/{}/info'.format(__api_version__)

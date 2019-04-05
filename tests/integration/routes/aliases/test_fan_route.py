@@ -1,7 +1,6 @@
 """Test the 'synse_server.routes.aliases' module's fan route."""
 
-from synse_server import errors
-from synse_server import __api_version__
+from synse_server import __api_version__, errors
 from tests import utils
 
 invalid_fan_route_url = '/synse/{}/fan/invalid-rack/invalid-board/invalid-device'\

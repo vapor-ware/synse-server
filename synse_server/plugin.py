@@ -1,11 +1,8 @@
 """Management and access logic for configured plugin backends."""
 
-import os
-import stat
-
 from synse_grpc import client, utils
 
-from synse_server import config, const, errors
+from synse_server import config, errors
 from synse_server.discovery import kubernetes
 from synse_server.i18n import _
 from synse_server.log import logger

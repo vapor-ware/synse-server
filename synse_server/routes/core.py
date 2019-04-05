@@ -3,7 +3,7 @@
 from sanic import Blueprint
 from sanic.response import stream
 
-from synse_server import commands, errors, validate, __api_version__
+from synse_server import __api_version__, commands, errors, validate
 from synse_server.i18n import _
 from synse_server.log import logger
 from synse_server.response import json

@@ -1,7 +1,7 @@
 """Response scheme for the `version` endpoint."""
 
-from synse_server.scheme.base_response import SynseResponse
 from synse_server import __api_version__, __version__
+from synse_server.scheme.base_response import SynseResponse
 
 
 class VersionResponse(SynseResponse):
