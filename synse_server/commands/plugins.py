@@ -1,7 +1,6 @@
 """Command handler for the `plugins` route."""
 
 import grpc
-
 import synse_grpc.utils
 
 from synse_server import plugin, utils

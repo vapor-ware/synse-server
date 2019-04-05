@@ -1,7 +1,6 @@
 """Test the 'synse_server.routes.core' module's read route."""
 
-from synse_server import errors
-from synse_server import __api_version__
+from synse_server import __api_version__, errors
 from tests import utils
 
 invalid_read_url = '/synse/{}/read/invalid-rack/invalid-board/invalid-device'\
