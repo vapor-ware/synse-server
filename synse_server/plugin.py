@@ -180,7 +180,7 @@ class PluginManager:
         diff = pre_update - registered
         self.purge(diff)
 
-        logger.debug(_('plugin manager update complete'))
+        logger.debug(_('plugin manager update complete'), plugin_count=len(self.plugins))
 
 
 # A module-level instance of the plugin manager. This makes it easier to use
