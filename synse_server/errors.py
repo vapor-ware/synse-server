@@ -2,6 +2,7 @@
 
 from sanic.handlers import ErrorHandler
 
+from synse_server.i18n import _
 from synse_server.response import json
 from synse_server.utils import rfc3339now
 
@@ -68,7 +69,7 @@ class InvalidUsage(SynseError):
     """
 
     http_code = 400
-    description = 'invalid user input'
+    description = _('invalid user input')
 
 
 class NotFound(SynseError):
@@ -80,7 +81,7 @@ class NotFound(SynseError):
     """
 
     http_code = 404
-    description = 'resource not found'
+    description = _('resource not found')
 
 
 class UnsupportedAction(SynseError):
@@ -92,7 +93,7 @@ class UnsupportedAction(SynseError):
     """
 
     http_code = 405
-    description = 'device action not supported'
+    description = _('device action not supported')
 
 
 class ServerError(SynseError):
@@ -104,4 +105,4 @@ class ServerError(SynseError):
     """
 
     http_code = 500
-    description = 'error processing the request'
+    description = _('error processing the request')
