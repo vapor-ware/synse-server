@@ -4,7 +4,7 @@ from sanic import Blueprint
 from sanic.response import text
 
 from synse_server.log import logger
-from synse_server import cmd, response
+from synse_server import cmd, utils
 from synse_server.i18n import _
 
 # Blueprint for the Synse core (version-less) routes.
@@ -29,7 +29,7 @@ async def test(request):
     """
     logger.debug(_('processing request'), endpoint='/test')
 
-    return response.json(
+    return utils.http_json_response(
         await cmd.test(),
     )
 
@@ -47,7 +47,7 @@ async def version(request):
     """
     logger.debug(_('processing request'), endpoint='/version')
 
-    return response.json(
+    return utils.http_json_response(
         await cmd.version(),
     )
 
@@ -67,7 +67,7 @@ async def config(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/config')
 
-    return response.json(
+    return utils.http_json_response(
         await cmd.config(),
     )
 

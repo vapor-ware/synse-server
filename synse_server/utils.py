@@ -2,6 +2,11 @@
 
 import datetime
 
+import ujson
+from sanic.response import json as sjson
+
+from synse_server import config
+
 
 def rfc3339now():
     """Create an RFC3339 formatted timestamp for the current UTC time.
@@ -16,36 +21,44 @@ def rfc3339now():
     return now.isoformat('T') + 'Z'
 
 
-# fixme: remove--unused
-def composite(rack, board, device):
-    """Create a composite string out of a rack, board, and device.
+def _dumps(*arg, **kwargs):
+    """Custom JSON dumps implementation to be used when pretty printing.
 
-    This can be used to uniquely identify a device across all racks.
+    The `sanic.response` json function uses `ujson.dumps` as its default dumps
+    method. It appears that this does not include a new line after the
+    dumped JSON. When curl-ing or otherwise getting Synse Server data from
+    the command line, this can cause the shell prompt to be placed on the
+    same line as the last line of JSON output. While not necessarily a bad
+    thing, it can be inconvenient.
 
-    Args:
-        rack (str): The rack associated with the device.
-        board (str): The board associated with the device.
-        device (str): The ID of the device.
-
-    Returns:
-        str: A composite of the input strings.
-    """
-    return '-'.join([rack, board, device])
-
-
-# fixme: remove--unused
-def type_from_kind(kind):
-    """Get the device type from the device kind.
-
-    The device kind is the fully qualified name of the device kind, e.g.
-    'foo.bar.temperature'. The device type should be the last element of
-    the name-spaced kind, where the delimiter is a period.
+    This custom function adds in the newline, if it doesn't exist, so that
+    the shell prompt will start on a new line.
 
     Args:
-        kind (str): The device kind.
+        *arg: Arguments for ujson.dumps.
+        **kwargs: Keyword arguments for ujson.dumps.
 
     Returns:
-        str: The type of the devices, derived from the device kind.
+        str: The given dictionary data dumped to a JSON string.
     """
-    components = kind.split('.')
-    return components[-1]
+    out = ujson.dumps(*arg, **kwargs)
+    if not out.endswith('\n'):
+        out += '\n'
+    return out
+
+
+def http_json_response(body, **kwargs):
+    """Create a JSON-encoded `HTTPResponse` for an HTTP endpoint response.
+
+    Args:
+        body (dict): A dictionary of data that will be encoded into a JSON
+            HTTPResponse.
+        **kwargs: Keyword arguments to pass to the response constructor.
+
+    Returns:
+        sanic.HTTPResponse: The Sanic endpoint response with the given body
+            encoded as JSON.
+    """
+    if config.options.get('pretty_json'):
+        return sjson(body, indent=2, dumps=_dumps, **kwargs)
+    return sjson(body, **kwargs)

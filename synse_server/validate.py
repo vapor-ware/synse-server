@@ -2,36 +2,8 @@
 
 from functools import wraps
 
-from synse_server import cache, errors
+from synse_server import errors
 from synse_server.i18n import _
-
-
-async def validate_device_type(device_type, rack, board, device):
-    """Validate that the device associated with the given routing info
-    (rack, board device) matches the given device type.
-
-    This checks that the lower-cased device type matches the lower-cased
-    expected type, so casing on device type(s) should not matter.
-
-    Args:
-        device_type (list[str]): The device types that are permissible,
-            e.g. "led", "fan", etc.
-        rack (str): The rack which the device belongs to.
-        board (str): The board which the device belongs to.
-        device (str): The ID of the device.
-
-    Raises:
-        errors.InvalidDeviceType: The device does not match the given type.
-        errors.DeviceNotFoundError: The specified device is not found.
-    """
-    __, device = await cache.get_device_info(rack, board, device)
-
-    # The type of a device should be the last element in it's kind namespace.
-    _type = device.kind.split('.')[-1].lower()
-    if _type not in [t.lower() for t in device_type]:
-        raise errors.ServerError(
-            _('Device ({}) is not a supported type {}').format(_type, device_type)
-        )
 
 
 def validate_query_params(raw_args, *valid_params):
