@@ -82,7 +82,9 @@ async def plugins(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/plugin')
 
-    return text('plugin')
+    return utils.http_json_response(
+        await cmd.plugins(),
+    )
 
 
 @v3.route('/plugin/<plugin_id>')
@@ -99,7 +101,9 @@ async def plugin(request, plugin_id):
     """
     logger.debug(_('processing request'), endpoint='/v3/plugin/<id>', id=plugin_id)
 
-    return text('plugin {id}')
+    return utils.http_json_response(
+        await cmd.plugin(plugin_id),
+    )
 
 
 @v3.route('/plugin/health')
@@ -112,7 +116,9 @@ async def plugin_health(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/plugin/health')
 
-    return text('plugin health')
+    return utils.http_json_response(
+        await cmd.plugin_health(),
+    )
 
 
 @v3.route('/scan')

@@ -51,8 +51,7 @@ def http_json_response(body, **kwargs):
     """Create a JSON-encoded `HTTPResponse` for an HTTP endpoint response.
 
     Args:
-        body (dict): A dictionary of data that will be encoded into a JSON
-            HTTPResponse.
+        body (dict | list): Data that will be encoded into a JSON HTTPResponse.
         **kwargs: Keyword arguments to pass to the response constructor.
 
     Returns:
