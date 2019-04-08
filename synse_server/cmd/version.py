@@ -2,7 +2,7 @@
 import synse_server
 
 
-def version():
+async def version():
     """Generate the version response data.
 
     Returns:

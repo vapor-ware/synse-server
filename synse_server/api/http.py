@@ -4,7 +4,8 @@ from sanic import Blueprint
 from sanic.response import text
 
 from synse_server.log import logger
-from synse_server import response
+from synse_server import cmd, response
+from synse_server.i18n import _
 
 # Blueprint for the Synse core (version-less) routes.
 core = Blueprint('core-http')
@@ -26,7 +27,11 @@ async def test(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    return response.json(response.test())
+    logger.debug(_('processing request'), endpoint='/test')
+
+    return response.json(
+        await cmd.test(),
+    )
 
 
 @core.route('/version')
@@ -40,7 +45,11 @@ async def version(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    return response.json(response.version())
+    logger.debug(_('processing request'), endpoint='/version')
+
+    return response.json(
+        await cmd.version(),
+    )
 
 
 @v3.route('/config')
@@ -56,7 +65,11 @@ async def config(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    return response.json(response.config())
+    logger.debug(_('processing request'), endpoint='/v3/config')
+
+    return response.json(
+        await cmd.config(),
+    )
 
 
 @v3.route('/plugin')
@@ -67,6 +80,8 @@ async def plugins(request):
         * 200: OK
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/plugin')
+
     return text('plugin')
 
 
@@ -82,6 +97,8 @@ async def plugin(request, plugin_id):
         * 404: Plugin not found
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/plugin/<id>', id=plugin_id)
+
     return text('plugin {id}')
 
 
@@ -93,6 +110,8 @@ async def plugin_health(request):
         * 200: OK
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/plugin/health')
+
     return text('plugin health')
 
 
@@ -120,6 +139,8 @@ async def scan(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/scan')
+
     return text('scan')
 
 
@@ -141,6 +162,8 @@ async def tags(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/tags')
+
     return text('tags')
 
 
@@ -156,6 +179,8 @@ async def info(request, device_id):
         * 404: Device not found
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/info/<id>', id=device_id)
+
     return text('info')
 
 
@@ -177,6 +202,8 @@ async def read(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/read')
+
     return text('read')
 
 
@@ -199,6 +226,8 @@ async def read_cache(request):
         * 400: Invalid query parameter(s)
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/readcache')
+
     return text('readcache')
 
 
@@ -218,6 +247,8 @@ async def read_device(request, device_id):
         * 405: Device does not support reading
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/read/<id>', id=device_id)
+
     return text('read {id}')
 
 
@@ -239,6 +270,8 @@ async def async_write(request, device_id):
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/write/<id>', id=device_id)
+
     return text('async write')
 
 
@@ -260,6 +293,8 @@ async def sync_write(request, device_id):
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/write/wait/<id>', id=device_id)
+
     return text('sync write')
 
 
@@ -271,6 +306,8 @@ async def transactions(request):
         * 200: OK
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/transaction')
+
     return text('transactions')
 
 
@@ -286,6 +323,8 @@ async def transaction(request, transaction_id):
         * 404: Transaction not found
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/transaction/<id>', id=transaction_id)
+
     return text('transaction {id}')
 
 
@@ -307,4 +346,6 @@ async def device(request, device_id):
         * 405: Device does not support reading/writing
         * 500: Catchall processing error
     """
+    logger.debug(_('processing request'), endpoint='/v3/device/<id>', id=device_id)
+
     return text('device')
