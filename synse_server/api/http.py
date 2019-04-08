@@ -170,7 +170,11 @@ async def tags(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/tags')
 
-    return text('tags')
+    # TODO: process query parameters
+
+    return utils.http_json_response(
+        await cmd.tags(),
+    )
 
 
 @v3.route('/info/<device_id>')
