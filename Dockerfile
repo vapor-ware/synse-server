@@ -71,5 +71,8 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
+COPY synse_grpc-3.0.0.tar.gz .
+RUN pip install synse_grpc-3.0.0.tar.gz
+
 # Copy in the emulator configurations.
 COPY emulator /synse/emulator

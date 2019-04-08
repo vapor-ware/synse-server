@@ -123,6 +123,7 @@ async def update_device_cache():
                     for tag in device.tags:
                         key = synse_grpc.utils.tag_string(tag)
                         val = await device_cache.get(key)
+                        logger.debug('tags key val', key=key, val=val)
                         if val is None:
                             await device_cache.set(key, [device])
                         else:
