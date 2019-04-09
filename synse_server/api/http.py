@@ -211,10 +211,12 @@ async def tags(request):
         for namespace in param_ns:
             namespaces.extend(namespace.split(','))
 
+    include_ids = request.args.get('ids', 'false').lower() == 'true'
+
     return utils.http_json_response(
         await cmd.tags(
             *namespaces,
-            with_id_tags=request.args.get('ids', False),
+            with_id_tags=include_ids,
         ),
     )
 
