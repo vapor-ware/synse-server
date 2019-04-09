@@ -130,8 +130,8 @@ async def scan(request):
     results are sorted by a combination key of 'plugin,sort_index,id'.
 
     Query Parameters:
-        ns: The default namespace to use for the specified labels. Only one default
-            namespace can be specified. (default: ``default``)
+        ns: The default namespace to use for specified tags without explicit namespaces.
+            Only one default namespace may be specified. (default: ``default``)
         tags: The tags to filter devices on. If specifying multiple tags, they can
             be passed in as a comma-separated list, e.g. ``?tags=tag1,tag2,tag3``,
             or via multiple ``tags`` parameters, e.g. ``?tags=tag1&tags=tag2&tags=tag3``.
@@ -244,10 +244,11 @@ async def read(request):
     specified tags.
 
     Query Parameters:
-        ns: The default namespace to use for the specified tags. (default:
-            ``default``)
-        tags: The tags to filter devices on. If specifying multiple tags, they
-            should be comma-separated.
+        ns: The default namespace to use for specified tags without explicit namespaces.
+            Only one default namespace may be specified. (default: ``default``)
+        tags: The tags to filter devices on. If specifying multiple tags, they can
+            be passed in as a comma-separated list, e.g. ``?tags=tag1,tag2,tag3``,
+            or via multiple ``tags`` parameters, e.g. ``?tags=tag1&tags=tag2&tags=tag3``.
 
     HTTP Codes:
         * 200: OK
