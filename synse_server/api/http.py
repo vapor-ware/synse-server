@@ -405,4 +405,8 @@ async def device(request, device_id):
     """
     logger.debug(_('processing request'), endpoint='/v3/device/<id>', id=device_id)
 
-    return text('device')
+    if request.method == 'GET':
+        return read_device(request, device_id)
+
+    else:
+        return sync_write(request, device_id)
