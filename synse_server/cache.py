@@ -50,7 +50,7 @@ def get_cached_transaction_ids():
     return list(transaction_cache._cache.keys())
 
 
-async def add_transaction(transaction_id, context, plugin_name):
+async def add_transaction(transaction_id, device, plugin_name):
     """Add a new transaction to the transaction cache.
 
     This cache tracks transactions and maps them to the plugin from which they
@@ -58,26 +58,22 @@ async def add_transaction(transaction_id, context, plugin_name):
 
     Args:
         transaction_id (str): The ID of the transaction.
-        context (dict): The action/raw data of the write transaction that
-            can be used to help identify the transaction.
+        device (str): The ID of the device associated with the transaction.
         plugin_name (str): The name of the plugin to associate with the
             transaction.
 
     Returns:
         bool: True if successful; False otherwise.
     """
-    # FIXME (etd): Determine whether what we're storing still makes sense.
-    #   Instead of just storing the write context, we could store the entire
-    #   transaction info by converting it to dict (commands/write.py)
-
     logger.debug(
-        _('caching transaction'), plugin=plugin_name, id=transaction_id, context=context,
+        _('caching transaction'), plugin=plugin_name, id=transaction_id, device=device,
     )
+
     return await transaction_cache.set(
         transaction_id,
         {
             'plugin': plugin_name,
-            'context': context
+            'device': device,
         },
     )
 

@@ -365,7 +365,9 @@ async def transactions(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/transaction')
 
-    return text('transactions')
+    return utils.http_json_response(
+        await cmd.transactions(),
+    )
 
 
 @v3.route('/transaction/<transaction_id>')
@@ -382,7 +384,9 @@ async def transaction(request, transaction_id):
     """
     logger.debug(_('processing request'), endpoint='/v3/transaction/<id>', id=transaction_id)
 
-    return text('transaction {id}')
+    return utils.http_json_response(
+        await cmd.transaction(transaction_id),
+    )
 
 
 @v3.route('/device/<device_id>', methods=['GET', 'POST'])
