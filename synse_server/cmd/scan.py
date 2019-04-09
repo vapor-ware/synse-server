@@ -21,6 +21,10 @@ async def scan(ns, tags, sort, force=False):
          list[dict]: A list of dictionary representations of device
          summary response(s).
     """
+    logger.debug(
+        _('issuing command'), command='SCAN',
+        ns=ns, tags=tags, sort=sort, force=force,
+    )
 
     # If the force flag is set, rebuild the internal device cache. This
     # will ensure everything is up to date, but will ultimately make the

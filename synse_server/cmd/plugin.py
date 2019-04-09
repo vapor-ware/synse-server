@@ -3,6 +3,8 @@ from synse_grpc import utils
 
 import synse_server.plugin
 import synse_server.utils
+from synse_server.log import logger
+from synse_server.i18n import _
 
 
 async def plugin(plugin_id):
@@ -14,6 +16,8 @@ async def plugin(plugin_id):
     Returns:
         dict: A dictionary representation of the plugin response.
     """
+    logger.debug(_('issuing command'), command='PLUGIN', plugin_id=plugin_id)
+
     p = synse_server.plugin.manager.get(plugin_id)
     if p is None:
         # FIXME
@@ -43,6 +47,8 @@ async def plugins():
         list[dict]: A list of dictionary representations of the plugin
         summary response(s).
     """
+    logger.debug(_('issuing command'), command='PLUGINS')
+
     summaries = []
     for p in synse_server.plugin.manager:
         summary = p.metadata.copy()
@@ -59,6 +65,8 @@ async def plugin_health():
     Returns:
          dict: A dictionary representation of the plugin health.
     """
+    logger.debug(_('issuing command'), command='PLUGIN HEALTH')
+
     active_count = 0
     inactive_count = 0
     healthy = []

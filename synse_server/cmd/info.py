@@ -1,4 +1,7 @@
 
+from synse_server.log import logger
+from synse_server.i18n import _
+
 
 async def info():
     """Generate the device info response data.
@@ -6,4 +9,4 @@ async def info():
     Returns:
         dict: A dictionary representation of the device info response.
     """
-    pass
+    logger.debug(_('issuing command'), command='INFO')

@@ -1,5 +1,7 @@
 
 from synse_server import cache
+from synse_server.log import logger
+from synse_server.i18n import _
 
 
 async def tags(*namespaces, with_id_tags=False):
@@ -12,6 +14,11 @@ async def tags(*namespaces, with_id_tags=False):
     Returns:
         list[string]: A list of all tags currently associated with devices.
     """
+    logger.debug(
+        _('issuing command'), command='TAGS',
+        namespaces=namespaces, with_id=with_id_tags,
+    )
+
     cached_tags = list(cache.device_cache._cache.keys())
 
     def matches_ns(t):
