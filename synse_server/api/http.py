@@ -179,7 +179,7 @@ async def scan(request):
             tags=tags,
             force=force,
             sort=sort_keys,
-        )
+        ),
     )
 
 
@@ -235,7 +235,9 @@ async def info(request, device_id):
     """
     logger.debug(_('processing request'), endpoint='/v3/info/<id>', id=device_id)
 
-    return text('info')
+    return utils.http_json_response(
+        await cmd.info(device_id),
+    )
 
 
 @v3.route('/read')
