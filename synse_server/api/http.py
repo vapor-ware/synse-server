@@ -130,9 +130,11 @@ async def scan(request):
     results are sorted by a combination key of 'plugin,sort_index,id'.
 
     Query Parameters:
-        ns: The default namespace to use for the specified labels. (default: ``default``)
-        tags: The tags to filter devices on. If specifying multiple tags, they should
-            be comma-separated.
+        ns: The default namespace to use for the specified labels. Only one default
+            namespace can be specified. (default: ``default``)
+        tags: The tags to filter devices on. If specifying multiple tags, they can
+            be passed in as a comma-separated list, e.g. ``?tags=tag1,tag2,tag3``,
+            or via multiple ``tags`` parameters, e.g. ``?tags=tag1&tags=tag2&tags=tag3``.
         force: Force a re-scan (rebuild the internal cache). This will take longer than
             a scan which uses the cache. (default: false)
         sort: Specify the fields to sort by. Multiple fields may be specified as a
@@ -145,9 +147,40 @@ async def scan(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/scan')
+    logger.debug(_('processing request'), endpoint='/v3/scan', params=request.args)
 
-    return text('scan')
+    namespace = 'default'
+    param_ns = request.args.get('ns')
+    if param_ns:
+        if len(param_ns) > 1:
+            # FIXME: 400 invalid param
+            raise ValueError
+        namespace = param_ns[0]
+
+    tags = []
+    param_tags = request.args.get('tags')
+    if param_tags:
+        for tag in param_tags:
+            tags.extend(tag.split(','))
+
+    force = request.args.get('force', 'false').lower() == 'true'
+
+    sort_keys = 'plugin,sort_index,id'
+    param_sort = request.args.get('sort')
+    if param_sort:
+        if len(param_sort) > 1:
+            # FIXME 400 invalid param
+            raise ValueError
+        sort_keys = param_sort[0]
+
+    return utils.http_json_response(
+        await cmd.scan(
+            ns=namespace,
+            tags=tags,
+            force=force,
+            sort=sort_keys,
+        )
+    )
 
 
 @v3.route('/tags')
@@ -158,8 +191,10 @@ async def tags(request):
     By default, all non-ID tags are listed.
 
     Query Parameters:
-        ns: The tag namespace(s) to use when searching for tags. If specifying
-            multiple namespaces, they should be comma-separated. (default: ``default``)
+        ns: The tag namespace(s) to use when searching for tags. If specifying multiple
+            namespaces, they can be passed in as a comma-separated list, e.g.
+            ``?ns=ns1,ns2,ns3``, or via multiple ``ns`` parameters, e.g.
+            ``?ns=ns1&ns=ns2&ns=ns3``. (default: ``default``)
         ids: A flag which determines whether ``id`` tags are included in the
             response. (default: ``false``)
 
@@ -168,12 +203,19 @@ async def tags(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/tags')
+    logger.debug(_('processing request'), endpoint='/v3/tags', params=request.args)
 
-    # TODO: process query parameters
+    namespaces = []
+    param_ns = request.args.get('ns')
+    if param_ns:
+        for namespace in param_ns:
+            namespaces.extend(namespace.split(','))
 
     return utils.http_json_response(
-        await cmd.tags(),
+        await cmd.tags(
+            *namespaces,
+            with_id_tags=request.args.get('ids', False),
+        ),
     )
 
 
@@ -212,7 +254,7 @@ async def read(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/read')
+    logger.debug(_('processing request'), endpoint='/v3/read', pararms=request.args)
 
     return text('read')
 
@@ -236,7 +278,7 @@ async def read_cache(request):
         * 400: Invalid query parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/readcache')
+    logger.debug(_('processing request'), endpoint='/v3/readcache', params=request.args)
 
     return text('readcache')
 

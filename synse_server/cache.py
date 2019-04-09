@@ -160,6 +160,15 @@ async def get_devices(*tags):
         list[V3Device]: The devices which match the specified tags.
     """
     results = set()
+
+    # If no tags are provided, there are no filter constraints, so return all
+    # cached devices.
+    if not tags:
+        values = device_cache._cache.values()
+        for value in values:
+            results.update(set(value))
+        return list(results)
+
     for i, tag in enumerate(tags):
         async with device_cache_lock:
             devices = await device_cache.get(tag)
