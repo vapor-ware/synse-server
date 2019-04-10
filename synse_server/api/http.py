@@ -14,6 +14,22 @@ core = Blueprint('core-http')
 v3 = Blueprint('v3-http', version='v3')
 
 
+def log_request(request, **kwargs):
+    """Log information about the incoming request.
+
+    Args:
+        request: The incoming request.
+        kwargs: Any additional fields to add to the structured logs.
+    """
+    logger.debug(
+        _('processing request'),
+        method=request.method,
+        ip=request.ip,
+        path=request.path,
+        **kwargs,
+    )
+
+
 @core.route('/test')
 async def test(request):
     """A dependency and side-effect free check to see whether Synse Server
@@ -27,7 +43,7 @@ async def test(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/test')
+    log_request(request)
 
     return utils.http_json_response(
         await cmd.test(),
@@ -45,7 +61,7 @@ async def version(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/version')
+    log_request(request)
 
     return utils.http_json_response(
         await cmd.version(),
@@ -65,7 +81,7 @@ async def config(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/config')
+    log_request(request)
 
     return utils.http_json_response(
         await cmd.config(),
@@ -80,7 +96,7 @@ async def plugins(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/plugin')
+    log_request(request)
 
     return utils.http_json_response(
         await cmd.plugins(),
@@ -99,7 +115,7 @@ async def plugin(request, plugin_id):
         * 404: Plugin not found
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/plugin/<id>', id=plugin_id)
+    log_request(request, id=plugin_id)
 
     return utils.http_json_response(
         await cmd.plugin(plugin_id),
@@ -114,7 +130,7 @@ async def plugin_health(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/plugin/health')
+    log_request(request)
 
     return utils.http_json_response(
         await cmd.plugin_health(),
@@ -139,7 +155,7 @@ async def scan(request):
             a scan which uses the cache. (default: false)
         sort: Specify the fields to sort by. Multiple fields may be specified as a
             comma-separated string, e.g. "plugin,id". The "tags" field can not be used
-            for sorting. (default: "plugin,sort_index,id", where ``sort_index`` is an
+            for sorting. (default: "plugin,sortIndex,id", where ``sortIndex`` is an
             internal sort preference which a plugin can optionally specify.)
 
     HTTP Codes:
@@ -147,7 +163,7 @@ async def scan(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/scan', params=request.args)
+    log_request(request, params=request.args)
 
     namespace = 'default'
     param_ns = request.args.get('ns')
@@ -166,7 +182,7 @@ async def scan(request):
 
     force = request.args.get('force', 'false').lower() == 'true'
 
-    sort_keys = 'plugin,sort_index,id'
+    sort_keys = 'plugin,sortIndex,id'
     param_sort = request.args.get('sort')
     if param_sort:
         if len(param_sort) > 1:
@@ -175,7 +191,7 @@ async def scan(request):
             )
         sort_keys = param_sort[0]
 
-    return utils.http_json_response(
+    r = utils.http_json_response(
         await cmd.scan(
             ns=namespace,
             tags=tags,
@@ -183,6 +199,8 @@ async def scan(request):
             sort=sort_keys,
         ),
     )
+    logger.info('scan resp', r=r)
+    return r
 
 
 @v3.route('/tags')
@@ -205,7 +223,7 @@ async def tags(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/tags', params=request.args)
+    log_request(request, params=request.args)
 
     namespaces = []
     param_ns = request.args.get('ns')
@@ -235,7 +253,7 @@ async def info(request, device_id):
         * 404: Device not found
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/info/<id>', id=device_id)
+    log_request(request, id=device_id)
 
     return utils.http_json_response(
         await cmd.info(device_id),
@@ -261,7 +279,7 @@ async def read(request):
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/read', pararms=request.args)
+    log_request(request, params=request.args)
 
     namespace = 'default'
     param_ns = request.args.get('ns')
@@ -305,7 +323,7 @@ async def read_cache(request):
         * 400: Invalid query parameter(s)
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/readcache', params=request.args)
+    log_request(request, params=request.args)
 
     start = ''
     param_start = request.args.get('start')
@@ -349,7 +367,7 @@ async def read_device(request, device_id):
         * 405: Device does not support reading
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/read/<id>', id=device_id)
+    log_request(request, id=device_id)
 
     return utils.http_json_response(
         await cmd.read_device(device_id),
@@ -374,7 +392,7 @@ async def async_write(request, device_id):
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/write/<id>', id=device_id, payload=request.body)
+    log_request(request, id=device_id, payload=request.body)
 
     try:
         data = request.json
@@ -419,7 +437,7 @@ async def sync_write(request, device_id):
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/write/wait/<id>', id=device_id)
+    log_request(request, id=device_id, payload=request.body)
 
     try:
         data = request.json
@@ -454,7 +472,7 @@ async def transactions(request):
         * 200: OK
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/transaction')
+    log_request(request)
 
     return utils.http_json_response(
         await cmd.transactions(),
@@ -473,7 +491,7 @@ async def transaction(request, transaction_id):
         * 404: Transaction not found
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/transaction/<id>', id=transaction_id)
+    log_request(request, id=transaction_id)
 
     return utils.http_json_response(
         await cmd.transaction(transaction_id),
@@ -498,7 +516,7 @@ async def device(request, device_id):
         * 405: Device does not support reading/writing
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/device/<id>', id=device_id)
+    log_request(request, id=device_id)
 
     if request.method == 'GET':
         return read_device(request, device_id)

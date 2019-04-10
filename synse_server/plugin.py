@@ -108,6 +108,8 @@ class PluginManager:
             logger.debug(_('plugin from config'), mode='unix', address=address)
             configs.append((address, 'unix'))
 
+        return configs
+
     @classmethod
     def discover(cls):
         """Discover plugins via the supported discovery methods.
@@ -209,8 +211,13 @@ class Plugin:
         self.metadata = info
         self.version = version
 
-        self.tag = info['tag']  # required
-        self.id = info['id']  # required
+        self.tag = info.get('tag')
+        if self.tag is None:
+            raise ValueError('plugin: required field "tag" missing')
+
+        self.id = info.get('id')
+        if self.id is None:
+            raise ValueError('plugin: required field "id" missing')
 
     def __str__(self):
         return f'<Plugin ({self.tag}): {self.id}>'

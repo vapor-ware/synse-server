@@ -22,12 +22,6 @@ logging.config.dictConfig({
             'propagate': True,
             'qualname': 'sanic.error'
         },
-        'sanic.access': {
-            'level': 'INFO',
-            'handlers': ['default'],
-            'propagate': True,
-            'qualname': 'sanic.access'
-        },
         'synse-server': {
             'level': 'INFO',
             'handlers': ['default']

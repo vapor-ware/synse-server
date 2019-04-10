@@ -78,18 +78,18 @@ class Synse:
         the backing Sanic application. Additionally, it lets us set up
         logging early on.
         """
+        # Load the application configuration(s).
+        self.reload_config()
+
+        # Configure logging, using the loaded config.
+        setup_logger()
+
         logger.debug(_('setting up synse server'))
 
         # Make sure that the filesystem layout needed by Synse Server
         # is present. If not, create the required directories.
         os.makedirs(self._server_config_dir, exist_ok=True)
         os.makedirs(self._socket_dir, exist_ok=True)
-
-        # Load the application configuration(s).
-        self.reload_config()
-
-        # Configure logging, using the loaded config.
-        setup_logger()
 
     def run(self):
         """Run Synse Server."""
@@ -101,9 +101,11 @@ class Synse:
         if self.log_header:
             sys.stdout.write(self._header)
 
+        logger.debug(_('starting Sanic application'))
         self.app.run(
             host=self.host,
             port=self.port,
+            access_log=False,
         )
 
     def reload_config(self):

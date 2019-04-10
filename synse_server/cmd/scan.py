@@ -1,4 +1,6 @@
 
+from synse_grpc import utils
+
 from synse_server import cache
 from synse_server.log import logger
 from synse_server.i18n import _
@@ -51,4 +53,13 @@ async def scan(ns, tags, sort, force=False):
         key=lambda dev: tuple(map(lambda key: getattr(dev, key), sort_keys))
     )
 
-    return sorted_devices
+    response = []
+    for device in sorted_devices:
+        response.append({
+            'id': device.id,
+            'info': device.info,
+            'type': device.type,
+            'plugin': device.plugin,
+            'tags': [utils.tag_string(tag) for tag in device.tags],
+        })
+    return response

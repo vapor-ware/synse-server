@@ -119,7 +119,6 @@ async def update_device_cache():
                     for tag in device.tags:
                         key = synse_grpc.utils.tag_string(tag)
                         val = await device_cache.get(key)
-                        logger.debug('tags key val', key=key, val=val)
                         if val is None:
                             await device_cache.set(key, [device])
                         else:
@@ -155,15 +154,20 @@ async def get_devices(*tags):
     Returns:
         list[V3Device]: The devices which match the specified tags.
     """
-    results = set()
+    # Results are a dict since the V3Device object is not hashable. To ensure
+    # we don't include duplicate device records in the response, we will add
+    # them to the dict keyed off their ID. The resulting dict values should
+    # then be unique.
+    results = dict()
 
     # If no tags are provided, there are no filter constraints, so return all
     # cached devices.
     if not tags:
-        values = device_cache._cache.values()
-        for value in values:
-            results.update(set(value))
-        return list(results)
+        values = list(device_cache._cache.values())
+        for devices in values:
+            for device in devices:
+                results[device.id] = device
+        return list(results.values())
 
     for i, tag in enumerate(tags):
         async with device_cache_lock:
@@ -174,14 +178,22 @@ async def get_devices(*tags):
         if devices is None:
             return []
 
-        # For the first tag, populate the results set. Everything after the
-        # first tag should be a set intersection.
+        # For the first tag, populate the results dict. Everything after the
+        # first tag should be a set intersection. This means we subtract the
+        # set difference from the results dict for all subsequent devices.
         if i == 0:
-            results = set(devices)
+            for device in devices:
+                results[device.id] = device
         else:
-            results = results.intersection(set(devices))
+            diff = set(results.keys()).difference(set([d.id for d in devices]))
+            for item in diff:
+                del results[item]
 
-    return list(results)
+            # If there is nothing left in the results, return.
+            if not results:
+                return []
+
+    return list(results.values())
 
 
 async def get_plugin(device_id):
