@@ -1,7 +1,6 @@
 """Synse Server HTTP API."""
 
 from sanic import Blueprint
-from sanic.response import text
 
 from synse_server.log import logger
 from synse_server import cmd, utils
@@ -369,9 +368,29 @@ async def async_write(request, device_id):
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
-    logger.debug(_('processing request'), endpoint='/v3/write/<id>', id=device_id)
+    logger.debug(_('processing request'), endpoint='/v3/write/<id>', id=device_id, payload=request.body)
 
-    return text('async write')
+    try:
+        data = request.json
+    except Exception as e:
+        # todo raise proper error (400)
+        raise ValueError from e
+
+    # Validate that the incoming payload has an 'action' field defined. This
+    # field is required. All other fields are optional.
+    if isinstance(data, dict):
+        data = [data]
+    for item in data:
+        if 'action' not in item:
+            # todo raise proper error (400)
+            raise ValueError
+
+    return utils.http_json_response(
+        await cmd.write_async(
+            device_id=device_id,
+            payload=data,
+        ),
+    )
 
 
 @v3.route('/write/wait/<device_id>', methods=['POST'])
@@ -394,7 +413,27 @@ async def sync_write(request, device_id):
     """
     logger.debug(_('processing request'), endpoint='/v3/write/wait/<id>', id=device_id)
 
-    return text('sync write')
+    try:
+        data = request.json
+    except Exception as e:
+        # todo raise proper error (400)
+        raise ValueError from e
+
+    # Validate that the incoming payload has an 'action' field defined. This
+    # field is required. All other fields are optional.
+    if isinstance(data, dict):
+        data = [data]
+    for item in data:
+        if 'action' not in item:
+            # todo raise proper error (400)
+            raise ValueError
+
+    return utils.http_json_response(
+        await cmd.write_sync(
+            device_id=device_id,
+            payload=data,
+        ),
+    )
 
 
 @v3.route('/transaction')
