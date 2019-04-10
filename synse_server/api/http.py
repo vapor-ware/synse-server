@@ -1,6 +1,7 @@
 """Synse Server HTTP API."""
 
 from sanic import Blueprint
+from sanic.response import stream
 
 from synse_server.log import logger
 from synse_server import cmd, utils
@@ -319,12 +320,12 @@ async def read_cache(request):
             raise ValueError
         end = param_end[0]
 
-    return utils.http_json_response(
-        await cmd.read_cache(
-            start=start,
-            end=end,
-        )
-    )
+    # Define the function that will be used to stream the responses back.
+    async def response_streamer(response):
+        async for reading in cmd.read_cache(start, end):
+            await response.write(reading)
+
+    return stream(response_streamer, content_type='application/json')
 
 
 @v3.route('/read/<device_id>')

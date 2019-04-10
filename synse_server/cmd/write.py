@@ -28,6 +28,8 @@ async def write_async(device_id, payload):
         # todo: raise proper error
         raise ValueError
 
+    # TODO: add the transaction to the cache
+
     return p.client.write_async(
         device_id=device_id,
         data=payload,

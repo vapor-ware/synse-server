@@ -69,11 +69,9 @@ class PluginManager:
         meta = c.metadata()
         ver = c.version()
 
-        info = utils.to_dict(meta)
-        info.update(utils.to_dict(ver))
-
         plugin = Plugin(
-            info=info,
+            info=utils.to_dict(meta),
+            version=utils.to_dict(ver),
             client=c,
         )
 
