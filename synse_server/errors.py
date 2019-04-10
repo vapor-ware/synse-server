@@ -46,7 +46,6 @@ class SynseError(Exception):
             sanic.response.HTTPResponse: The error information formatted into
             a JSON content-type response for a Sanic endpoint.
         """
-        # TODO (etd): make this a scheme for consistency.
         error = {
             'http_code': self.http_code,
             'description': self.description,

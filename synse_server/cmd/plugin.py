@@ -3,6 +3,7 @@ from synse_grpc import utils
 
 import synse_server.plugin
 import synse_server.utils
+from synse_server import errors
 from synse_server.log import logger
 from synse_server.i18n import _
 
@@ -20,15 +21,18 @@ async def plugin(plugin_id):
 
     p = synse_server.plugin.manager.get(plugin_id)
     if p is None:
-        # FIXME
-        raise ValueError
+        raise errors.NotFound(f'plugin not found: {plugin_id}')
 
-    # todo: exception handling
-    health = p.client.health()
+    try:
+        health = p.client.health()
+    except Exception as e:
+        raise errors.ServerError(
+            'error while issuing gRPC request: plugin health'
+        ) from e
 
     response = {
         **p.metadata,
-        'active': True,
+        'active': True,  # fixme
         'network': {
             'address': p.address,
             'protocol': p.protocol,
@@ -73,14 +77,21 @@ async def plugin_health():
     unhealthy = []
 
     for p in synse_server.plugin.manager:
-        # todo: exception handling - exception would be inactive
-        health = p.client.health()
-        if health.status == 1:  # OK
-            active_count += 1
-            healthy.append(p.id)
+        # TODO: all the logic + handling around active + inactive needs to be worked
+        #   out a bunch more. What is currently here is good enough to get the ball
+        #   rolling, but is not very comprehensive.
+        try:
+            health = p.client.health()
+        except Exception as e:
+            logger.warning(_('failed to get plugin health'), plugin=p.tag, error=e)
+            inactive_count += 1
         else:
-            active_count += 1
-            unhealthy.append(p.id)
+            if health.status == 1:  # OK
+                active_count += 1
+                healthy.append(p.id)
+            else:
+                active_count += 1
+                unhealthy.append(p.id)
 
     is_healthy = len(synse_server.plugin.manager.plugins) == len(healthy)
     return {

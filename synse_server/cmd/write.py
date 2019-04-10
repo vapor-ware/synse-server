@@ -1,5 +1,5 @@
 
-from synse_server import cache, plugin
+from synse_server import cache, errors, plugin
 from synse_server.log import logger
 from synse_server.i18n import _
 
@@ -20,13 +20,15 @@ async def write_async(device_id, payload):
     # FIXME: This is a common pattern - consider making a util (get_plugin_for_device)
     device = await cache.get_device(device_id)
     if not device:
-        # todo: raise proper error
-        raise ValueError
+        raise errors.NotFound(
+            f'device not found: {device_id}',
+        )
 
     p = plugin.manager.get(device.plugin)
     if not p:
-        # todo: raise proper error
-        raise ValueError
+        raise errors.NotFound(
+            f'plugin not found for device: {device.plugin}',
+        )
 
     # TODO: add the transaction to the cache
 
@@ -51,13 +53,15 @@ async def write_sync(device_id, payload):
 
     device = await cache.get_device(device_id)
     if not device:
-        # todo: raise proper error
-        raise ValueError
+        raise errors.NotFound(
+            f'device not found: {device_id}',
+        )
 
     p = plugin.manager.get(device.plugin)
     if not p:
-        # todo: raise proper error
-        raise ValueError
+        raise errors.NotFound(
+            f'plugin not found for device: {device.plugin}',
+        )
 
     return p.client.write_sync(
         device_id=device_id,

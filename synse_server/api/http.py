@@ -4,7 +4,7 @@ from sanic import Blueprint
 from sanic.response import stream
 
 from synse_server.log import logger
-from synse_server import cmd, utils
+from synse_server import cmd, errors, utils
 from synse_server.i18n import _
 
 # Blueprint for the Synse core (version-less) routes.
@@ -153,8 +153,9 @@ async def scan(request):
     param_ns = request.args.get('ns')
     if param_ns:
         if len(param_ns) > 1:
-            # FIXME: 400 invalid param
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid parameter: only one namespace may be specified',
+            )
         namespace = param_ns[0]
 
     tags = []
@@ -169,8 +170,9 @@ async def scan(request):
     param_sort = request.args.get('sort')
     if param_sort:
         if len(param_sort) > 1:
-            # FIXME 400 invalid param
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid parameter: only one sort key may be specified',
+            )
         sort_keys = param_sort[0]
 
     return utils.http_json_response(
@@ -265,8 +267,9 @@ async def read(request):
     param_ns = request.args.get('ns')
     if param_ns:
         if len(param_ns) > 1:
-            # FIXME: 400 invalid param
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid parameter: only one default namespace may be specified',
+            )
         namespace = param_ns[0]
 
     tags = []
@@ -308,16 +311,18 @@ async def read_cache(request):
     param_start = request.args.get('start')
     if param_start:
         if len(param_start) > 1:
-            # fixme: 400 error
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid parameter: only one cache start may be specified',
+            )
         start = param_start[0]
 
     end = ''
     param_end = request.args.get('end')
     if param_end:
         if len(param_end) > 1:
-            # fixme: 400 error
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid parameter: only one cache end may be specified',
+            )
         end = param_end[0]
 
     # Define the function that will be used to stream the responses back.
@@ -374,8 +379,9 @@ async def async_write(request, device_id):
     try:
         data = request.json
     except Exception as e:
-        # todo raise proper error (400)
-        raise ValueError from e
+        raise errors.InvalidUsage(
+            'invalid json: unable to parse POSTed body as JSON'
+        ) from e
 
     # Validate that the incoming payload has an 'action' field defined. This
     # field is required. All other fields are optional.
@@ -383,8 +389,9 @@ async def async_write(request, device_id):
         data = [data]
     for item in data:
         if 'action' not in item:
-            # todo raise proper error (400)
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid json: key "action" is required in payload, but not found'
+            )
 
     return utils.http_json_response(
         await cmd.write_async(
@@ -417,8 +424,9 @@ async def sync_write(request, device_id):
     try:
         data = request.json
     except Exception as e:
-        # todo raise proper error (400)
-        raise ValueError from e
+        raise errors.InvalidUsage(
+            'invalid json: unable to parse POSTed body as JSON'
+        ) from e
 
     # Validate that the incoming payload has an 'action' field defined. This
     # field is required. All other fields are optional.
@@ -426,8 +434,9 @@ async def sync_write(request, device_id):
         data = [data]
     for item in data:
         if 'action' not in item:
-            # todo raise proper error (400)
-            raise ValueError
+            raise errors.InvalidUsage(
+                'invalid json: key "action" is required in payload, but not found'
+            )
 
     return utils.http_json_response(
         await cmd.write_sync(

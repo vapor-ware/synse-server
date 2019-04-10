@@ -1,8 +1,7 @@
 
-import grpc
 import synse_grpc.utils
 
-from synse_server import cache, plugin
+from synse_server import cache, errors, plugin
 from synse_server.log import logger
 from synse_server.i18n import _
 
@@ -36,14 +35,16 @@ async def read(ns, tags):
     for device in devices:
         p = plugin.manager.get(device.plugin)
         if not p:
-            # todo: raise proper error
-            raise ValueError
+            raise errors.NotFound(
+                f'plugin not found for device: {device.plugin}',
+            )
 
         try:
             data = p.client.read(tags=tags)
-        except grpc.RpcError as e:
-            # todo: raise proper error
-            raise ValueError from e
+        except Exception as e:
+            raise errors.ServerError(
+                'error while issuing gRPC request: read',
+            ) from e
 
         for reading in data:
             readings.append(synse_grpc.utils.to_dict(reading))
@@ -65,20 +66,23 @@ async def read_device(device_id):
 
     device = await cache.get_device(device_id)
     if not device:
-        # todo: raise proper error
-        raise ValueError
+        raise errors.NotFound(
+            f'device not found: {device_id}',
+        )
 
     p = plugin.manager.get(device.plugin)
     if not p:
-        # todo: raise proper error
-        raise ValueError
+        raise errors.NotFound(
+            f'plugin not found for device: {device.plugin}',
+        )
 
     readings = []
     try:
         data = p.client.read(device_id=device_id)
-    except grpc.RpcError as e:
-        # todo: raise proper error
-        raise ValueError from e
+    except Exception as e:
+        raise errors.ServerError(
+            'error while issuing gRPC request: read device',
+        ) from e
 
     for reading in data:
         readings.append(synse_grpc.utils.to_dict(reading))

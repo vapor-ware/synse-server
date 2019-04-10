@@ -1,7 +1,7 @@
 
 from synse_grpc import utils
 
-from synse_server import cache
+from synse_server import cache, errors
 from synse_server.log import logger
 from synse_server.i18n import _
 
@@ -19,7 +19,6 @@ async def info(device_id):
 
     device = await cache.get_device(device_id)
     if device is None:
-        # todo: determine appropriate response. raise exception?
-        return None
+        raise errors.NotFound(f'device not found: {device_id}')
 
     return utils.to_dict(device)
