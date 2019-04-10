@@ -261,7 +261,26 @@ async def read(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/read', pararms=request.args)
 
-    return text('read')
+    namespace = 'default'
+    param_ns = request.args.get('ns')
+    if param_ns:
+        if len(param_ns) > 1:
+            # FIXME: 400 invalid param
+            raise ValueError
+        namespace = param_ns[0]
+
+    tags = []
+    param_tags = request.args.get('tags')
+    if param_tags:
+        for tag in param_tags:
+            tags.extend(tag.split(','))
+
+    return utils.http_json_response(
+        await cmd.read(
+            ns=namespace,
+            tags=tags,
+        ),
+    )
 
 
 @v3.route('/readcache')
@@ -285,7 +304,28 @@ async def read_cache(request):
     """
     logger.debug(_('processing request'), endpoint='/v3/readcache', params=request.args)
 
-    return text('readcache')
+    start = ''
+    param_start = request.args.get('start')
+    if param_start:
+        if len(param_start) > 1:
+            # fixme: 400 error
+            raise ValueError
+        start = param_start[0]
+
+    end = ''
+    param_end = request.args.get('end')
+    if param_end:
+        if len(param_end) > 1:
+            # fixme: 400 error
+            raise ValueError
+        end = param_end[0]
+
+    return utils.http_json_response(
+        await cmd.read_cache(
+            start=start,
+            end=end,
+        )
+    )
 
 
 @v3.route('/read/<device_id>')
@@ -306,7 +346,9 @@ async def read_device(request, device_id):
     """
     logger.debug(_('processing request'), endpoint='/v3/read/<id>', id=device_id)
 
-    return text('read {id}')
+    return utils.http_json_response(
+        await cmd.read_device(device_id),
+    )
 
 
 @v3.route('/write/<device_id>', methods=['POST'])
