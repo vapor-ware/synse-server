@@ -14,6 +14,7 @@ def register_with_app(app):
         app (sanic.Sanic): The application to register the tasks with.
     """
     # Periodically invalidate caches
+    logger.info(_('adding task'), task='periodic device cache rebuild')
     app.add_task(_rebuild_device_cache)
 
 
@@ -22,7 +23,6 @@ async def _rebuild_device_cache():
     interval = 3 * 60  # 3 minutes
 
     while True:
-        await asyncio.sleep(interval)
         logger.info(
             _('rebuilding device cache'),
             task='periodic cache rebuild', interval=interval,
@@ -35,3 +35,5 @@ async def _rebuild_device_cache():
                 _('failed to rebuild device cache'),
                 task='periodic cache rebuild', interval=interval, error=e,
             )
+
+        await asyncio.sleep(interval)
