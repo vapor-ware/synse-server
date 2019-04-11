@@ -116,7 +116,7 @@ async def update_device_cache():
     # starting up, being restarted, or is recovering from a networking error.
     if len(plugin.manager.plugins) == 0:
         logger.debug(_('no plugins found when updating device cache'))
-        plugin.manager.update()
+        plugin.manager.refresh()
 
     async with device_cache_lock:
         await device_cache.clear()

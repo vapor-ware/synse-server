@@ -22,7 +22,7 @@ async def plugin(plugin_id):
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
     if not synse_server.plugin.manager.has_plugins():
-        synse_server.plugin.manager.update()
+        synse_server.plugin.manager.refresh()
 
     p = synse_server.plugin.manager.get(plugin_id)
     if p is None:
@@ -61,7 +61,7 @@ async def plugins():
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
     if not synse_server.plugin.manager.has_plugins():
-        synse_server.plugin.manager.update()
+        synse_server.plugin.manager.refresh()
 
     summaries = []
     for p in synse_server.plugin.manager:
@@ -84,7 +84,7 @@ async def plugin_health():
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
     if not synse_server.plugin.manager.has_plugins():
-        synse_server.plugin.manager.update()
+        synse_server.plugin.manager.refresh()
 
     active_count = 0
     inactive_count = 0
