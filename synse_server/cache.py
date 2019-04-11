@@ -10,12 +10,21 @@ from synse_server import config, plugin
 from synse_server.i18n import _
 from synse_server.log import logger
 
+# The in-memory cache implementation stores data in a class member variable,
+# so all instance of the in memory cache will reference that data structure.
+# In order to separate transactions from devices, we need each cache to define
+# its own namespace.
+NS_TRANSACTION = 'synse.txn.'
+NS_DEVICE = 'synse.dev.'
+
 transaction_cache = aiocache.SimpleMemoryCache(
-    ttl=config.options.get('cache.transaction.ttl', None)
+    ttl=config.options.get('cache.transaction.ttl', None),
+    namespace=NS_TRANSACTION,
 )
 
 device_cache = aiocache.SimpleMemoryCache(
-    ttl=config.options.get('cache.device.ttl', None)
+    ttl=config.options.get('cache.device.ttl', None),
+    namespace=NS_DEVICE,
 )
 
 device_cache_lock = asyncio.Lock()
@@ -47,10 +56,10 @@ def get_cached_transaction_ids():
     Returns:
         list[str]: The IDs of all actively tracked transactions.
     """
-    return list(transaction_cache._cache.keys())
+    return [k[len(NS_TRANSACTION):] for k in transaction_cache._cache.keys() if k.startswith(NS_TRANSACTION)]
 
 
-async def add_transaction(transaction_id, context, plugin_name):
+async def add_transaction(transaction_id, device, plugin_id):
     """Add a new transaction to the transaction cache.
 
     This cache tracks transactions and maps them to the plugin from which they
@@ -58,26 +67,22 @@ async def add_transaction(transaction_id, context, plugin_name):
 
     Args:
         transaction_id (str): The ID of the transaction.
-        context (dict): The action/raw data of the write transaction that
-            can be used to help identify the transaction.
-        plugin_name (str): The name of the plugin to associate with the
+        device (str): The ID of the device associated with the transaction.
+        plugin_id (str): The ID of the plugin to associate with the
             transaction.
 
     Returns:
         bool: True if successful; False otherwise.
     """
-    # FIXME (etd): Determine whether what we're storing still makes sense.
-    #   Instead of just storing the write context, we could store the entire
-    #   transaction info by converting it to dict (commands/write.py)
-
     logger.debug(
-        _('caching transaction'), plugin=plugin_name, id=transaction_id, context=context,
+        _('caching transaction'), plugin=plugin_id, id=transaction_id, device=device,
     )
+
     return await transaction_cache.set(
         transaction_id,
         {
-            'plugin': plugin_name,
-            'context': context
+            'plugin': plugin_id,
+            'device': device,
         },
     )
 
@@ -136,13 +141,25 @@ async def get_device(device_id):
     """Get a device from the device cache by device ID.
 
     Args:
-        device_id (str):
+        device_id (str): The ID of the device to get.
+
+    Returns:
+        V3Device | None: The device with the corresponding ID. If no device
+        has the specified ID, None is returned.
     """
     # Every device has a system-generated ID tag in the format 'system/id:<device id>'
     # which we can use here to get the device. If the ID tag is not in the cache,
     # we take that to mean that there is no such device.
     async with device_cache_lock:
-        return await device_cache.get(f'system/id:{device_id}')
+        result = await device_cache.get(f'system/id:{device_id}')
+
+        # The device cache stores all devices in a list against the key, even
+        # if only one device exists for that key. If the results list is not
+        # empty, return the first element of the list - there should only be
+        # one element; otherwise, return None.
+        if result:
+            return result[0]
+        return None
 
 
 async def get_devices(*tags):
@@ -158,7 +175,21 @@ async def get_devices(*tags):
     Returns:
         list[V3Device]: The devices which match the specified tags.
     """
-    results = set()
+    # Results are a dict since the V3Device object is not hashable. To ensure
+    # we don't include duplicate device records in the response, we will add
+    # them to the dict keyed off their ID. The resulting dict values should
+    # then be unique.
+    results = dict()
+
+    # If no tags are provided, there are no filter constraints, so return all
+    # cached devices.
+    if not tags:
+        values = list(device_cache._cache.values())
+        for devices in values:
+            for device in devices:
+                results[device.id] = device
+        return list(results.values())
+
     for i, tag in enumerate(tags):
         async with device_cache_lock:
             devices = await device_cache.get(tag)
@@ -168,14 +199,36 @@ async def get_devices(*tags):
         if devices is None:
             return []
 
-        # For the first tag, populate the results set. Everything after the
-        # first tag should be a set intersection.
+        # For the first tag, populate the results dict. Everything after the
+        # first tag should be a set intersection. This means we subtract the
+        # set difference from the results dict for all subsequent devices.
         if i == 0:
-            results = set(devices)
+            for device in devices:
+                results[device.id] = device
         else:
-            results = results.intersection(set(devices))
+            diff = set(results.keys()).difference(set([d.id for d in devices]))
+            for item in diff:
+                del results[item]
 
-    return list(results)
+            # If there is nothing left in the results, return.
+            if not results:
+                return []
+
+    return list(results.values())
+
+
+def get_cached_device_tags():
+    """Get a list of all the currently cached device tags.
+
+    Note that the list of IDs that this provides is not guaranteed to
+    be correct at any point in the future. Items are expired from
+    the cache asynchronously, so this only serves as a snapshot at
+    a given point in time.
+
+    Returns:
+        list[str]: The tags of all actively tracked devices.
+    """
+    return [k[len(NS_DEVICE):] for k in device_cache._cache.keys() if k.startswith(NS_DEVICE)]
 
 
 async def get_plugin(device_id):
