@@ -191,7 +191,7 @@ async def scan(request):
             )
         sort_keys = param_sort[0]
 
-    r = utils.http_json_response(
+    return utils.http_json_response(
         await cmd.scan(
             ns=namespace,
             tags=tags,
@@ -199,8 +199,6 @@ async def scan(request):
             sort=sort_keys,
         ),
     )
-    logger.info('scan resp', r=r)
-    return r
 
 
 @v3.route('/tags')
@@ -519,7 +517,7 @@ async def device(request, device_id):
     log_request(request, id=device_id)
 
     if request.method == 'GET':
-        return read_device(request, device_id)
+        return await read_device(request, device_id)
 
     else:
-        return sync_write(request, device_id)
+        return await sync_write(request, device_id)

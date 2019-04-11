@@ -2,7 +2,8 @@
 
 import datetime
 
-import ujson
+import json as ujson
+#import ujson
 from sanic.response import json as sjson
 
 from synse_server import config

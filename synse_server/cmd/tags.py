@@ -19,7 +19,7 @@ async def tags(*namespaces, with_id_tags=False):
         namespaces=namespaces, with_id=with_id_tags,
     )
 
-    cached_tags = list(cache.device_cache._cache.keys())
+    cached_tags = cache.get_cached_device_tags()
 
     def matches_ns(t):
         if '/' in t:
@@ -34,4 +34,4 @@ async def tags(*namespaces, with_id_tags=False):
     if namespaces:
         cached_tags = filter(lambda t: matches_ns(t), cached_tags)
 
-    return list(cached_tags)
+    return sorted(cached_tags)

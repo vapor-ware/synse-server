@@ -1,4 +1,6 @@
 
+from synse_grpc import utils
+
 from synse_server import cache, errors, plugin
 from synse_server.log import logger
 from synse_server.i18n import _
@@ -30,12 +32,13 @@ async def write_async(device_id, payload):
             f'plugin not found for device: {device.plugin}',
         )
 
-    # TODO: add the transaction to the cache
+    response = []
+    for txn in p.client.write_async(device_id=device_id, data=payload):
+        # Add the transaction to the cache
+        await cache.add_transaction(txn.id, txn.device, p.id)
+        response.append(utils.to_dict(txn))
 
-    return p.client.write_async(
-        device_id=device_id,
-        data=payload,
-    )
+    return response
 
 
 async def write_sync(device_id, payload):
@@ -63,7 +66,10 @@ async def write_sync(device_id, payload):
             f'plugin not found for device: {device.plugin}',
         )
 
-    return p.client.write_sync(
-        device_id=device_id,
-        data=payload,
-    )
+    response = []
+    for status in p.client.write_sync(device_id=device_id, data=payload):
+        s = utils.to_dict(status)
+        s['device'] = device_id
+        response.append(s)
+
+    return response

@@ -10,12 +10,21 @@ from synse_server import config, plugin
 from synse_server.i18n import _
 from synse_server.log import logger
 
+# The in-memory cache implementation stores data in a class member variable,
+# so all instance of the in memory cache will reference that data structure.
+# In order to separate transactions from devices, we need each cache to define
+# its own namespace.
+NS_TRANSACTION = 'synse.txn.'
+NS_DEVICE = 'synse.dev.'
+
 transaction_cache = aiocache.SimpleMemoryCache(
-    ttl=config.options.get('cache.transaction.ttl', None)
+    ttl=config.options.get('cache.transaction.ttl', None),
+    namespace=NS_TRANSACTION,
 )
 
 device_cache = aiocache.SimpleMemoryCache(
-    ttl=config.options.get('cache.device.ttl', None)
+    ttl=config.options.get('cache.device.ttl', None),
+    namespace=NS_DEVICE,
 )
 
 device_cache_lock = asyncio.Lock()
@@ -47,10 +56,10 @@ def get_cached_transaction_ids():
     Returns:
         list[str]: The IDs of all actively tracked transactions.
     """
-    return list(transaction_cache._cache.keys())
+    return [k[len(NS_TRANSACTION):] for k in transaction_cache._cache.keys() if k.startswith(NS_TRANSACTION)]
 
 
-async def add_transaction(transaction_id, device, plugin_name):
+async def add_transaction(transaction_id, device, plugin_id):
     """Add a new transaction to the transaction cache.
 
     This cache tracks transactions and maps them to the plugin from which they
@@ -59,20 +68,20 @@ async def add_transaction(transaction_id, device, plugin_name):
     Args:
         transaction_id (str): The ID of the transaction.
         device (str): The ID of the device associated with the transaction.
-        plugin_name (str): The name of the plugin to associate with the
+        plugin_id (str): The ID of the plugin to associate with the
             transaction.
 
     Returns:
         bool: True if successful; False otherwise.
     """
     logger.debug(
-        _('caching transaction'), plugin=plugin_name, id=transaction_id, device=device,
+        _('caching transaction'), plugin=plugin_id, id=transaction_id, device=device,
     )
 
     return await transaction_cache.set(
         transaction_id,
         {
-            'plugin': plugin_name,
+            'plugin': plugin_id,
             'device': device,
         },
     )
@@ -206,6 +215,20 @@ async def get_devices(*tags):
                 return []
 
     return list(results.values())
+
+
+def get_cached_device_tags():
+    """Get a list of all the currently cached device tags.
+
+    Note that the list of IDs that this provides is not guaranteed to
+    be correct at any point in the future. Items are expired from
+    the cache asynchronously, so this only serves as a snapshot at
+    a given point in time.
+
+    Returns:
+        list[str]: The tags of all actively tracked devices.
+    """
+    return [k[len(NS_DEVICE):] for k in device_cache._cache.keys() if k.startswith(NS_DEVICE)]
 
 
 async def get_plugin(device_id):
