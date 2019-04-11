@@ -21,4 +21,5 @@ async def info(device_id):
     if device is None:
         raise errors.NotFound(f'device not found: {device_id}')
 
+    # TODO: tags should not be tag dicts, they should be tag strings
     return utils.to_dict(device)

@@ -32,6 +32,16 @@ class PluginManager:
         self._idx += 1
         return plugin
 
+    def has_plugins(self):
+        """Convenience function to determine whether any plugins are
+        currently registered with the manager.
+
+        Returns:
+            bool: True if any number of plugins are registered with the
+            manager; False otherwise.
+        """
+        return len(self.plugins) > 0
+
     def get(self, plugin_id):
         """Get a ``Plugin`` by ID.
 
@@ -67,6 +77,7 @@ class PluginManager:
         # and ensure that we can connect to the plugin.
         c = client.PluginClientV3(address, protocol)
         meta = c.metadata()
+        # FIXME: will need some translation so keys go from camel case to snake case
         ver = c.version()
 
         plugin = Plugin(

@@ -28,6 +28,8 @@ async def read(ns, tags):
         if '/' not in tag:
             tags[i] = f'{ns}/{tag}'
 
+    # fixme: something seems off w/ the number of readings we are getting back,
+    #   this could be due to tag filtering...
     devices = await cache.get_devices(*tags)
     logger.debug(_('retrieved devices matching tag(s)'), devices=len(devices), tags=tags)
 
@@ -47,6 +49,9 @@ async def read(ns, tags):
             ) from e
 
         for reading in data:
+            # fixme: value should be under "value" key, not the OneOf type key
+            # fixme: need device ID
+            # fixme: need device type
             readings.append(synse_grpc.utils.to_dict(reading))
 
     return readings
@@ -65,7 +70,7 @@ async def read_device(device_id):
     logger.debug(_('issuing command'), command='READ DEVICE', device_id=device_id)
 
     device = await cache.get_device(device_id)
-    if not device:
+    if device is None:
         raise errors.NotFound(
             f'device not found: {device_id}',
         )
@@ -85,6 +90,9 @@ async def read_device(device_id):
         ) from e
 
     for reading in data:
+        # fixme: value should be under "value" key, not the OneOf type key
+        # fixme: need device ID
+        # fixme: need device type
         readings.append(synse_grpc.utils.to_dict(reading))
 
     return readings

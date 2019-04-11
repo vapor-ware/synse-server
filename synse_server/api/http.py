@@ -166,7 +166,7 @@ async def scan(request):
     log_request(request, params=request.args)
 
     namespace = 'default'
-    param_ns = request.args.get('ns')
+    param_ns = request.args.getlist('ns')
     if param_ns:
         if len(param_ns) > 1:
             raise errors.InvalidUsage(
@@ -175,7 +175,7 @@ async def scan(request):
         namespace = param_ns[0]
 
     tags = []
-    param_tags = request.args.get('tags')
+    param_tags = request.args.getlist('tags')
     if param_tags:
         for tag in param_tags:
             tags.extend(tag.split(','))
@@ -183,7 +183,7 @@ async def scan(request):
     force = request.args.get('force', 'false').lower() == 'true'
 
     sort_keys = 'plugin,sortIndex,id'
-    param_sort = request.args.get('sort')
+    param_sort = request.args.getlist('sort')
     if param_sort:
         if len(param_sort) > 1:
             raise errors.InvalidUsage(
@@ -226,7 +226,7 @@ async def tags(request):
     log_request(request, params=request.args)
 
     namespaces = []
-    param_ns = request.args.get('ns')
+    param_ns = request.args.getlist('ns')
     if param_ns:
         for namespace in param_ns:
             namespaces.extend(namespace.split(','))
@@ -282,7 +282,7 @@ async def read(request):
     log_request(request, params=request.args)
 
     namespace = 'default'
-    param_ns = request.args.get('ns')
+    param_ns = request.args.getlist('ns')
     if param_ns:
         if len(param_ns) > 1:
             raise errors.InvalidUsage(
@@ -291,7 +291,7 @@ async def read(request):
         namespace = param_ns[0]
 
     tags = []
-    param_tags = request.args.get('tags')
+    param_tags = request.args.getlist('tags')
     if param_tags:
         for tag in param_tags:
             tags.extend(tag.split(','))
@@ -326,7 +326,7 @@ async def read_cache(request):
     log_request(request, params=request.args)
 
     start = ''
-    param_start = request.args.get('start')
+    param_start = request.args.getlist('start')
     if param_start:
         if len(param_start) > 1:
             raise errors.InvalidUsage(
@@ -335,7 +335,7 @@ async def read_cache(request):
         start = param_start[0]
 
     end = ''
-    param_end = request.args.get('end')
+    param_end = request.args.getlist('end')
     if param_end:
         if len(param_end) > 1:
             raise errors.InvalidUsage(

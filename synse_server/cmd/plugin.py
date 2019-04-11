@@ -19,6 +19,11 @@ async def plugin(plugin_id):
     """
     logger.debug(_('issuing command'), command='PLUGIN', plugin_id=plugin_id)
 
+    # If there are no plugins registered, re-registering to ensure
+    # the most up-to-date plugin state.
+    if not synse_server.plugin.manager.has_plugins():
+        synse_server.plugin.manager.update()
+
     p = synse_server.plugin.manager.get(plugin_id)
     if p is None:
         raise errors.NotFound(f'plugin not found: {plugin_id}')
@@ -53,6 +58,11 @@ async def plugins():
     """
     logger.debug(_('issuing command'), command='PLUGINS')
 
+    # If there are no plugins registered, re-registering to ensure
+    # the most up-to-date plugin state.
+    if not synse_server.plugin.manager.has_plugins():
+        synse_server.plugin.manager.update()
+
     summaries = []
     for p in synse_server.plugin.manager:
         summary = p.metadata.copy()
@@ -70,6 +80,11 @@ async def plugin_health():
          dict: A dictionary representation of the plugin health.
     """
     logger.debug(_('issuing command'), command='PLUGIN HEALTH')
+
+    # If there are no plugins registered, re-registering to ensure
+    # the most up-to-date plugin state.
+    if not synse_server.plugin.manager.has_plugins():
+        synse_server.plugin.manager.update()
 
     active_count = 0
     inactive_count = 0

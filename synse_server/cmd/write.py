@@ -19,7 +19,7 @@ async def write_async(device_id, payload):
 
     # FIXME: This is a common pattern - consider making a util (get_plugin_for_device)
     device = await cache.get_device(device_id)
-    if not device:
+    if device is None:
         raise errors.NotFound(
             f'device not found: {device_id}',
         )
@@ -52,7 +52,7 @@ async def write_sync(device_id, payload):
     logger.debug(_('issuing command'), command='WRITE SYNC')
 
     device = await cache.get_device(device_id)
-    if not device:
+    if device is None:
         raise errors.NotFound(
             f'device not found: {device_id}',
         )

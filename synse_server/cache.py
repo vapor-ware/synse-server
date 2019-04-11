@@ -132,13 +132,25 @@ async def get_device(device_id):
     """Get a device from the device cache by device ID.
 
     Args:
-        device_id (str):
+        device_id (str): The ID of the device to get.
+
+    Returns:
+        V3Device | None: The device with the corresponding ID. If no device
+        has the specified ID, None is returned.
     """
     # Every device has a system-generated ID tag in the format 'system/id:<device id>'
     # which we can use here to get the device. If the ID tag is not in the cache,
     # we take that to mean that there is no such device.
     async with device_cache_lock:
-        return await device_cache.get(f'system/id:{device_id}')
+        result = await device_cache.get(f'system/id:{device_id}')
+
+        # The device cache stores all devices in a list against the key, even
+        # if only one device exists for that key. If the results list is not
+        # empty, return the first element of the list - there should only be
+        # one element; otherwise, return None.
+        if result:
+            return result[0]
+        return None
 
 
 async def get_devices(*tags):
