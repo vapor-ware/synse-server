@@ -3,8 +3,7 @@
 from sanic.handlers import ErrorHandler
 
 from synse_server.i18n import _
-from synse_server.response import json
-from synse_server.utils import rfc3339now
+from synse_server.utils import rfc3339now, http_json_response
 
 
 class SynseErrorHandler(ErrorHandler):
@@ -47,7 +46,6 @@ class SynseError(Exception):
             sanic.response.HTTPResponse: The error information formatted into
             a JSON content-type response for a Sanic endpoint.
         """
-        # TODO (etd): make this a scheme for consistency.
         error = {
             'http_code': self.http_code,
             'description': self.description,
@@ -55,7 +53,7 @@ class SynseError(Exception):
             'context': str(self),
         }
 
-        return json(
+        return http_json_response(
             body=error,
             status=self.http_code
         )
