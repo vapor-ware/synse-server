@@ -143,7 +143,7 @@ async def scan(request):
 
     This endpoint provides an aggregated view of all devices exposed to
     Synse Server by each of the registered plugins. By default, the scan
-    results are sorted by a combination key of 'plugin,sort_index,id'.
+    results are sorted by a combination key of 'plugin,sortIndex,id'.
 
     Query Parameters:
         ns: The default namespace to use for specified tags without explicit namespaces.

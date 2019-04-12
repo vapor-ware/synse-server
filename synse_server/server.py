@@ -4,7 +4,7 @@ import os
 import sys
 
 import synse_server
-from synse_server import app, config
+from synse_server import app, config, plugin
 from synse_server.i18n import _
 from synse_server.log import logger, setup_logger
 
@@ -100,6 +100,9 @@ class Synse:
         # this info correctly.
         if self.log_header:
             sys.stdout.write(self._header)
+
+        # Load the plugins defined in the configuration.
+        plugin.manager.load()
 
         logger.debug(_('starting Sanic application'))
         self.app.run(

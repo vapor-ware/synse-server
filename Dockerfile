@@ -60,16 +60,16 @@ ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
     EMULATOR_VERSION="2.3.1"
 
 # Install the specified version of the emulator.
-RUN apt-get update \
- && apt-get install --no-install-recommends -y curl \
- && curl -L \
-    -H "Accept: application/octet-stream" \
-    -o /usr/local/bin/synse-emulator \
-    https://github.com/vapor-ware/synse-emulator-plugin/releases/download/${EMULATOR_VERSION}/emulator_linux_amd64 \
- && chmod +x /usr/local/bin/synse-emulator \
- && apt-get purge -y curl \
- && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update \
+# && apt-get install --no-install-recommends -y curl \
+# && curl -L \
+#    -H "Accept: application/octet-stream" \
+#    -o /usr/local/bin/synse-emulator \
+#    https://github.com/vapor-ware/synse-emulator-plugin/releases/download/${EMULATOR_VERSION}/emulator_linux_amd64 \
+# && chmod +x /usr/local/bin/synse-emulator \
+# && apt-get purge -y curl \
+# && apt-get autoremove -y \
+# && rm -rf /var/lib/apt/lists/*
 
 COPY synse_grpc-3.0.0.tar.gz .
 RUN pip install synse_grpc-3.0.0.tar.gz
