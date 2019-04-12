@@ -72,6 +72,8 @@ async def write_sync(device_id, payload):
     # fixme: exception handling
     with p as client:
         for status in client.write_sync(device_id=device_id, data=payload):
+            # Add the transaction to the cache
+            await cache.add_transaction(status.id, device_id, p.id)
             s = utils.to_dict(status)
             s['device'] = device_id
             response.append(s)
