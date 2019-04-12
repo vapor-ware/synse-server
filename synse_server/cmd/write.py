@@ -1,7 +1,7 @@
 
 from synse_grpc import utils
 
-from synse_server import cache, errors, plugin
+from synse_server import cache, errors
 from synse_server.log import logger
 from synse_server.i18n import _
 
@@ -19,26 +19,23 @@ async def write_async(device_id, payload):
     """
     logger.debug(_('issuing command'), command='WRITE ASYNC')
 
-    # FIXME: This is a common pattern - consider making a util (get_plugin_for_device)
-    device = await cache.get_device(device_id)
-    if device is None:
+    plugin = await cache.get_plugin(device_id)
+    if plugin is None:
         raise errors.NotFound(
-            f'device not found: {device_id}',
-        )
-
-    p = plugin.manager.get(device.plugin)
-    if not p:
-        raise errors.NotFound(
-            f'plugin not found for device: {device.plugin}',
+            _(f'plugin not found for device {device_id}'),
         )
 
     response = []
-    # fixme: exception handling
-    with p as client:
-        for txn in client.write_async(device_id=device_id, data=payload):
-            # Add the transaction to the cache
-            await cache.add_transaction(txn.id, txn.device, p.id)
-            response.append(utils.to_dict(txn))
+    try:
+        with plugin as client:
+            for txn in client.write_async(device_id=device_id, data=payload):
+                # Add the transaction to the cache
+                await cache.add_transaction(txn.id, txn.device, plugin.id)
+                response.append(utils.to_dict(txn))
+    except Exception as e:
+        raise errors.ServerError(
+            _('error while issuing gRPC request: async write'),
+        ) from e
 
     return response
 
@@ -56,26 +53,24 @@ async def write_sync(device_id, payload):
     """
     logger.debug(_('issuing command'), command='WRITE SYNC')
 
-    device = await cache.get_device(device_id)
-    if device is None:
+    plugin = await cache.get_plugin(device_id)
+    if plugin is None:
         raise errors.NotFound(
-            f'device not found: {device_id}',
-        )
-
-    p = plugin.manager.get(device.plugin)
-    if not p:
-        raise errors.NotFound(
-            f'plugin not found for device: {device.plugin}',
+            _(f'plugin not found for device {device_id}'),
         )
 
     response = []
-    # fixme: exception handling
-    with p as client:
-        for status in client.write_sync(device_id=device_id, data=payload):
-            # Add the transaction to the cache
-            await cache.add_transaction(status.id, device_id, p.id)
-            s = utils.to_dict(status)
-            s['device'] = device_id
-            response.append(s)
+    try:
+        with plugin as client:
+            for status in client.write_sync(device_id=device_id, data=payload):
+                # Add the transaction to the cache
+                await cache.add_transaction(status.id, device_id, plugin.id)
+                s = utils.to_dict(status)
+                s['device'] = device_id
+                response.append(s)
+    except Exception as e:
+        raise errors.ServerError(
+            _('error while issuing gRPC request: sync write'),
+        ) from e
 
     return response
