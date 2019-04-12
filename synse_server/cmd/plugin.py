@@ -29,7 +29,8 @@ async def plugin(plugin_id):
         raise errors.NotFound(f'plugin not found: {plugin_id}')
 
     try:
-        health = p.client.health()
+        with p as client:
+            health = client.health()
     except Exception as e:
         raise errors.ServerError(
             'error while issuing gRPC request: plugin health'
@@ -37,7 +38,7 @@ async def plugin(plugin_id):
 
     response = {
         **p.metadata,
-        'active': True,  # fixme
+        'active': p.active,
         'network': {
             'address': p.address,
             'protocol': p.protocol,
@@ -66,7 +67,7 @@ async def plugins():
     summaries = []
     for p in synse_server.plugin.manager:
         summary = p.metadata.copy()
-        summary['active'] = True  # fixme
+        summary['active'] = p.active
         del summary['vcs']
         summaries.append(summary)
 
@@ -92,21 +93,21 @@ async def plugin_health():
     unhealthy = []
 
     for p in synse_server.plugin.manager:
-        # TODO: all the logic + handling around active + inactive needs to be worked
-        #   out a bunch more. What is currently here is good enough to get the ball
-        #   rolling, but is not very comprehensive.
         try:
-            health = p.client.health()
+            with p as client:
+                health = client.health()
         except Exception as e:
             logger.warning(_('failed to get plugin health'), plugin=p.tag, error=e)
-            inactive_count += 1
         else:
             if health.status == 1:  # OK
-                active_count += 1
                 healthy.append(p.id)
             else:
-                active_count += 1
                 unhealthy.append(p.id)
+        finally:
+            if p.active:
+                active_count += 1
+            else:
+                inactive_count += 1
 
     is_healthy = len(synse_server.plugin.manager.plugins) == len(healthy)
     return {

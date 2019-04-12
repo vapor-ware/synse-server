@@ -91,8 +91,9 @@ class PluginManager:
             )
 
         self.plugins[plugin.id] = plugin
-
         logger.debug(_('registered plugin'), id=plugin.id, tag=plugin.tag)
+
+        plugin.mark_active()
         return plugin.id
 
     def load(self):
@@ -194,6 +195,7 @@ class Plugin:
     """
 
     def __init__(self, info, version, client):
+        self.active = False
         self.client = client
 
         self.address = self.client.get_address()
@@ -212,3 +214,33 @@ class Plugin:
 
     def __str__(self):
         return f'<Plugin ({self.tag}): {self.id}>'
+
+    def __enter__(self):
+        return self.client
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Upon exiting the plugin context, check for any raised exception. If no
+        # exception was found, mark the plugin as active. Otherwise, mark it as
+        # inactive.
+        # FIXME: This needs to be smarter. We need to differentiate between an
+        #   "expected" failure, e.g. bad args, not found, etc, and an "unexpected"
+        #   error, e.g connection refused, timeout, ... This should probably be
+        #   done on the client side.
+        if exc_type is None:
+            self.mark_active()
+        else:
+            self.mark_inactive()
+
+    def mark_active(self):
+        """Mark the plugin as active, if it is not already active."""
+
+        if not self.active:
+            logger.info(_('marking plugin as active'), id=self.id, tag=self.tag)
+            self.active = True
+
+    def mark_inactive(self):
+        """Mark the plugin as inactive, if it is not already inactive."""
+
+        if self.active:
+            logger.info(_('marking plugin as inactive'), id=self.id, tag=self.tag)
+            self.active = False

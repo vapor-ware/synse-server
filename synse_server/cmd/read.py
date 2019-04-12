@@ -42,7 +42,8 @@ async def read(ns, tags):
             )
 
         try:
-            data = p.client.read(tags=tags)
+            with p as client:
+                data = client.read(tags=tags)
         except Exception as e:
             raise errors.ServerError(
                 'error while issuing gRPC request: read',
@@ -83,7 +84,8 @@ async def read_device(device_id):
 
     readings = []
     try:
-        data = p.client.read(device_id=device_id)
+        with p as client:
+            data = client.read(device_id=device_id)
     except Exception as e:
         raise errors.ServerError(
             'error while issuing gRPC request: read device',
@@ -116,5 +118,12 @@ async def read_cache(start=None, end=None):
 
     for p in plugin.manager:
         logger.debug(_('getting cached readings for plugin'), plugin=p.tag)
-        for reading in p.client.read_cache(start=start, end=end):
-            yield synse_grpc.utils.to_dict(reading)
+        try:
+            for reading in p.client.read_cache(start=start, end=end):
+                yield synse_grpc.utils.to_dict(reading)
+            p.mark_active()
+        except Exception as e:
+            # FIXME: this should be a client connection error, as defined by the
+            #   grpc client package
+            p.mark_inactive()
+            raise

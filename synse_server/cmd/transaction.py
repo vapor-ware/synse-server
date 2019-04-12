@@ -39,7 +39,8 @@ async def transaction(transaction_id):
         )
 
     try:
-        response = p.client.transaction(transaction_id)
+        with p as client:
+            response = client.transaction(transaction_id)
     except Exception as e:
         raise errors.ServerError(
             'error while issuing gRPC request: transaction',

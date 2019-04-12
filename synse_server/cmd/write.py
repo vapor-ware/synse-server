@@ -33,10 +33,12 @@ async def write_async(device_id, payload):
         )
 
     response = []
-    for txn in p.client.write_async(device_id=device_id, data=payload):
-        # Add the transaction to the cache
-        await cache.add_transaction(txn.id, txn.device, p.id)
-        response.append(utils.to_dict(txn))
+    # fixme: exception handling
+    with p as client:
+        for txn in client.write_async(device_id=device_id, data=payload):
+            # Add the transaction to the cache
+            await cache.add_transaction(txn.id, txn.device, p.id)
+            response.append(utils.to_dict(txn))
 
     return response
 
@@ -67,9 +69,11 @@ async def write_sync(device_id, payload):
         )
 
     response = []
-    for status in p.client.write_sync(device_id=device_id, data=payload):
-        s = utils.to_dict(status)
-        s['device'] = device_id
-        response.append(s)
+    # fixme: exception handling
+    with p as client:
+        for status in client.write_sync(device_id=device_id, data=payload):
+            s = utils.to_dict(status)
+            s['device'] = device_id
+            response.append(s)
 
     return response
