@@ -39,10 +39,23 @@ async def read(ns, tags):
             ) from e
 
         for reading in data:
-            # fixme: value should be under "value" key, not the OneOf type key
-            # fixme: need device ID
-            # fixme: need device type
-            readings.append(synse_grpc.utils.to_dict(reading))
+            # The reading value is stored in a protobuf oneof block - we need to
+            # figure out which field it is so we can extract it. If no field is set,
+            # take the reading value to be None.
+            value = None
+            field = reading.WhichOneof('value')
+            if field is not None:
+                value = getattr(reading, field)
+
+            readings.append({
+                'device': reading.id,
+                'timestamp': reading.timestamp,
+                'type': reading.type,
+                'device_type': reading.deviceType,
+                'unit': synse_grpc.utils.to_dict(reading.unit),
+                'value': value,
+                'context': dict(reading.context),
+            })
 
     return readings
 
@@ -75,10 +88,23 @@ async def read_device(device_id):
         ) from e
 
     for reading in data:
-        # fixme: value should be under "value" key, not the OneOf type key
-        # fixme: need device ID
-        # fixme: need device type
-        readings.append(synse_grpc.utils.to_dict(reading))
+        # The reading value is stored in a protobuf oneof block - we need to
+        # figure out which field it is so we can extract it. If no field is set,
+        # take the reading value to be None.
+        value = None
+        field = reading.WhichOneof('value')
+        if field is not None:
+            value = getattr(reading, field)
+
+        readings.append({
+            'device': reading.id,
+            'timestamp': reading.timestamp,
+            'type': reading.type,
+            'device_type': reading.deviceType,
+            'unit': synse_grpc.utils.to_dict(reading.unit),
+            'value': value,
+            'context': dict(reading.context),
+        })
 
     return readings
 
@@ -103,7 +129,23 @@ async def read_cache(start=None, end=None):
         logger.debug(_('getting cached readings for plugin'), plugin=p.tag)
         try:
             for reading in p.client.read_cache(start=start, end=end):
-                yield synse_grpc.utils.to_dict(reading)
+                # The reading value is stored in a protobuf oneof block - we need to
+                # figure out which field it is so we can extract it. If no field is set,
+                # take the reading value to be None.
+                value = None
+                field = reading.WhichOneof('value')
+                if field is not None:
+                    value = getattr(reading, field)
+
+                yield {
+                    'device': reading.id,
+                    'timestamp': reading.timestamp,
+                    'type': reading.type,
+                    'device_type': reading.deviceType,
+                    'unit': synse_grpc.utils.to_dict(reading.unit),
+                    'value': value,
+                    'context': dict(reading.context),
+                }
             p.mark_active()
         except Exception as e:
             # FIXME: this should be a client connection error, as defined by the
