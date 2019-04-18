@@ -11,12 +11,14 @@ cachetools==3.1.0         # via google-auth
 certifi==2019.3.9         # via kubernetes, requests
 chardet==3.0.4            # via requests
 google-auth==1.6.3        # via kubernetes
-grpcio==1.19.0
+grpcio==1.20.0
 httptools==0.0.13         # via sanic
 idna==2.8                 # via requests
 kubernetes==9.0.0
 multidict==4.5.2          # via sanic
 oauthlib==3.0.1           # via requests-oauthlib
+prometheus-client==0.5.0  # via sanic-prometheus
+psutil==5.6.1             # via sanic-prometheus
 pyasn1-modules==0.2.4     # via google-auth
 pyasn1==0.4.5             # via pyasn1-modules, rsa
 python-dateutil==2.8.0    # via kubernetes
@@ -25,12 +27,13 @@ pyyaml==5.1
 requests-oauthlib==1.2.0  # via kubernetes
 requests==2.21.0
 rsa==4.0                  # via google-auth
+sanic-prometheus==0.1.7
 sanic==19.3.1
 six==1.12.0               # via google-auth, grpcio, kubernetes, python-dateutil, structlog, websocket-client
 structlog==19.1.0
 synse-grpc==1.1.0
 ujson==1.35               # via sanic
-urllib3==1.24.1           # via kubernetes, requests
+urllib3==1.24.2           # via kubernetes, requests
 uvloop==0.12.2            # via sanic
 websocket-client==0.56.0  # via kubernetes
 websockets==6.0           # via sanic
