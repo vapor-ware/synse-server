@@ -3,6 +3,8 @@
 import os
 import sys
 
+from sanic_prometheus import monitor
+
 import synse_server
 from synse_server import app, config, plugin
 from synse_server.i18n import _
@@ -80,6 +82,7 @@ class Synse:
         """
         # Load the application configuration(s).
         self.reload_config()
+        logger.info(_('loaded config'), config=config.options.config)
 
         # Configure logging, using the loaded config.
         setup_logger()
@@ -94,6 +97,11 @@ class Synse:
     def run(self):
         """Run Synse Server."""
         logger.info(_('running synse server'))
+
+        # If application metrics are enabled, configure the application now.
+        if config.options.get('metrics.enabled'):
+            logger.debug(_('application performance metrics enabled'))
+            monitor(self.app).expose_endpoint()
 
         # If we are configured to log the header, write it to stdout instead
         # of using the logger, since the structured logger will not format

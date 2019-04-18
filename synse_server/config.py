@@ -33,6 +33,9 @@ scheme = Scheme(
             Option('cert', field_type=str)
         ))
     )),
+    DictOption('metrics', scheme=Scheme(
+        Option('enabled', default=False, field_type=bool),
+    )),
 )
 
 # Configuration options manager for Synse Server. All access to configuration

@@ -1,0 +1,31 @@
+version: "3"
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server
+    volumes:
+      - ./synse/config.yaml:/etc/synse/server/config.yaml
+    ports:
+      - "5000:5000"
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    volumes:
+      - ./prometheus/config.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    links:
+      - synse-server
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/default.yaml
+      - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    links:
+      - prometheus
