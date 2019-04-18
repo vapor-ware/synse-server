@@ -45,6 +45,7 @@ setup(
         'pyyaml>=4.2b1',
         'requests>=2.20.0',  # used by 'kubernetes'
         'sanic>=0.8.0',
+        'sanic-prometheus>=0.1.7',
         'structlog',
         'synse-grpc>=1.1.0',  # fixme: this will need to be >= 3.0.0 once that is released
     ],

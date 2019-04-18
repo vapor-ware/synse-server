@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 3s
+
+scrape_configs:
+  - job_name: "synse-server"
+    static_configs:
+      - targets: ["synse-server:5000"]
