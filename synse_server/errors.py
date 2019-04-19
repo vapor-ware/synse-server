@@ -22,7 +22,10 @@ class SynseErrorHandler(ErrorHandler):
         raised by the application will be caught and handled here.
         """
         if issubclass(type(exception), SynseError):
-            return exception.make_response()
+            return http_json_response(
+                body=exception.make_response(),
+                status=exception.http_code,
+            )
         else:
             return super(SynseErrorHandler, self).default(request, exception)
 
@@ -43,20 +46,14 @@ class SynseError(Exception):
         """Make a JSON error response from the Synse Error.
 
         Returns:
-            sanic.response.HTTPResponse: The error information formatted into
-            a JSON content-type response for a Sanic endpoint.
+            dict: A dictionary representation of the error response.
         """
-        error = {
+        return {
             'http_code': self.http_code,
             'description': self.description,
             'timestamp': rfc3339now(),
             'context': str(self),
         }
-
-        return http_json_response(
-            body=error,
-            status=self.http_code
-        )
 
 
 class InvalidUsage(SynseError):

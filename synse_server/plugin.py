@@ -222,11 +222,7 @@ class Plugin:
         # Upon exiting the plugin context, check for any raised exception. If no
         # exception was found, mark the plugin as active. Otherwise, mark it as
         # inactive.
-        # FIXME: This needs to be smarter. We need to differentiate between an
-        #   "expected" failure, e.g. bad args, not found, etc, and an "unexpected"
-        #   error, e.g connection refused, timeout, ... This should probably be
-        #   done on the client side.
-        if exc_type is None:
+        if exc_type is None or isinstance(exc_val, client.errors.PluginError):
             self.mark_active()
         else:
             self.mark_inactive()
