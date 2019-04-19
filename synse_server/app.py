@@ -31,19 +31,6 @@ def new_app():
     # a browser hits an endpoint and can't find the icon.
     app.static('/favicon.ico', '/etc/synse/static/favicon.ico')
 
-    # Set the language environment variable to that set in the config, if
-    # it is not already set. This is how we specify the language/locale for
-    # the application.
-    # FIXME (etd): this isn't a great way of doing things, especially if Synse
-    # Server is being run in a non-containerized environment.
-    # lang = os.environ.get('LANGUAGE')
-    # if lang:
-    #     logger.info('LANGUAGE set from env: {}'.format(lang))
-    # else:
-    #     lang = config.options.get('locale')
-    #     logger.info('LANGUAGE set from config: {}'.format(lang))
-    #     os.environ['LANGUAGE'] = lang
-
     # Add background tasks
     tasks.register_with_app(app)
 
