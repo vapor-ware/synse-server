@@ -33,6 +33,10 @@ scheme = Scheme(
             Option('cert', field_type=str)
         ))
     )),
+    DictOption('ssl', required=False, scheme=Scheme(
+        Option('cert', field_type=str),
+        Option('key', field_type=str),
+    )),
     DictOption('metrics', scheme=Scheme(
         Option('enabled', default=False, field_type=bool),
     )),
