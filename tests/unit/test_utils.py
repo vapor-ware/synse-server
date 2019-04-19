@@ -7,11 +7,8 @@ import pytest
 from synse_server import utils
 
 
-@pytest.mark.usefixtures(
-    'patch_datetime_utcnow',
-)
+@pytest.mark.usefixtures('patch_datetime_utcnow')
 def test_rfc3339now():
-
     actual = utils.rfc3339now()
     assert actual == '2019-04-19T02:01:53Z'
 
@@ -29,13 +26,11 @@ def test_rfc3339now():
     ]
 )
 def test_dumps(data, expected):
-
     actual = utils._dumps(data)
     assert actual == expected
 
 
 def test_http_json_response_from_dict():
-
     actual = utils.http_json_response({'status': 'ok'})
 
     assert isinstance(actual, HTTPResponse)

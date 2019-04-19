@@ -205,11 +205,11 @@ class Plugin:
         self.version = version
 
         self.tag = info.get('tag')
-        if self.tag is None:
+        if not self.tag:
             raise ValueError('plugin: required field "tag" missing')
 
         self.id = info.get('id')
-        if self.id is None:
+        if not self.id:
             raise ValueError('plugin: required field "id" missing')
 
     def __str__(self):
