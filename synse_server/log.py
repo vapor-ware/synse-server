@@ -46,6 +46,9 @@ logging.config.dictConfig({
     }
 })
 
+# TODO: since we've disabled the sanic access logs in favor of our own logging
+#   we may wish to consider returning to using a KeyValueRenderer as that tends
+#   is a bit easier to parse visually.
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
