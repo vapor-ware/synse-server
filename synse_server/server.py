@@ -66,13 +66,13 @@ class Synse:
 
         # Prior to initializing the Sanic application, we want to load the
         # configuration and various other components. This will allow us to
-        # fully setup the app, as well as have logging, etc. ready to go.
-        self._setup()
+        # fully initialize the app, as well as have logging, etc. ready to go.
+        self._initialize()
 
         # With setup complete, we can initialize a new Sanic application.
         self.app = app.new_app()
 
-    def _setup(self):
+    def _initialize(self):
         """Setup the Synse Server instance.
 
         This is intended to be run on initialization of the Synse class.
@@ -80,14 +80,15 @@ class Synse:
         the backing Sanic application. Additionally, it lets us set up
         logging early on.
         """
+        logger.info(_('initializing synse server'))
+
         # Load the application configuration(s).
         self.reload_config()
         logger.info(_('loaded config'), config=config.options.config)
 
         # Configure logging, using the loaded config.
         setup_logger()
-
-        logger.debug(_('setting up synse server'))
+        logger.info(_('configured logger'))
 
         # Make sure that the filesystem layout needed by Synse Server
         # is present. If not, create the required directories.
@@ -98,16 +99,25 @@ class Synse:
         """Run Synse Server."""
         logger.info(_('running synse server'))
 
-        # If application metrics are enabled, configure the application now.
-        if config.options.get('metrics.enabled'):
-            logger.debug(_('application performance metrics enabled'))
-            monitor(self.app).expose_endpoint()
-
         # If we are configured to log the header, write it to stdout instead
         # of using the logger, since the structured logger will not format
         # this info correctly.
         if self.log_header:
             sys.stdout.write(self._header)
+
+        # If application metrics are enabled, configure the application now.
+        if config.options.get('metrics.enabled'):
+            logger.info(_('application performance metrics enabled'))
+            monitor(self.app).expose_endpoint()
+
+        # Load the SSL configuration, if defined.
+        ssl_context = None
+        if config.options.get('ssl'):
+            ssl_context = {
+                'cert': config.options.get('ssl.cert'),
+                'key': config.options.get('ssl.key'),
+            }
+            logger.info(_('SSL configured for Synse Server'), config=ssl_context)
 
         # Load the plugins defined in the configuration.
         plugin.manager.load()
@@ -117,6 +127,7 @@ class Synse:
             host=self.host,
             port=self.port,
             access_log=False,
+            ssl=ssl_context,
         )
 
     def reload_config(self):
