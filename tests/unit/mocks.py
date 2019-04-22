@@ -11,8 +11,8 @@ class OptionsMock:
     """
 
     def __init__(self, values):
-        self.values = values
+        self.config = values
 
     def get(self, key, default=None):
         """Get the value for the key."""
-        return self.values.get(key, default)
+        return self.config.get(key, default)
