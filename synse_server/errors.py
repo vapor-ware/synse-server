@@ -40,7 +40,7 @@ class SynseError(Exception):
     # The short description for the error. This is returned in the response
     # body JSON under the 'description' field. Each subclassed error should
     # override this with their own error-specific description.
-    description = 'an unexpected error occurred'
+    description = _('an unexpected error occurred')
 
     def make_response(self):
         """Make a JSON error response from the Synse Error.
