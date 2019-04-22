@@ -3,6 +3,8 @@ import datetime
 
 import pytest
 
+from synse_server import plugin
+
 TEST_DATETIME = datetime.datetime(2019, 4, 19, 2, 1, 53, 680718)
 
 
@@ -20,3 +22,9 @@ def patch_datetime_utcnow(monkeypatch):
             return TEST_DATETIME
 
     monkeypatch.setattr(datetime, 'datetime', patcheddatetime)
+
+
+@pytest.fixture()
+def clear_manager_plugins():
+    yield
+    plugin.PluginManager.plugins = {}

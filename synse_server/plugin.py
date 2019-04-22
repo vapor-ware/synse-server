@@ -69,12 +69,11 @@ class PluginManager:
 
         Returns:
             str: The ID of the plugin that was registered.
-
-        Raises:
-            errors.ServerError: A plugin with the same ID is already registered.
         """
         # Prior to registering the plugin, we need to get the plugin metadata
-        # and ensure that we can connect to the plugin.
+        # and ensure that we can connect to the plugin. These calls may raise
+        # an exception - we want to let them propagate up to signal that registration
+        # for the particular address failed.
         c = client.PluginClientV3(address, protocol)
         meta = c.metadata()
         ver = c.version()
@@ -86,37 +85,43 @@ class PluginManager:
         )
 
         if plugin.id in self.plugins:
-            raise errors.ServerError(
-                _(f'plugin with id "{plugin.id}" already exists')
-            )
-
-        self.plugins[plugin.id] = plugin
-        logger.debug(_('registered plugin'), id=plugin.id, tag=plugin.tag)
+            # The plugin has already been registered. There is nothing left to
+            # do here, so just log and move on.
+            logger.debug(_('plugin with id already registered'), id=plugin.id)
+        else:
+            self.plugins[plugin.id] = plugin
+            logger.debug(_('registered plugin'), id=plugin.id, tag=plugin.tag)
 
         plugin.mark_active()
         return plugin.id
 
-    def load(self):
+    @classmethod
+    def load(cls):
         """Load plugins from configuration.
 
         This should be called on Synse Server initialization.
 
-        Raises:
-            errors.ServerError: Configured plugin already exists.
+        Returns:
+            list[tuple[str, str]]: A list of plugin configuration tuples where the
+            first element is the plugin address and the second element is the protocol.
         """
         logger.info(_('loading plugins from configuration'))
+
+        configs = []
 
         # Get plugin configs for TCP-configured plugins
         cfg_tcp = config.options.get('plugin.tcp', [])
         for address in cfg_tcp:
             logger.debug(_('plugin from config'), mode='tcp', address=address)
-            self.register(address=address, protocol='tcp')
+            configs.append((address, 'tcp'))
 
         # Get plugin configs for Unix socket-configured plugins
         cfg_unix = config.options.get('plugin.unix', [])
         for address in cfg_unix:
             logger.debug(_('plugin from config'), mode='unix', address=address)
-            self.register(address=address, protocol='unix')
+            configs.append((address, 'unix'))
+
+        return configs
 
     @classmethod
     def discover(cls):
@@ -130,9 +135,13 @@ class PluginManager:
         """
         configs = []
 
-        addresses = kubernetes.discover()
-        for address in addresses:
-            configs.append((address, 'tcp'))
+        try:
+            addresses = kubernetes.discover()
+        except Exception as e:
+            logger.info(_('failed plugin discovery via kubernetes'), error=e)
+        else:
+            for address in addresses:
+                configs.append((address, 'tcp'))
 
         return configs
 
@@ -146,29 +155,35 @@ class PluginManager:
         initialization. New plugins may only be added at runtime via plugin
         discovery mechanisms.
         """
-
         logger.debug(_('refreshing plugin manager'))
 
+        for address, protocol in self.load():
+            try:
+                self.register(address=address, protocol=protocol)
+            except Exception as e:
+                # Do not raise. This could happen if we can't communicate with
+                # the configured plugin. Future refreshes will attempt to re-register
+                # in this case. Log the failure and continue trying to register
+                # any remaining plugins.
+                logger.warning(
+                    _('failed to register configured plugin'),
+                    address=address, protocol=protocol, error=e,
+                )
+                continue
+
         for address, protocol in self.discover():
-            for plugin in self.plugins.values():
-                if plugin.address == address and plugin.protocol == protocol:
-                    logger.debug(
-                        _('discovered plugin already registered'),
-                        address=address, protocol=protocol,
-                    )
-                    break
-            else:
-                try:
-                    self.register(address=address, protocol=protocol)
-                except Exception as e:
-                    # Do not raise. If we fail to register, it is either because the
-                    # plugin already exists or because we could not communicate with
-                    # it. Future refreshes will attempt to re-register in this case.
-                    # Log the failure and continue trying to register any remaining
-                    # discovered plugins.
-                    logger.warning(
-                        _('failed to register plugin'), address=address, protocol=protocol, error=e
-                    )
+            try:
+                self.register(address=address, protocol=protocol)
+            except Exception as e:
+                # Do not raise. This could happen if we can't communicate with
+                # the configured plugin. Future refreshes will attempt to re-register
+                # in this case. Log the failure and continue trying to register
+                # any remaining plugins.
+                logger.warning(
+                    _('failed to register discovered plugin'),
+                    address=address, protocol=protocol, error=e,
+                )
+                continue
 
         logger.debug(_('plugin manager refresh complete'), plugin_count=len(self.plugins))
 

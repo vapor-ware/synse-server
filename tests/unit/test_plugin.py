@@ -4,13 +4,15 @@ from unittest import mock
 from grpc import RpcError
 
 import pytest
-from synse_grpc import errors as client_errors
+from synse_grpc import errors
 from synse_grpc import client
 from synse_grpc.api import V3Metadata, V3Version
 
-from synse_server import errors, plugin
+from . import mocks
+from synse_server import plugin
 
 
+@pytest.mark.usefixtures('clear_manager_plugins')
 class TestPluginManager:
     """Test cases for the ``synse_server.plugin.PluginManager`` class."""
 
@@ -123,9 +125,8 @@ class TestPluginManager:
             '123': 'placeholder',
         }
 
-        with pytest.raises(errors.ServerError):
-            m.register('localhost:5432', 'tcp')
-
+        plugin_id = m.register('localhost:5432', 'tcp')
+        assert plugin_id == '123'
         # Ensure nothing new was added to the manager.
         assert len(m.plugins) == 1
 
@@ -145,69 +146,172 @@ class TestPluginManager:
         mock_metadata.assert_called_once()
         mock_version.assert_called_once()
 
-    def test_load_no_config(self):
-        pass
+    def test_load_no_config(self, monkeypatch):
+        mock_config = mocks.OptionsMock({})
+        monkeypatch.setattr(plugin.config, 'options', mock_config)
 
-    def test_load_tcp_one(self):
-        pass
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 0
 
-    def test_load_tcp_multi(self):
-        pass
+    def test_load_tcp_one(self, monkeypatch):
+        mock_config = mocks.OptionsMock({
+            'plugin.tcp': [
+                'localhost:5001',
+            ],
+        })
+        monkeypatch.setattr(plugin.config, 'options', mock_config)
 
-    def test_load_unix_one(self):
-        pass
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 1
 
-    def test_load_unix_multi(self):
-        pass
+    def test_load_tcp_multi(self, monkeypatch):
+        mock_config = mocks.OptionsMock({
+            'plugin.tcp': [
+                'localhost:5001',
+                'localhost:5002',
+                'localhost:5003',
+            ],
+        })
+        monkeypatch.setattr(plugin.config, 'options', mock_config)
 
-    def test_load_tcp_and_unix(self):
-        pass
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 3
 
-    def test_load_failed_tcp_register(self):
-        pass
+    def test_load_unix_one(self, monkeypatch):
+        mock_config = mocks.OptionsMock({
+            'plugin.unix': ['/tmp/test/1'],
+        })
+        monkeypatch.setattr(plugin.config, 'options', mock_config)
 
-    def test_load_failed_unix_register(self):
-        pass
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 1
 
-    def test_discover_no_addresses_found(self):
-        pass
+    def test_load_unix_multi(self, monkeypatch):
+        mock_config = mocks.OptionsMock({
+            'plugin.unix': [
+                '/tmp/test/1',
+                '/tmp/test/2',
+                '/tmp/test/3',
+            ],
+        })
+        monkeypatch.setattr(plugin.config, 'options', mock_config)
 
-    def test_discover_one_address_found(self):
-        pass
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 3
 
-    def test_discover_multiple_addresses_found(self):
-        pass
+    def test_load_tcp_and_unix(self, monkeypatch):
+        mock_config = mocks.OptionsMock({
+            'plugin.tcp': [
+                'localhost:5001',
+                'localhost:5002',
+                'localhost:5003',
+            ],
+            'plugin.unix': [
+                '/tmp/test/1',
+                '/tmp/test/2',
+                '/tmp/test/3',
+            ],
+        })
+        monkeypatch.setattr(plugin.config, 'options', mock_config)
 
-    def test_discover_fail_kubernetes_discovery(self):
-        pass
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 6
+
+    @mock.patch('synse_server.plugin.kubernetes.discover', return_value=[])
+    def test_discover_no_addresses_found(self, patch_discover):
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 0
+        patch_discover.assert_called_once()
+
+    @mock.patch('synse_server.plugin.kubernetes.discover', return_value=['localhost:5001'])
+    def test_discover_one_address_found(self, patch_discover):
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 1
+        assert ('localhost:5001', 'tcp') in found
+        patch_discover.assert_called_once()
+
+    @mock.patch('synse_server.plugin.kubernetes.discover', return_value=['localhost:5001', 'localhost:5002'])
+    def test_discover_multiple_addresses_found(self, patch_discover):
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 2
+        assert ('localhost:5001', 'tcp') in found
+        assert ('localhost:5002', 'tcp') in found
+        patch_discover.assert_called_once()
+
+    @mock.patch('synse_server.plugin.kubernetes.discover', side_effect=ValueError())
+    def test_discover_fail_kubernetes_discovery(self, patch_discover):
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 0
+        patch_discover.assert_called_once()
 
     def test_refresh_no_addresses(self):
-        pass
+        m = plugin.PluginManager()
 
-    def test_refresh_discovered_plugin_already_exists(self):
-        pass
+        assert len(m.plugins) == 0
+        m.refresh()
+        assert len(m.plugins) == 0
 
-    def test_refresh_discovered_plugin_does_not_exist(self):
-        pass
+    @mock.patch('synse_server.plugin.PluginManager.register')
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
+    def test_refresh_loaded_ok(self, patch_load, patch_register):
+        m = plugin.PluginManager()
 
-    def test_refresh_discovered_plugin_fails_registration(self):
-        pass
+        m.refresh()
 
-    def test_refresh_discover_with_no_current_plugins(self):
-        pass
+        patch_load.assert_called_once()
+        patch_register.assert_called_once()
+        patch_register.assert_called_with(address='localhost:5001', protocol='tcp')
 
-    def test_refresh_loaded_plugin_already_exists(self):
-        # TODO: need to add loaded to refresh logic
-        pass
+    @mock.patch('synse_server.plugin.PluginManager.register', side_effect=ValueError())
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
+    def test_refresh_loaded_fail(self, patch_load, patch_register):
+        m = plugin.PluginManager()
 
-    def test_refresh_loaded_plugin_does_not_exist(self):
-        pass
+        m.refresh()
 
-    def test_refresh_loaded_plugin_fails_registration(self):
-        pass
+        patch_load.assert_called_once()
+        patch_register.assert_called_once()
+        patch_register.assert_called_with(address='localhost:5001', protocol='tcp')
 
-    def test_refresh_load_with_no_current_plugins(self):
-        pass
+    @mock.patch('synse_server.plugin.PluginManager.register')
+    @mock.patch('synse_server.plugin.PluginManager.discover', return_value=[('localhost:5001', 'tcp')])
+    def test_refresh_discover_ok(self, patch_discover, patch_register):
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        patch_discover.assert_called_once()
+        patch_register.assert_called_once()
+        patch_register.assert_called_with(address='localhost:5001', protocol='tcp')
+
+    @mock.patch('synse_server.plugin.PluginManager.register', side_effect=ValueError())
+    @mock.patch('synse_server.plugin.PluginManager.discover', return_value=[('localhost:5001', 'tcp')])
+    def test_refresh_discover_fail(self, patch_discover, patch_register):
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        patch_discover.assert_called_once()
+        patch_register.assert_called_once()
+        patch_register.assert_called_with(address='localhost:5001', protocol='tcp')
 
 
 class TestPlugin:
@@ -311,9 +415,9 @@ class TestPlugin:
 
         assert p.active is False
 
-        with pytest.raises(client_errors.PluginError):
+        with pytest.raises(errors.PluginError):
             with p:
-                raise client_errors.PluginError('test error')
+                raise errors.PluginError('test error')
 
         assert p.active is True
 
