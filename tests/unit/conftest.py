@@ -76,6 +76,7 @@ def simple_plugin():
         info={
             'tag': 'test/foo',
             'id': '123',
+            'vcs': 'https://github.com/vapor-ware/synse-server',
         },
         version={},
     )

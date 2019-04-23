@@ -1,5 +1,5 @@
 
-from synse_grpc import utils
+from synse_grpc import utils, api
 
 import synse_server.utils
 from synse_server import errors
@@ -68,7 +68,8 @@ async def plugins():
     for p in manager:
         summary = p.metadata.copy()
         summary['active'] = p.active
-        del summary['vcs']
+        if 'vcs' in summary:
+            del summary['vcs']
         summaries.append(summary)
 
     return summaries
@@ -99,7 +100,7 @@ async def plugin_health():
         except Exception as e:
             logger.warning(_('failed to get plugin health'), plugin=p.tag, error=e)
         else:
-            if health.status == 1:  # OK
+            if health.status == api.OK:
                 healthy.append(p.id)
             else:
                 unhealthy.append(p.id)
