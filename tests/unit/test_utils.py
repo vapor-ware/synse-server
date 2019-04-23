@@ -1,6 +1,6 @@
 
-from sanic.response import HTTPResponse
 import pytest
+from sanic.response import HTTPResponse
 
 from synse_server import utils
 

@@ -1,8 +1,9 @@
 
-from sanic.response import HTTPResponse
-from sanic.request import Request
-import pytest
 import json
+
+import pytest
+from sanic.request import Request
+from sanic.response import HTTPResponse
 
 from synse_server import errors
 

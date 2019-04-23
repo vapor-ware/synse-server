@@ -2,8 +2,8 @@
 from synse_grpc import utils
 
 from synse_server import cache, errors
-from synse_server.log import logger
 from synse_server.i18n import _
+from synse_server.log import logger
 
 
 async def write_async(device_id, payload):

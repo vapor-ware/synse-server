@@ -1,5 +1,5 @@
 
-from synse_grpc import utils, api
+from synse_grpc import api, utils
 
 import synse_server.utils
 from synse_server import errors

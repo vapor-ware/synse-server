@@ -2,8 +2,8 @@
 import synse_grpc.utils
 
 from synse_server import cache, errors, plugin
-from synse_server.log import logger
 from synse_server.i18n import _
+from synse_server.log import logger
 
 
 async def read(ns, tags):

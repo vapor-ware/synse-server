@@ -1,9 +1,9 @@
 
 import pytest
-from synse_grpc import client, api
+from synse_grpc import api, client
 
-from synse_server.cmd import plugin
 from synse_server import errors
+from synse_server.cmd import plugin
 from synse_server.plugin import Plugin
 
 
@@ -296,4 +296,3 @@ async def test_plugin_health_inactive(mocker, simple_plugin):
 
     mock_health.assert_called_once()
     mock_refresh.assert_not_called()
-

@@ -1,7 +1,7 @@
 
 from synse_server.config import options
-from synse_server.log import logger
 from synse_server.i18n import _
+from synse_server.log import logger
 
 
 async def config():

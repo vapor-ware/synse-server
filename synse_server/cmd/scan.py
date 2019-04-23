@@ -2,8 +2,8 @@
 from synse_grpc import utils
 
 from synse_server import cache
-from synse_server.log import logger
 from synse_server.i18n import _
+from synse_server.log import logger
 
 
 async def scan(ns, tags, sort, force=False):

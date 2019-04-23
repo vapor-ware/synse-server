@@ -63,6 +63,10 @@ docs: clean-docs  ## Generate the User Guide and API documentation locally
 	docker rm slate-docs
 	mv docs/api/build/** docs/
 
+.PHONY: fmt
+fmt:  ## Automatic source code formatting (isort)
+	tox -e fmt
+
 .PHONY: github-tag
 github-tag:  ## Create and push a tag with the current version
 	git tag -a v${PKG_VERSION} -m "${PKG_NAME} version v${PKG_VERSION}"
@@ -73,7 +77,7 @@ i18n:  ## Update the translations catalog
 	tox -e i18n
 
 .PHONY: lint
-lint:  ## Run linting checks on the project source code
+lint:  ## Run linting checks on the project source code (isort, flake8)
 	tox -e lint
 
 .PHONY: run

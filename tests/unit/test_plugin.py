@@ -1,10 +1,9 @@
 
 from collections.abc import Iterable
-from grpc import RpcError
 
 import pytest
-from synse_grpc import errors
-from synse_grpc import client
+from grpc import RpcError
+from synse_grpc import client, errors
 from synse_grpc.api import V3Metadata, V3Version
 
 from synse_server import plugin
