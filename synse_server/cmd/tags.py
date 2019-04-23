@@ -8,11 +8,11 @@ async def tags(*namespaces, with_id_tags=False):
     """Generate the tags response data.
 
     Args:
-        namespaces (list[string]): The namespace(s) of the tags to filter by.
+        namespaces (str): The namespace(s) of the tags to filter by.
         with_id_tags (bool): Flag to toggle the inclusion/exclusion of ID tags.
 
     Returns:
-        list[string]: A list of all tags currently associated with devices.
+        list[str]: A list of all tags currently associated with devices.
     """
     logger.debug(
         _('issuing command'), command='TAGS',
