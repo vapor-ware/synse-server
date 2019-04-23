@@ -1,11 +1,11 @@
 
 from synse_grpc import utils
 
-import synse_server.plugin
 import synse_server.utils
 from synse_server import errors
-from synse_server.log import logger
 from synse_server.i18n import _
+from synse_server.log import logger
+from synse_server.plugin import manager
 
 
 async def plugin(plugin_id):
@@ -21,10 +21,10 @@ async def plugin(plugin_id):
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
-    if not synse_server.plugin.manager.has_plugins():
-        synse_server.plugin.manager.refresh()
+    if not manager.has_plugins():
+        manager.refresh()
 
-    p = synse_server.plugin.manager.get(plugin_id)
+    p = manager.get(plugin_id)
     if p is None:
         raise errors.NotFound(f'plugin not found: {plugin_id}')
 
@@ -61,11 +61,11 @@ async def plugins():
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
-    if not synse_server.plugin.manager.has_plugins():
-        synse_server.plugin.manager.refresh()
+    if not manager.has_plugins():
+        manager.refresh()
 
     summaries = []
-    for p in synse_server.plugin.manager:
+    for p in manager:
         summary = p.metadata.copy()
         summary['active'] = p.active
         del summary['vcs']
@@ -84,15 +84,15 @@ async def plugin_health():
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
-    if not synse_server.plugin.manager.has_plugins():
-        synse_server.plugin.manager.refresh()
+    if not manager.has_plugins():
+        manager.refresh()
 
     active_count = 0
     inactive_count = 0
     healthy = []
     unhealthy = []
 
-    for p in synse_server.plugin.manager:
+    for p in manager:
         try:
             with p as client:
                 health = client.health()
@@ -109,7 +109,7 @@ async def plugin_health():
             else:
                 inactive_count += 1
 
-    is_healthy = len(synse_server.plugin.manager.plugins) == len(healthy)
+    is_healthy = len(manager.plugins) == len(healthy)
     return {
         'status': 'healthy' if is_healthy else 'unhealthy',
         'updated': synse_server.utils.rfc3339now(),

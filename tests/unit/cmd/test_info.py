@@ -40,7 +40,6 @@ async def test_info_device_found(monkeypatch):
                 ),
             ]
         )
-
     monkeypatch.setattr(info.cache, 'get_device', patched)
 
     resp = await info.info('123')
