@@ -1,7 +1,5 @@
 
-from unittest import mock
 from sanic.response import HTTPResponse
-
 import pytest
 
 from synse_server import utils
@@ -48,8 +46,11 @@ def test_http_json_response_from_list():
     assert actual.content_type == 'application/json'
 
 
-@mock.patch('synse_server.config.options.get', return_value=True)
-def test_http_json_response_from_dict_pretty(mocked_fn):
+def test_http_json_response_from_dict_pretty(mocker):
+    # Mock test data
+    mock_get = mocker.patch('synse_server.config.options.get', return_value=True)
+
+    # --- Test case -----------------------------
     actual = utils.http_json_response({'status': 'ok'})
 
     assert isinstance(actual, HTTPResponse)
@@ -57,11 +58,14 @@ def test_http_json_response_from_dict_pretty(mocked_fn):
     assert actual.status == 200
     assert actual.content_type == 'application/json'
 
-    mocked_fn.assert_called_with('pretty_json')
+    mock_get.assert_called_with('pretty_json')
 
 
-@mock.patch('synse_server.config.options.get', return_value=True)
-def test_http_json_response_from_list_pretty(mocked_fn):
+def test_http_json_response_from_list_pretty(mocker):
+    # Mock test data
+    mock_get = mocker.patch('synse_server.config.options.get', return_value=True)
+
+    # --- Test case -----------------------------
     actual = utils.http_json_response(['a', 'b', 'c'])
 
     assert isinstance(actual, HTTPResponse)
@@ -69,4 +73,4 @@ def test_http_json_response_from_list_pretty(mocked_fn):
     assert actual.status == 200
     assert actual.content_type == 'application/json'
 
-    mocked_fn.assert_called_with('pretty_json')
+    mock_get.assert_called_with('pretty_json')

@@ -3,7 +3,6 @@ from sanic.response import HTTPResponse
 from sanic.request import Request
 import pytest
 import json
-from unittest import mock
 
 from synse_server import errors
 
@@ -50,8 +49,9 @@ class TestSynseErrorHandler:
 class TestSynseError:
     """Test cases for the ``synse_server.errors.SynseError`` Exception."""
 
-    @mock.patch('synse_server.errors.rfc3339now', return_value='2019-04-22T13:30:00Z')
-    def test_make_response(self, patched_rfc3339now):
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
         ex = errors.SynseError('context error message')
         resp = ex.make_response()
 
@@ -63,14 +63,13 @@ class TestSynseError:
             'context': 'context error message',
         }
 
-        patched_rfc3339now.assert_called_once()
-
 
 class TestInvalidUsage:
     """Test cases for the ``synse_server.errors.InvalidUsage`` Exception."""
 
-    @mock.patch('synse_server.errors.rfc3339now', return_value='2019-04-22T13:30:00Z')
-    def test_make_response(self, patched_rfc3339now):
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
         ex = errors.InvalidUsage('context error message')
         resp = ex.make_response()
 
@@ -82,14 +81,13 @@ class TestInvalidUsage:
             'context': 'context error message',
         }
 
-        patched_rfc3339now.assert_called_once()
-
 
 class TestNotFound:
     """Test cases for the ``synse_server.errors.NotFound`` Exception."""
 
-    @mock.patch('synse_server.errors.rfc3339now', return_value='2019-04-22T13:30:00Z')
-    def test_make_response(self, patched_rfc3339now):
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
         ex = errors.NotFound('context error message')
         resp = ex.make_response()
 
@@ -101,14 +99,13 @@ class TestNotFound:
             'context': 'context error message',
         }
 
-        patched_rfc3339now.assert_called_once()
-
 
 class TestUnsupportedAction:
     """Test cases for the ``synse_server.errors.UnsupportedAction`` Exception."""
 
-    @mock.patch('synse_server.errors.rfc3339now', return_value='2019-04-22T13:30:00Z')
-    def test_make_response(self, patched_rfc3339now):
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
         ex = errors.UnsupportedAction('context error message')
         resp = ex.make_response()
 
@@ -120,14 +117,13 @@ class TestUnsupportedAction:
             'context': 'context error message',
         }
 
-        patched_rfc3339now.assert_called_once()
-
 
 class TestServerError:
     """Test cases for the ``synse_server.errors.ServerError`` Exception."""
 
-    @mock.patch('synse_server.errors.rfc3339now', return_value='2019-04-22T13:30:00Z')
-    def test_make_response(self, patched_rfc3339now):
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
         ex = errors.ServerError('context error message')
         resp = ex.make_response()
 
@@ -138,5 +134,3 @@ class TestServerError:
             'timestamp': '2019-04-22T13:30:00Z',
             'context': 'context error message',
         }
-
-        patched_rfc3339now.assert_called_once()

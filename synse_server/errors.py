@@ -2,8 +2,8 @@
 
 from sanic.handlers import ErrorHandler
 
+from synse_server import utils
 from synse_server.i18n import _
-from synse_server.utils import rfc3339now, http_json_response
 
 
 class SynseErrorHandler(ErrorHandler):
@@ -22,7 +22,7 @@ class SynseErrorHandler(ErrorHandler):
         raised by the application will be caught and handled here.
         """
         if issubclass(type(exception), SynseError):
-            return http_json_response(
+            return utils.http_json_response(
                 body=exception.make_response(),
                 status=exception.http_code,
             )
@@ -51,7 +51,7 @@ class SynseError(Exception):
         return {
             'http_code': self.http_code,
             'description': self.description,
-            'timestamp': rfc3339now(),
+            'timestamp': utils.rfc3339now(),
             'context': str(self),
         }
 
