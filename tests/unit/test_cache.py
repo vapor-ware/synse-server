@@ -1,9 +1,9 @@
 
 import asynctest
-import pytest
 import grpc
-
+import pytest
 from synse_grpc import api
+
 from synse_server import cache
 
 
