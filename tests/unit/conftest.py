@@ -2,7 +2,7 @@
 import datetime
 
 import pytest
-from synse_grpc import client
+from synse_grpc import api, client
 
 from synse_server import plugin, utils
 
@@ -79,4 +79,52 @@ def simple_plugin():
             'vcs': 'https://github.com/vapor-ware/synse-server',
         },
         version={},
+    )
+
+
+@pytest.fixture()
+def temperature_reading():
+    """Fixture to return a new V3Reading for a temperature device."""
+
+    return api.V3Reading(
+        id='aaa',
+        timestamp='2019-04-22T13:30:00Z',
+        type='temperature',
+        deviceType='temperature',
+        context={'zone': '1'},
+        unit=api.V3OutputUnit(
+            name='celsius',
+            symbol='C',
+        ),
+        int64_value=30,
+    )
+
+
+@pytest.fixture()
+def humidity_reading():
+    """Fixture to return a new V3Reading for a humidity device."""
+
+    return api.V3Reading(
+        id='bbb',
+        timestamp='2019-04-22T13:30:00Z',
+        type='humidity',
+        deviceType='humidity',
+        unit=api.V3OutputUnit(
+            name='percent',
+            symbol='%',
+        ),
+        float64_value=42.0,
+    )
+
+
+@pytest.fixture()
+def state_reading():
+    """Fixture to return a new V3Reading for a state device."""
+
+    return api.V3Reading(
+        id='ccc',
+        timestamp='2019-04-22T13:30:00Z',
+        type='state',
+        deviceType='led',
+        string_value='on',
     )

@@ -6,6 +6,40 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
+def reading_to_dict(reading):
+    """Convert a V3Reading to its dict representation for the Synse V3 read schema.
+
+    Args:
+        reading (V3Reading): The reading value received from a plugin.
+
+    Returns:
+        dict: The reading converted to its dictionary representation, conforming
+        to the V3 API read schema.
+    """
+    # The reading value is stored in a protobuf oneof block - we need to
+    # figure out which field it is so we can extract it. If no field is set,
+    # take the reading value to be None.
+    value = None
+    field = reading.WhichOneof('value')
+    if field is not None:
+        value = getattr(reading, field)
+
+    if not reading.unit or (reading.unit.symbol == '' and reading.unit.name == ''):
+        unit = None
+    else:
+        unit = synse_grpc.utils.to_dict(reading.unit)
+
+    return {
+        'device': reading.id,
+        'timestamp': reading.timestamp,
+        'type': reading.type,
+        'device_type': reading.deviceType,
+        'unit': unit,
+        'value': value,
+        'context': dict(reading.context),
+    }
+
+
 async def read(ns, tags):
     """Generate the readings response data.
 
@@ -39,23 +73,7 @@ async def read(ns, tags):
             ) from e
 
         for reading in data:
-            # The reading value is stored in a protobuf oneof block - we need to
-            # figure out which field it is so we can extract it. If no field is set,
-            # take the reading value to be None.
-            value = None
-            field = reading.WhichOneof('value')
-            if field is not None:
-                value = getattr(reading, field)
-
-            readings.append({
-                'device': reading.id,
-                'timestamp': reading.timestamp,
-                'type': reading.type,
-                'device_type': reading.deviceType,
-                'unit': synse_grpc.utils.to_dict(reading.unit),
-                'value': value,
-                'context': dict(reading.context),
-            })
+            readings.append(reading_to_dict(reading))
 
     return readings
 
@@ -88,23 +106,7 @@ async def read_device(device_id):
         ) from e
 
     for reading in data:
-        # The reading value is stored in a protobuf oneof block - we need to
-        # figure out which field it is so we can extract it. If no field is set,
-        # take the reading value to be None.
-        value = None
-        field = reading.WhichOneof('value')
-        if field is not None:
-            value = getattr(reading, field)
-
-        readings.append({
-            'device': reading.id,
-            'timestamp': reading.timestamp,
-            'type': reading.type,
-            'device_type': reading.deviceType,
-            'unit': synse_grpc.utils.to_dict(reading.unit),
-            'value': value,
-            'context': dict(reading.context),
-        })
+        readings.append(reading_to_dict(reading))
 
     return readings
 
@@ -125,30 +127,14 @@ async def read_cache(start=None, end=None):
     """
     logger.debug(_('issuing command'), command='READ CACHE', start=start, end=end)
 
+    # FIXME: this could benefit from being async
     for p in plugin.manager:
         logger.debug(_('getting cached readings for plugin'), plugin=p.tag)
         try:
-            for reading in p.client.read_cache(start=start, end=end):
-                # The reading value is stored in a protobuf oneof block - we need to
-                # figure out which field it is so we can extract it. If no field is set,
-                # take the reading value to be None.
-                value = None
-                field = reading.WhichOneof('value')
-                if field is not None:
-                    value = getattr(reading, field)
-
-                yield {
-                    'device': reading.id,
-                    'timestamp': reading.timestamp,
-                    'type': reading.type,
-                    'device_type': reading.deviceType,
-                    'unit': synse_grpc.utils.to_dict(reading.unit),
-                    'value': value,
-                    'context': dict(reading.context),
-                }
-            p.mark_active()
+            with p as client:
+                for reading in client.read_cache(start=start, end=end):
+                    yield reading_to_dict(reading)
         except Exception as e:
-            # FIXME: this should be a client connection error, as defined by the
-            #   grpc client package
-            p.mark_inactive()
-            raise
+            raise errors.ServerError(
+                _('error while issuing gRPC request: read cache'),
+            ) from e
