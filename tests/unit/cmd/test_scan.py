@@ -15,7 +15,7 @@ async def test_scan_force_error():
         with pytest.raises(errors.ServerError):
             await scan.scan('default', [], '', force=True)
 
-        mock_update.assert_called_once()
+    mock_update.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -27,9 +27,9 @@ async def test_scan_no_devices():
             resp = await scan.scan('default', ['foo'], '', force=False)
             assert len(resp) == 0
 
-        mock_update.assert_not_called()
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('default/foo')
+    mock_update.assert_not_called()
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('default/foo')
 
 
 @pytest.mark.asyncio
@@ -41,9 +41,9 @@ async def test_scan_get_devices_errors():
             with pytest.raises(errors.ServerError):
                 await scan.scan('default', ['foo', 'test/bar'], '', force=False)
 
-        mock_update.assert_not_called()
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('default/foo', 'test/bar')
+    mock_update.assert_not_called()
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('default/foo', 'test/bar')
 
 
 @pytest.mark.asyncio
@@ -80,9 +80,9 @@ async def test_scan_invalid_keys():
             with pytest.raises(errors.InvalidUsage):
                 await scan.scan('default', ['foo'], 'not-a-key,tags', force=False)
 
-        mock_update.assert_not_called()
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('default/foo')
+    mock_update.assert_not_called()
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('default/foo')
 
 
 @pytest.mark.asyncio
@@ -122,9 +122,9 @@ async def test_scan_ok():
             assert resp[1]['id'] == '3'
             assert resp[2]['id'] == '2'
 
-        mock_update.assert_called_once()
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('default/foo')
+    mock_update.assert_called_once()
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('default/foo')
 
 
 @pytest.mark.asyncio
@@ -164,6 +164,6 @@ async def test_scan_sort_ok():
             assert resp[1]['id'] == '1'
             assert resp[2]['id'] == '2'
 
-        mock_update.assert_called_once()
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('default/foo')
+    mock_update.assert_called_once()
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('default/foo')

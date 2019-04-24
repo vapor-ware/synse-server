@@ -16,8 +16,8 @@ async def test_transaction_not_found():
         with pytest.raises(errors.NotFound):
             await transaction.transaction('123')
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
 
 
 @pytest.mark.asyncio
@@ -30,8 +30,8 @@ async def test_transaction_no_plugin_id():
         with pytest.raises(errors.ServerError):
             await transaction.transaction('123')
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
 
 
 @pytest.mark.asyncio
@@ -48,10 +48,10 @@ async def test_transaction_plugin_not_found():
             with pytest.raises(errors.NotFound):
                 await transaction.transaction('123')
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
-        mock_plugin_get.assert_called_once()
-        mock_plugin_get.assert_called_with('test-plugin')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
+    mock_plugin_get.assert_called_once()
+    mock_plugin_get.assert_called_with('test-plugin')
 
 
 @pytest.mark.asyncio
@@ -79,12 +79,12 @@ async def test_transaction_client_unexpected_error(mocker, simple_plugin):
             # Verify the plugin was marked inactive due to the unexpected exception.
             assert simple_plugin.active is False
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
-        mock_plugin_get.assert_called_once()
-        mock_plugin_get.assert_called_with('test-plugin')
-        mock_txn.assert_called_once()
-        mock_txn.assert_called_with('123')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
+    mock_plugin_get.assert_called_once()
+    mock_plugin_get.assert_called_with('test-plugin')
+    mock_txn.assert_called_once()
+    mock_txn.assert_called_with('123')
 
 
 @pytest.mark.asyncio
@@ -112,12 +112,12 @@ async def test_transaction_client_expected_error(mocker, simple_plugin):
             # Verify the plugin was not marked inactive, as the exception was expected.
             assert simple_plugin.active is True
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
-        mock_plugin_get.assert_called_once()
-        mock_plugin_get.assert_called_with('test-plugin')
-        mock_txn.assert_called_once()
-        mock_txn.assert_called_with('123')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
+    mock_plugin_get.assert_called_once()
+    mock_plugin_get.assert_called_with('test-plugin')
+    mock_txn.assert_called_once()
+    mock_txn.assert_called_with('123')
 
 
 @pytest.mark.asyncio
@@ -166,12 +166,12 @@ async def test_transaction_client_ok(mocker, simple_plugin):
             # Verify the plugin was not marked inactive, as there was no exception.
             assert simple_plugin.active is True
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
-        mock_plugin_get.assert_called_once()
-        mock_plugin_get.assert_called_with('test-plugin')
-        mock_txn.assert_called_once()
-        mock_txn.assert_called_with('123')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
+    mock_plugin_get.assert_called_once()
+    mock_plugin_get.assert_called_with('test-plugin')
+    mock_txn.assert_called_once()
+    mock_txn.assert_called_with('123')
 
 
 @pytest.mark.asyncio

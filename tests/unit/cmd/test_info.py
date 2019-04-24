@@ -15,8 +15,8 @@ async def test_info_device_not_found():
         with pytest.raises(errors.NotFound):
             await info.info('123')
 
-        mock_get.assert_called_once()
-        mock_get.assert_called_with('123')
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
 
 
 @pytest.mark.asyncio
@@ -62,3 +62,6 @@ async def test_info_device_found():
             'sort_index': 0,
             'timestamp': '',
         }
+
+    mock_get.assert_called_once()
+    mock_get.assert_called_with('123')
