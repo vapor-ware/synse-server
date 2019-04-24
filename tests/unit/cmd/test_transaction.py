@@ -4,8 +4,7 @@ import pytest
 from synse_grpc import api
 from synse_grpc.errors import PluginError
 
-from synse_server import errors
-from synse_server.cmd import transaction
+from synse_server import cmd, errors
 
 
 @pytest.mark.asyncio
@@ -14,7 +13,7 @@ async def test_transaction_not_found():
         mock_get.return_value = None
 
         with pytest.raises(errors.NotFound):
-            await transaction.transaction('123')
+            await cmd.transaction('123')
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -28,7 +27,7 @@ async def test_transaction_no_plugin_id():
         }
 
         with pytest.raises(errors.ServerError):
-            await transaction.transaction('123')
+            await cmd.transaction('123')
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -46,7 +45,7 @@ async def test_transaction_plugin_not_found():
             }
 
             with pytest.raises(errors.NotFound):
-                await transaction.transaction('123')
+                await cmd.transaction('123')
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -74,7 +73,7 @@ async def test_transaction_client_unexpected_error(mocker, simple_plugin):
             }
 
             with pytest.raises(errors.ServerError):
-                await transaction.transaction('123')
+                await cmd.transaction('123')
 
             # Verify the plugin was marked inactive due to the unexpected exception.
             assert simple_plugin.active is False
@@ -107,7 +106,7 @@ async def test_transaction_client_expected_error(mocker, simple_plugin):
             }
 
             with pytest.raises(errors.ServerError):
-                await transaction.transaction('123')
+                await cmd.transaction('123')
 
             # Verify the plugin was not marked inactive, as the exception was expected.
             assert simple_plugin.active is True
@@ -147,7 +146,7 @@ async def test_transaction_client_ok(mocker, simple_plugin):
                 'device': 'test-device',
             }
 
-            resp = await transaction.transaction('123')
+            resp = await cmd.transaction('123')
             assert resp == {
                 'id': '123',
                 'device': 'test-device',
@@ -183,7 +182,7 @@ async def test_transactions_none_cached(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await transaction.transactions()
+    resp = await cmd.transactions()
     assert len(resp) == 0
 
     mock_get.assert_called_once()
@@ -200,7 +199,7 @@ async def test_transactions_one_cached(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await transaction.transactions()
+    resp = await cmd.transactions()
     assert resp == ['123']
 
     mock_get.assert_called_once()
@@ -219,7 +218,7 @@ async def test_transactions_multiple_cached(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await transaction.transactions()
+    resp = await cmd.transactions()
     assert resp == ['123', '456', '789']
 
     mock_get.assert_called_once()

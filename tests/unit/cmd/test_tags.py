@@ -1,7 +1,7 @@
 
 import pytest
 
-from synse_server.cmd import tags
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
@@ -14,7 +14,7 @@ async def test_tags_failed_get_cached_tags(mocker):
 
     # --- Test case -----------------------------
     with pytest.raises(ValueError):
-        await tags.tags('default')
+        await cmd.tags('default')
 
     mock_get.assert_called_once()
 
@@ -40,7 +40,7 @@ async def test_tags_matches_tag_with_single_ns(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await tags.tags('default')
+    resp = await cmd.tags('default')
     assert resp == [
         'annotation:bar',
         'default/annotation:bar',
@@ -72,7 +72,7 @@ async def test_tags_matches_tag_with_multiple_ns(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await tags.tags('default', 'test')
+    resp = await cmd.tags('default', 'test')
     assert resp == [
         'annotation:bar',
         'default/annotation:bar',
@@ -106,7 +106,7 @@ async def test_tags_matches_tag_no_ns(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await tags.tags()
+    resp = await cmd.tags()
     assert resp == [
         'annotation:bar',
         'default/annotation:bar',
@@ -142,7 +142,7 @@ async def test_tags_with_id_tags_all_tags_matching_ns(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await tags.tags(with_id_tags=True)
+    resp = await cmd.tags(with_id_tags=True)
     assert resp == [
         'annotation:bar',
         'default/annotation:bar',
@@ -181,7 +181,7 @@ async def test_tags_with_id_tags_some_tags_matching_ns(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await tags.tags('default', 'system', with_id_tags=True)
+    resp = await cmd.tags('default', 'system', with_id_tags=True)
     assert resp == [
         'annotation:bar',
         'default/annotation:bar',
@@ -217,7 +217,7 @@ async def test_tags_with_id_tags_no_tags_matching_ns(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await tags.tags('no-such-namespace', with_id_tags=True)
+    resp = await cmd.tags('no-such-namespace', with_id_tags=True)
     assert resp == []
 
     mock_get.assert_called_once()

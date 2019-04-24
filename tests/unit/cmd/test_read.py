@@ -4,7 +4,8 @@ import pytest
 from synse_grpc import client
 
 from synse_server import errors, plugin
-from synse_server.cmd import read
+from synse_server import cmd
+from synse_server.cmd.read import reading_to_dict
 
 
 @pytest.mark.asyncio
@@ -17,7 +18,7 @@ async def test_read_no_plugins(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await read.read('default', ['default/foo'])
+    resp = await cmd.read('default', ['default/foo'])
     assert len(resp) == 0
 
     mock_read.assert_not_called()
@@ -40,7 +41,7 @@ async def test_read_fails_read(mocker, simple_plugin):
     simple_plugin.active = True
 
     with pytest.raises(errors.ServerError):
-        await read.read('default', ['default/foo'])
+        await cmd.read('default', ['default/foo'])
 
     assert simple_plugin.active is False
 
@@ -84,7 +85,7 @@ async def test_read_fails_read_multiple_one_fail(mocker, simple_plugin, temperat
     error_plugin.active = True
 
     with pytest.raises(errors.ServerError):
-        await read.read('default', ['default/foo'])
+        await cmd.read('default', ['default/foo'])
 
     assert simple_plugin.active is True
     assert error_plugin.active is False
@@ -114,7 +115,7 @@ async def test_read_ok_no_tags(mocker, simple_plugin, temperature_reading, humid
     # Set the simple_plugin to active to start.
     simple_plugin.active = True
 
-    resp = await read.read('default', [])
+    resp = await cmd.read('default', [])
     assert resp == [
         {  # from temperature_reading fixture
             'device': 'aaa',
@@ -169,7 +170,7 @@ async def test_read_ok_tags_with_ns(mocker, simple_plugin, state_reading):
     # Set the simple_plugin to active to start.
     simple_plugin.active = True
 
-    resp = await read.read('default', ['foo/bar', 'vapor/ware'])
+    resp = await cmd.read('default', ['foo/bar', 'vapor/ware'])
     assert resp == [
         {  # from state_reading fixture
             'device': 'ccc',
@@ -219,7 +220,7 @@ async def test_read_ok_tags_without_ns(mocker, simple_plugin, state_reading):
     # Set the simple_plugin to active to start.
     simple_plugin.active = True
 
-    resp = await read.read('default', ['foo', 'bar', 'vapor/ware'])
+    resp = await cmd.read('default', ['foo', 'bar', 'vapor/ware'])
     assert resp == [
         {  # from state_reading fixture
             'device': 'ccc',
@@ -256,7 +257,7 @@ async def test_read_device_not_found():
         mock_get.return_value = None
 
         with pytest.raises(errors.NotFound):
-            await read.read_device('123')
+            await cmd.read_device('123')
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -268,7 +269,7 @@ async def test_read_device_error_getting_plugin():
         mock_get.side_effect = ValueError()
 
         with pytest.raises(ValueError):
-            await read.read_device('123')
+            await cmd.read_device('123')
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -287,7 +288,7 @@ async def test_read_device_fails_read(mocker, simple_plugin):
         mock_get.return_value = simple_plugin
 
         with pytest.raises(errors.ServerError):
-            await read.read_device('123')
+            await cmd.read_device('123')
 
     assert simple_plugin.active is False
 
@@ -311,7 +312,7 @@ async def test_read_device_ok(mocker, simple_plugin, temperature_reading):
     with asynctest.patch('synse_server.cache.get_plugin') as mock_get:
         mock_get.return_value = simple_plugin
 
-        resp = await read.read_device('123')
+        resp = await cmd.read_device('123')
         assert resp == [
             {  # from temperature_reading fixture
                 'device': 'aaa',
@@ -347,7 +348,7 @@ async def test_read_cache_no_plugins(mocker):
     )
 
     # --- Test case -----------------------------
-    res = [r async for r in read.read_cache()]
+    res = [r async for r in cmd.read_cache()]
     assert len(res) == 0
 
     mock_read.assert_not_called()
@@ -367,7 +368,7 @@ async def test_read_cache_fails_read_cache(mocker, simple_plugin):
 
     # --- Test case -----------------------------
     with pytest.raises(errors.ServerError):
-        _ = [r async for r in read.read_cache()]
+        _ = [r async for r in cmd.read_cache()]
 
     assert simple_plugin.active is False
 
@@ -398,7 +399,7 @@ async def test_read_cache_ok(mocker, simple_plugin, humidity_reading):
     )
 
     # --- Test case -----------------------------
-    resp = [r async for r in read.read_cache('2019-04-22T13:30:00Z', '2019-04-22T13:35:00Z')]
+    resp = [r async for r in cmd.read_cache('2019-04-22T13:30:00Z', '2019-04-22T13:35:00Z')]
     assert len(resp) == 3
     for reading in resp:
         assert reading == {
@@ -422,7 +423,7 @@ async def test_read_cache_ok(mocker, simple_plugin, humidity_reading):
 
 
 def test_reading_to_dict_1(temperature_reading):
-    actual = read.reading_to_dict(temperature_reading)
+    actual = reading_to_dict(temperature_reading)
     assert actual == {
         # from temperature_reading fixture
         'device': 'aaa',
@@ -441,7 +442,7 @@ def test_reading_to_dict_1(temperature_reading):
 
 
 def test_reading_to_dict_2(humidity_reading):
-    actual = read.reading_to_dict(humidity_reading)
+    actual = reading_to_dict(humidity_reading)
     assert actual == {
         # from humidity_reading fixture
         'device': 'bbb',
@@ -458,7 +459,7 @@ def test_reading_to_dict_2(humidity_reading):
 
 
 def test_reading_to_dict_3(state_reading):
-    actual = read.reading_to_dict(state_reading)
+    actual = reading_to_dict(state_reading)
     assert actual == {
         # from state_reading fixture
         'device': 'ccc',

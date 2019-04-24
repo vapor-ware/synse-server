@@ -3,8 +3,8 @@ import pytest
 from synse_grpc import api, client
 
 from synse_server import errors
-from synse_server.cmd import plugin
 from synse_server.plugin import Plugin
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
@@ -16,7 +16,7 @@ async def test_plugin_not_found(mocker):
     plugin_id = '123456'
 
     with pytest.raises(errors.NotFound):
-        await plugin.plugin(plugin_id)
+        await cmd.plugin(plugin_id)
 
     mock_get.assert_called_once()
     mock_get.assert_called_with(plugin_id)
@@ -42,7 +42,7 @@ async def test_plugin_client_error(mocker):
     plugin_id = '123456'
 
     with pytest.raises(errors.ServerError):
-        await plugin.plugin(plugin_id)
+        await cmd.plugin(plugin_id)
 
     mock_get.assert_called_once()
     mock_get.assert_called_with(plugin_id)
@@ -70,7 +70,7 @@ async def test_plugin_ok(mocker, simple_plugin):
     # --- Test case -----------------------------
     plugin_id = '123'
 
-    resp = await plugin.plugin(plugin_id)
+    resp = await cmd.plugin(plugin_id)
     assert resp == {
         'id': '123',  # from simple_plugin fixture
         'tag': 'test/foo',  # from simple_plugin fixture
@@ -114,7 +114,7 @@ async def test_plugin_ok_refresh(mocker, simple_plugin):
     # --- Test case -----------------------------
     plugin_id = '123'
 
-    resp = await plugin.plugin(plugin_id)
+    resp = await cmd.plugin(plugin_id)
     assert resp == {
         'id': '123',  # from simple_plugin fixture
         'tag': 'test/foo',  # from simple_plugin fixture
@@ -147,7 +147,7 @@ async def test_plugins_no_plugin(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await plugin.plugins()
+    resp = await cmd.plugins()
     assert resp == []
 
     mock_refresh.assert_called_once()
@@ -164,7 +164,7 @@ async def test_plugins_ok(mocker, simple_plugin):
     )
 
     # --- Test case -----------------------------
-    resp = await plugin.plugins()
+    resp = await cmd.plugins()
     assert resp == [
         {  # from simple_plugin fixture
             'id': '123',
@@ -186,7 +186,7 @@ async def test_plugin_health_no_plugins(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await plugin.plugin_health()
+    resp = await cmd.plugin_health()
     assert resp == {
         'status': 'healthy',
         'updated': '2019-04-22T13:30:00Z',  # from fixture: patch_utils_rfc3339now
@@ -219,7 +219,7 @@ async def test_plugin_health_healthy(mocker, simple_plugin):
     )
 
     # --- Test case -----------------------------
-    resp = await plugin.plugin_health()
+    resp = await cmd.plugin_health()
     assert resp == {
         'status': 'healthy',
         'updated': '2019-04-22T13:30:00Z',  # from fixture: patch_utils_rfc3339now
@@ -253,7 +253,7 @@ async def test_plugin_health_unhealthy(mocker, simple_plugin):
     )
 
     # --- Test case -----------------------------
-    resp = await plugin.plugin_health()
+    resp = await cmd.plugin_health()
     assert resp == {
         'status': 'unhealthy',
         'updated': '2019-04-22T13:30:00Z',  # from fixture: patch_utils_rfc3339now
@@ -283,7 +283,7 @@ async def test_plugin_health_inactive(mocker, simple_plugin):
     )
 
     # --- Test case -----------------------------
-    resp = await plugin.plugin_health()
+    resp = await cmd.plugin_health()
 
     assert resp == {
         'status': 'unhealthy',

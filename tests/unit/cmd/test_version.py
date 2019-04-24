@@ -2,13 +2,13 @@
 import pytest
 
 import synse_server
-from synse_server.cmd import version
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
 async def test_version():
 
-    response = await version.version()
+    response = await cmd.version()
 
     assert response == {
         'version': synse_server.__version__,

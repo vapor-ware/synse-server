@@ -4,7 +4,7 @@ import pytest
 from synse_grpc import api
 
 from synse_server import errors
-from synse_server.cmd import write
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
@@ -19,7 +19,7 @@ async def test_write_async_plugin_not_found(mocker):
         mock_get.return_value = None
 
         with pytest.raises(errors.NotFound):
-            await write.write_async('123', {})
+            await cmd.write_async('123', {})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -38,7 +38,7 @@ async def test_write_async_get_plugin_error(mocker):
         mock_get.side_effect = ValueError()
 
         with pytest.raises(ValueError):
-            await write.write_async('123', {})
+            await cmd.write_async('123', {})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -59,7 +59,7 @@ async def test_write_async_error(mocker, simple_plugin):
             mock_get.return_value = simple_plugin
 
             with pytest.raises(errors.ServerError):
-                await write.write_async('123', {'action': 'foo'})
+                await cmd.write_async('123', {'action': 'foo'})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -92,7 +92,7 @@ async def test_write_async_add_transaction_error(mocker, simple_plugin):
             mock_add.side_effect = ValueError()
 
             with pytest.raises(errors.ServerError):
-                await write.write_async('abc', {'action': 'foo'})
+                await cmd.write_async('abc', {'action': 'foo'})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('abc')
@@ -140,7 +140,7 @@ async def test_write_async_ok(mocker, simple_plugin):
         with asynctest.patch('synse_server.cache.add_transaction') as mock_add:
             mock_get.return_value = simple_plugin
 
-            resp = await write.write_async(
+            resp = await cmd.write_async(
                 device_id='abc',
                 payload=[
                     {'action': 'foo'},
@@ -211,7 +211,7 @@ async def test_write_sync_plugin_not_found(mocker):
         mock_get.return_value = None
 
         with pytest.raises(errors.NotFound):
-            await write.write_sync('123', {})
+            await cmd.write_sync('123', {})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -230,7 +230,7 @@ async def test_write_sync_get_plugin_error(mocker):
         mock_get.side_effect = ValueError()
 
         with pytest.raises(ValueError):
-            await write.write_sync('123', {})
+            await cmd.write_sync('123', {})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -251,7 +251,7 @@ async def test_write_sync_error(mocker, simple_plugin):
             mock_get.return_value = simple_plugin
 
             with pytest.raises(errors.ServerError):
-                await write.write_sync('123', {'action': 'foo'})
+                await cmd.write_sync('123', {'action': 'foo'})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -285,7 +285,7 @@ async def test_write_sync_add_transaction_error(mocker, simple_plugin):
             mock_add.side_effect = ValueError()
 
             with pytest.raises(errors.ServerError):
-                await write.write_sync('abc', {'action': 'foo'})
+                await cmd.write_sync('abc', {'action': 'foo'})
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('abc')
@@ -336,7 +336,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
         with asynctest.patch('synse_server.cache.add_transaction') as mock_add:
             mock_get.return_value = simple_plugin
 
-            resp = await write.write_sync(
+            resp = await cmd.write_sync(
                 device_id='abc',
                 payload=[
                     {'action': 'foo'},

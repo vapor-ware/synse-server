@@ -4,7 +4,7 @@ import pytest
 from synse_grpc import api
 
 from synse_server import errors
-from synse_server.cmd import info
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
@@ -13,7 +13,7 @@ async def test_info_device_not_found():
         mock_get.return_value = None
 
         with pytest.raises(errors.NotFound):
-            await info.info('123')
+            await cmd.info('123')
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('123')
@@ -44,7 +44,7 @@ async def test_info_device_found():
             ]
         )
 
-        resp = await info.info('123')
+        resp = await cmd.info('123')
         assert resp == {
             'id': '123',
             'type': 'test',

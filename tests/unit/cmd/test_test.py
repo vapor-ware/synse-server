@@ -1,14 +1,14 @@
 
 import pytest
 
-from synse_server.cmd import test
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures('patch_utils_rfc3339now')
 async def test_test():
 
-    response = await test.test()
+    response = await cmd.test()
 
     assert response == {
         'status': 'ok',

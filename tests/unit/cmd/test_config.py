@@ -1,7 +1,7 @@
 
 import pytest
 
-from synse_server.cmd import config
+from synse_server import cmd
 
 
 @pytest.mark.asyncio
@@ -10,7 +10,7 @@ async def test_config_no_items(mocker):
     mocker.patch.dict('synse_server.config.options._full_config', {})
 
     # --- Test case -----------------------------
-    resp = await config.config()
+    resp = await cmd.config()
     assert resp == {}
 
 
@@ -24,7 +24,7 @@ async def test_config_reserved_items(mocker):
     })
 
     # --- Test case -----------------------------
-    resp = await config.config()
+    resp = await cmd.config()
     assert resp == {}
 
 
@@ -38,7 +38,7 @@ async def test_config_with_items(mocker):
     })
 
     # --- Test case -----------------------------
-    resp = await config.config()
+    resp = await cmd.config()
     assert resp == {
         'a': 1,
         'b': 2,
@@ -58,7 +58,7 @@ async def test_config_with_mixed_items(mocker):
     })
 
     # --- Test case -----------------------------
-    resp = await config.config()
+    resp = await cmd.config()
     assert resp == {
         'a': 1,
         'b': 2,
