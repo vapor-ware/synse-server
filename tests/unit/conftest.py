@@ -4,7 +4,7 @@ import datetime
 import pytest
 from synse_grpc import api, client
 
-from synse_server import plugin, utils
+from synse_server import cache, plugin, utils
 
 TEST_DATETIME = datetime.datetime(2019, 4, 19, 2, 1, 53, 680718)
 
@@ -54,6 +54,26 @@ def patch_utils_rfc3339now(monkeypatch):
     monkeypatch.setattr(utils, 'rfc3339now', patchedrfc3339now)
 
 
+@pytest.fixture()
+async def clear_txn_cache():
+    """Fixture to clear the transaction cache after a test completes."""
+
+    yield
+    await cache.device_cache.clear(
+        namespace=cache.NS_TRANSACTION,
+    )
+
+
+@pytest.fixture()
+async def clear_device_cache():
+    """Fixture to clear the device cache after a test completes."""
+
+    yield
+    await cache.device_cache.clear(
+        namespace=cache.NS_DEVICE,
+    )
+
+
 # Data Fixtures
 # =============
 # These fixtures provide common test data that can be used for a wide array
@@ -79,6 +99,45 @@ def simple_plugin():
             'vcs': 'https://github.com/vapor-ware/synse-server',
         },
         version={},
+    )
+
+
+@pytest.fixture()
+def simple_device():
+    """Fixture to return a new ``synse_grpc.api.V3Device`` instance for testing."""
+
+    return api.V3Device(
+        timestamp='2019-04-22T13:30:00Z',
+        id='test-device-1',
+        type='temperature',
+        plugin='123',
+        info='device for unit tests',
+        metadata={
+            'foo': 'bar',
+        },
+        capabilities=api.V3DeviceCapability(
+            mode='r',
+        ),
+        tags=[
+            api.V3Tag(
+                namespace='vapor',
+                annotation='unit',
+                label='test',
+            ),
+        ],
+        outputs=[
+            api.V3DeviceOutput(
+                name='temperature',
+                type='temperature',
+                precision=3,
+                scalingFactor=1,
+                unit=api.V3OutputUnit(
+                    name='celsius',
+                    symbol='C',
+                ),
+            ),
+        ],
+        sortIndex=0,
     )
 
 
