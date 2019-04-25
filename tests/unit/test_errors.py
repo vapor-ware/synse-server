@@ -34,6 +34,7 @@ class TestSynseErrorHandler:
         assert data['http_code'] == code
         assert 'timestamp' in data
 
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
     def test_default_not_a_synse_error(self):
         handler = errors.SynseErrorHandler()
 
@@ -44,7 +45,7 @@ class TestSynseErrorHandler:
 
         assert isinstance(actual, HTTPResponse)
         assert actual.status == 500
-        assert b'<h1>Internal Server Error</h1>' in actual.body
+        assert actual.body == b'{"http_code":500,"description":"an unexpected error occurred","timestamp":"2019-04-22T13:30:00Z","context":"foobar"}'
 
 
 class TestSynseError:

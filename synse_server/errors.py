@@ -1,5 +1,6 @@
 """Error definitions for Synse Server."""
 
+from sanic.exceptions import SanicException
 from sanic.handlers import ErrorHandler
 
 from synse_server import utils
@@ -21,13 +22,21 @@ class SynseErrorHandler(ErrorHandler):
         does not register any other custom error handlers, so all exceptions
         raised by the application will be caught and handled here.
         """
-        if issubclass(type(exception), SynseError):
-            return utils.http_json_response(
-                body=exception.make_response(),
-                status=exception.http_code,
-            )
-        else:
+
+        if isinstance(exception, SanicException):
             return super(SynseErrorHandler, self).default(request, exception)
+
+        if not isinstance(exception, SynseError):
+            # Setting __cause__ on the exception is effectively the same
+            # as what happens when you `raise NewException() from old_exception
+            new = SynseError(str(exception))
+            new.__cause__ = exception
+            exception = new
+
+        return utils.http_json_response(
+            body=exception.make_response(),
+            status=exception.http_code,
+        )
 
 
 class SynseError(Exception):

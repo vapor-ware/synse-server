@@ -2,10 +2,6 @@
 import asynctest
 import pytest
 import ujson
-from sanic.response import HTTPResponse
-
-import synse_server
-from synse_server.api import http
 
 
 class TestCoreTest:
@@ -26,24 +22,21 @@ class TestCoreTest:
         response = fn('/test', gather_request=False)
         assert response.status == 405
 
-    @pytest.mark.asyncio
-    async def test_ok(self, mocker, make_request):
-        # Mock test data
-        mocker.patch(
-            'synse_server.utils.rfc3339now',
-            return_value='2019-04-22T13:30:00Z',
-        )
+    def test_ok(self, synse_app):
+        with asynctest.patch('synse_server.cmd.test') as mock_cmd:
+            mock_cmd.return_value = {
+                'status': 'ok',
+                'timestamp': '2019-04-22T13:30:00Z',
+            }
 
-        # --- Test case -----------------------------
-        resp = await http.test(make_request('/test'))
-        assert isinstance(resp, HTTPResponse)
-        assert resp.status == 200
+            resp = synse_app.test_client.get('/test', gather_request=False)
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
 
-        body = ujson.loads(resp.body)
-        assert body == {
-            'status': 'ok',
-            'timestamp': '2019-04-22T13:30:00Z',
-        }
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
 
 
 class TestCoreVersion:
@@ -64,17 +57,21 @@ class TestCoreVersion:
         response = fn('/version', gather_request=False)
         assert response.status == 405
 
-    @pytest.mark.asyncio
-    async def test_ok(self, make_request):
-        resp = await http.version(make_request('/version'))
-        assert isinstance(resp, HTTPResponse)
-        assert resp.status == 200
+    def test_ok(self, synse_app):
+        with asynctest.patch('synse_server.cmd.version') as mock_cmd:
+            mock_cmd.return_value = {
+                'version': '3.0.0',
+                'api_version': 'v3',
+            }
 
-        body = ujson.loads(resp.body)
-        assert body == {
-            'version': synse_server.__version__,
-            'api_version': synse_server.__api_version__,
-        }
+            resp = synse_app.test_client.get('/version', gather_request=False)
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
 
 
 class TestV3Config:
@@ -95,11 +92,9 @@ class TestV3Config:
         response = fn('/v3/config', gather_request=False)
         assert response.status == 405
 
-    @pytest.mark.asyncio
-    async def test_ok(self, mocker, make_request):
-        # Mock test data
-        mocker.patch.dict(
-            'synse_server.config.options._full_config', {
+    def test_ok(self, synse_app):
+        with asynctest.patch('synse_server.cmd.config') as mock_cmd:
+            mock_cmd.return_value = {
                 'logging': 'debug',
                 'plugins': {
                     'tcp': [
@@ -107,30 +102,32 @@ class TestV3Config:
                     ],
                 }
             }
-        )
 
-        # --- Test case -----------------------------
-        resp = await http.config(make_request('/v3/config'))
-        assert isinstance(resp, HTTPResponse)
-        assert resp.status == 200
+            resp = synse_app.test_client.get('/v3/config', gather_request=False)
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
 
-        body = ujson.loads(resp.body)
-        assert body == {
-            'logging': 'debug',
-            'plugins': {
-                'tcp': [
-                    'localhost:5001'
-                ],
-            }
-        }
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
 
-    @pytest.mark.asyncio
-    async def test_error(self, make_request):
+        mock_cmd.assert_called_once()
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_error(self, synse_app):
         with asynctest.patch('synse_server.cmd.config') as mock_cmd:
-            mock_cmd.side_effect = ValueError()
+            mock_cmd.side_effect = ValueError('***********')
 
-            with pytest.raises(ValueError):
-                await http.config(make_request('/v3/config'))
+            resp = synse_app.test_client.get('/v3/config', gather_request=False)
+            assert resp.status == 500
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == {
+                'context': '***********',
+                'description': 'an unexpected error occurred',
+                'http_code': 500,
+                'timestamp': '2019-04-22T13:30:00Z',
+            }
 
         mock_cmd.assert_called_once()
 
@@ -155,8 +152,8 @@ class TestV3Plugins:
 
     @pytest.mark.asyncio
     async def test_ok(self, make_request):
-        with asynctest.patch('synse_server.cmd.plugins') as mock_plugins:
-            mock_plugins.return_value = [
+        with asynctest.patch('synse_server.cmd.plugins') as mock_cmd:
+            mock_cmd.return_value = [
                 {
                     "description": "a plugin with emulated devices and data",
                     "id": "12835beffd3e6c603aa4dd92127707b5",
@@ -173,16 +170,22 @@ class TestV3Plugins:
                 },
             ]
 
-            resp = await http.plugins(make_request('/v3/plugins'))
-            assert isinstance(resp, HTTPResponse)
-            assert resp.status == 200
-
-            body = ujson.loads(resp.body)
-            assert body == mock_plugins.return_value
+            # resp = await http.plugins(make_request('/v3/plugins'))
+            # assert isinstance(resp, HTTPResponse)
+            # assert resp.status == 200
+            #
+            # body = ujson.loads(resp.body)
+            # assert body == mock_cmd.return_value
 
     @pytest.mark.asyncio
-    async def test_error(self):
-        pass
+    async def test_error(self, make_request):
+        with asynctest.patch('synse_server.cmd.plugins') as mock_cmd:
+            mock_cmd.side_effect = ValueError()
+
+        #     with pytest.raises(ValueError):
+        #         await http.config(make_request('/v3/plugin'))
+        #
+        # mock_cmd.assert_called_once()
 
 
 class TestV3Plugin:
@@ -205,7 +208,29 @@ class TestV3Plugin:
 
     @pytest.mark.asyncio
     async def test_ok(self, make_request):
-        pass
+        with asynctest.patch('synse_server.cmd.plugin') as mock_cmd:
+            mock_cmd.return_value = {
+                'id': '12345',
+                'tag': 'test/plugin',
+                'active': True,
+                'network': {
+                    'address': 'localhost:5001',
+                    'protocol': 'tcp',
+                },
+                'version': {
+                    'sdk_version': '3.0',
+                },
+                'health': {
+                    'status': 'OK',
+                },
+            }
+
+            # resp = await http.plugin(make_request('/v3/plugin/12345'))
+            # assert isinstance(resp, HTTPResponse)
+            # assert resp.status == 200
+            #
+            # body = ujson.loads(resp.body)
+            # assert body == mock_cmd.return_value
 
     @pytest.mark.asyncio
     async def test_not_found(self, make_request):
@@ -213,7 +238,14 @@ class TestV3Plugin:
 
     @pytest.mark.asyncio
     async def test_error(self, make_request):
-        pass
+        with asynctest.patch('synse_server.cmd.plugin') as mock_cmd:
+            mock_cmd.side_effect = ValueError()
+
+        #     with pytest.raises(ValueError):
+        #         await http.config(make_request('/v3/plugin/123'))
+        #
+        # mock_cmd.assert_called_once()
+        # mock_cmd.assert_called_with('123')
 
 
 class TestV3PluginHealth:
