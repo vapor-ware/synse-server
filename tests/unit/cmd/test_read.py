@@ -3,8 +3,7 @@ import asynctest
 import pytest
 from synse_grpc import client
 
-from synse_server import errors, plugin
-from synse_server import cmd
+from synse_server import cmd, errors, plugin
 from synse_server.cmd.read import reading_to_dict
 
 

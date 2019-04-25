@@ -2,9 +2,8 @@
 import pytest
 from synse_grpc import api, client
 
-from synse_server import errors
+from synse_server import cmd, errors
 from synse_server.plugin import Plugin
-from synse_server import cmd
 
 
 @pytest.mark.asyncio

@@ -2,9 +2,9 @@
 import asynctest
 import pytest
 import ujson
+from sanic.response import HTTPResponse
 
 import synse_server
-from sanic.response import HTTPResponse
 from synse_server.api import http
 
 

@@ -1,10 +1,10 @@
 
-import logging
-import ujson
-from sanic.request import Request
 import datetime
+import logging
 
 import pytest
+import ujson
+from sanic.request import Request
 from synse_grpc import api, client
 
 from synse_server import app, cache, plugin, utils
@@ -253,4 +253,3 @@ def synse_app():
     yield app.new_app()
 
     app.tasks.register_with_app = orig
-
