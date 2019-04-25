@@ -1,4 +1,5 @@
 
+import logging
 import ujson
 from sanic.request import Request
 import datetime
@@ -6,7 +7,7 @@ import datetime
 import pytest
 from synse_grpc import api, client
 
-from synse_server import cache, plugin, utils
+from synse_server import app, cache, plugin, utils
 
 TEST_DATETIME = datetime.datetime(2019, 4, 19, 2, 1, 53, 680718)
 
@@ -26,6 +27,18 @@ class MockTransport:
 # or test classes via fixture, e.g.
 #
 #   @pytest.mark.usefixtures(<FIXTURE NAME>)
+
+
+@pytest.fixture(autouse=True)
+def disable_loggers():
+    """Fixture to disable loggers for the tests."""
+
+    logging.getLogger('synse-server').disabled = True
+    logging.getLogger('root').disabled = True
+    logging.getLogger('sanic.access').disabled = True
+    logging.getLogger('sanic.error').disabled = True
+    logging.getLogger('sanic.root').disabled = True
+
 
 @pytest.fixture()
 def patch_datetime_utcnow(monkeypatch):
@@ -225,3 +238,19 @@ def make_request():
         return r
 
     yield helper
+
+
+@pytest.fixture(scope='module')
+def synse_app():
+    """Fixture to return an instance of the Synse Sanic application for testing."""
+
+    # Prevent background tasks from being registered on the app being used for
+    # its test client. This speeds things up slightly and prevents premature task
+    # termination warnings in the test output.
+    orig = app.tasks.register_with_app
+    app.tasks.register_with_app = lambda *args, **kwargs: None
+
+    yield app.new_app()
+
+    app.tasks.register_with_app = orig
+

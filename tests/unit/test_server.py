@@ -60,6 +60,7 @@ class TestSynse:
         mock_run = mocker.patch(
             'sanic.Sanic.run'
         )
+        mock_write = mocker.patch('sys.stdout.write')
 
         # --- Test case -----------------------------
         synse = server.Synse()
@@ -68,6 +69,7 @@ class TestSynse:
         synse.run()
         assert 'expose_metrics' in synse.app.router.routes_names.keys()
 
+        mock_write.assert_called_once()
         mock_initialize.assert_called_once()
         mock_run.assert_called_once()
         mock_run.assert_called_with(
@@ -91,11 +93,13 @@ class TestSynse:
         mock_run = mocker.patch(
             'sanic.Sanic.run'
         )
+        mock_write = mocker.patch('sys.stdout.write')
 
         # --- Test case -----------------------------
-        synse = server.Synse()
+        synse = server.Synse(log_header=False)
         synse.run()
 
+        mock_write.assert_not_called()
         mock_initialize.assert_called_once()
         mock_run.assert_called_once()
         mock_run.assert_called_with(
@@ -125,7 +129,7 @@ class TestSynse:
         )
 
         # --- Test case -----------------------------
-        synse = server.Synse()
+        synse = server.Synse(log_header=False)
 
         with pytest.raises(ValueError):
             synse.run()
@@ -155,7 +159,7 @@ class TestSynse:
         )
 
         # --- Test case -----------------------------
-        synse = server.Synse()
+        synse = server.Synse(log_header=False)
         synse.reload_config()
 
         mock_validate.assert_called_once()
