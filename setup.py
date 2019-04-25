@@ -41,7 +41,8 @@ setup(
         'grpcio',
         'kubernetes',
         'pyyaml>=4.2b1',
-        'requests>=2.20.0',  # used by 'kubernetes'
+        'requests>=2.21.0',  # used by 'kubernetes'
+        'urllib3>=1.24.2',
         'sanic>=0.8.0',
         'synse-grpc>=1.1.0',
     ],
