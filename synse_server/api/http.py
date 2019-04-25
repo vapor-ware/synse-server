@@ -218,7 +218,6 @@ async def tags(request):
 
     HTTP Codes:
         * 200: OK
-        * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
     log_request(request, params=request.args)
