@@ -27,7 +27,7 @@ EMULATOR_OUT=${EMULATOR_OUT:-""}
 data=$(curl -s https://api.github.com/repos/${EMULATOR_REPO}/releases/latest)
 
 # Get the URL for the latest release asset binary.
-bin_url=$(echo ${data} | jq --arg bin "$EMULATOR_BIN" '.assets[] | select(.name == $bin) | .url' | tr -d '"')
+bin_url=$(echo ${data} | jq '.assets[] | select(.name | contains("linux_amd64")) | .url ' | tr -d '"')
 
 # Download the binary
 curl -L -H "Accept: application/octet-stream" -o ${EMULATOR_BIN} ${bin_url}
