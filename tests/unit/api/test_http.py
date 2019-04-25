@@ -13,12 +13,12 @@ class TestCoreTest:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -51,12 +51,12 @@ class TestCoreVersion:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -82,12 +82,12 @@ class TestV3Config:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -127,10 +127,12 @@ class TestV3Config:
     @pytest.mark.asyncio
     async def test_error(self, make_request):
         with asynctest.patch('synse_server.cmd.config') as mock_cmd:
-            mock_cmd.side_effect = ValueError('simulated failure')
+            mock_cmd.side_effect = ValueError()
 
-            #resp = await http.config(make_request('/v3/config'))
+            with pytest.raises(ValueError):
+                await http.config(make_request('/v3/config'))
 
+        mock_cmd.assert_called_once()
 
 
 class TestV3Plugins:
@@ -138,12 +140,12 @@ class TestV3Plugins:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -188,12 +190,12 @@ class TestV3Plugin:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -219,12 +221,12 @@ class TestV3PluginHealth:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_health_methods_not_allowed(self, synse_app, method):
@@ -246,15 +248,15 @@ class TestV3Scan:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
-    def test_methods_not_allowed(synse, synse_app, method):
+    def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
         response = fn('/v3/scan', gather_request=False)
         assert response.status == 405
@@ -289,12 +291,12 @@ class TestV3Tags:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -324,12 +326,12 @@ class TestV3Info:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -355,12 +357,12 @@ class TestV3Read:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -390,12 +392,12 @@ class TestV3ReadCache:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -425,12 +427,12 @@ class TestV3ReadDevice:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -460,12 +462,12 @@ class TestV3AsyncWrite:
 
     @pytest.mark.parametrize(
         'method', (
-                'get',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'get',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -503,12 +505,12 @@ class TestV3SyncWrite:
 
     @pytest.mark.parametrize(
         'method', (
-                'get',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'get',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -546,12 +548,12 @@ class TestV3Transactions:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -573,12 +575,12 @@ class TestV3Transaction:
 
     @pytest.mark.parametrize(
         'method', (
-                'post',
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_methods_not_allowed(self, synse_app, method):
@@ -604,11 +606,11 @@ class TestV3Device:
 
     @pytest.mark.parametrize(
         'method', (
-                'put',
-                'delete',
-                'patch',
-                'head',
-                'options',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
         )
     )
     def test_not_allowed(self, synse_app, method):
