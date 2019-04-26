@@ -45,7 +45,7 @@ class TestSynseErrorHandler:
 
         assert isinstance(actual, HTTPResponse)
         assert actual.status == 500
-        assert actual.body == b'{"http_code":500,"description":"an unexpected error occurred","timestamp":"2019-04-22T13:30:00Z","context":"foobar"}'
+        assert actual.body == b'{"http_code":500,"description":"an unexpected error occurred","timestamp":"2019-04-22T13:30:00Z","context":"foobar"}'  # noqa: E501
 
 
 class TestSynseError:

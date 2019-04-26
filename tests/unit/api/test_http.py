@@ -605,7 +605,7 @@ class TestV3Scan:
             ('?tags=default/foo', ['default/foo']),
             ('?tags=default/foo:bar', ['default/foo:bar']),
             ('?tags=foo:bar', ['foo:bar']),
-            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),
+            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),  # noqa: E501
             ('?tags=default/foo,bar&tags=vapor/test', ['default/foo', 'bar', 'vapor/test']),
         ]
     )
@@ -945,7 +945,7 @@ class TestV3Read:
             ('?tags=default/foo', ['default/foo']),
             ('?tags=default/foo:bar', ['default/foo:bar']),
             ('?tags=foo:bar', ['foo:bar']),
-            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),
+            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),  # noqa: E501
             ('?tags=default/foo,bar&tags=vapor/test', ['default/foo', 'bar', 'vapor/test']),
         ]
     )
@@ -1010,7 +1010,7 @@ class TestV3Read:
         )
 
 
-@pytest.mark.skip('Potentially inadequate test tooling: https://community.sanicframework.org/t/does-the-sanictestclient-support-response-streaming/288')
+@pytest.mark.skip('Potentially inadequate test tooling: https://community.sanicframework.org/t/does-the-sanictestclient-support-response-streaming/288')  # noqa: E501
 @pytest.mark.usefixtures('patch_utils_rfc3339now')
 class TestV3ReadCache:
     """Tests for the Synse v3 API 'read cache' route."""
@@ -1080,7 +1080,10 @@ class TestV3ReadCache:
     def test_invalid_multiple_start(self, synse_app):
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
 
-            resp = synse_app.test_client.get('/v3/readcache?start=123&start=321', gather_request=False)
+            resp = synse_app.test_client.get(
+                '/v3/readcache?start=123&start=321',
+                gather_request=False,
+            )
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
