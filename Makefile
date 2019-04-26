@@ -88,18 +88,22 @@ run:  ## Run Synse Server with emulator locally (localhost:5000)
 		--name synse \
 		${IMAGE_NAME} enable-emulator
 
+#.PHONY: test
+#test: test-unit test-integration test-end-to-end  ## Run all tests
 .PHONY: test
-test: test-unit test-integration test-end-to-end  ## Run all tests
+test: test-unit  ## Run all tests
 
-.PHONY: test-end-to-end
-test-end-to-end: docker ## Run the end to end tests
-	docker-compose -f compose/synse.yml up -d --build
-	tox tests/end_to_end
-	docker-compose -f compose/synse.yml down
+# FIXME (etd): Temporarily disabled. The test suite is being rebuilt and these
+#   are either not currently available or are being stipped out / consolidated.
+#.PHONY: test-end-to-end
+#test-end-to-end: docker ## Run the end to end tests
+#	docker-compose -f compose/synse.yml up -d --build
+#	tox tests/end_to_end
+#	docker-compose -f compose/synse.yml down
 
-.PHONY: test-integration
-test-integration:  ## Run the integration tests
-	tox tests/integration
+#.PHONY: test-integration
+#test-integration:  ## Run the integration tests
+#	tox tests/integration
 
 .PHONY: test-unit
 test-unit:  ## Run the unit tests
