@@ -22,7 +22,7 @@ async def write_async(device_id, payload):
     plugin = await cache.get_plugin(device_id)
     if plugin is None:
         raise errors.NotFound(
-            _(f'plugin not found for device {device_id}'),
+            _('plugin not found for device {}').format(device_id),
         )
 
     response = []
@@ -56,7 +56,7 @@ async def write_sync(device_id, payload):
     plugin = await cache.get_plugin(device_id)
     if plugin is None:
         raise errors.NotFound(
-            _(f'plugin not found for device {device_id}'),
+            _('plugin not found for device {}').format(device_id),
         )
 
     response = []

@@ -93,7 +93,7 @@ async def read_device(device_id):
     p = await cache.get_plugin(device_id)
     if p is None:
         raise errors.NotFound(
-            _(f'plugin not found for device {device_id}'),
+            _('plugin not found for device {}').format(device_id),
         )
 
     readings = []
