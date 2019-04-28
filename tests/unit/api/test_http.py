@@ -1,7 +1,6 @@
 
 import asynctest
 import pytest
-import requests
 import ujson
 
 from synse_server import errors
@@ -1010,7 +1009,6 @@ class TestV3Read:
         )
 
 
-@pytest.mark.skip('Potentially inadequate test tooling: https://community.sanicframework.org/t/does-the-sanictestclient-support-response-streaming/288')  # noqa: E501
 @pytest.mark.usefixtures('patch_utils_rfc3339now')
 class TestV3ReadCache:
     """Tests for the Synse v3 API 'read cache' route."""
@@ -1031,8 +1029,12 @@ class TestV3ReadCache:
         assert response.status == 405
 
     def test_ok(self, synse_app):
-        with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
-            mock_cmd.side_effect = [
+        # Need to define a side-effect function for the test rather than utilizing
+        # asynctest's implicit behavior for iterable side_effects because the function
+        # we are mocking (cmd.read_cache) is an async generator, and the implicit
+        # handling via asynctest does not appear to to handle that case well.
+        async def mock_read_cache(*args, **kwargs):
+            values = [
                 {
                     'value': 1,
                     'type': 'temperature',
@@ -1047,32 +1049,45 @@ class TestV3ReadCache:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/readcache', chunked=True, gather_request=False)
+            for v in values:
+                yield v
+
+        with asynctest.patch('synse_server.api.http.cmd.read_cache') as mock_cmd:
+            mock_cmd.side_effect = mock_read_cache
+
+            resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
             assert resp.headers['Content-Type'] == 'application/json'
 
-            body = ujson.loads(resp.body)
-            assert body == mock_cmd.return_value
+            # The response is streamed, so we cannot simply load it (it will not be
+            # a valid single JSON document), so we compare just the body.
+            assert resp.body == b'{"value":1,"type":"temperature"}{"value":2,"type":"temperature"}{"value":3,"type":"temperature"}'  # noqa: E501
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', '')
 
     def test_error(self, synse_app):
+        # Need to define a side-effect function for the test rather than utilizing
+        # asynctest's implicit behavior for iterable side_effects because the function
+        # we are mocking (cmd.read_cache) is an async generator, and the implicit
+        # handling via asynctest does not appear to to handle that case well.
+        async def mock_read_cache(*args, **kwargs):
+            for i in range(3):
+                yield {"foo": "bar"}
+                raise ValueError('***********')
+
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
-            mock_cmd.side_effect = ValueError('***********')
+            mock_cmd.side_effect = mock_read_cache
 
             resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
-            assert resp.status == 500
+            assert resp.status == 200
+            assert resp.headers['Transfer-Encoding'] == 'chunked'
             assert resp.headers['Content-Type'] == 'application/json'
 
-            body = ujson.loads(resp.body)
-            assert body == {
-                'context': '***********',
-                'description': 'an unexpected error occurred',
-                'http_code': 500,
-                'timestamp': '2019-04-22T13:30:00Z',
-            }
+            # The response is streamed, so we cannot simply load it (it will not be
+            # a valid single JSON document), so we compare just the body.
+            assert resp.body == b'{"foo":"bar"}'
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', '')
@@ -1123,23 +1138,35 @@ class TestV3ReadCache:
         ]
     )
     def test_param_start(self, synse_app, qparam, expected):
-        with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
-            mock_cmd.side_effect = [
+        # Need to define a side-effect function for the test rather than utilizing
+        # asynctest's implicit behavior for iterable side_effects because the function
+        # we are mocking (cmd.read_cache) is an async generator, and the implicit
+        # handling via asynctest does not appear to to handle that case well.
+        async def mock_read_cache(*args, **kwargs):
+            values = [
                 {
                     'value': 1,
                     'type': 'temperature',
                 },
             ]
 
+            for v in values:
+                yield v
+
+        with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
+            mock_cmd.side_effect = mock_read_cache
+
             resp = synse_app.test_client.get(
                 '/v3/readcache' + qparam,
                 gather_request=False,
             )
             assert resp.status == 200
+            assert resp.headers['Transfer-Encoding'] == 'chunked'
             assert resp.headers['Content-Type'] == 'application/json'
 
-            body = ujson.loads(resp.body)
-            assert body == mock_cmd.return_value
+            # The response is streamed, so we cannot simply load it (it will not be
+            # a valid single JSON document), so we compare just the body.
+            assert resp.body == b'{"value":1,"type":"temperature"}'
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(expected, '')
@@ -1152,23 +1179,35 @@ class TestV3ReadCache:
         ]
     )
     def test_param_end(self, synse_app, qparam, expected):
-        with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
-            mock_cmd.side_effect = [
+        # Need to define a side-effect function for the test rather than utilizing
+        # asynctest's implicit behavior for iterable side_effects because the function
+        # we are mocking (cmd.read_cache) is an async generator, and the implicit
+        # handling via asynctest does not appear to to handle that case well.
+        async def mock_read_cache(*args, **kwargs):
+            values = [
                 {
                     'value': 1,
                     'type': 'temperature',
                 },
             ]
 
+            for v in values:
+                yield v
+
+        with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
+            mock_cmd.side_effect = mock_read_cache
+
             resp = synse_app.test_client.get(
                 '/v3/readcache' + qparam,
                 gather_request=False,
             )
             assert resp.status == 200
+            assert resp.headers['Transfer-Encoding'] == 'chunked'
             assert resp.headers['Content-Type'] == 'application/json'
 
-            body = ujson.loads(resp.body)
-            assert body == mock_cmd.return_value
+            # The response is streamed, so we cannot simply load it (it will not be
+            # a valid single JSON document), so we compare just the body.
+            assert resp.body == b'{"value":1,"type":"temperature"}'
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', expected)

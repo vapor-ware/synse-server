@@ -2,6 +2,7 @@
 
 from sanic import Blueprint
 from sanic.response import stream
+import ujson
 
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
@@ -342,8 +343,17 @@ async def read_cache(request):
 
     # Define the function that will be used to stream the responses back.
     async def response_streamer(response):
-        async for reading in cmd.read_cache(start, end):
-            await response.write(reading)
+        # Due to how streamed responses are handled, an exception here won't
+        # end up surfacing to the user through Synse's custom error handler
+        # and instead appear to create an opaque error relating to an invalid
+        # character in the chunk header. Instead of surfacing that error, we
+        # just log it and move on.
+        try:
+            async for reading in cmd.read_cache(start, end):
+                await response.write(ujson.dumps(reading))
+        except Exception as e:
+            logger.error('failure when streaming cached readings')
+            logger.exception(e)
 
     return stream(response_streamer, content_type='application/json')
 
