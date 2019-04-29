@@ -1,5 +1,12 @@
-version: 1.0
+version: 3
 debug: true
 network:
   type: unix
   address: emulator.sock
+settings:
+  read:
+    interval: 1s
+  write:
+    interval: 1s
+id:
+  useMachineID: false
