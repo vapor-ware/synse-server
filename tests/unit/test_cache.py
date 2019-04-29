@@ -1,617 +1,462 @@
-"""Test the 'synse_server.cache' Synse Server module."""
 
-import aiocache
 import asynctest
 import grpc
 import pytest
 from synse_grpc import api
 
-from synse_server import cache, errors, plugin
-from synse_server.proto import client
-
-# -- Helper Methods ---
+from synse_server import cache
 
 
-def make_device_info_response(rack, board, device):
-    """Helper method to make a new Device object."""
-    return api.Device(
-        timestamp='october',
-        uid=device,
-        kind='thermistor',
-        metadata=dict(
-            model='test',
-            manufacturer='vapor io',
-        ),
-        plugin='foo',
-        info='bar',
-        location=api.Location(
-            rack=rack,
-            board=board
-        ),
-        output=[
-            api.Output(
-                type='temperature',
-                precision=3,
-                unit=api.Unit(
-                    name='celsius',
-                    symbol='C'
-                )
-            )
+@pytest.mark.usefixtures('clear_txn_cache')
+class TestTransactionCache:
+    """Tests for the transaction cache."""
+
+    @pytest.mark.asyncio
+    async def test_get_transaction_ok(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_TRANSACTION}txn-1': {
+                'plugin': '123',
+                'device': 'abc',
+            },
+        })
+
+        # --- Test case -----------------------------
+        txn = await cache.get_transaction('txn-1')
+        assert txn == {
+            'plugin': '123',
+            'device': 'abc',
+        }
+
+    @pytest.mark.asyncio
+    async def test_get_transaction_not_found(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+
+        # --- Test case -----------------------------
+        txn = await cache.get_transaction('txn-1')
+        assert txn is None
+
+    @pytest.mark.asyncio
+    async def test_get_transaction_needs_ns(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            'txn-1': {  # no txn namespace attached to key
+                'plugin': '123',
+                'device': 'abc',
+            },
+        })
+
+        # --- Test case -----------------------------
+        txn = await cache.get_transaction('txn-1')
+        assert txn is None
+
+    def test_get_cached_transaction_ids_empty(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+
+        # --- Test case -----------------------------
+        txn_ids = cache.get_cached_transaction_ids()
+        assert len(txn_ids) == 0
+
+    def test_get_cached_transaction_ids_one(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_TRANSACTION}txn-1': {
+                'plugin': '123',
+                'device': 'abc',
+            },
+        })
+
+        # --- Test case -----------------------------
+        txn_ids = cache.get_cached_transaction_ids()
+        assert len(txn_ids) == 1
+        assert 'txn-1' in txn_ids
+
+    def test_get_cached_transaction_ids_multiple(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_TRANSACTION}txn-1': {
+                'plugin': '123',
+                'device': 'abc',
+            },
+            f'{cache.NS_TRANSACTION}txn-2': {
+                'plugin': '123',
+                'device': 'def',
+            },
+            f'{cache.NS_TRANSACTION}txn-3': {
+                'plugin': '123',
+                'device': 'ghi',
+            },
+            f'{cache.NS_DEVICE}dev-1': {
+                'device': '1',
+            },
+            f'{cache.NS_DEVICE}dev-2': {
+                'device': '2',
+            },
+            f'{cache.NS_DEVICE}dev-3': {
+                'device': '3',
+            },
+        })
+
+        # --- Test case -----------------------------
+        txn_ids = cache.get_cached_transaction_ids()
+        assert len(txn_ids) == 3
+        assert 'txn-1' in txn_ids
+        assert 'txn-2' in txn_ids
+        assert 'txn-3' in txn_ids
+
+    @pytest.mark.asyncio
+    async def test_add_transaction_new_transaction(self):
+        assert len(cache.transaction_cache._cache) == 0
+
+        await cache.add_transaction('txn-1', 'abc', '123')
+
+        assert len(cache.transaction_cache._cache) == 1
+        assert f'{cache.NS_TRANSACTION}txn-1' in cache.transaction_cache._cache
+
+    @pytest.mark.asyncio
+    async def test_add_transaction_existing_id(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_TRANSACTION}txn-1': {
+                'plugin': '123',
+                'device': 'abc',
+            },
+        })
+
+        # --- Test case -----------------------------
+        assert len(cache.transaction_cache._cache) == 1
+
+        await cache.add_transaction('txn-1', 'def', '456')
+
+        assert len(cache.transaction_cache._cache) == 1
+        assert f'{cache.NS_TRANSACTION}txn-1' in cache.transaction_cache._cache
+        assert cache.transaction_cache._cache[f'{cache.NS_TRANSACTION}txn-1'] == {
+            'plugin': '456',
+            'device': 'def',
+        }
+
+
+@pytest.mark.usefixtures('clear_device_cache')
+class TestDeviceCache:
+    """Tests for the device cache."""
+
+    @pytest.mark.asyncio
+    async def test_update_device_cache_no_plugins(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {})
+
+        mock_devices = mocker.patch(
+            'synse_grpc.client.PluginClientV3.devices',
+            return_value=[],
+        )
+
+        # --- Test case -----------------------------
+        assert len(cache.device_cache._cache) == 0
+
+        await cache.update_device_cache()
+
+        assert len(cache.device_cache._cache) == 0
+
+        mock_devices.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_update_device_cache_no_devices(self, mocker, simple_plugin):
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+            '123': simple_plugin,
+            '456': simple_plugin,
+        })
+
+        mock_devices = mocker.patch(
+            'synse_grpc.client.PluginClientV3.devices',
+            return_value=[],
+        )
+
+        # --- Test case -----------------------------
+        assert len(cache.device_cache._cache) == 0
+
+        await cache.update_device_cache()
+
+        assert len(cache.device_cache._cache) == 0
+
+        mock_devices.assert_called()
+        mock_devices.assert_has_calls([
+            mocker.call(),
+            mocker.call(),
+        ])
+
+    @pytest.mark.asyncio
+    async def test_update_device_cache_devices_rpc_error(self, mocker, simple_plugin):
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+            '123': simple_plugin,
+            '456': simple_plugin,
+        })
+
+        mock_devices = mocker.patch(
+            'synse_grpc.client.PluginClientV3.devices',
+            side_effect=grpc.RpcError(),
+        )
+
+        # --- Test case -----------------------------
+        assert len(cache.device_cache._cache) == 0
+
+        await cache.update_device_cache()
+
+        assert len(cache.device_cache._cache) == 0
+
+        mock_devices.assert_called()
+        mock_devices.assert_has_calls([
+            mocker.call(),
+            mocker.call(),
+        ])
+
+    @pytest.mark.asyncio
+    async def test_update_device_cache_devices_error(self, mocker, simple_plugin):
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+            '123': simple_plugin,
+            '456': simple_plugin,
+        })
+
+        mock_devices = mocker.patch(
+            'synse_grpc.client.PluginClientV3.devices',
+            side_effect=ValueError(),
+        )
+
+        # --- Test case -----------------------------
+        assert len(cache.device_cache._cache) == 0
+
+        with pytest.raises(ValueError):
+            await cache.update_device_cache()
+
+        assert len(cache.device_cache._cache) == 0
+
+        mock_devices.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_update_device_cache_ok(self, mocker, simple_plugin):
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+            '123': simple_plugin,
+            '456': simple_plugin,
+        })
+
+        mock_devices = mocker.patch(
+            'synse_grpc.client.PluginClientV3.devices',
+            return_value=[
+                api.V3Device(
+                    tags=[
+                        api.V3Tag(namespace='system', annotation='id', label='1'),
+                        api.V3Tag(namespace='system', annotation='type', label='temperature'),
+                        api.V3Tag(label='foo'),
+                        api.V3Tag(namespace='default', label='foo'),
+                        api.V3Tag(namespace='default', label='foo'),
+                        api.V3Tag(namespace='vapor', label='bar'),
+                        api.V3Tag(annotation='unit', label='test'),
+                    ],
+                ),
+                api.V3Device(
+                    tags=[
+                        api.V3Tag(namespace='system', annotation='id', label='2'),
+                        api.V3Tag(namespace='system', annotation='type', label='temperature'),
+                        api.V3Tag(label='foo'),
+                        api.V3Tag(namespace='default', label='bar'),
+                        api.V3Tag(namespace='default', label='foo'),
+                    ],
+                ),
+                api.V3Device(
+                    tags=[
+                        api.V3Tag(namespace='system', annotation='id', label='3'),
+                        api.V3Tag(namespace='system', annotation='type', label='humidity'),
+                        api.V3Tag(label='bar'),
+                        api.V3Tag(namespace='vapor', label='bar'),
+                        api.V3Tag(namespace='vapor', label='test'),
+                        api.V3Tag(annotation='unit', label='test'),
+                        api.V3Tag(annotation='integration', label='test'),
+                    ],
+                ),
+            ],
+        )
+
+        # --- Test case -----------------------------
+        assert len(cache.device_cache._cache) == 0
+
+        await cache.update_device_cache()
+
+        assert len(cache.device_cache._cache) == 13
+        assert f'{cache.NS_DEVICE}system/id:1' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}system/id:2' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}system/id:3' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}system/type:temperature' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}system/type:humidity' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}foo' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}bar' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}default/foo' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}default/bar' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}vapor/bar' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}vapor/test' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}unit:test' in cache.device_cache._cache
+        assert f'{cache.NS_DEVICE}integration:test' in cache.device_cache._cache
+
+        mock_devices.assert_called()
+        mock_devices.assert_has_calls([
+            mocker.call(),
+            mocker.call(),
+        ])
+
+    @pytest.mark.asyncio
+    async def test_get_device_ok(self, mocker, simple_device):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_DEVICE}system/id:{simple_device.id}': [simple_device],
+        })
+
+        # --- Test case -----------------------------
+        device = await cache.get_device('test-device-1')
+        assert device == simple_device
+
+    @pytest.mark.asyncio
+    async def test_get_device_not_found(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+
+        # --- Test case -----------------------------
+        device = await cache.get_device('test-device-1')
+        assert device is None
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        'tags', [
+            [],
+            ['foo'],
+            ['default/foo'],
+            ['vapor:foo'],
+            ['default/vapor:foo'],
+            ['foo', 'bar', 'baz'],
+            ['default/foo', 'system/bar', 'baz'],
+            ['default/foo', 'something:bar', 'baz'],
         ]
     )
-
-# --- Mock Methods ---
-
-
-def mock_get_device_info_cache():
-    """Mock method for get_device_info_cache - returns a single device."""
-    return {
-        'rack-1-vec-12345': make_device_info_response('rack-1', 'vec', '12345')
-    }
-
-
-def mock_client_devices(rack=None, board=None):
-    """Mock method for the gRPC client's devices method."""
-    # reuse the Device defined above
-    mir = mock_get_device_info_cache()['rack-1-vec-12345']
-    return [mir]
-
-
-def mock_client_device_info_empty(rack=None, board=None):
-    """Mock method for the gRPC client's Devices method that contains empty Device list."""
-    return []
-
-
-def mock_client_device_info_fail(rack=None, board=None):
-    """Mock method for the gRPC client's Devices method that is intended to fail."""
-    raise grpc.RpcError()
-
-# --- Test Fixtures ---
-
-
-@pytest.fixture()
-def patch_device_info(monkeypatch):
-    """Fixture to monkeypatch the get_device_info_cache method."""
-    mock = asynctest.CoroutineMock(
-        cache.get_device_info_cache,
-        side_effect=mock_get_device_info_cache
-    )
-    monkeypatch.setattr(cache, 'get_device_info_cache', mock)
-    return patch_device_info
-
-
-@pytest.fixture()
-def patch_register_plugins(monkeypatch):
-    """Fixture to monkeypatch the register_plugins method, so it does nothing, as
-    plugins are manually registered for test cases."""
-    def do_nothing():
-        pass
-    monkeypatch.setattr(cache, 'register_plugins', do_nothing)
-
-
-@pytest.fixture()
-def plugin_context(tmpdir):
-    """Fixture to setup and teardown the test context for creating plugins."""
-
-    # create dummy 'socket' files for the plugins
-    sockdir = tmpdir.mkdir('socks')
-    sockdir.join('foo')
-    sockdir.join('bar')
-
-
-# --- Test Cases ---
-
-
-@pytest.mark.asyncio
-async def test_clear_cache():
-    """Test clearing a cache."""
-
-    test_cache = aiocache.SimpleMemoryCache(namespace='test')
-
-    # first, put a value in the cache and ensure it is there.
-    await test_cache.set('key', 'value')
-    val = await test_cache.get('key')
-    assert val == 'value'
-
-    # clear the cache
-    await cache.clear_cache('test')
-
-    val = await test_cache.get('key')
-    assert val is None
-
-
-@pytest.mark.asyncio
-async def test_clear_all_meta_caches():
-    """Clear all meta-info caches."""
-
-    meta = aiocache.SimpleMemoryCache(namespace=cache.NS_DEVICE_INFO)
-    scan = aiocache.SimpleMemoryCache(namespace=cache.NS_SCAN)
-    info = aiocache.SimpleMemoryCache(namespace=cache.NS_INFO)
-    other = aiocache.SimpleMemoryCache(namespace='other')
-
-    # first, populate the test caches
-    for c in [meta, scan, info, other]:
-        ok = await c.set('key', 'value')
-        assert ok
-
-    # clear the meta caches
-    await cache.clear_all_meta_caches()
-
-    # now, the meta caches should be empty, but the other cache
-    # should not be affected.
-    for c in [meta, scan, info]:
-        val = await c.get('key')
-        assert val is None
-
-    val = await other.get('key')
-    assert val == 'value'
-
-
-@pytest.mark.asyncio
-async def test_get_transaction_ok(clear_caches):
-    """Get transaction info from the transaction cache."""
-
-    ok = await cache.transaction_cache.set('key', 'value')
-    assert ok
-
-    val = await cache.get_transaction('key')
-    assert val == 'value'
-
-
-@pytest.mark.asyncio
-async def test_get_transaction_none(clear_caches):
-    """Get transaction info from the transaction cache when the key doesn't exist."""
-
-    val = await cache.get_transaction('test')
-    assert val is None
-
-
-@pytest.mark.asyncio
-async def test_add_transaction_new(clear_caches):
-    """Add a new value to the transaction cache."""
-
-    pre = await cache.transaction_cache.get('test')
-    assert pre is None
-
-    ok = await cache.add_transaction('test', {'action': 'test', 'raw': None}, 'foo')
-    assert ok
-
-    post = await cache.transaction_cache.get('test')
-    assert post == {
-        'plugin': 'foo',
-        'context': {
-            'action': 'test',
-            'raw': None
-        }
-    }
-
-
-@pytest.mark.asyncio
-async def test_add_transaction_existing(clear_caches):
-    """Update an existing value in the transaction cache."""
-
-    pre = await cache.transaction_cache.get('test')
-    assert pre is None
-
-    ok = await cache.add_transaction('test', {'action': 'test', 'raw': None}, 'foo')
-    assert ok
-
-    post = await cache.transaction_cache.get('test')
-    assert post == {
-        'plugin': 'foo',
-        'context': {
-            'action': 'test',
-            'raw': None
-        }
-    }
-
-    ok = await cache.add_transaction('test', {'action': 'test2', 'raw': '1'}, 'foo2')
-    assert ok
-
-    post = await cache.transaction_cache.get('test')
-    assert post == {
-        'plugin': 'foo2',
-        'context': {
-            'action': 'test2',
-            'raw': '1'
-        }
-    }
-
-
-@pytest.mark.asyncio
-async def test_get_device_meta_ok(patch_device_info, clear_caches):
-    """Get device info."""
-    # add a plugin record to for the device
-    await cache._plugins_cache.set(cache.PLUGINS_CACHE_KEY, {'rack-1-vec-12345': 'test-plugin'})
-
-    plugin_name, dev = await cache.get_device_info('rack-1', 'vec', '12345')
-    assert plugin_name == 'test-plugin'
-    assert isinstance(dev, api.Device)
-    assert dev.uid == '12345'
-    assert dev.location.rack == 'rack-1'
-    assert dev.location.board == 'vec'
-
-
-@pytest.mark.asyncio
-async def test_get_device_meta_not_found(clear_caches):
-    """Get device info when the specified device doesn't exist."""
-
-    with pytest.raises(errors.NotFound):
-        await cache.get_device_info('foo', 'bar', 'baz')
-
-
-@pytest.mark.asyncio
-async def test_get_device_info_cache_ok(patch_register_plugins, plugin_context, clear_caches):
-    """Get the device info cache."""
-
-    # create & register new plugin
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_devices
-
-    meta = await cache.get_device_info_cache()
-    assert isinstance(meta, dict)
-    assert 'rack-1-vec-12345' in meta
-    assert meta['rack-1-vec-12345'] == mock_get_device_info_cache()['rack-1-vec-12345']
-
-
-@pytest.mark.asyncio
-async def test_get_device_info_cache_empty(plugin_context, clear_caches):
-    """Get the empty device info cache."""
-
-    # create & register new plugin
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_device_info_empty
-
-    meta = await cache.get_device_info_cache()
-    assert isinstance(meta, dict)
-    assert len(meta) == 0
-
-
-@pytest.mark.asyncio
-async def test_get_device_info_cache_exist(patch_register_plugins, plugin_context, clear_caches):
-    """Get the existing device info cache."""
-
-    # create & register new plugin
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_devices
-
-    # this is the first time we ask for cache
-    # it's not there yet so we build one
-    first_meta = await cache.get_device_info_cache()
-    assert isinstance(first_meta, dict)
-    assert 'rack-1-vec-12345' in first_meta
-    assert first_meta['rack-1-vec-12345'] == mock_get_device_info_cache()['rack-1-vec-12345']
-
-    # this is the second time we ask for it
-    # it should be there this time and return right away
-    second_meta = await cache.get_device_info_cache()
-    assert isinstance(second_meta, dict)
-    assert 'rack-1-vec-12345' in second_meta
-    assert second_meta['rack-1-vec-12345'] == mock_get_device_info_cache()['rack-1-vec-12345']
-
-
-@pytest.mark.asyncio
-async def test_get_device_info_cache_total_failure(plugin_context, clear_caches):
-    """Get the device info cache when all plugins fail to respond."""
-
-    # create & register new plugin
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_device_info_fail  # override to induce failure
-
-    with pytest.raises(errors.ServerError):
-        await cache.get_device_info_cache()
-
-
-@pytest.mark.asyncio
-async def test_get_device_info_cache_partial_failure(patch_register_plugins, plugin_context, clear_caches):
-    """Get the device info cache when some plugins fail to respond."""
-
-    # create & register new plugins
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_devices
-
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='bar',
-            tag='vaporio/bar'
-        ),
-        address='localhost:9998',
-        plugin_client=client.PluginTCPClient('localhost:9998')
-    )
-    p.client.devices = mock_client_device_info_fail  # override to induce failure
-
-    meta = await cache.get_device_info_cache()
-    assert isinstance(meta, dict)
-    assert len(meta) == 1  # two plugins registered, but only one successful
-
-
-@pytest.mark.asyncio
-async def test_get_device_info_cache_no_plugins(clear_caches, plugin_context):
-    """Get the device info cache when there are no plugins to provide data."""
-
-    meta = await cache.get_device_info_cache()
-    assert meta == {}
-
-
-@pytest.mark.asyncio
-async def test_get_scan_cache_ok(patch_device_info, clear_caches):
-    """Get the scan cache."""
-
-    scan_cache = await cache.get_scan_cache()
-    validate_scan_cache(scan_cache, 'rack-1', 'vec', '12345')
-
-
-@pytest.mark.asyncio
-async def test_get_scan_cache_empty(plugin_context, clear_caches):
-    """Get the empty scan cache."""
-
-    # create & register new plugin with empty device info cache
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_device_info_empty
-
-    meta_cache = await cache.get_device_info_cache()
-    assert isinstance(meta_cache, dict)
-    assert len(meta_cache) == 0
-
-    # because device info cache is empty and scan cache is built upon device info's
-    # scan cache should also be empty
-    scan_cache = await cache.get_scan_cache()
-    assert isinstance(scan_cache, dict)
-    assert len(scan_cache) == 0
-
-
-@pytest.mark.asyncio
-async def test_get_scan_cache_exist(patch_device_info, clear_caches):
-    """Get the existing scan cache."""
-
-    # similar to test_get_device_info_cache_exist(),
-    # the first time we ask for cache, it's not there so we build one
-    first_scan_cache = await cache.get_scan_cache()
-    validate_scan_cache(first_scan_cache, 'rack-1', 'vec', '12345')
-
-    # the second time we ask for it, it should return right away
-    second_scan_cache = await cache.get_scan_cache()
-    validate_scan_cache(second_scan_cache, 'rack-1', 'vec', '12345')
-
-
-@pytest.mark.asyncio
-async def test_get_resource_info_cache_ok(patch_device_info, clear_caches):
-    """Get the resource info cache."""
-
-    info_cache = await cache.get_resource_info_cache()
-    validate_info_cache(info_cache, 'rack-1', 'vec', '12345')
-
-
-@pytest.mark.asyncio
-async def test_get_resource_info_cache_empty(plugin_context, clear_caches):
-    """Get the empty info cache."""
-
-    # create & register new plugin with empty device info cache
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='foo',
-            tag='vaporio/foo'
-        ),
-        address='localhost:9999',
-        plugin_client=client.PluginTCPClient('localhost:9999')
-    )
-    p.client.devices = mock_client_device_info_empty
-
-    meta_cache = await cache.get_device_info_cache()
-    assert isinstance(meta_cache, dict)
-    assert len(meta_cache) == 0
-
-    # because device info cache is empty and info cache is built upon device info's
-    # scan cache should also be empty
-    info_cache = await cache.get_resource_info_cache()
-    assert isinstance(info_cache, dict)
-    assert len(info_cache) == 0
-
-
-@pytest.mark.asyncio
-async def test_get_resource_info_cache_exist(patch_device_info, clear_caches):
-    """Get the existing info cache."""
-
-    # similar to test_get_device_info_cache_exist(),
-    # the first time we ask for cache, it's not there so we build one
-    first_info_cache = await cache.get_resource_info_cache()
-    validate_info_cache(first_info_cache, 'rack-1', 'vec', '12345')
-
-    # the second time we ask for it, it should return right away
-    second_info_cache = await cache.get_resource_info_cache()
-    validate_info_cache(second_info_cache, 'rack-1', 'vec', '12345')
-
-
-def test_build_scan_cache_ok():
-    """Build the scan cache."""
-
-    device_info = {
-        'rack-1-vec-12345': make_device_info_response('rack-1', 'vec', '12345'),
-        'rack-1-board-12345': make_device_info_response('rack-1', 'board', '12345'),
-        'rack-1-board-56789': make_device_info_response('rack-1', 'board', '456789'),
-        'rack-1-board-abcd': make_device_info_response('rack-1', 'board', 'abcd')
-    }
-    scan_cache = cache._build_scan_cache(device_info)
-
-    # Test that the scan cache comes back in the expected sorted order
-    assert scan_cache == {
-        'racks': [
-            {
-                'id': 'rack-1',
-                'boards': [
-                    {
-                        'id': 'board',
-                        'devices': [
-                            {
-                                'id': '12345',
-                                'info': 'bar',
-                                'type': 'thermistor'
-                            },
-                            {
-                                'id': '456789',
-                                'info': 'bar',
-                                'type': 'thermistor'
-                            },
-                            {
-                                'id': 'abcd',
-                                'info': 'bar',
-                                'type': 'thermistor'
-                            },
-                        ]
-                    },
-                    {
-                        'id': 'vec',
-                        'devices': [
-                            {
-                                'id': '12345',
-                                'info': 'bar',
-                                'type': 'thermistor'
-                            }
-                        ]
-                    }
-                ]
-            }
+    async def test_get_devices_no_devices(self, mocker, tags):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+
+        # --- Test case -----------------------------
+        devices = await cache.get_devices(*tags)
+        assert len(devices) == 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        'tags,expected', [
+            ([], 3),
+            (['system/id:dev-1'], 1),
+            (['system/id:dev-2'], 1),
+            (['system/id:dev-3'], 1),
+            (['system/id:dev-3', 'system/id:dev-1'], 0),
+            (['system/type:temperature'], 2),
+            (['system/type:humidity'], 1),
+            (['system/type:led'], 0),
+            (['foo', 'vapor/baz'], 1),
+            (['foo', 'vapor/type:fun'], 0),
+            (['system/type:temperature', 'vapor/type:fun'], 1),
+            (['vapor/baz', 'vapor/type:fun'], 1),
         ]
-    }
+    )
+    async def test_get_devices_ok(self, mocker, tags, expected):
+        dev1 = api.V3Device(id='dev-1')
+        dev2 = api.V3Device(id='dev-2')
+        dev3 = api.V3Device(id='dev-3')
 
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_DEVICE}system/id:{dev1.id}': [dev1],
+            f'{cache.NS_DEVICE}system/id:{dev2.id}': [dev2],
+            f'{cache.NS_DEVICE}system/id:{dev3.id}': [dev3],
+            f'{cache.NS_DEVICE}system/type:temperature': [dev1, dev2],
+            f'{cache.NS_DEVICE}system/type:humidity': [dev3],
+            f'{cache.NS_DEVICE}foo': [dev1],
+            f'{cache.NS_DEVICE}default/bar': [dev2],
+            f'{cache.NS_DEVICE}default/baz': [dev3],
+            f'{cache.NS_DEVICE}vapor/baz': [dev1, dev3],
+            f'{cache.NS_DEVICE}vapor/type:fun': [dev2, dev3],
+        })
 
-def test_build_scan_cache_no_device_info():
-    """Build the scan cache when empty device info is provided."""
+        # --- Test case -----------------------------
+        devices = await cache.get_devices(*tags)
+        assert len(devices) == expected
 
-    device_info = {}
-    scan_cache = cache._build_scan_cache(device_info)
-    assert scan_cache == {}
+    def test_get_cached_device_tags_no_tags(self, mocker):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
 
+        # --- Test case -----------------------------
+        tags = cache.get_cached_device_tags()
+        assert len(tags) == 0
 
-def test_build_info_cache_ok():
-    """Build the info cache."""
+    def test_get_cached_device_tags_one_tag(self, mocker, simple_device):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_DEVICE}foo': [simple_device],
+        })
 
-    device_info = {
-        'rack-1-vec-12345': make_device_info_response('rack-1', 'vec', '12345'),
-        'rack-1-board-12345': make_device_info_response('rack-1', 'board', '12345'),
-        'rack-1-board-56789': make_device_info_response('rack-1', 'board', '456789')
-    }
-    info_cache = cache._build_resource_info_cache(device_info)
-    validate_info_cache(info_cache, 'rack-1', 'vec', '12345')
-    validate_info_cache(info_cache, 'rack-1', 'board', '12345')
-    validate_info_cache(info_cache, 'rack-1', 'board', '456789')
+        # --- Test case -----------------------------
+        tags = cache.get_cached_device_tags()
+        assert len(tags) == 1
+        assert 'foo' in tags
 
+    def test_get_cached_device_tags_multiple_tags(self, mocker, simple_device):
+        # Mock test data
+        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
+            f'{cache.NS_DEVICE}foo': [simple_device],
+            f'{cache.NS_DEVICE}vapor/baz': [simple_device, simple_device],
+            f'{cache.NS_DEVICE}vapor/type:fun': [simple_device, simple_device],
+        })
 
-def test_build_info_cache_no_device_info():
-    """Build the info cache when empty device info is provided."""
+        # --- Test case -----------------------------
+        tags = cache.get_cached_device_tags()
+        assert len(tags) == 3
+        assert 'foo' in tags
+        assert 'vapor/baz' in tags
+        assert 'vapor/type:fun' in tags
 
-    device_info = {}
-    info_cache = cache._build_resource_info_cache(device_info)
-    assert info_cache == {}
+    @pytest.mark.asyncio
+    async def test_get_plugin_no_device(self):
+        with asynctest.patch('synse_server.cache.get_device') as mock_get:
+            mock_get.return_value = None
 
+            plugin = await cache.get_plugin('device-1')
+            assert plugin is None
 
-def validate_scan_cache(scan_cache, expected_rack, expected_board, expected_device):
-    """Helper to validate the scan cache."""
+        mock_get.assert_called_once()
+        mock_get.assert_called_with('device-1')
 
-    assert isinstance(scan_cache, dict)
+    @pytest.mark.asyncio
+    async def test_get_plugin_no_plugin(self, simple_device):
+        with asynctest.patch('synse_server.cache.get_device') as mock_get:
+            mock_get.return_value = simple_device
 
-    assert 'racks' in scan_cache
-    assert isinstance(scan_cache['racks'], list)
+            plugin = await cache.get_plugin('device-1')
+            assert plugin is None
 
-    rack = None
-    for r in scan_cache['racks']:
-        if r['id'] == expected_rack:
-            rack = r
+        mock_get.assert_called_once()
+        mock_get.assert_called_with('device-1')
 
-    assert rack is not None
-    assert 'id' in rack
-    assert 'boards' in rack
-    assert rack['id'] == expected_rack
-    assert isinstance(rack['boards'], list)
+    @pytest.mark.asyncio
+    async def test_get_plugin_ok(self, mocker, simple_plugin, simple_device):
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+            '123': simple_plugin,
+        })
 
-    board = None
-    for b in rack['boards']:
-        if b['id'] == expected_board:
-            board = b
+        # --- Test case -----------------------------
+        with asynctest.patch('synse_server.cache.get_device') as mock_get:
+            mock_get.return_value = simple_device
 
-    assert board is not None
-    assert 'id' in board
-    assert 'devices' in board
-    assert board['id'] == expected_board
-    assert isinstance(board['devices'], list)
+            plugin = await cache.get_plugin('device-1')
+            assert plugin == simple_plugin
 
-    device = None
-    for d in board['devices']:
-        if d['id'] == expected_device:
-            device = d
-
-    assert device is not None
-    assert 'id' in device
-    assert device['id'] == expected_device
-    assert 'info' in device
-    assert 'type' in device
-
-
-def validate_info_cache(info_cache, expected_rack, expected_board, expected_device):
-    """Helper to validate the info cache."""
-
-    assert isinstance(info_cache, dict)
-    assert expected_rack in info_cache
-
-    rack = info_cache[expected_rack]
-    assert 'rack' in rack
-    assert 'boards' in rack
-    assert rack['rack'] == expected_rack
-    assert isinstance(rack['boards'], dict)
-    assert expected_board in rack['boards']
-
-    board = rack['boards'][expected_board]
-    assert 'board' in board
-    assert 'devices' in board
-    assert board['board'] == expected_board
-    assert isinstance(board['devices'], dict)
-    assert expected_device in board['devices']
-
-    device = board['devices'][expected_device]
-    expected_keys = [
-        'timestamp', 'uid', 'kind', 'metadata', 'plugin', 'info', 'location', 'output'
-    ]
-    for k in expected_keys:
-        assert k in device
+        mock_get.assert_called_once()
+        mock_get.assert_called_with('device-1')

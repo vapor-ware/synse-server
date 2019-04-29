@@ -1,7 +1,7 @@
 from .config import config
 from .info import info
-from .plugin import plugin, plugins, plugin_health
-from .read import read_device, read, read_cache
+from .plugin import plugin, plugin_health, plugins
+from .read import read, read_cache, read_device
 from .scan import scan
 from .tags import tags
 from .test import test

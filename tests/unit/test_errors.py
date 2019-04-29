@@ -1,253 +1,138 @@
-"""Test the 'synse_server.errors' Synse Server module."""
 
-# from sanic import exceptions
-#
-# from synse_server import errors
-#
-#
-# def test_synse_error_unknown():
-#     """Create a SynseError with no error id specified."""
-#     e = errors.SynseError('message')
-#
-#     assert not isinstance(e, exceptions.ServerError)
-#     assert not isinstance(e, exceptions.InvalidUsage)
-#     assert not isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#
-#     assert not hasattr(e, 'status_code')
-#     assert e.error_id == errors.UNKNOWN
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_device_not_found():
-#     """Check for DEVICE_NOT_FOUND error"""
-#     e = errors.DeviceNotFoundError('message')
-#
-#     assert isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseNotFoundError)
-#
-#     assert e.status_code == 404
-#     assert e.error_id == errors.DEVICE_NOT_FOUND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_board_not_found():
-#     """Check for BOARD_NOT_FOUND error"""
-#     e = errors.BoardNotFoundError('message')
-#
-#     assert isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseNotFoundError)
-#
-#     assert e.status_code == 404
-#     assert e.error_id == errors.BOARD_NOT_FOUND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_rack_not_found():
-#     """Check for RACK_NOT_FOUND error"""
-#     e = errors.RackNotFoundError('message')
-#
-#     assert isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseNotFoundError)
-#
-#     assert e.status_code == 404
-#     assert e.error_id == errors.RACK_NOT_FOUND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_plugin_not_found():
-#     """Check for PLUGIN_NOT_FOUND error"""
-#     e = errors.PluginNotFoundError('message')
-#
-#     assert isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseNotFoundError)
-#
-#     assert e.status_code == 404
-#     assert e.error_id == errors.PLUGIN_NOT_FOUND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_transaction_not_found():
-#     """Check for TRANSACTION_NOT_FOUND error"""
-#     e = errors.TransactionNotFoundError('message')
-#
-#     assert isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseNotFoundError)
-#
-#     assert e.status_code == 404
-#     assert e.error_id == errors.TRANSACTION_NOT_FOUND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_info_command():
-#     """Check for FAILED_INFO_COMMAND error"""
-#     e = errors.FailedInfoCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_INFO_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_read_command():
-#     """Check for FAILED_READ_COMMAND error"""
-#     e = errors.FailedReadCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_READ_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_scan_command():
-#     """Check for FAILED_SCAN_COMMAND error"""
-#     e = errors.FailedScanCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_SCAN_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_transaction_command():
-#     """Check for FAILED_TRANSACTION_COMMAND error"""
-#     e = errors.FailedTransactionCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_TRANSACTION_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_write_command():
-#     """Check for FAILED_WRITE_COMMAND error"""
-#     e = errors.FailedWriteCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_WRITE_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_plugin_command():
-#     """Check for FAILED_PLUGIN_COMMAND error"""
-#     e = errors.FailedPluginCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_PLUGIN_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_failed_read_cached_command():
-#     """Check for FAILED_READ_CACHED_COMMAND error"""
-#     e = errors.FailedReadCachedCommandError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.FAILED_READ_CACHED_COMMAND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_internal_api():
-#     """Check for INTERNAL_API_FAILURE error"""
-#     e = errors.InternalApiError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.INTERNAL_API_FAILURE
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_plugin_state():
-#     """Check for PLUGIN_STATE_ERROR error"""
-#     e = errors.PluginStateError('message')
-#
-#     assert isinstance(e, exceptions.ServerError)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseServerError)
-#
-#     assert e.status_code == 500
-#     assert e.error_id == errors.PLUGIN_STATE_ERROR
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_request_url_not_found():
-#     """Check for URL_NOT_FOUND error"""
-#     e = errors.SynseNotFoundError('message', errors.URL_NOT_FOUND)
-#
-#     assert isinstance(e, exceptions.NotFound)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseNotFoundError)
-#
-#     assert e.status_code == 404
-#     assert e.error_id == errors.URL_NOT_FOUND
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_request_invalid_arguments():
-#     """Check for INVALID_ARGUMENTS error"""
-#     e = errors.InvalidArgumentsError('message')
-#
-#     assert isinstance(e, exceptions.InvalidUsage)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseInvalidUsageError)
-#
-#     assert e.status_code == 400
-#     assert e.error_id == errors.INVALID_ARGUMENTS
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_request_invalid_json():
-#     """Check for INVALID_JSON error"""
-#     e = errors.InvalidJsonError('message')
-#
-#     assert isinstance(e, exceptions.InvalidUsage)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseInvalidUsageError)
-#
-#     assert e.status_code == 400
-#     assert e.error_id == errors.INVALID_JSON
-#     assert e.args[0] == 'message'
-#
-#
-# def test_synse_error_request_invalid_device_type():
-#     """Check for INVALID_DEVICE_TYPE error"""
-#     e = errors.InvalidDeviceType('message')
-#
-#     assert isinstance(e, exceptions.InvalidUsage)
-#     assert isinstance(e, errors.SynseError)
-#     assert isinstance(e, errors.SynseInvalidUsageError)
-#
-#     assert e.status_code == 400
-#     assert e.error_id == errors.INVALID_DEVICE_TYPE
-#     assert e.args[0] == 'message'
+import json
+
+import pytest
+from sanic.request import Request
+from sanic.response import HTTPResponse
+
+from synse_server import errors
+
+
+class TestSynseErrorHandler:
+    """Test cases for the ``synse_server.errors.SynseErrorHandler`` class."""
+
+    @pytest.mark.parametrize(
+        'exception,code', [
+            (errors.SynseError, 500),
+            (errors.InvalidUsage, 400),
+            (errors.NotFound, 404),
+            (errors.UnsupportedAction, 405),
+            (errors.ServerError, 500),
+        ]
+    )
+    def test_default_synse_error(self, exception, code):
+        handler = errors.SynseErrorHandler()
+
+        actual = handler.default(None, exception('test'))
+
+        assert isinstance(actual, HTTPResponse)
+        assert actual.status == code
+
+        data = json.loads(actual.body)
+        assert data['description'] == exception.description
+        assert data['context'] == 'test'
+        assert data['http_code'] == code
+        assert 'timestamp' in data
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_default_not_a_synse_error(self):
+        handler = errors.SynseErrorHandler()
+
+        exception = ValueError('foobar')
+        request = Request(b'http://localhost', {}, None, 'GET', None)
+
+        actual = handler.default(request, exception)
+
+        assert isinstance(actual, HTTPResponse)
+        assert actual.status == 500
+        assert actual.body == b'{"http_code":500,"description":"an unexpected error occurred","timestamp":"2019-04-22T13:30:00Z","context":"foobar"}'  # noqa: E501
+
+
+class TestSynseError:
+    """Test cases for the ``synse_server.errors.SynseError`` Exception."""
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
+        ex = errors.SynseError('context error message')
+        resp = ex.make_response()
+
+        assert isinstance(resp, dict)
+        assert resp == {
+            'http_code': 500,
+            'description': 'an unexpected error occurred',
+            'timestamp': '2019-04-22T13:30:00Z',
+            'context': 'context error message',
+        }
+
+
+class TestInvalidUsage:
+    """Test cases for the ``synse_server.errors.InvalidUsage`` Exception."""
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
+        ex = errors.InvalidUsage('context error message')
+        resp = ex.make_response()
+
+        assert isinstance(resp, dict)
+        assert resp == {
+            'http_code': 400,
+            'description': 'invalid user input',
+            'timestamp': '2019-04-22T13:30:00Z',
+            'context': 'context error message',
+        }
+
+
+class TestNotFound:
+    """Test cases for the ``synse_server.errors.NotFound`` Exception."""
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
+        ex = errors.NotFound('context error message')
+        resp = ex.make_response()
+
+        assert isinstance(resp, dict)
+        assert resp == {
+            'http_code': 404,
+            'description': 'resource not found',
+            'timestamp': '2019-04-22T13:30:00Z',
+            'context': 'context error message',
+        }
+
+
+class TestUnsupportedAction:
+    """Test cases for the ``synse_server.errors.UnsupportedAction`` Exception."""
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
+        ex = errors.UnsupportedAction('context error message')
+        resp = ex.make_response()
+
+        assert isinstance(resp, dict)
+        assert resp == {
+            'http_code': 405,
+            'description': 'device action not supported',
+            'timestamp': '2019-04-22T13:30:00Z',
+            'context': 'context error message',
+        }
+
+
+class TestServerError:
+    """Test cases for the ``synse_server.errors.ServerError`` Exception."""
+
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
+    def test_make_response(self):
+
+        ex = errors.ServerError('context error message')
+        resp = ex.make_response()
+
+        assert isinstance(resp, dict)
+        assert resp == {
+            'http_code': 500,
+            'description': 'error processing the request',
+            'timestamp': '2019-04-22T13:30:00Z',
+            'context': 'context error message',
+        }
