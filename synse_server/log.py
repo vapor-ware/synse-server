@@ -16,12 +16,6 @@ logging.config.dictConfig({
             'level': 'INFO',
             'handlers': ['default']
         },
-        'sanic.error': {
-            'level': 'INFO',
-            'handlers': ['error'],
-            'propagate': True,
-            'qualname': 'sanic.error'
-        },
         'synse-server': {
             'level': 'INFO',
             'handlers': ['default']
@@ -30,25 +24,11 @@ logging.config.dictConfig({
     'handlers': {
         'default': {
             'class': 'logging.StreamHandler',
-            'formatter': 'json',
             'stream': sys.stdout
         },
-        'error': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'json',
-            'stream': sys.stderr
-        },
     },
-    'formatters': {
-        'json': {
-            'class': 'pythonjsonlogger.jsonlogger.JsonFormatter'
-        },
-    }
 })
 
-# TODO: since we've disabled the sanic access logs in favor of our own logging
-#   we may wish to consider returning to using a KeyValueRenderer as that tends
-#   is a bit easier to parse visually.
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
@@ -58,7 +38,9 @@ structlog.configure(
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.stdlib.render_to_log_kwargs,
+        structlog.processors.KeyValueRenderer(
+            key_order=['timestamp', 'level', 'event']
+        ),
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
