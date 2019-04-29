@@ -1,105 +1,62 @@
-version: 1.0
-locations:
-  - name: r1vec
-    rack:
-      name: rack-1
-    board:
-      name: vec
+version: 3
 devices:
-  # -- temperature devices --
-  - name: temperature
+  - type: temperature
     metadata:
       model: emul8-temp
-    outputs:
-      - type: temperature
     instances:
       - info: Synse Temperature Sensor 1
-        location: r1vec
         data:
           id: 1
       - info: Synse Temperature Sensor 2
-        location: r1vec
         data:
           id: 2
       - info: Synse Temperature Sensor 3
-        location: r1vec
         data:
           id: 3
       - info: Synse Temperature Sensor 4
-        location: r1vec
         data:
           id: 4
       - info: Synse Temperature Sensor 5
-        location: r1vec
         data:
           id: 5
-
-  # -- pressure devices --
-  - name: pressure
+  - type: pressure
     metadata:
       model: emul8-pressure
-    outputs:
-      - type: pressure
     instances:
       - info: Synse Pressure Sensor 1
-        location: r1vec
         data:
           id: 1
       - info: Synse Pressure Sensor 2
-        location: r1vec
         data:
           id: 2
-
-  # -- led devices --
-  - name: led
+  - type: led
     metadata:
       model: emul8-led
-    outputs:
-      - type: led.color
-      - type: led.state
     instances:
       - info: Synse LED
-        location: r1vec
         data:
           id: 1
       - info: Synse Backup LED
-        location: r1vec
         data:
           id: 2
-
-  # -- humidity devices --
-  - name: humidity
+  - type: humidity
     metadata:
       model: emul8-humidity
-    outputs:
-      - type: humidity
-      - type: temperature
     instances:
       - info: Synse Humidity Sensor
-        location: r1vec
         data:
           id: 1
-
-  # -- fan devices --
-  - name: fan
+  - type: fan
     metadata:
       model: emul8-fan
-    outputs:
-      - type: fan.speed
     instances:
       - info: Synse Fan
-        location: r1vec
         data:
           id: 1
-
-  # -- airflow devices --
-  - name: airflow
+  - type: airflow
     metadata:
       model: emul8-air
-    outputs:
-      - type: airflow
     instances:
       - info: Synse Airflow Sensor
-        location: r1vec
         data:
           id: 1
