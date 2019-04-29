@@ -3,20 +3,11 @@ import datetime
 import logging
 
 import pytest
-import ujson
-from sanic.request import Request
 from synse_grpc import api, client
 
 from synse_server import app, cache, plugin, utils
 
 TEST_DATETIME = datetime.datetime(2019, 4, 19, 2, 1, 53, 680718)
-
-
-class MockTransport:
-
-    @staticmethod
-    def get_extra_info(*args, **kwargs):
-        return None
 
 
 # Behavioral Fixtures
@@ -209,35 +200,6 @@ def state_reading():
         deviceType='led',
         string_value='on',
     )
-
-
-@pytest.fixture()
-def make_request():
-    """Fixture to return a helper to generate a Sanic request for testing."""
-
-    def helper(url, data=None):
-        """Create a Sanic request object.
-
-        Args:
-            url (str): The URL of the request.
-            data (dict): Any data to dump into the request body. (default: None)
-
-        Returns:
-            sanic.request.Request: A simple Request object.
-        """
-        r = Request(
-            url_bytes=url.encode('ascii'),
-            headers={},
-            version=None,
-            method=None,
-            transport=MockTransport(),
-        )
-
-        if data is not None:
-            r.body = ujson.dumps(data)
-        return r
-
-    yield helper
 
 
 @pytest.fixture(scope='module')
