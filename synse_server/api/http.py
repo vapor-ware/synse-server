@@ -1,8 +1,8 @@
 """Synse Server HTTP API."""
 
+import ujson
 from sanic import Blueprint
 from sanic.response import stream
-import ujson
 
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
