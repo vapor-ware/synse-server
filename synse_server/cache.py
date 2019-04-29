@@ -56,7 +56,8 @@ def get_cached_transaction_ids():
     Returns:
         list[str]: The IDs of all actively tracked transactions.
     """
-    return [k[len(NS_TRANSACTION):] for k in transaction_cache._cache.keys() if k.startswith(NS_TRANSACTION)]
+    return [k[len(NS_TRANSACTION):] for k in transaction_cache._cache.keys()
+            if k.startswith(NS_TRANSACTION)]
 
 
 async def add_transaction(transaction_id, device, plugin_id):

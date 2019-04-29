@@ -120,7 +120,7 @@ class Synse:
             logger.info(_('SSL configured for Synse Server'), config=ssl_context)
 
         # Load the plugins defined in the configuration.
-        plugin.manager.load()
+        plugin.manager.refresh()
 
         logger.debug(_('starting Sanic application'))
         self.app.run(

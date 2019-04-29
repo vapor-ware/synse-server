@@ -63,6 +63,10 @@ docs: clean-docs  ## Generate the User Guide and API documentation locally
 	docker rm slate-docs
 	mv docs/api/build/** docs/
 
+.PHONY: fmt
+fmt:  ## Automatic source code formatting (isort)
+	tox -e fmt
+
 .PHONY: github-tag
 github-tag:  ## Create and push a tag with the current version
 	git tag -a v${PKG_VERSION} -m "${PKG_NAME} version v${PKG_VERSION}"
@@ -73,7 +77,7 @@ i18n:  ## Update the translations catalog
 	tox -e i18n
 
 .PHONY: lint
-lint:  ## Run linting checks on the project source code
+lint:  ## Run linting checks on the project source code (isort, flake8)
 	tox -e lint
 
 .PHONY: run
@@ -84,18 +88,22 @@ run:  ## Run Synse Server with emulator locally (localhost:5000)
 		--name synse \
 		${IMAGE_NAME} enable-emulator
 
+#.PHONY: test
+#test: test-unit test-integration test-end-to-end  ## Run all tests
 .PHONY: test
-test: test-unit test-integration test-end-to-end  ## Run all tests
+test: test-unit  ## Run all tests
 
-.PHONY: test-end-to-end
-test-end-to-end: docker ## Run the end to end tests
-	docker-compose -f compose/synse.yml up -d --build
-	tox tests/end_to_end
-	docker-compose -f compose/synse.yml down
+# FIXME (etd): Temporarily disabled. The test suite is being rebuilt and these
+#   are either not currently available or are being stipped out / consolidated.
+#.PHONY: test-end-to-end
+#test-end-to-end: docker ## Run the end to end tests
+#	docker-compose -f compose/synse.yml up -d --build
+#	tox tests/end_to_end
+#	docker-compose -f compose/synse.yml down
 
-.PHONY: test-integration
-test-integration:  ## Run the integration tests
-	tox tests/integration
+#.PHONY: test-integration
+#test-integration:  ## Run the integration tests
+#	tox tests/integration
 
 .PHONY: test-unit
 test-unit:  ## Run the unit tests

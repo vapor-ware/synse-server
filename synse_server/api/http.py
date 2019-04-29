@@ -1,11 +1,12 @@
 """Synse Server HTTP API."""
 
+import ujson
 from sanic import Blueprint
 from sanic.response import stream
 
-from synse_server.log import logger
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
+from synse_server.log import logger
 
 # Blueprint for the Synse core (version-less) routes.
 core = Blueprint('core-http')
@@ -218,7 +219,6 @@ async def tags(request):
 
     HTTP Codes:
         * 200: OK
-        * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
     log_request(request, params=request.args)
@@ -343,8 +343,17 @@ async def read_cache(request):
 
     # Define the function that will be used to stream the responses back.
     async def response_streamer(response):
-        async for reading in cmd.read_cache(start, end):
-            await response.write(reading)
+        # Due to how streamed responses are handled, an exception here won't
+        # end up surfacing to the user through Synse's custom error handler
+        # and instead appear to create an opaque error relating to an invalid
+        # character in the chunk header. Instead of surfacing that error, we
+        # just log it and move on.
+        try:
+            async for reading in cmd.read_cache(start, end):
+                await response.write(ujson.dumps(reading))
+        except Exception as e:
+            logger.error('failure when streaming cached readings')
+            logger.exception(e)
 
     return stream(response_streamer, content_type='application/json')
 

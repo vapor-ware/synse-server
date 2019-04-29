@@ -1,733 +1,523 @@
-"""Test the 'synse_server.plugin' Synse Server module."""
 
-import os
+from collections.abc import Iterable
 
 import pytest
-from synse_grpc import api
+from grpc import RpcError
+from synse_grpc import client, errors
+from synse_grpc.api import V3Metadata, V3Version
 
-import synse_server.proto.client
-from synse_server import config, const, errors, plugin
-from synse_server.proto.client import (PluginClient, PluginTCPClient,
-                                       PluginUnixClient)
-
-
-@pytest.fixture()
-def mock_client_test_ok(monkeypatch):
-    """Fixture to mock a PluginClient's 'test' method with a good response."""
-    def patch(self):
-        """Patch function for the client 'test' method."""
-        return api.Status(ok=True)
-    monkeypatch.setattr(synse_server.proto.client.PluginClient, 'test', patch)
-    return mock_client_test_ok
+from synse_server import plugin
 
 
-@pytest.fixture()
-def mock_client_test_error(monkeypatch):
-    """Fixture to mock a PluginClient's 'test' method with a bad response."""
-    def patch(self):
-        """Patch function for the client 'test' method."""
-        return api.Status(ok=False)
-    monkeypatch.setattr(PluginClient, 'test', patch)
-    return mock_client_test_error
+@pytest.mark.usefixtures('clear_manager_plugins')
+class TestPluginManager:
+    """Test cases for the ``synse_server.plugin.PluginManager`` class."""
 
+    def test_iterate_no_plugins(self):
+        m = plugin.PluginManager()
 
-@pytest.fixture()
-def mock_client_meta_ok(monkeypatch):
-    """Fixture to mock a PluginClient's 'metainfo' method with a good response."""
-    def patch(self):
-        """Patch function for the client 'metainfo' method."""
-        return api.Metadata(
-            name='test-plugin',
-            tag='vaporio/test-plugin',
-            maintainer='vaporio',
-            description='test'
+        assert isinstance(m, Iterable)
+        assert 0 == len(list(m))
+
+    def test_iterate_has_plugins(self):
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': 'placeholder',
+            '2': 'placeholder',
+            '3': 'placeholder',
+            '4': 'placeholder',
+        }
+
+        assert isinstance(m, Iterable)
+        assert 4 == len(list(m))
+
+        # Ensure we iterate over the plugin dict values.
+        for item in m:
+            assert item == 'placeholder'
+
+    def test_has_no_plugins(self):
+        m = plugin.PluginManager()
+
+        assert m.has_plugins() is False
+
+    def test_has_plugins_one(self):
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': 'placeholder',
+        }
+
+        assert m.has_plugins() is True
+
+    def test_has_plugins_multiple(self):
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': 'placeholder',
+            '2': 'placeholder',
+            '3': 'placeholder',
+        }
+
+        assert m.has_plugins() is True
+
+    def test_get_plugin_not_found(self):
+        m = plugin.PluginManager()
+
+        result = m.get('1')
+        assert result is None
+
+    def test_get_plugin_found(self):
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': 'placeholder',
+        }
+
+        result = m.get('1')
+        assert result is not None
+        assert result == 'placeholder'
+
+    def test_register_fail_metadata_call(self, mocker):
+        # Mock test data
+        mock_metadata = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.metadata',
+            side_effect=RpcError(),
         )
-    monkeypatch.setattr(PluginClient, 'metainfo', patch)
-    return mock_client_meta_ok
-
-
-@pytest.fixture()
-def mock_client_meta_error(monkeypatch):
-    """Fixture to mock a PluginClient's 'metainfo' method with a bad response."""
-    def patch(self):
-        """Patch function for the client 'metainfo' method."""
-        raise ValueError('test error')
-
-    monkeypatch.setattr(PluginClient, 'metainfo', patch)
-    return mock_client_meta_error
-
-
-@pytest.fixture()
-def mock_plugin():
-    """Convenience fixture to create a test plugin. We create a TCP
-    based plugin for ease of testing.
-    """
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='test-plug'
-        ),
-        address='localhost:9999',
-        plugin_client=PluginTCPClient(address='localhost:9999')
-    )
-    yield p
-
-
-@pytest.fixture()
-def grpc_timeout():
-    """Fixture to set the configured grpc timeout to something low so tests
-    do not take a long time when they fail to connect.
-    """
-    config.options.set('grpc.timeout', 0.25)
-
-
-def test_plugin_manager_get():
-    """Get a value from the Plugin Manager."""
-    pm = plugin.PluginManager()
-    pm.plugins['test'] = 'foo'
-    assert pm.get('test') == 'foo'
-
-
-def test_plugin_manager_get_no_value():
-    """Get a plugin that is not managed by the Manager."""
-    pm = plugin.PluginManager()
-    assert pm.get('test') is None
-
-
-def test_plugin_manager_add_invalid():
-    """Add an invalid plugin (a string is not a valid plugin)."""
-    pm = plugin.PluginManager()
-    with pytest.raises(errors.ServerError):
-        pm.add('plugin')
-
-
-def test_plugin_manager_add_already_exists(mock_plugin):
-    """Add a plugin that is already managed by the Manager."""
-    pm = plugin.PluginManager()
-    pm.plugins['+tcp@localhost:9999'] = 'foo'
-    with pytest.raises(errors.ServerError):
-        pm.add(mock_plugin)
-
-
-def test_plugin_manager_add(mock_plugin):
-    """Add a plugin to the Manager."""
-    pm = plugin.PluginManager()
-    assert len(pm.plugins) == 0
-    pm.add(mock_plugin)
-    assert len(pm.plugins) == 1
-    assert '+tcp@localhost:9999' in pm.plugins
-
-
-def test_plugin_manager_remove(mock_plugin):
-    """Remove a plugin from the Manager."""
-    pm = plugin.PluginManager()
-    pm.plugins['test-plug'] = mock_plugin
-    assert len(pm.plugins) == 1
-    assert 'test-plug' in pm.plugins
-
-    pm.remove('test-plug')
-    assert len(pm.plugins) == 0
-    assert 'test-plug' not in pm.plugins
-
-
-def test_plugin_manager_remove_nonexistent():
-    """Remove a plugin from the Manager that is not there."""
-    pm = plugin.PluginManager()
-    assert len(pm.plugins) == 0
-    pm.remove('test')
-    assert len(pm.plugins) == 0
-
-
-def test_plugin_path_not_exist():
-    """Create a plugin when the socket doesn't exist."""
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='test'
-        ),
-        address='some/nonexistent/path',
-        plugin_client=PluginUnixClient(address='some/nonexistent/path')
-    )
-    assert p.protocol == 'unix'
-    assert p.name == 'test'
-
 
-def test_plugin_unix_ok(tmpsocket):
-    """Create a UNIX plugin successfully"""
-    _, path = tmpsocket.add('test')
-
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='test'
-        ),
-        address=path,
-        plugin_client=PluginUnixClient(address=path)
-    )
-
-    assert p.name == 'test'
-    assert p.address == path
-    assert p.protocol == 'unix'
-    assert p.client is not None
-    assert isinstance(p.client, PluginClient)
-
-
-def test_plugin_tcp_ok():
-    """Create a TCP plugin successfully"""
-
-    p = plugin.Plugin(
-        metadata=api.Metadata(
-            name='test'
-        ),
-        address='localhost:9999',
-        plugin_client=PluginTCPClient(address='localhost:9999')
-    )
-
-    assert p.name == 'test'
-    assert p.address == 'localhost:9999'
-    assert p.protocol == 'tcp'
-    assert p.client is not None
-    assert isinstance(p.client, PluginClient)
-
-
-def test_plugins_same_manager(mock_plugin):
-    """Check that all plugins have the same manager."""
-    assert plugin.Plugin.manager == mock_plugin.manager
-
-
-def test_get_plugin1():
-    """Get a plugin when it doesn't exist."""
-    p = plugin.get_plugin('test')
-    assert p is None
-
-
-def test_get_plugin2(mock_plugin):
-    """Get a plugin when it does exist."""
-    p = plugin.get_plugin('+tcp@localhost:9999')
-    assert isinstance(p, plugin.Plugin)
-    assert p.name == 'test-plug'
-    assert p.address == 'localhost:9999'
-    assert p.protocol == 'tcp'
-
-
-@pytest.mark.asyncio
-async def test_get_plugins1():
-    """Get all plugins when no plugins exist."""
-    with pytest.raises(StopAsyncIteration):
-        await plugin.get_plugins().__anext__()
-
-
-@pytest.mark.asyncio
-async def test_get_plugins2(mock_plugin):
-    """Get all plugins when some plugins exist."""
-    name, p = await plugin.get_plugins().__anext__()
-    assert isinstance(p, plugin.Plugin)
-    assert name == '+tcp@localhost:9999'
-    assert p.name == 'test-plug'
-    assert p.address == 'localhost:9999'
-    assert p.protocol == 'tcp'
-
-
-def test_register_plugins_no_default_socks(grpc_timeout):
-    """Register plugins when the plugin path doesn't exist."""
-    assert len(plugin.Plugin.manager.plugins) == 0
-    plugin.register_plugins()
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-
-def test_register_plugins_no_socks(tmpdir, grpc_timeout):
-    """Register plugins when no sockets are in the plugin path."""
-    sockdir = tmpdir.mkdir('socks')
-    const.SOCKET_DIR = str(sockdir)
-
-    # create a non-socket file
-    path = '{}/test.txt'.format(sockdir)
-    open(path, 'w').close()
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-    plugin.register_plugins()
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-
-def test_register_plugins_ok(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Register plugins successfully."""
-
-    # create the socket
-    _, path = tmpsocket.add('test')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    # the plugin is not yet in the config
-    assert config.options.get('plugin.unix') is None
-
-    plugin.register_plugins()
-
-    # the plugin has been added to the config (because it was
-    # in the default socket directory)
-    assert path in config.options.get('plugin.unix')
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert 'vaporio/test-plugin+unix@' + path in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path]
-    assert p.name == 'test-plugin'
-    assert p.address == path
-    assert p.protocol == 'unix'
-
-
-def test_register_plugins_already_exists(tmpsocket, grpc_timeout,
-                                         mock_client_test_ok, mock_client_meta_ok):
-    """Register plugins when the plugins were already registered."""
-
-    # create the socket
-    _, path = tmpsocket.add('test')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert 'vaporio/test-plugin+unix@' + path in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path]
-    assert p.name == 'test-plugin'
-    assert p.address == path
-    assert p.protocol == 'unix'
-
-    # now, re-register
-    assert len(plugin.Plugin.manager.plugins) == 1
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert 'vaporio/test-plugin+unix@' + path in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path]
-    assert p.name == 'test-plugin'
-    assert p.address == path
-    assert p.protocol == 'unix'
-
-
-def test_register_plugins_new(tmpsocket, grpc_timeout, mock_client_test_ok,
-                              mock_client_meta_ok):
-    """Re-register, adding a new plugin."""
-
-    # create the socket
-    _, path1 = tmpsocket.add('foo')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert 'vaporio/test-plugin+unix@' + path1 in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path1]
-    assert p.name == 'test-plugin'
-    assert p.address == path1
-    assert p.protocol == 'unix'
-
-    # now, re-register
-    _, path2 = tmpsocket.add('bar')
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-    assert 'vaporio/test-plugin+unix@' + path1 in plugin.Plugin.manager.plugins
-    assert 'vaporio/test-plugin+unix@' + path2 in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path1]
-    assert p.name == 'test-plugin'
-    assert p.address == path1
-    assert p.protocol == 'unix'
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path2]
-    assert p.name == 'test-plugin'
-    assert p.address == path2
-    assert p.protocol == 'unix'
-
-
-def test_register_plugins_old(tmpsocket, grpc_timeout, mock_client_test_ok,
-                              mock_client_meta_ok):
-    """Re-register, removing an old plugin."""
-
-    # create the socket
-    _, path1 = tmpsocket.add('foo')
-    _, path2 = tmpsocket.add('bar')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-    assert 'vaporio/test-plugin+unix@' + path1 in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path1]
-    assert p.name == 'test-plugin'
-    assert p.address == path1
-    assert p.protocol == 'unix'
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path2]
-    assert p.name == 'test-plugin'
-    assert p.address == path2
-    assert p.protocol == 'unix'
-
-    # remove one of the sockets and re-register.
-    try:
-        os.unlink(path1)
-    except OSError:
-        if os.path.exists(path1):
-            raise
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert 'vaporio/test-plugin+unix@' + path2 in plugin.Plugin.manager.plugins
-
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+unix@' + path2]
-    assert p.name == 'test-plugin'
-    assert p.address == path2
-    assert p.protocol == 'unix'
-
-
-def test_register_plugins_from_discovery(grpc_timeout, monkeypatch, mock_client_test_ok,
-                                         mock_client_meta_ok):
-    """Register plugins that we get back from discovery."""
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    monkeypatch.setattr(plugin.kubernetes, 'discover', lambda: ['10.0.0.1:5001', '10.0.0.2:5001'])
-
-    plugin.register_plugins()
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-
-    assert 'vaporio/test-plugin+tcp@10.0.0.1:5001' in plugin.Plugin.manager.plugins
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+tcp@10.0.0.1:5001']
-    assert p.name == 'test-plugin'
-    assert p.address == '10.0.0.1:5001'
-    assert p.protocol == 'tcp'
-
-    assert 'vaporio/test-plugin+tcp@10.0.0.2:5001' in plugin.Plugin.manager.plugins
-    p = plugin.Plugin.manager.plugins['vaporio/test-plugin+tcp@10.0.0.2:5001']
-    assert p.name == 'test-plugin'
-    assert p.address == '10.0.0.2:5001'
-    assert p.protocol == 'tcp'
-
-
-def test_register_unix_plugin_none_defined(grpc_timeout):
-    """Test registering unix based plugins when none is specified."""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-    assert isinstance(registered, list)
-    assert len(registered) == 0
-
-
-def test_register_unix_plugin(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Test registering unix plugin when a configuration is specified"""
-
-    # create the socket
-    _, path = tmpsocket.add('foo')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    # set a configuration
-    config.options.set('plugin.unix', ['tmp'])
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+unix@' + path in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+unix@' + path)
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'unix'
-    assert p.address == path
-
-
-def test_register_unix_plugins(tmpsocket, grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Test registering unix plugins when multiple configurations are specified"""
-
-    # create the socket
-    _, path1 = tmpsocket.add('foo')
-    _, path2 = tmpsocket.add('bar')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    # set configurations
-    config.options.set('plugin.unix', ['foo', 'bar'])
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-    assert isinstance(registered, list)
-    assert len(registered) == 2
-
-    assert 'vaporio/test-plugin+unix@' + path1 in registered
-    assert 'vaporio/test-plugin+unix@' + path2 in registered
-
-    p1 = plugin.get_plugin('vaporio/test-plugin+unix@' + path1)
-    assert p1 is not None
-    assert p1.name == 'test-plugin'
-    assert p1.protocol == 'unix'
-    assert p1.address == path1
-
-    p2 = plugin.get_plugin('vaporio/test-plugin+unix@' + path2)
-    assert p2 is not None
-    assert p2.name == 'test-plugin'
-    assert p2.protocol == 'unix'
-    assert p2.address == path2
-
-
-def test_register_unix_plugin_already_exists(tmpsocket, grpc_timeout, mock_client_test_ok,
-                                             mock_client_meta_ok):
-    """Test registering unix plugin when the plugin was already registered."""
-
-    # create the socket
-    _, path = tmpsocket.add('test')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+unix@' + path in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+unix@' + path)
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.address == path
-    assert p.protocol == 'unix'
-
-    # now, re-register
-    assert len(plugin.Plugin.manager.plugins) == 1
-
-    # set the same configuration
-    config.options.set('plugin.unix', [str(tmpsocket.socket_dir)])
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+unix@' + path in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+unix@' + path)
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.address == path
-    assert p.protocol == 'unix'
-
-
-def test_register_unix_plugin_no_socket(tmpdir, grpc_timeout):
-    """Test registering unix plugin when no socket is bound"""
-    sockdir = tmpdir.mkdir('socks')
-    const.SOCKET_DIR = str(sockdir)
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    config.options.set('plugin.unix', [sockdir])
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-    assert isinstance(registered, list)
-    assert len(registered) == 0
-
-
-def test_register_unix_plugin_no_socket_no_path(grpc_timeout):
-    """Test registering unix plugin when the path does not exist"""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    config.options.set('plugin.unix', [os.path.join('some', 'nonexistent', 'other', 'path')])
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-    assert isinstance(registered, list)
-    assert len(registered) == 0
-
-
-def test_register_unix_plugin_no_config_path(tmpsocket, grpc_timeout, mock_client_test_ok,
-                                             mock_client_meta_ok):
-    """Test registering unix plugin when a configuration without a path is specified"""
-
-    # create the socket
-    _, path = tmpsocket.add('foo')
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    registered = plugin.register_unix()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+unix@' + path in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+unix@' + path)
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'unix'
-    assert p.address == path
-
-
-def test_register_tcp_plugin_none_defined(grpc_timeout):
-    """Test registering TCP based plugins when none is specified."""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 0
-    assert isinstance(registered, list)
-    assert len(registered) == 0
-
-
-def test_register_tcp_plugin(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Test registering TCP based plugin when a configuration is specified"""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    config.options.set('plugin.tcp', ['localhost:5000'])
-
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+tcp@localhost:5000' in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5000')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5000'
-
-
-def test_register_tcp_plugins(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Test registering TCP based plugins when multiple configurations are specified"""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    config.options.set('plugin.tcp', ['localhost:5000', 'localhost:5001'])
-
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-    assert isinstance(registered, list)
-    assert len(registered) == 2
-
-    assert 'vaporio/test-plugin+tcp@localhost:5000' in registered
-    assert 'vaporio/test-plugin+tcp@localhost:5001' in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5000')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5000'
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5001')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5001'
-
-
-def test_register_tcp_plugin_already_exists(grpc_timeout, mock_client_test_ok,
-                                            mock_client_meta_ok):
-    """Test registering TCP plugin when the plugin was already registered."""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    config.options.set('plugin.tcp', ['localhost:5000'])
-
-    # register the first time
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+tcp@localhost:5000' in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5000')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5000'
-
-    # register the second time
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+tcp@localhost:5000' in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5000')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5000'
-
-
-def test_register_tcp_plugin_env(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Test registering TCP based plugin when an environment variable is set"""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    os.environ['SYNSE_PLUGIN_TCP'] = 'localhost:5000'
-    config.options.parse()
-
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 1
-    assert isinstance(registered, list)
-    assert len(registered) == 1
-
-    assert 'vaporio/test-plugin+tcp@localhost:5000' in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5000')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5000'
-
-
-def test_register_tcp_plugins_env(grpc_timeout, mock_client_test_ok, mock_client_meta_ok):
-    """Test registering TCP based plugins when multiple environment variables are specified"""
-    assert len(plugin.Plugin.manager.plugins) == 0
-
-    os.environ['SYNSE_PLUGIN_TCP'] = 'localhost:5000,localhost:5001'
-    config.options.parse()
-
-    registered = plugin.register_tcp()
-
-    assert len(plugin.Plugin.manager.plugins) == 2
-    assert isinstance(registered, list)
-    assert len(registered) == 2
-
-    assert 'vaporio/test-plugin+tcp@localhost:5000' in registered
-    assert 'vaporio/test-plugin+tcp@localhost:5001' in registered
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5000')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5000'
-
-    p = plugin.get_plugin('vaporio/test-plugin+tcp@localhost:5001')
-    assert p is not None
-    assert p.name == 'test-plugin'
-    assert p.protocol == 'tcp'
-    assert p.address == 'localhost:5001'
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        with pytest.raises(RpcError):
+            m.register('localhost:5432', 'tcp')
+
+        # Ensure nothing was added to the manager.
+        assert len(m.plugins) == 0
+
+        mock_metadata.assert_called_once()
+
+    def test_register_fail_version_call(self, mocker):
+        # Mock test data
+        mock_metadata = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.metadata',
+            return_value=V3Metadata(),
+        )
+        mock_version = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.version',
+            side_effect=RpcError(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        with pytest.raises(RpcError):
+            m.register('localhost:5432', 'tcp')
+
+        # Ensure nothing was added to the manager.
+        assert len(m.plugins) == 0
+
+        mock_metadata.assert_called_once()
+        mock_version.assert_called_once()
+
+    def test_register_fail_plugin_init(self, mocker):
+        # Mock test data
+        mock_metadata = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.metadata',
+            return_value=V3Metadata(),
+        )
+        mock_version = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.version',
+            return_value=V3Version(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        with pytest.raises(ValueError):
+            m.register('localhost:5432', 'tcp')
+
+        # Ensure nothing was added to the manager.
+        assert len(m.plugins) == 0
+
+        mock_metadata.assert_called_once()
+        mock_version.assert_called_once()
+
+    def test_register_duplicate_plugin_id(self, mocker):
+        # Mock test data
+        mock_metadata = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.metadata',
+            return_value=V3Metadata(id='123', tag='foo'),
+        )
+        mock_version = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.version',
+            return_value=V3Version(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        m.plugins = {
+            '123': 'placeholder',
+        }
+
+        plugin_id = m.register('localhost:5432', 'tcp')
+        assert plugin_id == '123'
+        # Ensure nothing new was added to the manager.
+        assert len(m.plugins) == 1
+
+        mock_metadata.assert_called_once()
+        mock_version.assert_called_once()
+
+    def test_register_success(self, mocker):
+        # Mock test data
+        mock_metadata = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.metadata',
+            return_value=V3Metadata(id='123', tag='foo'),
+        )
+        mock_version = mocker.patch(
+            'synse_server.plugin.client.PluginClientV3.version',
+            return_value=V3Version(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        plugin_id = m.register('localhost:5432', 'tcp')
+        assert plugin_id == '123'
+        assert len(m.plugins) == 1
+        assert m.plugins[plugin_id].active is True
+
+        mock_metadata.assert_called_once()
+        mock_version.assert_called_once()
+
+    def test_load_no_config(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.config.options._full_config', {
+            'plugin': {},
+        })
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 0
+
+    def test_load_tcp_one(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.config.options._full_config', {
+            'plugin': {
+                'tcp': [
+                    'localhost:5001',
+                ],
+            },
+        })
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 1
+
+    def test_load_tcp_multi(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.config.options._full_config', {
+            'plugin': {
+                'tcp': [
+                    'localhost:5001',
+                    'localhost:5002',
+                    'localhost:5003',
+                ],
+            },
+        })
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 3
+
+    def test_load_unix_one(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.config.options._full_config', {
+            'plugin': {
+                'unix': [
+                    '/tmp/test/1',
+                ],
+            },
+        })
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 1
+
+    def test_load_unix_multi(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.config.options._full_config', {
+            'plugin': {
+                'unix': [
+                    '/tmp/test/1',
+                    '/tmp/test/2',
+                    '/tmp/test/3',
+                ],
+            },
+        })
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 3
+
+    def test_load_tcp_and_unix(self, mocker):
+        # Mock test data
+        mocker.patch.dict('synse_server.config.options._full_config', {
+            'plugin': {
+                'tcp': [
+                    'localhost:5001',
+                    'localhost:5002',
+                    'localhost:5003',
+                ],
+                'unix': [
+                    '/tmp/test/1',
+                    '/tmp/test/2',
+                    '/tmp/test/3',
+                ],
+            },
+        })
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+        loaded = m.load()
+        assert len(loaded) == 6
+
+    def test_discover_no_addresses_found(self, mocker):
+        # Mock test data
+        mock_discover = mocker.patch(
+            'synse_server.plugin.kubernetes.discover',
+            return_value=[],
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 0
+        mock_discover.assert_called_once()
+
+    def test_discover_one_address_found(self, mocker):
+        # Mock test data
+        mock_discover = mocker.patch(
+            'synse_server.plugin.kubernetes.discover',
+            return_value=['localhost:5001'],
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 1
+        assert ('localhost:5001', 'tcp') in found
+        mock_discover.assert_called_once()
+
+    def test_discover_multiple_addresses_found(self, mocker):
+        # Mock test data
+        mock_discover = mocker.patch(
+            'synse_server.plugin.kubernetes.discover',
+            return_value=['localhost:5001', 'localhost:5002'],
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 2
+        assert ('localhost:5001', 'tcp') in found
+        assert ('localhost:5002', 'tcp') in found
+        mock_discover.assert_called_once()
+
+    def test_discover_fail_kubernetes_discovery(self, mocker):
+        # Mock test data
+        mock_discover = mocker.patch(
+            'synse_server.plugin.kubernetes.discover',
+            side_effect=ValueError(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        found = m.discover()
+
+        assert len(found) == 0
+        mock_discover.assert_called_once()
+
+    def test_refresh_no_addresses(self):
+        m = plugin.PluginManager()
+
+        assert len(m.plugins) == 0
+        m.refresh()
+        assert len(m.plugins) == 0
+
+    def test_refresh_loaded_ok(self, mocker):
+        # Mock test data
+        mock_load = mocker.patch(
+            'synse_server.plugin.PluginManager.load',
+            return_value=[('localhost:5001', 'tcp')],
+        )
+        mock_register = mocker.patch(
+            'synse_server.plugin.PluginManager.register',
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        mock_load.assert_called_once()
+        mock_register.assert_called_once()
+        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+
+    def test_refresh_loaded_fail(self, mocker):
+        # Mock test data
+        mock_load = mocker.patch(
+            'synse_server.plugin.PluginManager.load',
+            return_value=[('localhost:5001', 'tcp')],
+        )
+        mock_register = mocker.patch(
+            'synse_server.plugin.PluginManager.register',
+            side_effect=ValueError(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        mock_load.assert_called_once()
+        mock_register.assert_called_once()
+        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+
+    def test_refresh_discover_ok(self, mocker):
+        # Mock test data
+        mock_discover = mocker.patch(
+            'synse_server.plugin.PluginManager.discover',
+            return_value=[('localhost:5001', 'tcp')],
+        )
+        mock_register = mocker.patch(
+            'synse_server.plugin.PluginManager.register',
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        mock_discover.assert_called_once()
+        mock_register.assert_called_once()
+        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+
+    def test_refresh_discover_fail(self, mocker):
+        # Mock test data
+        mock_discover = mocker.patch(
+            'synse_server.plugin.PluginManager.discover',
+            return_value=[('localhost:5001', 'tcp')],
+        )
+        mock_register = mocker.patch(
+            'synse_server.plugin.PluginManager.register',
+            side_effect=ValueError(),
+        )
+
+        # --- Test case -----------------------------
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        mock_discover.assert_called_once()
+        mock_register.assert_called_once()
+        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+
+
+class TestPlugin:
+    """Test cases for the ``synse_server.plugin.Plugin`` class."""
+
+    def test_init_ok(self):
+        c = client.PluginClientV3('localhost:5432', 'tcp')
+        p = plugin.Plugin(
+            client=c,
+            info={
+                'tag': 'foo',
+                'id': '123',
+            },
+            version={},
+        )
+
+        assert p.active is False
+        assert p.client == c
+        assert p.address == 'localhost:5432'
+        assert p.protocol == 'tcp'
+        assert p.tag == 'foo'
+        assert p.id == '123'
+
+    def test_init_missing_tag(self):
+        with pytest.raises(ValueError):
+            plugin.Plugin(
+                client=client.PluginClientV3('localhost:5432', 'tcp'),
+                info={
+                    'id': '123',
+                },
+                version={},
+            )
+
+    def test_init_missing_id(self):
+        with pytest.raises(ValueError):
+            plugin.Plugin(
+                client=client.PluginClientV3('localhost:5432', 'tcp'),
+                info={
+                    'tag': 'foo',
+                },
+                version={},
+            )
+
+    def test_str(self, simple_plugin):
+        assert str(simple_plugin) == '<Plugin (test/foo): 123>'
+
+    def test_context_no_error(self, simple_plugin):
+        assert simple_plugin.active is False
+
+        with simple_plugin as cli:
+            assert isinstance(cli, client.PluginClientV3)
+            assert cli == simple_plugin.client
+
+        assert simple_plugin.active is True
+
+    def test_context_unexpected_error(self, simple_plugin):
+        assert simple_plugin.active is False
+
+        with pytest.raises(ValueError):
+            with simple_plugin:
+                raise ValueError('test error')
+
+        assert simple_plugin.active is False
+
+    def test_context_plugin_error(self, simple_plugin):
+        assert simple_plugin.active is False
+
+        with pytest.raises(errors.PluginError):
+            with simple_plugin:
+                raise errors.PluginError('test error')
+
+        assert simple_plugin.active is True
+
+    def test_mark_active_from_active(self, simple_plugin):
+        simple_plugin.active = True
+        simple_plugin.mark_active()
+        assert simple_plugin.active is True
+
+    def test_mark_active_from_inactive(self, simple_plugin):
+        simple_plugin.active = False
+        simple_plugin.mark_active()
+        assert simple_plugin.active is True
+
+    def test_mark_inactive_from_active(self, simple_plugin):
+        simple_plugin.active = True
+        simple_plugin.mark_inactive()
+        assert simple_plugin.active is False
+
+    def test_mark_inactive_from_inactive(self, simple_plugin):
+        simple_plugin.active = False
+        simple_plugin.mark_inactive()
+        assert simple_plugin.active is False

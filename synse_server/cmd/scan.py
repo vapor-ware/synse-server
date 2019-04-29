@@ -1,9 +1,9 @@
 
 from synse_grpc import utils
 
-from synse_server import cache
-from synse_server.log import logger
+from synse_server import cache, errors
 from synse_server.i18n import _
+from synse_server.log import logger
 
 
 async def scan(ns, tags, sort, force=False):
@@ -33,7 +33,10 @@ async def scan(ns, tags, sort, force=False):
     # request take longer to fulfill.
     if force:
         logger.debug(_('forced scan: rebuilding device cache'))
-        await cache.update_device_cache()
+        try:
+            await cache.update_device_cache()
+        except Exception as e:
+            raise errors.ServerError(_('failed to rebuild device cache')) from e
 
     # Apply the default namespace to the tags which do not have any
     # namespaces, if any are defined.
@@ -41,17 +44,23 @@ async def scan(ns, tags, sort, force=False):
         if '/' not in tag:
             tags[i] = f'{ns}/{tag}'
 
-    devices = await cache.get_devices(*tags)
+    try:
+        devices = await cache.get_devices(*tags)
+    except Exception as e:
+        raise errors.ServerError(_('failed to get devices from cache')) from e
 
     # Sort the devices based on the sort string. There may be multiple
     # components in the sort string separated by commas. The order in which
     # they are listed is equivalent to the order of their sort priority.
     sort_keys = sort.split(',')
 
-    sorted_devices = sorted(
-        devices,
-        key=lambda dev: tuple(map(lambda key: getattr(dev, key), sort_keys))
-    )
+    try:
+        sorted_devices = sorted(
+            devices,
+            key=lambda dev: tuple(map(lambda key: getattr(dev, key), sort_keys))
+        )
+    except AttributeError as e:
+        raise errors.InvalidUsage('invalid sort key(s) provided') from e
 
     response = []
     for device in sorted_devices:
