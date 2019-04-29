@@ -41,7 +41,6 @@ setup(
         'bison>=0.1.0',
         'grpcio',
         'kubernetes',
-        'python-json-logger',
         'pyyaml>=4.2b1',
         'requests>=2.21.0',  # used by 'kubernetes'
         'urllib3>=1.24.2',
