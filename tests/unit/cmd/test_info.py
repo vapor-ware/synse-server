@@ -46,6 +46,7 @@ async def test_info_device_found():
         resp = await cmd.info('123')
         assert resp == {
             'id': '123',
+            'alias': '',
             'type': 'test',
             'info': 'foo',
             'metadata': {
