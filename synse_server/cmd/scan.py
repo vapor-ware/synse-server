@@ -47,6 +47,7 @@ async def scan(ns, tags, sort, force=False):
     try:
         devices = await cache.get_devices(*tags)
     except Exception as e:
+        logger.exception(e)
         raise errors.ServerError(_('failed to get devices from cache')) from e
 
     # Sort the devices based on the sort string. There may be multiple
@@ -66,6 +67,7 @@ async def scan(ns, tags, sort, force=False):
     for device in sorted_devices:
         response.append({
             'id': device.id,
+            'alias': device.alias,
             'info': device.info,
             'type': device.type,
             'plugin': device.plugin,
