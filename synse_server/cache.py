@@ -16,6 +16,7 @@ from synse_server.log import logger
 # its own namespace.
 NS_TRANSACTION = 'synse.txn.'
 NS_DEVICE = 'synse.dev.'
+NS_ALIAS = 'synse.alias.'
 
 transaction_cache = aiocache.SimpleMemoryCache(
     ttl=config.options.get('cache.transaction.ttl', None),
@@ -27,7 +28,12 @@ device_cache = aiocache.SimpleMemoryCache(
     namespace=NS_DEVICE,
 )
 
+alias_cache = aiocache.SimpleMemoryCache(
+    namespace=NS_ALIAS,
+)
+
 device_cache_lock = asyncio.Lock()
+alias_cache_lock = asyncio.Lock()
 
 
 async def get_transaction(transaction_id):
@@ -88,6 +94,41 @@ async def add_transaction(transaction_id, device, plugin_id):
     )
 
 
+async def add_alias(alias, device):
+    """Add a new device alias to the alias cache.
+
+    Args:
+        alias (str): The alias of the device.
+        device (V3Device): The device associated with the given alias.
+
+    Returns:
+        bool: True if successful; False otherwise.
+    """
+    logger.debug(
+        _('adding alias to cache'), alias=alias, device=device.id,
+    )
+
+    async with alias_cache_lock:
+        return await alias_cache.set(alias, device)
+
+
+async def get_alias(alias):
+    """Get a device by its alias from the alias cache.
+
+    Args:
+        alias (str): The alias of the device to look up.
+
+    Returns:
+        V3Device | None: The device with the specified alias. If the
+        alias does not match a device, None is returned.
+    """
+
+    async with alias_cache_lock:
+        return await alias_cache.get(alias)
+
+
+# FIXME (etd): Should this be changes so we have two separate functions? One
+#   "update" function, and one "add_device" function?
 async def update_device_cache():
     """Update the device cache.
 
@@ -128,6 +169,11 @@ async def update_device_cache():
                 with p as client:
                     # todo: exception handling
                     for device in client.devices():
+                        # Update the alias cache if the device has an alias.
+                        if device.alias:
+                            await add_alias(device.alias, device)
+
+                        # Update the device cache, mapping each tag to the device.
                         for tag in device.tags:
                             key = synse_grpc.utils.tag_string(tag)
                             val = await device_cache.get(key)
@@ -141,15 +187,22 @@ async def update_device_cache():
 
 
 async def get_device(device_id):
-    """Get a device from the device cache by device ID.
+    """Get a device from the device cache by device ID or alias.
+
+    We can not reasonably tell whether the provided device_id is
+    an ID or an alias ahead of time. First, the device ID is looked
+    up via its ID tag in the tag cache. If there is no match, an
+    alias lookup is performed.
 
     Args:
-        device_id (str): The ID of the device to get.
+        device_id (str): The ID or alias of the device to get.
 
     Returns:
         V3Device | None: The device with the corresponding ID. If no device
         has the specified ID, None is returned.
     """
+    device = None
+
     # Every device has a system-generated ID tag in the format 'system/id:<device id>'
     # which we can use here to get the device. If the ID tag is not in the cache,
     # we take that to mean that there is no such device.
@@ -161,8 +214,14 @@ async def get_device(device_id):
         # empty, return the first element of the list - there should only be
         # one element; otherwise, return None.
         if result:
-            return result[0]
-        return None
+            device = result[0]
+
+    # No device was found from an ID lookup. Try looking up the ID in the
+    # alias cache.
+    if not device:
+        device = await get_alias(device_id)
+
+    return device
 
 
 async def get_devices(*tags):
@@ -187,10 +246,13 @@ async def get_devices(*tags):
     # If no tags are provided, there are no filter constraints, so return all
     # cached devices.
     if not tags:
-        values = list(device_cache._cache.values())
-        for devices in values:
+        for key, devices in device_cache._cache.items():
+            if not key.startswith(NS_DEVICE):
+                continue
             for device in devices:
+                # for device in devices:
                 results[device.id] = device
+
         return list(results.values())
 
     for i, tag in enumerate(tags):
