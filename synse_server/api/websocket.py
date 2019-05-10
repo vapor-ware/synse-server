@@ -1,11 +1,12 @@
 """Synse Server WebSocket API."""
 
 import json
+
 from sanic import Blueprint
 
-from synse_server import utils, cmd
-from synse_server.log import logger
+from synse_server import cmd, utils
 from synse_server.i18n import _
+from synse_server.log import logger
 
 # Blueprint for the Synse v3 WebSocket API.
 v3 = Blueprint('v3-websocket')
@@ -108,4 +109,3 @@ async def connect(request, ws):
         await ws.send(
             await m.response(),
         )
-
