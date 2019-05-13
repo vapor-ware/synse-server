@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-04-26 14:34-0400\n"
-"PO-Revision-Date: 2019-04-26 14:34-0400\n"
+"POT-Creation-Date: 2019-05-13 14:19-0400\n"
+"PO-Revision-Date: 2019-05-13 14:19-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -19,23 +19,27 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-#: synse_server/cache.py:79
+#: synse_server/cache.py:85
 msgid "caching transaction"
 msgstr ""
 
-#: synse_server/cache.py:109
+#: synse_server/cache.py:108
+msgid "adding alias to cache"
+msgstr ""
+
+#: synse_server/cache.py:150
 msgid "updating the device cache"
 msgstr ""
 
-#: synse_server/cache.py:119
+#: synse_server/cache.py:160
 msgid "no plugins found when updating device cache"
 msgstr ""
 
-#: synse_server/cache.py:126
+#: synse_server/cache.py:167
 msgid "getting devices from plugin"
 msgstr ""
 
-#: synse_server/cache.py:140
+#: synse_server/cache.py:186
 msgid "failed to get device(s)"
 msgstr ""
 
@@ -143,8 +147,36 @@ msgstr ""
 msgid "failed to rebuild device cache"
 msgstr ""
 
-#: synse_server/api/http.py:25
+#: synse_server/api/http.py:26
 msgid "processing request"
+msgstr ""
+
+#: synse_server/api/websocket.py:36
+msgid "failed to load payload"
+msgstr ""
+
+#: synse_server/api/websocket.py:58
+msgid "processing websocket request"
+msgstr ""
+
+#: synse_server/api/websocket.py:61
+msgid "error processing request"
+msgstr ""
+
+#: synse_server/api/websocket.py:282
+msgid "new websocket connection"
+msgstr ""
+
+#: synse_server/api/websocket.py:289
+msgid "error loading websocket message"
+msgstr ""
+
+#: synse_server/api/websocket.py:293
+msgid "got message"
+msgstr ""
+
+#: synse_server/api/websocket.py:298
+msgid "error generating websocket response"
 msgstr ""
 
 #: synse_server/cmd/config.py:13 synse_server/cmd/info.py:18
@@ -187,7 +219,7 @@ msgstr ""
 msgid "forced scan: rebuilding device cache"
 msgstr ""
 
-#: synse_server/cmd/scan.py:50
+#: synse_server/cmd/scan.py:51
 msgid "failed to get devices from cache"
 msgstr ""
 
