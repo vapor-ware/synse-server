@@ -220,7 +220,11 @@ class TestMessage:
                 'key': 'value',
             }]
 
-            m = websocket.Message(id='testing', event='testing', data={'tags': ['ns/ann:lab', 'foo']})
+            m = websocket.Message(
+                id='testing',
+                event='testing',
+                data={'tags': ['ns/ann:lab', 'foo']},
+            )
             resp = await m.handle_request_scan()
 
             assert resp == {
@@ -476,7 +480,7 @@ class TestMessage:
             assert resp == {
                 'id': 'testing',
                 'event': 'response/reading',
-                'data':[
+                'data': [
                     {
                         'value': 1,
                         'type': 'temperature',
@@ -611,7 +615,11 @@ class TestMessage:
                 'key': 'value',
             }
 
-            m = websocket.Message(id='testing', event='testing', data={'payload': {'action': 'foo'}})
+            m = websocket.Message(
+                id='testing',
+                event='testing',
+                data={'payload': {'action': 'foo'}},
+            )
 
             with pytest.raises(errors.InvalidUsage):
                 await m.handle_request_write_async()
@@ -665,7 +673,11 @@ class TestMessage:
                 'key': 'value',
             }
 
-            m = websocket.Message(id='testing', event='testing', data={'payload': {'action': 'foo'}})
+            m = websocket.Message(
+                id='testing',
+                event='testing',
+                data={'payload': {'action': 'foo'}},
+            )
 
             with pytest.raises(errors.InvalidUsage):
                 await m.handle_request_write_sync()
