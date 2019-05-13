@@ -13,7 +13,9 @@ v3 = Blueprint('v3-websocket')
 
 
 class Message:
-    """"""
+    """Message manages WebSocket events and implements handling around the
+    message receive/response.
+    """
 
     def __init__(self, id, event, data):
         self.id = id
@@ -42,8 +44,12 @@ class Message:
             data=d.get('data', {}),
         )
 
-    async def response(self):
-        """"""
+    async def response(self) -> str:
+        """Generate the response for the Message's request data.
+
+        Messages are passed along to their corresponding handler function, which is
+        the function with the same name as the event type, prefixed with 'handle'.
+        """
 
         # Generate the name of the handler function, e.g. "handle_request_status"
         handler = '_'.join(['handle'] + self.event.split('/'))
@@ -66,32 +72,32 @@ class Message:
 
     # ---
 
-    async def handle_request_status(self):
-        """"""
+    async def handle_request_status(self) -> dict:
+        """WebSocket 'status' event message handler."""
         return {
             'id': self.id,
             'event': 'response/status',
             'data': await cmd.test(),
         }
 
-    async def handle_request_version(self):
-        """"""
+    async def handle_request_version(self) -> dict:
+        """WebSocket 'version' event message handler."""
         return {
             'id': self.id,
             'event': 'response/version',
             'data': await cmd.version(),
         }
 
-    async def handle_request_config(self):
-        """"""
+    async def handle_request_config(self) -> dict:
+        """WebSocket 'config' event message handler."""
         return {
             'id': self.id,
             'event': 'response/config',
             'data': await cmd.config(),
         }
 
-    async def handle_request_plugin(self):
-        """"""
+    async def handle_request_plugin(self) -> dict:
+        """WebSocket 'plugin' event message handler."""
         plugin_id = self.data.get('plugin')
         if not plugin_id:
             data = await cmd.plugins()
@@ -104,16 +110,16 @@ class Message:
             'data': data,
         }
 
-    async def handle_request_plugin_health(self):
-        """"""
+    async def handle_request_plugin_health(self) -> dict:
+        """WebSocket 'plugin health' event message handler."""
         return {
             'id': self.id,
             'event': 'response/plugin_health',
             'data': await cmd.plugin_health(),
         }
 
-    async def handle_request_scan(self):
-        """"""
+    async def handle_request_scan(self) -> dict:
+        """WebSocket 'scan' event message handler."""
         ns = self.data.get('ns', 'default')
         tags = self.data.get('tags', [])
         force = self.data.get('force', False)
@@ -130,8 +136,8 @@ class Message:
             ),
         }
 
-    async def handle_request_tags(self):
-        """"""
+    async def handle_request_tags(self) -> dict:
+        """WebSocket 'tags' event message handler."""
         ns = self.data.get('ns', ['default'])
         ids = self.data.get('ids', False)
 
@@ -141,8 +147,8 @@ class Message:
             'data': await cmd.tags(*ns, with_id_tags=ids),
         }
 
-    async def handle_request_info(self):
-        """"""
+    async def handle_request_info(self) -> dict:
+        """WebSocket 'info' event message handler."""
         device = self.data.get('device')
         if device is None:
             raise errors.InvalidUsage('required data "device" not specified')
@@ -153,8 +159,8 @@ class Message:
             'data': await cmd.info(device_id=device),
         }
 
-    async def handle_request_read(self):
-        """"""
+    async def handle_request_read(self) -> dict:
+        """WebSocket 'read' event message handler."""
         ns = self.data.get('ns', 'default')
         tags = self.data.get('tags', [])
 
@@ -167,8 +173,8 @@ class Message:
             ),
         }
 
-    async def handle_request_read_device(self):
-        """"""
+    async def handle_request_read_device(self) -> dict:
+        """WebSocket 'read device' event message handler."""
         device = self.data.get('device')
         if device is None:
             raise errors.InvalidUsage('required data "device" not specified')
@@ -179,8 +185,8 @@ class Message:
             'data': await cmd.read_device(device_id=device),
         }
 
-    async def handle_request_read_cache(self):
-        """"""
+    async def handle_request_read_cache(self) -> dict:
+        """WebSocket 'read cache' event message handler."""
         start = self.data.get('start')
         end = self.data.get('end')
 
@@ -195,8 +201,8 @@ class Message:
             )],
         }
 
-    async def handle_request_write_async(self):
-        """"""
+    async def handle_request_write_async(self) -> dict:
+        """WebSocket 'write async' event message handler."""
         device = self.data.get('device')
         if device is None:
             raise errors.InvalidUsage('required data "device" not specified')
@@ -214,8 +220,8 @@ class Message:
             ),
         }
 
-    async def handle_request_write_sync(self):
-        """"""
+    async def handle_request_write_sync(self) -> dict:
+        """WebSocket 'write sync' event message handler."""
         device = self.data.get('device')
         if device is None:
             raise errors.InvalidUsage('required data "device" not specified')
@@ -233,8 +239,8 @@ class Message:
             ),
         }
 
-    async def handle_request_transaction(self):
-        """"""
+    async def handle_request_transaction(self) -> dict:
+        """WebSocket 'transaction' event message handler."""
         transaction = self.data.get('transaction')
         if not transaction:
             data = await cmd.transactions()
@@ -248,8 +254,19 @@ class Message:
         }
 
 
-def error(msg_id=None, message=None, ex=None):
-    """"""
+def error(msg_id=None, message=None, ex=None) -> str:
+    """A utility function to generate error response messages for
+    errors returned via the WebSocket API.
+
+    Args:
+        msg_id (int): The ID of the message. If there is no message
+            ID parsed yet or otherwise known, this will default to -1.
+        message (str): The message to use as the error description.
+        ex (Exception): The exception that caused the return error.
+
+    Return:
+        str: Serialized JSON string of the error message.
+    """
     message_id = msg_id or -1
     msg = message or 'An unexpected error occurred.'
 
@@ -277,7 +294,7 @@ def error(msg_id=None, message=None, ex=None):
 
 @v3.websocket('/v3/connect')
 async def connect(request, ws):
-    """"""
+    """Connect to the WebSocket API."""
 
     logger.info(_('new websocket connection'), source=request.ip)
 
