@@ -20,8 +20,8 @@ scheme = Scheme(
         )),
     )),
     DictOption('cache', default=None, scheme=Scheme(
-        DictOption('meta', scheme=Scheme(
-            Option('ttl', default=20, field_type=int)
+        DictOption('device', scheme=Scheme(
+            Option('rebuild_every', default=180, field_type=int)  # three minutes
         )),
         DictOption('transaction', scheme=Scheme(
             Option('ttl', default=300, field_type=int)  # five minutes

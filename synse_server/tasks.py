@@ -2,6 +2,7 @@
 
 import asyncio
 
+from synse_server import config
 from synse_server.cache import update_device_cache
 from synse_server.i18n import _
 from synse_server.log import logger
@@ -20,7 +21,7 @@ def register_with_app(app):
 
 async def _rebuild_device_cache():
     """Periodically rebuild the device cache."""
-    interval = 3 * 60  # 3 minutes
+    interval = config.options.get('cache.device.rebuild_every', 3 * 60)  # 3 minute default
 
     while True:
         logger.info(
