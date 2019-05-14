@@ -6,7 +6,7 @@ import sys
 from sanic_prometheus import monitor
 
 import synse_server
-from synse_server import app, config, plugin
+from synse_server import app, config, plugin, tasks
 from synse_server.i18n import _
 from synse_server.log import logger, setup_logger
 
@@ -104,6 +104,10 @@ class Synse:
         # this info correctly.
         if self.log_header:
             sys.stdout.write(self._header)
+
+        # Add background tasks. This needs to be done at run so any tasks
+        # that take config options have the loaded config available to them.
+        tasks.register_with_app(self.app)
 
         # If application metrics are enabled, configure the application now.
         if config.options.get('metrics.enabled'):
