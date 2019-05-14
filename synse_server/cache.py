@@ -24,7 +24,6 @@ transaction_cache = aiocache.SimpleMemoryCache(
 )
 
 device_cache = aiocache.SimpleMemoryCache(
-    ttl=config.options.get('cache.device.ttl', None),
     namespace=NS_DEVICE,
 )
 
