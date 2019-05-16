@@ -206,12 +206,4 @@ def state_reading():
 def synse_app():
     """Fixture to return an instance of the Synse Sanic application for testing."""
 
-    # Prevent background tasks from being registered on the app being used for
-    # its test client. This speeds things up slightly and prevents premature task
-    # termination warnings in the test output.
-    orig = app.tasks.register_with_app
-    app.tasks.register_with_app = lambda *args, **kwargs: None
-
     yield app.new_app()
-
-    app.tasks.register_with_app = orig
