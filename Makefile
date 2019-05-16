@@ -33,16 +33,6 @@ deps:  ## Update the frozen pip dependencies (requirements.txt)
 
 .PHONY: docker
 docker:  ## Build the docker image locally
-	# Build the slim image
-	docker build \
-		--label build_date=${BUILD_DATE} \
-		--label version=${PKG_VERSION} \
-		--label commit=${GIT_COMMIT} \
-		--target=slim \
-		-t ${IMAGE_NAME}:local-slim \
-		-t ${IMAGE_NAME}:latest-slim .
-
-	# Build the full image
 	docker build \
 		--label build_date=${BUILD_DATE} \
 		--label version=${PKG_VERSION} \
