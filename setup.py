@@ -32,12 +32,16 @@ setup(
     license=pkg['__license__'],
     packages=find_packages(),
     include_package_data=True,
+    python_requires='>=3.6',
     package_data={
         '': ['LICENSE'],
         'synse_server': ['locale/*/LC_MESSAGES/*.mo'],
     },
-    scripts=['bin/synse-server'],
-    python_requires='>=3.6',
+    entry_points={
+        'console_scripts': [
+            'synse_server = synse_server.__main__:main',
+        ],
+    },
     install_requires=[
         'aiocache',
         'bison>=0.1.0',
@@ -50,13 +54,6 @@ setup(
         'sanic-prometheus>=0.1.7',
         'structlog',
         'synse-grpc>=1.1.0',  # fixme: this will need to be >= 3.0.0 once that is released
-    ],
-    tests_require=[
-        'aiohttp',
-        'asynctest',
-        'pytest',
-        'pytest-asyncio',
-        'pytest-mock'
     ],
     zip_safe=False,
     classifiers=[

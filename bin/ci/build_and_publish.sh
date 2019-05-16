@@ -88,6 +88,10 @@ echo "All tags for ${IMAGE_NAME}: ${tags[@]}"
 # uses a Make target defined there.
 #
 
+# FIXME: this will not work with the changes to the Makefile. First, see if
+#   there is an existing release tool for python that will do this stuff for
+#   us so we don't have to maintain scripts everywhere. If not, then update
+#   this script to work properly with latest changes.
 IMAGE_TAGS="${tags[@]}" make docker
 
 
@@ -107,5 +111,4 @@ echo "Pushing Images"
 # built in previous steps and therefore should exist at this point.
 for tag in "${tags[@]}"; do
     docker push ${IMAGE_NAME}:${tag}
-    docker push ${IMAGE_NAME}:${tag}-slim
 done
