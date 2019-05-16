@@ -1,17 +1,12 @@
-# The Dockerfile for the release build of Synse Server. This
-# Dockerfile has multiple stages:
-#   * builder: build synse server package dependencies
-#   * slim: a synse server build without emulator
-#   * full: a synse server build with emulator
 #
-
-#
-# BUILDER
+# BUILDER STAGE
 #
 FROM vaporio/python:3.6 as builder
-COPY requirements.txt .
-COPY synse_grpc-3.0.0.tar.gz .
 
+COPY requirements.txt .
+
+# FIXME: this should be removed once synse-grpc 3.0.0 is released
+COPY synse_grpc-3.0.0.tar.gz .
 RUN pip install --prefix=/build --no-warn-script-location synse_grpc-3.0.0.tar.gz \
  && rm -rf /root/.cache
 
@@ -22,9 +17,8 @@ COPY . /synse
 RUN pip install --no-deps --prefix=/build --no-warn-script-location /synse \
  && rm -rf /root/.cache
 
-
 #
-# SLIM
+# RELEASE STAGE
 #
 FROM vaporio/python:3.6-slim as slim
 
@@ -45,34 +39,8 @@ RUN mkdir -p /tmp/synse/procs \
 COPY --from=builder /build /usr/local
 COPY ./assets/favicon.ico /etc/synse/static/favicon.ico
 
-ENTRYPOINT ["/usr/bin/tini", "--", "synse-server"]
-
-
-#
-# FULL
-#
-FROM slim as full
-
-# Environment variables for built-in emulator configuration and
-# installation from GitHub release.
-ENV PLUGIN_DEVICE_CONFIG="/synse/emulator/config/device" \
-    PLUGIN_CONFIG="/synse/emulator" \
-    EMULATOR_VERSION="2.3.1"
-
-# Install the specified version of the emulator.
-#RUN apt-get update \
-# && apt-get install --no-install-recommends -y curl \
-# && curl -L \
-#    -H "Accept: application/octet-stream" \
-#    -o /usr/local/bin/synse-emulator \
-#    https://github.com/vapor-ware/synse-emulator-plugin/releases/download/${EMULATOR_VERSION}/emulator_linux_amd64 \
-# && chmod +x /usr/local/bin/synse-emulator \
-# && apt-get purge -y curl \
-# && apt-get autoremove -y \
-# && rm -rf /var/lib/apt/lists/*
-
+# FIXME: this should be removed once synse-grpc 3.0.0 is released
 COPY synse_grpc-3.0.0.tar.gz .
 RUN pip install synse_grpc-3.0.0.tar.gz
 
-# Copy in the emulator configurations.
-COPY emulator /synse/emulator
+ENTRYPOINT ["/usr/bin/tini", "--", "synse_server"]

@@ -8,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -24,6 +23,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -35,10 +35,6 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Translations
-*.mo
-*.pot
-
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -47,21 +43,37 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
+*.cover
 .hypothesis/
-results/
-prof/
-*.log
 .pytest_cache/
-tests/testdata/*
-!tests/testdata/README.md
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
 
 # Flask stuff:
 instance/
 .webassets-cache
 
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# mkdocs documentation
+/site
+
 # PyBuilder
 target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
 
 # pyenv
 .python-version
@@ -69,20 +81,31 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
-# dotenv
-.env
+# SageMath parsed files
+*.sage.py
 
-# virtualenv
+# Environments
+.env
 .venv
+env/
 venv/
 ENV/
+env.bak/
+venv.bak/
 
-.vagrant
-.idea
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mypy
+.mypy_cache/
+
+# IDEs / Editors
+.idea/
+
+# Other
 .DS_Store
-
-# packages
-*.rpm
-*.deb
-
 docs/build
