@@ -2,7 +2,7 @@
 
 from sanic import Sanic
 
-from synse_server import errors, tasks
+from synse_server import errors
 from synse_server.api import http, websocket
 
 
@@ -30,8 +30,5 @@ def new_app():
     # Add favicon. This will add a favicon, preventing errors being logged when
     # a browser hits an endpoint and can't find the icon.
     app.static('/favicon.ico', '/etc/synse/static/favicon.ico')
-
-    # Add background tasks
-    tasks.register_with_app(app)
 
     return app
