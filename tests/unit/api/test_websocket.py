@@ -35,7 +35,7 @@ class TestMessage:
 
     @pytest.mark.asyncio
     async def test_response(self):
-        with asynctest.patch('synse_server.api.websocket.Message.handle_request_status') as mock_handler:
+        with asynctest.patch('synse_server.api.websocket.Message.handle_request_status') as mock_handler:  # noqa: E501
             mock_handler.return_value = {'status': 'ok'}
 
             msg = websocket.Message(
@@ -73,7 +73,7 @@ class TestMessage:
     @pytest.mark.asyncio
     @pytest.mark.usefixtures('patch_utils_rfc3339now')
     async def test_response_error(self):
-        with asynctest.patch('synse_server.api.websocket.Message.handle_request_status') as mock_handler:
+        with asynctest.patch('synse_server.api.websocket.Message.handle_request_status') as mock_handler:  # noqa: E501
             mock_handler.side_effect = ValueError('test error')
 
             msg = websocket.Message(
