@@ -12,22 +12,89 @@ class TestMessage:
     """Tests for the WebSocket Message handler class."""
 
     def test_from_json(self):
-        pass
+        data = '{"id": 1, "event": "test", "data": {"foo": "bar"}}'
+
+        msg = websocket.Message.from_json(data)
+
+        assert isinstance(msg, websocket.Message)
+        assert msg.id == 1
+        assert msg.event == 'test'
+        assert msg.data == {'foo': 'bar'}
 
     def test_from_json_error(self):
-        pass
+        data = '{{"}'
+
+        with pytest.raises(Exception):
+            websocket.Message.from_json(data)
+
+    def test_from_json_missing_required(self):
+        data = '{"event": "test", "data": {"foo": "bar"}}'
+
+        with pytest.raises(KeyError):
+            websocket.Message.from_json(data)
 
     @pytest.mark.asyncio
     async def test_response(self):
-        pass
+        with asynctest.patch('synse_server.api.websocket.Message.handle_request_status') as mock_handler:  # noqa: E501
+            mock_handler.return_value = {'status': 'ok'}
+
+            msg = websocket.Message(
+                id=2,
+                event='request/status',
+                data={},
+            )
+
+            r = await msg.response()
+            resp = json.loads(r)
+
+            assert resp == {'status': 'ok'}
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
     async def test_response_no_handler(self):
-        pass
+        msg = websocket.Message(
+            id=3,
+            event='foo/bar',
+            data={},
+        )
+
+        r = await msg.response()
+        resp = json.loads(r)
+
+        assert resp == {
+            'id': 3,
+            'event': 'response/error',
+            'data': {
+                'description': 'unsupported event type: foo/bar',
+                'timestamp': '2019-04-22T13:30:00Z',
+            }
+        }
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures('patch_utils_rfc3339now')
     async def test_response_error(self):
-        pass
+        with asynctest.patch('synse_server.api.websocket.Message.handle_request_status') as mock_handler:  # noqa: E501
+            mock_handler.side_effect = ValueError('test error')
+
+            msg = websocket.Message(
+                id=4,
+                event='request/status',
+                data={},
+            )
+
+            r = await msg.response()
+            resp = json.loads(r)
+
+            assert resp == {
+                'id': 4,
+                'event': 'response/error',
+                'data': {
+                    'http_code': 500,
+                    'description': 'An unexpected error occurred.',
+                    'timestamp': '2019-04-22T13:30:00Z',
+                    'context': 'test error',
+                }
+            }
 
     @pytest.mark.asyncio
     async def test_request_status(self):
@@ -86,18 +153,18 @@ class TestMessage:
         mock_cmd.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_request_plugin_no_data(self):
+    async def test_request_plugins(self):
         with asynctest.patch('synse_server.cmd.plugins') as mock_cmd:
             mock_cmd.return_value = [{
                 'key': 'value',
             }]
 
             m = websocket.Message(id='testing', event='testing', data={})
-            resp = await m.handle_request_plugin()
+            resp = await m.handle_request_plugins()
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/plugin',
+                'event': 'response/plugin_summary',
                 'data': mock_cmd.return_value,
             }
 
@@ -105,7 +172,7 @@ class TestMessage:
         mock_cmd.assert_called_with()
 
     @pytest.mark.asyncio
-    async def test_request_plugin_with_data(self):
+    async def test_request_plugin(self):
         with asynctest.patch('synse_server.cmd.plugin') as mock_cmd:
             mock_cmd.return_value = [{
                 'key': 'value',
@@ -116,12 +183,25 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/plugin',
+                'event': 'response/plugin_info',
                 'data': mock_cmd.return_value,
             }
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('123')
+
+    @pytest.mark.asyncio
+    async def test_request_plugin_invalid_usage(self):
+        with asynctest.patch('synse_server.cmd.plugin') as mock_cmd:
+            mock_cmd.return_value = [{
+                'key': 'value',
+            }]
+
+            m = websocket.Message(id='testing', event='testing', data={})
+            with pytest.raises(errors.InvalidUsage):
+                await m.handle_request_plugin()
+
+        mock_cmd.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_request_plugin_health(self):
@@ -153,7 +233,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/scan',
+                'event': 'response/device_summary',
                 'data': mock_cmd.return_value,
             }
 
@@ -177,7 +257,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/scan',
+                'event': 'response/device_summary',
                 'data': mock_cmd.return_value,
             }
 
@@ -201,7 +281,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/scan',
+                'event': 'response/device_summary',
                 'data': mock_cmd.return_value,
             }
 
@@ -229,7 +309,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/scan',
+                'event': 'response/device_summary',
                 'data': mock_cmd.return_value,
             }
 
@@ -322,7 +402,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/info',
+                'event': 'response/device_info',
                 'data': mock_cmd.return_value,
             }
 
@@ -598,7 +678,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/write_async',
+                'event': 'response/transaction_info',
                 'data': mock_cmd.return_value,
             }
 
@@ -656,7 +736,7 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/write_sync',
+                'event': 'response/transaction_status',
                 'data': mock_cmd.return_value,
             }
 
@@ -699,18 +779,18 @@ class TestMessage:
         mock_cmd.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_request_transaction_no_data(self):
+    async def test_request_transactions(self):
         with asynctest.patch('synse_server.cmd.transactions') as mock_cmd:
             mock_cmd.return_value = [{
                 'key': 'value',
             }]
 
             m = websocket.Message(id='testing', event='testing', data={})
-            resp = await m.handle_request_transaction()
+            resp = await m.handle_request_transactions()
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/transaction',
+                'event': 'response/transaction_list',
                 'data': mock_cmd.return_value,
             }
 
@@ -718,7 +798,7 @@ class TestMessage:
         mock_cmd.assert_called_with()
 
     @pytest.mark.asyncio
-    async def test_request_transaction_with_data(self):
+    async def test_request_transaction(self):
         with asynctest.patch('synse_server.cmd.transaction') as mock_cmd:
             mock_cmd.return_value = [{
                 'key': 'value',
@@ -729,12 +809,25 @@ class TestMessage:
 
             assert resp == {
                 'id': 'testing',
-                'event': 'response/transaction',
+                'event': 'response/transaction_status',
                 'data': mock_cmd.return_value,
             }
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('foo')
+
+    @pytest.mark.asyncio
+    async def test_request_transaction_invalid_usage(self):
+        with asynctest.patch('synse_server.cmd.transaction') as mock_cmd:
+            mock_cmd.return_value = [{
+                'key': 'value',
+            }]
+
+            m = websocket.Message(id='testing', event='testing', data={})
+            with pytest.raises(errors.InvalidUsage):
+                await m.handle_request_transaction()
+
+        mock_cmd.assert_not_called()
 
 
 @pytest.mark.usefixtures('patch_utils_rfc3339now')
