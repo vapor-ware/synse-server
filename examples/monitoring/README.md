@@ -1,13 +1,16 @@
 # Synse Server Application Monitoring
+
 This sample deployment sets up Synse Server, Prometheus, and Grafana to provide a dashboard for
 application monitoring for Synse Server.
 
 To run, simply:
+
 ```
 docker-compose up -d
 ```
 
 All service endpoints are accessible locally:
+
 - **Synse Server**: `localhost:5000`
 - **Prometheus**: `localhost:9090`
 - **Grafana**: `localhost:3000`

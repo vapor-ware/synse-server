@@ -1,0 +1,14 @@
+#
+# plugin-config.yaml
+#
+# Example custom configuration for the emulator plugin.
+#
+
+version: 3
+debug: true
+id:
+  useCustom:
+  - "plugin-1"
+network:
+  type: tcp
+  address: ":5001"
