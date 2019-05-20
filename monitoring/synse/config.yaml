@@ -1,3 +1,0 @@
-logging: debug
-metrics:
-  enabled: true

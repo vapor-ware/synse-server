@@ -20,21 +20,15 @@ RUN pip install --no-deps --prefix=/build --no-warn-script-location /synse \
 #
 # RELEASE STAGE
 #
-FROM vaporio/python:3.6-slim as slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends tini \
- && rm -rf /var/lib/apt/lists/*
+FROM vaporio/python:3.6-slim
 
 LABEL maintainer="Vapor IO" \
       name="vaporio/synse-server" \
       url="https://github.com/vapor-ware/synse-server"
 
-# Create directories for plugin sockets and configuration, then
-# install Synse Server as a python package
-# TODO: this will eventually be done via synse-server itself..
-RUN mkdir -p /tmp/synse/procs \
- && mkdir -p /synse/config \
- && mkdir -p /etc/synse/static
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tini curl \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build /usr/local
 COPY ./assets/favicon.ico /etc/synse/static/favicon.ico

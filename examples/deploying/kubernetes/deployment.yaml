@@ -1,0 +1,42 @@
+#
+# deployment.yaml
+#
+# A simple example Kubernetes deployment for Synse Server and the
+# emulator plugin.
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synse
+  labels:
+    app: synse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synse
+  template:
+    metadata:
+      labels:
+        app: synse
+    spec:
+      containers:
+      - name: synse-server
+        image: vaporio/synse-server
+        ports:
+        - name: http
+          containerPort: 5000
+        env:
+        # Enable debug logging via ENV config
+        - name: SYNSE_LOGGING
+          value: debug
+        # Register the Emulator Plugin via ENV config
+        - name: SYNSE_PLUGIN_TCP
+          value: localhost:5001
+
+      - name: emulator-plugin
+        image: vaporio/emulator-plugin
+        ports:
+        - name: http
+          containerPort: 5001

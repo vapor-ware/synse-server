@@ -12,122 +12,53 @@ pipeline {
         checkout scm
       }
     }
-    // Lint the project source code.
+
     stage('Lint') {
       steps {
-        sh 'make lint'
-      }
-      post {
-        success {
-          script {
-            if (env.CHANGE_ID) {
-              pullRequest.createStatus(
-                status: 'success',
-                context: 'vio-build/lint',
-                description: 'Source code linting succeeded',
-                targetUrl: "${env.RUN_DISPLAY_URL}"
-              )
-            }
-          }
-        }
-        failure {
-          script {
-            if (env.CHANGE_ID) {
-              pullRequest.createStatus(
-                status: 'failure',
-                context: 'vio-build/lint',
-                description: 'Source code linting failed',
-                targetUrl: "${env.RUN_DISPLAY_URL}"
-              )
-            }
-          }
-        }
+        sh 'tox -e lint'
       }
     }
-    // Run unit and integration tests, generate and upload coverage report.
+
     stage('Test') {
       environment {
         CODECOV_TOKEN = credentials('codecov-token')
       }
       steps {
-        sh 'make i18n test-unit'
+        sh 'tox -e i18n'
+        sh 'tox tests/unit'
         sh 'codecov'
-        // sh 'make test-integration'
-      }
-      post {
-        success {
-          script {
-            if (env.CHANGE_ID) {
-              pullRequest.createStatus(
-                status: 'success',
-                context: 'vio-build/test',
-                description: 'Tests passed',
-                targetUrl: "${env.RUN_DISPLAY_URL}"
-              )
-            }
-          }
-        }
-        failure {
-          script {
-            if (env.CHANGE_ID) {
-              pullRequest.createStatus(
-                status: 'success',
-                context: 'vio-build/test',
-                description: 'Tests failed',
-                targetUrl: "${env.RUN_DISPLAY_URL}"
-              )
-            }
-          }
-        }
       }
     }
-    // Verify that the Docker image builds successfully.
-    stage('Build Image') {
+
+    stage('Verify Image Build') {
       steps {
-        sh 'make docker'
-      }
-      post {
-        success {
-          script {
-            if (env.CHANGE_ID) {
-              pullRequest.createStatus(
-                status: 'success',
-                context: 'vio-build/build-image',
-                description: 'Successfully built docker image',
-                targetUrl: "${env.RUN_DISPLAY_URL}"
-              )
-            }
-          }
-        }
-        failure {
-          script {
-            if (env.CHANGE_ID) {
-              pullRequest.createStatus(
-                status: 'success',
-                context: 'vio-build/build-image',
-                description: 'Failed to build docker image',
-                targetUrl: "${env.RUN_DISPLAY_URL}"
-              )
-            }
-          }
-        }
+        sh '''
+          docker build \
+            --label build_date=$(date -u +%Y-%m-%dT%T 2> /dev/null) \
+            --label version=$(python setup.py --version) \
+            --label commit=$(git rev-parse --short HEAD 2> /dev/null || true) \
+             -t ${IMAGE_NAME}:canary .
+        '''
       }
     }
-    // Build the image with the 'edge' tag and publish it to DockerHub. This
-    // should only be run on the master branch (e.g. PR merge)
-    stage('Publish Edge Image') {
+
+    stage('Publish "latest" Image (master)') {
       when {
         branch 'master'
       }
       steps {
         withDockerRegistry(registry: [credentialsId: 'vio-docker-hub']) {
-          sh './bin/ci/build_and_publish.sh edge'
+          sh '''
+            docker build \
+              --label build_date=$(date -u +%Y-%m-%dT%T 2> /dev/null) \
+              --label version=$(python setup.py --version) \
+              --label commit=$(git rev-parse --short HEAD 2> /dev/null || true) \
+              -t ${IMAGE_NAME}:latest .
+          '''
         }
       }
     }
-    // Generate a new release draft on GitHub for a tag matching a version string
-    // pattern. The release will include an auto-generated changelog and build
-    // artifacts.
+
     stage('Draft GitHub Release') {
       when {
         // example matches: v1.2.3, v1.2.3-dev
@@ -139,8 +70,8 @@ pipeline {
         GITHUB_REPONAME = 'synse-server'
       }
       steps {
-        sh 'make ci-check-version'
-        sh 'make ci-package'
+        // Build package distribution
+        sh 'python setup.py sdist --formats=gztar,zip'
 
         // Auto-generate a changelog for the release
         sh './bin/ci/generate_changelog.sh'
@@ -150,20 +81,18 @@ pipeline {
         sh 'docker run --rm -v $PWD:/repo edaniszewski/ghr -u ${GITHUB_USER} -r ${GITHUB_REPONAME} -t ${GITHUB_TOKEN} -b "$(cat ./CHANGELOG.md)" -replace -draft ${TAG_NAME} dist'
       }
     }
-    // Build the image with the release tags and publish it to Dockerhub. This
-    // should only be run on a git tag matching a version string pattern. This
-    // should only run if the "Draft GitHub Release" stage completed successfully.
+
     stage('Publish Release Images') {
       when {
         // example matches: v1.2.3, v1.2.3-dev
         tag pattern: '^v(0|[1-9]*)\\.(0|[1-9]*)\\.(0|[1-9]*)(-(\\S*))?$', comparator: "REGEXP"
       }
       steps {
-        sh 'make ci-check-version'
         withDockerRegistry(registry: [credentialsId: 'vio-docker-hub']) {
           sh './bin/ci/build_and_publish.sh latest'
         }
       }
     }
+
   }
 }
