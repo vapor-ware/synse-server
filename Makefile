@@ -10,18 +10,10 @@ GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2> /dev/null || true)
 BUILD_DATE := $(shell date -u +%Y-%m-%dT%T 2> /dev/null)
 
 
-.PHONY: api-doc
-api-doc:  ## Open the locally generated HTML API reference
-	@open ./docs/index.html || echo "API doc not found locally. To generate, run: 'make docs'"
-
 .PHONY: clean
 clean:  ## Clean up build and test artifacts
 	rm -rf build/ dist/ *.egg-info htmlcov/ .coverage* .pytest_cache/ \
 		synse_server/__pycache__ synse_server/__pycache__ results/
-
-.PHONY: clean-docs
-clean-docs:  ## Clean out the documentation build artifacts
-	@bin/clean_docs.sh
 
 .PHONY: cover
 cover: test-unit  ## Run unit tests and open their resulting HTML coverage report
@@ -39,19 +31,6 @@ docker:  ## Build the docker image locally
 		--label commit=${GIT_COMMIT} \
 		-t ${IMAGE_NAME}:local \
 		-t ${IMAGE_NAME}:latest .
-
-.PHONY: docs
-docs: clean-docs  ## Generate the User Guide and API documentation locally
-	@echo "Building User Guide (see docs/build/html/index.html for output)"
-	(cd docs ; make html)
-
-	@echo "Building API Documentation (see docs/index.html for output)"
-	docker build -f docs/Dockerfile -t vaporio/slate-docs docs
-	@if [ -d "docs/api/build" ]; then rm -rf docs/api/build; fi;
-	docker run --name slate-docs -v `pwd`/docs/api:/source vaporio/slate-docs
-	docker cp slate-docs:/slate/build/. docs/api/build
-	docker rm slate-docs
-	mv docs/api/build/** docs/
 
 .PHONY: fmt
 fmt:  ## Automatic source code formatting (isort)
