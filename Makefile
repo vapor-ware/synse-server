@@ -49,33 +49,8 @@ i18n:  ## Update the translations catalog
 lint:  ## Run linting checks on the project source code (isort, flake8)
 	tox -e lint
 
-.PHONY: run
-run:  ## Run Synse Server with emulator locally (localhost:5000)
-	docker run -d \
-		-p 5000:5000 \
-		-e SYNSE_LOGGING=debug \
-		--name synse \
-		${IMAGE_NAME} enable-emulator
-
-#.PHONY: test
-#test: test-unit test-integration test-end-to-end  ## Run all tests
 .PHONY: test
-test: test-unit  ## Run all tests
-
-# FIXME (etd): Temporarily disabled. The test suite is being rebuilt and these
-#   are either not currently available or are being stipped out / consolidated.
-#.PHONY: test-end-to-end
-#test-end-to-end: docker ## Run the end to end tests
-#	docker-compose -f compose/synse.yml up -d --build
-#	tox tests/end_to_end
-#	docker-compose -f compose/synse.yml down
-
-#.PHONY: test-integration
-#test-integration:  ## Run the integration tests
-#	tox tests/integration
-
-.PHONY: test-unit
-test-unit:  ## Run the unit tests
+test:  ## Run the unit tests
 	tox tests/unit
 
 .PHONY: version
@@ -87,16 +62,3 @@ help:  ## Print Make usage information
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 
 .DEFAULT_GOAL := help
-
-
-#
-# CI Targets
-#
-
-.PHONY: ci-check-version
-ci-check-version:
-	PKG_VERSION=$(PKG_VERSION) ./bin/ci/check_version.sh
-
-.PHONY: ci-package
-ci-package:
-	tox -e dist
