@@ -99,15 +99,21 @@ class Message:
     async def handle_request_plugin(self) -> dict:
         """WebSocket 'plugin' event message handler."""
         plugin_id = self.data.get('plugin')
-        if not plugin_id:
-            data = await cmd.plugins()
-        else:
-            data = await cmd.plugin(plugin_id)
+        if plugin_id is None:
+            raise errors.InvalidUsage('required data "plugin" not specified')
 
         return {
             'id': self.id,
-            'event': 'response/plugin',
-            'data': data,
+            'event': 'response/plugin_info',
+            'data': await cmd.plugin(plugin_id),
+        }
+
+    async def handle_request_plugins(self) -> dict:
+        """WebSocket 'plugins' event message handler."""
+        return {
+            'id': self.id,
+            'event': 'response/plugin_summary',
+            'data': await cmd.plugins(),
         }
 
     async def handle_request_plugin_health(self) -> dict:
@@ -127,7 +133,7 @@ class Message:
 
         return {
             'id': self.id,
-            'event': 'response/scan',
+            'event': 'response/device_summary',
             'data': await cmd.scan(
                 ns=ns,
                 tags=tags,
@@ -155,7 +161,7 @@ class Message:
 
         return {
             'id': self.id,
-            'event': 'response/info',
+            'event': 'response/device_info',
             'data': await cmd.info(device_id=device),
         }
 
@@ -213,7 +219,7 @@ class Message:
 
         return {
             'id': self.id,
-            'event': 'response/write_async',
+            'event': 'response/transaction_info',
             'data': await cmd.write_async(
                 device_id=device,
                 payload=payload,
@@ -232,7 +238,7 @@ class Message:
 
         return {
             'id': self.id,
-            'event': 'response/write_sync',
+            'event': 'response/transaction_status',
             'data': await cmd.write_sync(
                 device_id=device,
                 payload=payload,
@@ -242,15 +248,23 @@ class Message:
     async def handle_request_transaction(self) -> dict:
         """WebSocket 'transaction' event message handler."""
         transaction = self.data.get('transaction')
-        if not transaction:
-            data = await cmd.transactions()
-        else:
-            data = await cmd.transaction(transaction)
+        if transaction is None:
+            raise errors.InvalidUsage('required data "transaction" not specified')
 
         return {
             'id': self.id,
-            'event': 'response/transaction',
-            'data': data,
+            'event': 'response/transaction_status',
+            'data': await cmd.transaction(
+                transaction,
+            ),
+        }
+
+    async def handle_request_transactions(self) -> dict:
+        """WebSocket 'transactions' event message handler."""
+        return {
+            'id': self.id,
+            'event': 'response/transaction_list',
+            'data': await cmd.transactions(),
         }
 
 

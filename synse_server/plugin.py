@@ -74,7 +74,12 @@ class PluginManager:
         # and ensure that we can connect to the plugin. These calls may raise
         # an exception - we want to let them propagate up to signal that registration
         # for the particular address failed.
-        c = client.PluginClientV3(address, protocol)
+        c = client.PluginClientV3(
+            address=address,
+            protocol=protocol,
+            timeout=config.options.get('grpc.timeout'),
+            tls=config.options.get('grpc.tls.cert'),
+        )
         meta = c.metadata()
         ver = c.version()
 
