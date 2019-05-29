@@ -51,7 +51,6 @@ docs
 **/*.md
 **/*.rst
 NOTICE
-proposals/
 
 # Scripts
 bin/ci
