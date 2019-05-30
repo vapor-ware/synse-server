@@ -139,6 +139,7 @@ async def plugin_health(request):
 
 
 @v3.route('/scan')
+@v3.route('/device')
 async def scan(request):
     """List the devices that Synse knows about,
 
