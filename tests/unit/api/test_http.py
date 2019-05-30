@@ -1793,6 +1793,304 @@ class TestV3Transaction:
 class TestV3Device:
     """Test for the Synse v3 API 'device' route."""
 
+    #
+    # Tests for /device
+    #
+    # Note: Since the /device route is just an alias for the /scan route
+    # to make the API more consistent/RESTful, these tests are effectively
+    # the same as the scan tests.
+    #
+
+    @pytest.mark.parametrize(
+        'method', (
+            'post',
+            'put',
+            'delete',
+            'patch',
+            'head',
+            'options',
+        )
+    )
+    def test_enumerate_methods_not_allowed(self, synse_app, method):
+        fn = getattr(synse_app.test_client, method)
+        response = fn('/v3/device', gather_request=False)
+        assert response.status == 405
+
+    def test_enumerate_ok(self, synse_app):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            mock_cmd.return_value = [
+                {
+                    'id': '12345',
+                    'info': 'foo',
+                    'type': 'temperature',
+                    'plugin': 'plugin-1',
+                    'tags': [
+                        'default/foo:bar',
+                    ],
+                },
+                {
+                    'id': '54321',
+                    'info': 'bar',
+                    'type': 'temperature',
+                    'plugin': 'plugin-2',
+                    'tags': [
+                        'default/foo:bar',
+                    ],
+                },
+            ]
+
+            resp = synse_app.test_client.get('/v3/device', gather_request=False)
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tags=[],
+            force=False,
+            sort='plugin,sortIndex,id',
+        )
+
+    def test_enumerate_error(self, synse_app):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            mock_cmd.side_effect = ValueError('***********')
+
+            resp = synse_app.test_client.get('/v3/device', gather_request=False)
+            assert resp.status == 500
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == {
+                'context': '***********',
+                'description': 'an unexpected error occurred',
+                'http_code': 500,
+                'timestamp': '2019-04-22T13:30:00Z',
+            }
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tags=[],
+            force=False,
+            sort='plugin,sortIndex,id',
+        )
+
+    def test_enumerate_invalid_multiple_ns(self, synse_app):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            resp = synse_app.test_client.get('/v3/device?ns=ns-1&ns=ns-2', gather_request=False)
+            assert resp.status == 400
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == {
+                'context': 'invalid parameter: only one namespace may be specified',
+                'description': 'invalid user input',
+                'http_code': 400,
+                'timestamp': '2019-04-22T13:30:00Z',
+            }
+
+        mock_cmd.assert_not_called()
+
+    def test_enumerate_invalid_multiple_sort(self, synse_app):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            resp = synse_app.test_client.get('/v3/device?sort=id&sort=type', gather_request=False)
+            assert resp.status == 400
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == {
+                'context': 'invalid parameter: only one sort key may be specified',
+                'description': 'invalid user input',
+                'http_code': 400,
+                'timestamp': '2019-04-22T13:30:00Z',
+            }
+
+        mock_cmd.assert_not_called()
+
+    @pytest.mark.parametrize(
+        'qparam,expected', [
+            ('?ns=', 'default'),
+            ('?ns=default', 'default'),
+            ('?ns=foo', 'foo'),
+            ('?ns=test', 'test'),
+            ('?ns=TEST', 'TEST'),
+            ('?ns=t.e.s.t', 't.e.s.t'),
+        ]
+    )
+    def test_enumerate_param_ns(self, synse_app, qparam, expected):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            mock_cmd.return_value = [
+                {
+                    'id': '12345',
+                    'info': 'foo',
+                    'type': 'temperature',
+                    'plugin': 'plugin-1',
+                    'tags': [
+                        'default/foo:bar',
+                    ],
+                },
+            ]
+
+            resp = synse_app.test_client.get(
+                '/v3/device' + qparam,
+                gather_request=False,
+            )
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns=expected,
+            tags=[],
+            force=False,
+            sort='plugin,sortIndex,id',
+        )
+
+    @pytest.mark.parametrize(
+        'qparam,expected', [
+            ('?sort=', 'plugin,sortIndex,id'),
+            ('?sort=plugin,sortIndex,id', 'plugin,sortIndex,id'),
+            ('?sort=foo', 'foo'),
+            ('?sort=test', 'test'),
+            ('?sort=a,b,c,d', 'a,b,c,d'),
+        ]
+    )
+    def test_enumerate_param_sort_keys(self, synse_app, qparam, expected):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            mock_cmd.return_value = [
+                {
+                    'id': '12345',
+                    'info': 'foo',
+                    'type': 'temperature',
+                    'plugin': 'plugin-1',
+                    'tags': [
+                        'default/foo:bar',
+                    ],
+                },
+            ]
+
+            resp = synse_app.test_client.get(
+                '/v3/device' + qparam,
+                gather_request=False,
+            )
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tags=[],
+            force=False,
+            sort=expected,
+        )
+
+    @pytest.mark.parametrize(
+        'qparam,expected', [
+            ('?force=', False),
+            ('?force=false', False),
+            ('?force=FALSE', False),
+            ('?force=False', False),
+            ('?force=foo', False),
+            ('?force=.', False),
+            ('?force=tru', False),
+            ('?force=trueeee', False),
+            ('?force=true', True),
+            ('?force=True', True),
+            ('?force=TRUE', True),
+            ('?force=TrUe', True),
+            ('?force=False&force=True', False),
+            ('?force=True&force=False', True),
+        ]
+    )
+    def test_enumerate_param_force(self, synse_app, qparam, expected):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            mock_cmd.return_value = [
+                {
+                    'id': '12345',
+                    'info': 'foo',
+                    'type': 'temperature',
+                    'plugin': 'plugin-1',
+                    'tags': [
+                        'default/foo:bar',
+                    ],
+                },
+            ]
+
+            resp = synse_app.test_client.get(
+                '/v3/device' + qparam,
+                gather_request=False,
+            )
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tags=[],
+            force=expected,
+            sort='plugin,sortIndex,id',
+        )
+
+    @pytest.mark.parametrize(
+        'qparam,expected', [
+            ('?tags=', []),
+            ('?tags=a,b,c', ['a', 'b', 'c']),
+            ('?tags=a&tags=b&tags=c', ['a', 'b', 'c']),
+            ('?tags=default/foo', ['default/foo']),
+            ('?tags=default/foo:bar', ['default/foo:bar']),
+            ('?tags=foo:bar', ['foo:bar']),
+            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),  # noqa: E501
+            ('?tags=default/foo,bar&tags=vapor/test', ['default/foo', 'bar', 'vapor/test']),
+        ]
+    )
+    def test_enumerate_param_tags(self, synse_app, qparam, expected):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            mock_cmd.return_value = [
+                {
+                    'id': '12345',
+                    'info': 'foo',
+                    'type': 'temperature',
+                    'plugin': 'plugin-1',
+                    'tags': [
+                        'default/foo:bar',
+                    ],
+                },
+            ]
+
+            resp = synse_app.test_client.get(
+                '/v3/device' + qparam,
+                gather_request=False,
+            )
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tags=expected,
+            force=False,
+            sort='plugin,sortIndex,id',
+        )
+
+    #
+    # Tests for /device/<id>
+    #
+
     @pytest.mark.parametrize(
         'method', (
             'put',
