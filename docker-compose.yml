@@ -1,0 +1,32 @@
+#
+# docker-compose.yml
+#
+# A simple deployment of Synse Server with an emulator plugin
+# instance. Useful for learning, testing, and debugging.
+#
+
+version: '3.4'
+services:
+  synse-server:
+    container_name: synse-server
+    image: vaporio/synse-server
+    ports:
+    - '5000:5000'
+    environment:
+      SYNSE_LOGGING: debug
+      SYNSE_PLUGIN_TCP: emulator-plugin:5001
+    links:
+    - emeulator-plugin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/test"]
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  emulator-plugin:
+    container_name: emulator-plugin
+    image: vaporio/emulator-plugin
+    ports:
+    - '5001:5001'
+    command: ['--debug']

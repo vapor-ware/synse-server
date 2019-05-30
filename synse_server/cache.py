@@ -140,11 +140,6 @@ async def update_device_cache():
          "default/foo": [{...}, {...}, {...}]
          "default/x:bar": [{...}]
          "vaporio/svc:xyz": [{...}, {...}]
-
-    TODO: The cache structure here is quite different from how it was in
-      Synse v2. We will need to profile/examine performance and behavior
-      with this implementation to ensure that it does not negatively impact
-      Synse Server.
     """
     logger.debug(_('updating the device cache'))
 
@@ -166,7 +161,6 @@ async def update_device_cache():
             logger.debug(_('getting devices from plugin'), plugin=p.tag, plugin_id=p.id)
             try:
                 with p as client:
-                    # todo: exception handling
                     for device in client.devices():
                         # Update the alias cache if the device has an alias.
                         if device.alias:
