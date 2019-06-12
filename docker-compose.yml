@@ -16,7 +16,7 @@ services:
       SYNSE_LOGGING: debug
       SYNSE_PLUGIN_TCP: emulator-plugin:5001
     links:
-    - emeulator-plugin
+    - emulator-plugin
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/test"]
       interval: 1m
