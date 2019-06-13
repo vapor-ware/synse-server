@@ -11,6 +11,8 @@
 [![Code Coverage](https://codecov.io/gh/vapor-ware/synse-server/branch/master/graph/badge.svg)](https://codecov.io/gh/vapor-ware/synse-server)
 [![Documentation Status](https://readthedocs.org/projects/synse/badge/?version=latest)](https://synse.readthedocs.io/en/latest/?badge=latest)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server?ref=badge_shield)
+![License](https://img.shields.io/github/license/vapor-ware/synse-server.svg)
+![GitHub Release](https://img.shields.io/github/release/vapor-ware/synse-server.svg)
 
 Synse Server is part of the [Synse Platform][synse]. It provides a simple HTTP API to make
 gathering device metrics and issuing device commands easy. Synse is designed for lights-out
