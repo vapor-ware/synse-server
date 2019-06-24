@@ -437,14 +437,13 @@ async def _build_device_info_cache():
     logger.debug(_('Building the device cache'))
     devices, plugins = {}, {}
 
-    # First, we want to iterate through all of the known plugins and
-    # use the associated client to get the device information provided by
-    # that backend.
+    # Register all plugins prior to rebuilding the cache. This ensures that we
+    # are using all possible plugins to get device data. If a plugin was previously
+    # down, this will add it back to tracking before the cache is rebuilt.
+    # See: https://github.com/vapor-ware/synse-server/issues/317
+    logger.debug(_('re-registering plugins prior to cache rebuild'))
+    register_plugins()
     plugin_count = len(Plugin.manager.plugins)
-    if plugin_count == 0:
-        logger.debug(_('Manager has no plugins - registering plugins'))
-        register_plugins()
-        plugin_count = len(Plugin.manager.plugins)
 
     logger.debug(_('Plugins to scan: {}').format(plugin_count))
 
@@ -454,6 +453,10 @@ async def _build_device_info_cache():
     # FIXME (etd): as of pylint 2.1.1, this gets marked with 'not-an-iterable'
     # It still appears to work just fine, so need to figure out why it is getting
     # marked as such and what should be done to fix it.
+
+    # We want to iterate through all of the known plugins and
+    # use the associated client to get the device information provided by
+    # that backend.
     async for plugin_id, plugin in get_plugins():  # pylint: disable=not-an-iterable
         logger.debug('{} -- {}'.format(plugin_id, plugin))
 

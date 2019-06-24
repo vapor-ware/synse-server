@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-01-14 09:58-0500\n"
+"POT-Creation-Date: 2019-06-24 14:01-0400\n"
 "PO-Revision-Date: 2019-01-14 09:58-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 #: synse/cache.py:49
 msgid "Setting cache configuration: {}"
@@ -39,7 +39,7 @@ msgstr ""
 msgid "Building the device capabilities cache"
 msgstr ""
 
-#: synse/cache.py:379 synse/cache.py:445
+#: synse/cache.py:379
 msgid "Manager has no plugins - registering plugins"
 msgstr ""
 
@@ -59,23 +59,27 @@ msgstr ""
 msgid "Building the device cache"
 msgstr ""
 
-#: synse/cache.py:449
+#: synse/cache.py:444
+msgid "re-registering plugins prior to cache rebuild"
+msgstr ""
+
+#: synse/cache.py:448
 msgid "Plugins to scan: {}"
 msgstr ""
 
-#: synse/cache.py:477
+#: synse/cache.py:480
 msgid "Failed to get device info for plugin: {}"
 msgstr ""
 
-#: synse/cache.py:484
+#: synse/cache.py:487
 msgid "Failed to scan all plugins: {}"
 msgstr ""
 
-#: synse/cache.py:502
+#: synse/cache.py:505
 msgid "Building the scan cache"
 msgstr ""
 
-#: synse/cache.py:637
+#: synse/cache.py:640
 msgid "Building the info cache"
 msgstr ""
 

@@ -79,6 +79,15 @@ def patch_device_info(monkeypatch):
 
 
 @pytest.fixture()
+def patch_register_plugins(monkeypatch):
+    """Fixture to monkeypatch the register_plugins method, so it does nothing, as
+    plugins are manually registered for test cases."""
+    def do_nothing():
+        pass
+    monkeypatch.setattr(cache, 'register_plugins', do_nothing)
+
+
+@pytest.fixture()
 def plugin_context(tmpdir):
     """Fixture to setup and teardown the test context for creating plugins."""
 
@@ -243,7 +252,7 @@ async def test_get_device_meta_not_found(clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_get_device_info_cache_ok(plugin_context, clear_caches):
+async def test_get_device_info_cache_ok(patch_register_plugins, plugin_context, clear_caches):
     """Get the device info cache."""
 
     # create & register new plugin
@@ -284,7 +293,7 @@ async def test_get_device_info_cache_empty(plugin_context, clear_caches):
 
 
 @pytest.mark.asyncio
-async def test_get_device_info_cache_exist(plugin_context, clear_caches):
+async def test_get_device_info_cache_exist(patch_register_plugins, plugin_context, clear_caches):
     """Get the existing device info cache."""
 
     # create & register new plugin
@@ -335,7 +344,7 @@ async def test_get_device_info_cache_total_failure(plugin_context, clear_caches)
 
 
 @pytest.mark.asyncio
-async def test_get_device_info_cache_partial_failure(plugin_context, clear_caches):
+async def test_get_device_info_cache_partial_failure(patch_register_plugins, plugin_context, clear_caches):
     """Get the device info cache when some plugins fail to respond."""
 
     # create & register new plugins
