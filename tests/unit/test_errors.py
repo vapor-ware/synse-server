@@ -39,7 +39,7 @@ class TestSynseErrorHandler:
         handler = errors.SynseErrorHandler()
 
         exception = ValueError('foobar')
-        request = Request(b'http://localhost', {}, None, 'GET', None)
+        request = Request(b'http://localhost', {}, None, 'GET', None, None)
 
         actual = handler.default(request, exception)
 

@@ -51,7 +51,7 @@ setup(
         'sanic>=0.8.0',
         'sanic-prometheus>=0.1.7',
         'structlog',
-        'synse-grpc>=1.1.0',  # fixme: this will need to be >= 3.0.0 once that is released
+        'synse-grpc==3.0.0a1',  # fixme: for alpha v3 testing; update to stable v3 release
     ],
     zip_safe=False,
     classifiers=[
