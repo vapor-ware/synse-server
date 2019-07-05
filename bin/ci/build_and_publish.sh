@@ -35,7 +35,8 @@ if [[ "${TAG_NAME}" ]]; then
 
     # First, search for "-" in the tag. This would be the case for tags
     # with suffixes, e.g. "1-dev", "1.2.3-rc0". If a suffix is present,
-    # then we will not generate additional image tags.
+    # then we will not generate version component tags; we will just use
+    # the full tag.
     suffix_count=$(awk -F- '{print NF-1}' <<< "${TAG_NAME}")
     if [[ ${suffix_count} -eq 0 ]]; then
         IFS='.' read -r -a array <<< "${TAG_NAME}"
@@ -53,6 +54,8 @@ if [[ "${TAG_NAME}" ]]; then
         if [[ "${major}" ]]; then
             tags+=("${major}")
         fi
+    else
+        tags+=("${TAG_NAME}")
     fi
 
     if [[ "${tags}" ]]; then
