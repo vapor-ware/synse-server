@@ -126,8 +126,6 @@ async def get_alias(alias):
         return await alias_cache.get(alias)
 
 
-# FIXME (etd): Should this be changes so we have two separate functions? One
-#   "update" function, and one "add_device" function?
 async def update_device_cache():
     """Update the device cache.
 

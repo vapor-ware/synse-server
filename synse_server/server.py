@@ -59,8 +59,8 @@ class Synse:
 
 '''
 
-    def __init__(self, host='0.0.0.0', port=5000, log_header=True):
-        self.host = host
+    def __init__(self, host=None, port=5000, log_header=True):
+        self.host = host or '0.0.0.0'
         self.port = port
         self.log_header = log_header
 
@@ -84,7 +84,11 @@ class Synse:
 
         # Load the application configuration(s).
         self.reload_config()
-        logger.info(_('loaded config'), config=config.options.config)
+        logger.info(
+            _('loaded config'),
+            source_file=config.options.config_file,
+            config=config.options.config,
+        )
 
         # Configure logging, using the loaded config.
         setup_logger()
