@@ -138,3 +138,25 @@ async def read_cache(start=None, end=None):
             raise errors.ServerError(
                 _('error while issuing gRPC request: read cache'),
             ) from e
+
+
+async def read_stream(ids=None, tag_groups=None):
+    """"""
+
+    logger.debug(_('issuing command'), command='READ STREAM', ids=ids, tag_groups=tag_groups)
+
+    # fixme - we will need to collect from all plugins simultaneously, not one at a time
+    #   or else this wont work
+    for p in plugin.manager:
+        try:
+            with p as client:
+                logger.debug('readstream', client=client)
+                rs = client.read_stream(devices=ids, tag_groups=tag_groups)
+                logger.debug('readstream', stream=rs)
+                for reading in rs:
+                    yield reading_to_dict(reading)
+        except Exception as e:
+            logger.error('READ STREAM ERROR', error=e)
+            raise errors.ServerError(
+                _('error while issuing gRPC request: read stream'),
+            ) from e
