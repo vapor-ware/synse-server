@@ -209,15 +209,11 @@ class Message:
         }))
 
     async def handle_request_read_stream(self, ws):
-        """"""
+        """WebSocket 'read stream' event message handler."""
         ids = self.data.get('ids')
         tag_groups = self.data.get('tag_groups')
 
         async for reading in cmd.read_stream(ids, tag_groups):
-            if ws.closed:
-                logger.info('readstream - websocket is closed')
-                return
-
             try:
                 await ws.send(json.dumps({
                     'id': self.id,
@@ -225,6 +221,7 @@ class Message:
                     'data': reading,
                 }))
             except ConnectionClosed:
+                # fixme: error message
                 logger.info('readstream - connection closed raised')
                 return
 
@@ -331,7 +328,6 @@ async def connect(request, ws):
     """Connect to the WebSocket API."""
 
     logger.info(_('new websocket connection'), source=request.ip)
-    logger.info('websocket', type=type(ws), dir=dir(ws))
 
     async for message in ws:
         try:

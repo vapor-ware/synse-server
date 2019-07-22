@@ -14,9 +14,10 @@ services:
     - '5000:5000'
     environment:
       SYNSE_LOGGING: debug
-      SYNSE_PLUGIN_TCP: emulator-plugin:5001
+      SYNSE_PLUGIN_TCP: emulator-plugin-1:5001,emulator-plugin-2:5001
     links:
-    - emulator-plugin
+    - emulator-plugin-1
+    - emulator-plugin-2
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/test"]
       interval: 1m
@@ -24,9 +25,20 @@ services:
       retries: 3
       start_period: 5s
 
-  emulator-plugin:
-    container_name: emulator-plugin
+  emulator-plugin-1:
+    container_name: emulator-plugin-1
     image: vaporio/emulator-plugin
-    ports:
-    - '5001:5001'
+    volumes:
+      - ./cfg1.yaml:/etc/synse/plugin/config/config.yaml
+    expose:
+    - '5001'
+    command: ['--debug']
+
+  emulator-plugin-2:
+    container_name: emulator-plugin-2
+    image: vaporio/emulator-plugin
+    volumes:
+      - ./cfg2.yaml:/etc/synse/plugin/config/config.yaml
+    expose:
+      - '5001'
     command: ['--debug']
