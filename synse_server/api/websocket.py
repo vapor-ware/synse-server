@@ -45,7 +45,7 @@ class Message:
             data=d.get('data', {}),
         )
 
-    async def response(self, ws):
+    async def response(self, request, ws):
         """Generate the response for the Message's request data.
 
         Messages are passed along to their corresponding handler function, which is
@@ -63,7 +63,7 @@ class Message:
 
         try:
             logger.debug(_('processing websocket request'), handler=handler)
-            await getattr(self, handler)(ws)
+            await getattr(self, handler)(request, ws)
         except Exception as e:
             logger.error(_('error processing request'), err=e)
             await ws.send(error(
@@ -73,7 +73,7 @@ class Message:
 
     # ---
 
-    async def handle_request_status(self, ws):
+    async def handle_request_status(self, request, ws):
         """WebSocket 'status' event message handler."""
         await ws.send(json.dumps({
             'id': self.id,
@@ -81,7 +81,7 @@ class Message:
             'data': await cmd.test(),
         }))
 
-    async def handle_request_version(self, ws):
+    async def handle_request_version(self, request, ws):
         """WebSocket 'version' event message handler."""
         await ws.send(json.dumps({
             'id': self.id,
@@ -89,7 +89,7 @@ class Message:
             'data': await cmd.version(),
         }))
 
-    async def handle_request_config(self, ws):
+    async def handle_request_config(self, request, ws):
         """WebSocket 'config' event message handler."""
         await ws.send(json.dumps({
             'id': self.id,
@@ -97,7 +97,7 @@ class Message:
             'data': await cmd.config(),
         }))
 
-    async def handle_request_plugin(self, ws):
+    async def handle_request_plugin(self, request, ws):
         """WebSocket 'plugin' event message handler."""
         plugin_id = self.data.get('plugin')
         if plugin_id is None:
@@ -109,7 +109,7 @@ class Message:
             'data': await cmd.plugin(plugin_id),
         }))
 
-    async def handle_request_plugins(self, ws):
+    async def handle_request_plugins(self, request, ws):
         """WebSocket 'plugins' event message handler."""
         await ws.send(json.dumps({
             'id': self.id,
@@ -117,7 +117,7 @@ class Message:
             'data': await cmd.plugins(),
         }))
 
-    async def handle_request_plugin_health(self, ws):
+    async def handle_request_plugin_health(self, request, ws):
         """WebSocket 'plugin health' event message handler."""
         await ws.send(json.dumps({
             'id': self.id,
@@ -125,7 +125,7 @@ class Message:
             'data': await cmd.plugin_health(),
         }))
 
-    async def handle_request_scan(self, ws):
+    async def handle_request_scan(self, request, ws):
         """WebSocket 'scan' event message handler."""
         ns = self.data.get('ns', 'default')
         tags = self.data.get('tags', [])
@@ -143,7 +143,7 @@ class Message:
             ),
         }))
 
-    async def handle_request_tags(self, ws):
+    async def handle_request_tags(self, request, ws):
         """WebSocket 'tags' event message handler."""
         ns = self.data.get('ns', ['default'])
         ids = self.data.get('ids', False)
@@ -154,7 +154,7 @@ class Message:
             'data': await cmd.tags(*ns, with_id_tags=ids),
         }))
 
-    async def handle_request_info(self, ws):
+    async def handle_request_info(self, request, ws):
         """WebSocket 'info' event message handler."""
         device = self.data.get('device')
         if device is None:
@@ -166,7 +166,7 @@ class Message:
             'data': await cmd.info(device_id=device),
         }))
 
-    async def handle_request_read(self, ws):
+    async def handle_request_read(self, request, ws):
         """WebSocket 'read' event message handler."""
         ns = self.data.get('ns', 'default')
         tags = self.data.get('tags', [])
@@ -180,7 +180,7 @@ class Message:
             ),
         }))
 
-    async def handle_request_read_device(self, ws):
+    async def handle_request_read_device(self, request, ws):
         """WebSocket 'read device' event message handler."""
         device = self.data.get('device')
         if device is None:
@@ -192,7 +192,7 @@ class Message:
             'data': await cmd.read_device(device_id=device),
         }))
 
-    async def handle_request_read_cache(self, ws):
+    async def handle_request_read_cache(self, request, ws):
         """WebSocket 'read cache' event message handler."""
         start = self.data.get('start')
         end = self.data.get('end')
@@ -208,7 +208,7 @@ class Message:
             )],
         }))
 
-    async def handle_request_read_stream(self, ws):
+    async def handle_request_read_stream(self, request, ws):
         """WebSocket 'read stream' event message handler."""
         ids = self.data.get('ids')
         tag_groups = self.data.get('tag_groups')
@@ -225,7 +225,7 @@ class Message:
                 logger.info('readstream - connection closed raised')
                 return
 
-    async def handle_request_write_async(self, ws):
+    async def handle_request_write_async(self, request, ws):
         """WebSocket 'write async' event message handler."""
         device = self.data.get('device')
         if device is None:
@@ -244,7 +244,7 @@ class Message:
             ),
         }))
 
-    async def handle_request_write_sync(self, ws):
+    async def handle_request_write_sync(self, request, ws):
         """WebSocket 'write sync' event message handler."""
         device = self.data.get('device')
         if device is None:
@@ -262,7 +262,7 @@ class Message:
             ),
         }))
 
-    async def handle_request_transaction(self, ws):
+    async def handle_request_transaction(self, request, ws):
         """WebSocket 'transaction' event message handler."""
         transaction = self.data.get('transaction')
         if transaction is None:
@@ -276,7 +276,7 @@ class Message:
             ),
         }))
 
-    async def handle_request_transactions(self, ws):
+    async def handle_request_transactions(self, request, ws):
         """WebSocket 'transactions' event message handler."""
         await ws.send(json.dumps({
             'id': self.id,
@@ -340,7 +340,7 @@ async def connect(request, ws):
         logger.debug(_('got message'), id=m.id, type=m.event, data=m.data)
 
         try:
-            await m.response(ws)
+            await m.response(request, ws)
         except Exception as e:
             logger.error(_('error generating websocket response'), err=e)
             continue

@@ -1,4 +1,5 @@
 
+import asyncio
 import threading
 import queue
 
@@ -143,6 +144,33 @@ async def read_cache(start=None, end=None):
             ) from e
 
 
+class Stream(threading.Thread):
+    def __init__(self, plugin, ids, tag_groups, q):
+        super(Stream, self).__init__()
+        self.plugin = plugin
+        self.q = q
+        self.ids = ids
+        self.tag_groups = tag_groups
+        self.event = threading.Event()
+
+    def run(self):
+        try:
+            with self.plugin as client:
+                for reading in client.read_stream(devices=self.ids, tag_groups=self.tag_groups):
+                    logger.debug('streaming reading', plugin=self.plugin.id, reading=reading.id)
+                    self.q.put(reading_to_dict(reading))
+                    if self.event.is_set():
+                        break
+        except Exception as e:
+            raise errors.ServerError(
+                _('error while issuing gRPC request: read stream'),
+            ) from e
+
+    def cancel(self):
+        logger.debug('cancelling stream', plugin=self.plugin.id)
+        self.event.set()
+
+
 async def read_stream(ids=None, tag_groups=None):
     """"""
 
@@ -150,40 +178,71 @@ async def read_stream(ids=None, tag_groups=None):
 
     q = queue.Queue()
 
-    def stream(p):
-        try:
-            with p as client:
-                for reading in client.read_stream(devices=ids, tag_groups=tag_groups):
-                    q.put(reading_to_dict(reading))
-        except Exception as e:
-            raise errors.ServerError(
-                _('error while issuing gRPC request: read stream'),
-            ) from e
+    # def stream(p):
+    #     try:
+    #         with p as client:
+    #             for reading in client.read_stream(devices=ids, tag_groups=tag_groups):
+    #                 logger.debug('streaming reading', plugin=p.id, reading=reading.id)
+    #                 q.put(reading_to_dict(reading))
+    #     except Exception as e:
+    #         raise errors.ServerError(
+    #             _('error while issuing gRPC request: read stream'),
+    #         ) from e
+
+    # tasks = []
+    # for p in plugin.manager:
+    #     t = asyncio.ensure_future(stream(p), loop=loop)
+    #     logger.debug('ensure future for plugin', plugin=p.id)
+    #     tasks.append(t)
 
     threads = []
     for p in plugin.manager:
-        t = threading.Thread(target=stream, args=(p,))
+        t = Stream(p, ids, tag_groups, q)
         t.start()
         threads.append(t)
 
+        # t = threading.Thread(target=stream, args=(p,))
+        # t.start()
+        # threads.append(t)
+        # t.
+
+    def callback():
+        logger.debug('calling idle future callback')
+        for stream in threads:
+            stream.cancel()
+
+    async def idle():
+        logger.debug('starting idle future')
+        while True:
+            await asyncio.sleep(10)
+
+    task = asyncio.ensure_future(idle())
+    task.add_done_callback(callback)
+
+    logger.debug('starting queue listen')
+
     # TODO: figure out what the best way would be to terminate this from running forever...
     while True:
-        val = None
+        await asyncio.sleep(0)
         try:
-            val = q.get_nowait()
+            val = q.get_nowait() or None
         except queue.Empty:
-            pass
+            await asyncio.sleep(0.25)
+            continue
+        else:
+            if val is not None:
+                logger.debug('yielding val from queue')
+                yield val
 
-        joined = 0
-        for t in threads:
-            t.join(timeout=0.1)
-            if not t.is_alive():
-                joined += 1
-        if len(threads) == joined:
-            break
+        # joined = 0
+        # for t in threads:
+        #     t.join(timeout=0.1)
+        #     if not t.is_alive():
+        #         joined += 1
+        # if len(threads) == joined:
+        #     break
 
-        if val is not None:
-            yield val
+
 
     # # fixme - we will need to collect from all plugins simultaneously, not one at a time
     # #   or else this wont work
