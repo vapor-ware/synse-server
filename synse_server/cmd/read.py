@@ -176,8 +176,6 @@ class Stream(threading.Thread):
         try:
             with self.plugin as client:
                 for reading in client.read_stream(devices=self.ids, tag_groups=self.tag_groups):
-                    # FIXME (etd): remove -- keeping this in for debugging during dev
-                    logger.debug('streaming reading', plugin=self.plugin.id, reading=reading.id)
                     self.q.put(reading_to_dict(reading))
 
                     # Important: we need to check if the thread event is set -- this
@@ -200,7 +198,7 @@ class Stream(threading.Thread):
 async def read_stream(ws, ids=None, tag_groups=None):
     """Stream reading data from registered plugins for the provided websocket.
 
-    Note that this will only work for websockets as of v3.0.
+    Note that this will only work for the Synse WebSocket API as of v3.0.
 
     Args:
         ws (websockets.WebSocketCommonProtocol): The WebSocket for the request.
