@@ -1,7 +1,7 @@
 
 import asyncio
-import threading
 import queue
+import threading
 
 import synse_grpc.utils
 
@@ -145,6 +145,24 @@ async def read_cache(start=None, end=None):
 
 
 class Stream(threading.Thread):
+    """A thread which streams reading data from a plugin.
+
+    The reading data received from the plugin is put onto the thread-safe
+    queue specified on initialization.
+
+    Args:
+        plugin (Plugin): The plugin to gather reading data from.
+        ids (list[str]): A list of device IDs which can be used to constrain
+            the devices for which readings should be streamed.
+        tag_groups (Iterable[list[string]]): A collection of tag groups to
+            constrain the devices for which readings should be streamed. The
+            tags within a group are subtractive (e.g. a device must match all
+            tags in the group to match the filter), but each tag group specified
+            is additive (e.g. readings will be streamed for the union of all
+            specified groups).
+        q (queue.Queue): The thread-safe queue to pass collected readings to.
+    """
+
     def __init__(self, plugin, ids, tag_groups, q):
         super(Stream, self).__init__()
         self.plugin = plugin
@@ -154,46 +172,57 @@ class Stream(threading.Thread):
         self.event = threading.Event()
 
     def run(self):
+        """Run the thread."""
         try:
             with self.plugin as client:
                 for reading in client.read_stream(devices=self.ids, tag_groups=self.tag_groups):
+                    # FIXME (etd): remove -- keeping this in for debugging during dev
                     logger.debug('streaming reading', plugin=self.plugin.id, reading=reading.id)
                     self.q.put(reading_to_dict(reading))
+
+                    # Important: we need to check if the thread event is set -- this
+                    # allows the thread to be cancellable.
                     if self.event.is_set():
+                        logger.info(_('stream thread cancelled'), plugin=self.plugin.id)
                         break
+
         except Exception as e:
             raise errors.ServerError(
                 _('error while issuing gRPC request: read stream'),
             ) from e
 
     def cancel(self):
-        logger.debug('cancelling stream', plugin=self.plugin.id)
+        """Cancel the thread."""
+        logger.info(_('cancelling reading stream'), plugin=self.plugin.id)
         self.event.set()
 
 
-async def read_stream(ids=None, tag_groups=None):
-    """"""
+async def read_stream(ws, ids=None, tag_groups=None):
+    """Stream reading data from registered plugins for the provided websocket.
+
+    Note that this will only work for websockets as of v3.0.
+
+    Args:
+        ws (websockets.WebSocketCommonProtocol): The WebSocket for the request.
+            Note that this command only works with the WebSocket API as of v3.0
+        ids (list[str]): A list of device IDs which can be used to constrain
+            the devices for which readings should be streamed. If no IDs are
+            specified, no filtering by ID is done.
+        tag_groups (Iterable[list[string]]): A collection of tag groups to
+            constrain the devices for which readings should be streamed. The
+            tags within a group are subtractive (e.g. a device must match all
+            tags in the group to match the filter), but each tag group specified
+            is additive (e.g. readings will be streamed for the union of all
+            specified groups). If no tag groups are specified, no filtering by
+            tags is done.
+
+    Yields:
+        dict: The device reading, formatted as a Python dictionary.
+    """
 
     logger.debug(_('issuing command'), command='READ STREAM', ids=ids, tag_groups=tag_groups)
 
     q = queue.Queue()
-
-    # def stream(p):
-    #     try:
-    #         with p as client:
-    #             for reading in client.read_stream(devices=ids, tag_groups=tag_groups):
-    #                 logger.debug('streaming reading', plugin=p.id, reading=reading.id)
-    #                 q.put(reading_to_dict(reading))
-    #     except Exception as e:
-    #         raise errors.ServerError(
-    #             _('error while issuing gRPC request: read stream'),
-    #         ) from e
-
-    # tasks = []
-    # for p in plugin.manager:
-    #     t = asyncio.ensure_future(stream(p), loop=loop)
-    #     logger.debug('ensure future for plugin', plugin=p.id)
-    #     tasks.append(t)
 
     threads = []
     for p in plugin.manager:
@@ -201,59 +230,36 @@ async def read_stream(ids=None, tag_groups=None):
         t.start()
         threads.append(t)
 
-        # t = threading.Thread(target=stream, args=(p,))
-        # t.start()
-        # threads.append(t)
-        # t.
-
-    def callback():
-        logger.debug('calling idle future callback')
+    def close_callback(*args, **kwargs):
+        logger.debug(_('executing callback to cancel read stream threads'))
         for stream in threads:
             stream.cancel()
 
-    async def idle():
-        logger.debug('starting idle future')
+    # The websocket has a 'close_connection_task' which will run once the
+    # data transfer task as completed or been cancelled. This task should
+    # always be run in the lifecycle of the websocket. We attach a callback
+    # to the task to terminate the stream threads associated with the request,
+    # therefore terminating the synse-server<->plugin(s) stream when the
+    # client<->synse-server websocket is closed.
+    ws.close_connection_task.add_done_callback(close_callback)
+
+    logger.debug(_('collecting streamed readings...'))
+    try:
         while True:
-            await asyncio.sleep(10)
-
-    task = asyncio.ensure_future(idle())
-    task.add_done_callback(callback)
-
-    logger.debug('starting queue listen')
-
-    # TODO: figure out what the best way would be to terminate this from running forever...
-    while True:
-        await asyncio.sleep(0)
-        try:
-            val = q.get_nowait() or None
-        except queue.Empty:
-            await asyncio.sleep(0.25)
-            continue
-        else:
-            if val is not None:
-                logger.debug('yielding val from queue')
-                yield val
-
-        # joined = 0
-        # for t in threads:
-        #     t.join(timeout=0.1)
-        #     if not t.is_alive():
-        #         joined += 1
-        # if len(threads) == joined:
-        #     break
-
-
-
-    # # fixme - we will need to collect from all plugins simultaneously, not one at a time
-    # #   or else this wont work
-    #
-    # async for p in plugin.manager:
-    #     try:
-    #         with p as client:
-    #             async for reading in client.read_stream(devices=ids, tag_groups=tag_groups):
-    #                 logger.debug('streamed reading', id=reading.id, plugin=p.address)
-    #                 yield reading_to_dict(reading)
-    #     except Exception as e:
-    #         raise errors.ServerError(
-    #             _('error while issuing gRPC request: read stream'),
-    #         ) from e
+            # Needed as an async break point in the loop, particularly for
+            # cancelling the async task.
+            await asyncio.sleep(0)
+            try:
+                val = q.get_nowait() or None
+            except queue.Empty:
+                await asyncio.sleep(0.25)
+                continue
+            else:
+                if val is not None:
+                    yield val
+    finally:
+        # The above should run until either the task is cancelled or there is
+        # an exception. In either case, make the threads are terminated prior
+        # to returning from this function so we are not constantly streaming
+        # readings in the background.
+        close_callback()
