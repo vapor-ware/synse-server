@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-07-24 13:49-0400\n"
-"PO-Revision-Date: 2019-07-24 13:49-0400\n"
+"POT-Creation-Date: 2019-07-25 07:54-0400\n"
+"PO-Revision-Date: 2019-07-25 07:54-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -151,40 +151,44 @@ msgstr ""
 msgid "processing request"
 msgstr ""
 
-#: synse_server/api/websocket.py:40
-msgid "failed to load payload"
-msgstr ""
-
-#: synse_server/api/websocket.py:71
-msgid "processing websocket request"
-msgstr ""
-
-#: synse_server/api/websocket.py:81
-msgid "websocket request cancelled"
-msgstr ""
-
-#: synse_server/api/websocket.py:83
-msgid "error processing request"
-msgstr ""
-
-#: synse_server/api/websocket.py:240
-msgid "websocket raised ConnectionClosed - terminating read stream"
-msgstr ""
-
-#: synse_server/api/websocket.py:346
+#: synse_server/api/websocket.py:21
 msgid "new websocket connection"
 msgstr ""
 
-#: synse_server/api/websocket.py:352
+#: synse_server/api/websocket.py:34
+msgid "failed to load payload"
+msgstr ""
+
+#: synse_server/api/websocket.py:105
+msgid "running message handler for websocket"
+msgstr ""
+
+#: synse_server/api/websocket.py:110
 msgid "error loading websocket message"
 msgstr ""
 
-#: synse_server/api/websocket.py:356
+#: synse_server/api/websocket.py:114
 msgid "got message"
 msgstr ""
 
-#: synse_server/api/websocket.py:360
+#: synse_server/api/websocket.py:118
 msgid "error generating websocket response"
+msgstr ""
+
+#: synse_server/api/websocket.py:154
+msgid "processing websocket request"
+msgstr ""
+
+#: synse_server/api/websocket.py:157
+msgid "websocket request cancelled"
+msgstr ""
+
+#: synse_server/api/websocket.py:160
+msgid "error processing request"
+msgstr ""
+
+#: synse_server/api/websocket.py:376
+msgid "websocket raised ConnectionClosed - terminating read stream"
 msgstr ""
 
 #: synse_server/cmd/config.py:13 synse_server/cmd/info.py:18

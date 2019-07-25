@@ -245,7 +245,7 @@ class Plugin:
         if exc_type is None or isinstance(exc_val, client.errors.PluginError):
             self.mark_active()
         else:
-            logger.debug(
+            logger.info(
                 'marking plugin inactive',
                 exc_type=exc_type,
                 exc_val=exc_val,
