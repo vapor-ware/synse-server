@@ -27,6 +27,6 @@ services:
   emulator-plugin:
     container_name: emulator-plugin
     image: vaporio/emulator-plugin
-    ports:
-    - '5001:5001'
+    expose:
+    - '5001'
     command: ['--debug']

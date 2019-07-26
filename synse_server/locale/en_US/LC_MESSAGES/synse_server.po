@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-05-13 14:19-0400\n"
-"PO-Revision-Date: 2019-05-13 14:19-0400\n"
+"POT-Creation-Date: 2019-07-25 07:54-0400\n"
+"PO-Revision-Date: 2019-07-25 07:54-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -17,29 +17,29 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
-#: synse_server/cache.py:85
+#: synse_server/cache.py:84
 msgid "caching transaction"
 msgstr ""
 
-#: synse_server/cache.py:108
+#: synse_server/cache.py:107
 msgid "adding alias to cache"
 msgstr ""
 
-#: synse_server/cache.py:150
+#: synse_server/cache.py:142
 msgid "updating the device cache"
 msgstr ""
 
-#: synse_server/cache.py:160
+#: synse_server/cache.py:152
 msgid "no plugins found when updating device cache"
 msgstr ""
 
-#: synse_server/cache.py:167
+#: synse_server/cache.py:159
 msgid "getting devices from plugin"
 msgstr ""
 
-#: synse_server/cache.py:186
+#: synse_server/cache.py:177
 msgid "failed to get device(s)"
 msgstr ""
 
@@ -63,47 +63,47 @@ msgstr ""
 msgid "error processing the request"
 msgstr ""
 
-#: synse_server/plugin.py:90
+#: synse_server/plugin.py:95
 msgid "plugin with id already registered"
 msgstr ""
 
-#: synse_server/plugin.py:93
+#: synse_server/plugin.py:98
 msgid "registered plugin"
 msgstr ""
 
-#: synse_server/plugin.py:108
+#: synse_server/plugin.py:113
 msgid "loading plugins from configuration"
 msgstr ""
 
-#: synse_server/plugin.py:115 synse_server/plugin.py:121
+#: synse_server/plugin.py:120 synse_server/plugin.py:126
 msgid "plugin from config"
 msgstr ""
 
-#: synse_server/plugin.py:141
+#: synse_server/plugin.py:146
 msgid "failed plugin discovery via kubernetes"
 msgstr ""
 
-#: synse_server/plugin.py:158
+#: synse_server/plugin.py:163
 msgid "refreshing plugin manager"
 msgstr ""
 
-#: synse_server/plugin.py:169
+#: synse_server/plugin.py:174
 msgid "failed to register configured plugin"
 msgstr ""
 
-#: synse_server/plugin.py:183
+#: synse_server/plugin.py:188
 msgid "failed to register discovered plugin"
 msgstr ""
 
-#: synse_server/plugin.py:188
+#: synse_server/plugin.py:193
 msgid "plugin manager refresh complete"
 msgstr ""
 
-#: synse_server/plugin.py:249
+#: synse_server/plugin.py:261
 msgid "marking plugin as active"
 msgstr ""
 
-#: synse_server/plugin.py:256
+#: synse_server/plugin.py:268
 msgid "marking plugin as inactive"
 msgstr ""
 
@@ -111,39 +111,39 @@ msgstr ""
 msgid "initializing synse server"
 msgstr ""
 
-#: synse_server/server.py:87
+#: synse_server/server.py:88
 msgid "loaded config"
 msgstr ""
 
-#: synse_server/server.py:91
+#: synse_server/server.py:95
 msgid "configured logger"
 msgstr ""
 
-#: synse_server/server.py:100
+#: synse_server/server.py:104
 msgid "running synse server"
 msgstr ""
 
-#: synse_server/server.py:110
+#: synse_server/server.py:118
 msgid "application performance metrics enabled"
 msgstr ""
 
-#: synse_server/server.py:120
+#: synse_server/server.py:128
 msgid "SSL configured for Synse Server"
 msgstr ""
 
-#: synse_server/server.py:125
+#: synse_server/server.py:133
 msgid "starting Sanic application"
 msgstr ""
 
-#: synse_server/tasks.py:17
+#: synse_server/tasks.py:18
 msgid "adding task"
 msgstr ""
 
-#: synse_server/tasks.py:27
+#: synse_server/tasks.py:28
 msgid "rebuilding device cache"
 msgstr ""
 
-#: synse_server/cmd/scan.py:39 synse_server/tasks.py:35
+#: synse_server/cmd/scan.py:39 synse_server/tasks.py:36
 msgid "failed to rebuild device cache"
 msgstr ""
 
@@ -151,42 +151,55 @@ msgstr ""
 msgid "processing request"
 msgstr ""
 
-#: synse_server/api/websocket.py:36
-msgid "failed to load payload"
-msgstr ""
-
-#: synse_server/api/websocket.py:58
-msgid "processing websocket request"
-msgstr ""
-
-#: synse_server/api/websocket.py:61
-msgid "error processing request"
-msgstr ""
-
-#: synse_server/api/websocket.py:282
+#: synse_server/api/websocket.py:21
 msgid "new websocket connection"
 msgstr ""
 
-#: synse_server/api/websocket.py:289
+#: synse_server/api/websocket.py:34
+msgid "failed to load payload"
+msgstr ""
+
+#: synse_server/api/websocket.py:105
+msgid "running message handler for websocket"
+msgstr ""
+
+#: synse_server/api/websocket.py:110
 msgid "error loading websocket message"
 msgstr ""
 
-#: synse_server/api/websocket.py:293
+#: synse_server/api/websocket.py:114
 msgid "got message"
 msgstr ""
 
-#: synse_server/api/websocket.py:298
+#: synse_server/api/websocket.py:118
 msgid "error generating websocket response"
+msgstr ""
+
+#: synse_server/api/websocket.py:154
+msgid "processing websocket request"
+msgstr ""
+
+#: synse_server/api/websocket.py:157
+msgid "websocket request cancelled"
+msgstr ""
+
+#: synse_server/api/websocket.py:160
+msgid "error processing request"
+msgstr ""
+
+#: synse_server/api/websocket.py:376
+msgid "websocket raised ConnectionClosed - terminating read stream"
 msgstr ""
 
 #: synse_server/cmd/config.py:13 synse_server/cmd/info.py:18
 #: synse_server/cmd/plugin.py:20 synse_server/cmd/plugin.py:60
-#: synse_server/cmd/plugin.py:84 synse_server/cmd/read.py:57
-#: synse_server/cmd/read.py:91 synse_server/cmd/read.py:128
-#: synse_server/cmd/scan.py:27 synse_server/cmd/tags.py:18
-#: synse_server/cmd/test.py:13 synse_server/cmd/transaction.py:18
-#: synse_server/cmd/transaction.py:59 synse_server/cmd/version.py:13
-#: synse_server/cmd/write.py:20 synse_server/cmd/write.py:54
+#: synse_server/cmd/plugin.py:84 synse_server/cmd/read.py:61
+#: synse_server/cmd/read.py:95 synse_server/cmd/read.py:132
+#: synse_server/cmd/read.py:221 synse_server/cmd/scan.py:27
+#: synse_server/cmd/tags.py:18 synse_server/cmd/test.py:13
+#: synse_server/cmd/transaction.py:18 synse_server/cmd/transaction.py:59
+#: synse_server/cmd/version.py:13 synse_server/cmd/write.py:20
+#: synse_server/cmd/write.py:54
 msgid "issuing command"
 msgstr ""
 
@@ -194,25 +207,45 @@ msgstr ""
 msgid "failed to get plugin health"
 msgstr ""
 
-#: synse_server/cmd/read.py:72
+#: synse_server/cmd/read.py:76
 msgid "error while issuing gRPC request: read"
 msgstr ""
 
-#: synse_server/cmd/read.py:96 synse_server/cmd/write.py:25
+#: synse_server/cmd/read.py:100 synse_server/cmd/write.py:25
 #: synse_server/cmd/write.py:59
 msgid "plugin not found for device {}"
 msgstr ""
 
-#: synse_server/cmd/read.py:105
+#: synse_server/cmd/read.py:109
 msgid "error while issuing gRPC request: read device"
 msgstr ""
 
-#: synse_server/cmd/read.py:132
+#: synse_server/cmd/read.py:136
 msgid "getting cached readings for plugin"
 msgstr ""
 
-#: synse_server/cmd/read.py:139
+#: synse_server/cmd/read.py:143
 msgid "error while issuing gRPC request: read cache"
+msgstr ""
+
+#: synse_server/cmd/read.py:184
+msgid "stream thread cancelled"
+msgstr ""
+
+#: synse_server/cmd/read.py:189
+msgid "error while issuing gRPC request: read stream"
+msgstr ""
+
+#: synse_server/cmd/read.py:194
+msgid "cancelling reading stream"
+msgstr ""
+
+#: synse_server/cmd/read.py:232
+msgid "executing callback to cancel read stream threads"
+msgstr ""
+
+#: synse_server/cmd/read.py:244
+msgid "collecting streamed readings..."
 msgstr ""
 
 #: synse_server/cmd/scan.py:35
