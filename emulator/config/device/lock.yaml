@@ -10,7 +10,7 @@ devices:
     metadata:
       model: emul8-lock
     outputs:
-      - type: lock.state
+      - type: lock.status
     instances:
       - info: Synse Door Lock
         location: r1vec
