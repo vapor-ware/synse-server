@@ -30,7 +30,7 @@ data=$(curl -s https://api.github.com/repos/${EMULATOR_REPO}/releases/latest)
 bin_url=$(echo ${data} | jq '.assets[] | select(.name | contains("linux_amd64")) | .url ' | tr -d '"')
 
 # Download the binary
-curl -L -H "Accept: application/octet-stream" -o ${EMULATOR_BIN} ${bin_url}
+curl -L -H "Accept: application/octet-stream" ${bin_url} | tar -xz && mv synse-emulator-plugin ${EMULATOR_BIN}
 chmod +x ${EMULATOR_BIN}
 
 if [[ "$EMULATOR_OUT" ]]; then
