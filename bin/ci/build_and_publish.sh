@@ -91,12 +91,17 @@ echo "All tags for ${IMAGE_NAME}: ${tags[@]}"
 # uses a Make target defined there.
 #
 
-# FIXME: this will not work with the changes to the Makefile. First, see if
-#   there is an existing release tool for python that will do this stuff for
-#   us so we don't have to maintain scripts everywhere. If not, then update
-#   this script to work properly with latest changes.
-IMAGE_TAGS="${tags[@]}" make docker
+echo "Building Image"
 
+# First make the docker image based on the Makefile -- this will tag as :latest
+make docker
+
+echo "Generating Image Tags"
+
+# Generate the desired tags off of the built latest image
+for tag in "${tag[@]}"; do
+    docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${tag}
+done
 
 #
 # Publish
