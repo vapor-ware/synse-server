@@ -99,7 +99,8 @@ make docker
 echo "Generating Image Tags"
 
 # Generate the desired tags off of the built latest image
-for tag in "${tag[@]}"; do
+for tag in "${tags[@]}"; do
+    echo "  tag: ${tag}"
     docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${tag}
 done
 
