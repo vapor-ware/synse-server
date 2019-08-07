@@ -154,7 +154,7 @@ async def test_write_async_ok(mocker, simple_plugin):
                     'timeout': '5s',
                     'context': {
                         'action': 'foo',
-                        'data': '',
+                        'data': b'',
                         'transaction': '',
                     },
                 },
@@ -164,7 +164,7 @@ async def test_write_async_ok(mocker, simple_plugin):
                     'timeout': '5s',
                     'context': {
                         'action': 'bar',
-                        'data': '',
+                        'data': b'',
                         'transaction': '',
                     },
                 },
@@ -174,7 +174,7 @@ async def test_write_async_ok(mocker, simple_plugin):
                     'timeout': '5s',
                     'context': {
                         'action': 'baz',
-                        'data': '',
+                        'data': b'',
                         'transaction': '',
                     },
                 },
@@ -354,7 +354,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
                     'status': 'DONE',
                     'context': {
                         'action': 'foo',
-                        'data': '',
+                        'data': b'',
                         'transaction': '',
                     },
                 },
@@ -368,7 +368,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
                     'status': 'DONE',
                     'context': {
                         'action': 'bar',
-                        'data': '',
+                        'data': b'',
                         'transaction': '',
                     },
                 },
@@ -382,7 +382,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
                     'status': 'DONE',
                     'context': {
                         'action': 'baz',
-                        'data': '',
+                        'data': b'',
                         'transaction': '',
                     },
                 },

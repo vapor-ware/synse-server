@@ -157,7 +157,7 @@ async def test_transaction_client_ok(mocker, simple_plugin):
                 'timeout': '',
                 'context': {
                     'action': 'test',
-                    'data': '',
+                    'data': b'',
                     'transaction': '',
                 },
             }
