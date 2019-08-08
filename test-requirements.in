@@ -1,0 +1,6 @@
+aiohttp
+asynctest
+pytest
+pytest-asyncio
+pytest-cov
+pytest-mock
