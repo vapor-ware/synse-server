@@ -331,7 +331,7 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             sort='plugin,sortIndex,id',
             force=False,
         )
@@ -357,7 +357,7 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             sort='plugin,sortIndex,id',
             force=True,
         )
@@ -383,7 +383,7 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='vapor',
-            tags=[],
+            tag_groups=[],
             sort='plugin,sortIndex,id',
             force=False,
         )
@@ -395,7 +395,33 @@ class TestMessageHandler:
         }))
 
     @pytest.mark.asyncio
-    async def test_request_scan_data_tags(self):
+    async def test_request_scan_data_tags_one_group(self):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            with asynctest.patch('websockets.WebSocketCommonProtocol.send') as mock_send:
+                mock_cmd.return_value = [{
+                    'key': 'value',
+                }]
+
+                p = make_payload(data={'tags': [['ns/ann:lab', 'foo']]})
+                m = websocket.MessageHandler(websockets.WebSocketCommonProtocol())
+                await m.handle_request_scan(p)
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tag_groups=[['ns/ann:lab', 'foo']],
+            sort='plugin,sortIndex,id',
+            force=False,
+        )
+        mock_send.assert_called_once()
+        mock_send.assert_called_with(json.dumps({
+            'id': 'testing',
+            'event': 'response/device_summary',
+            'data': mock_cmd.return_value,
+        }))
+
+    @pytest.mark.asyncio
+    async def test_request_scan_data_tags_implicit_group(self):
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
             with asynctest.patch('websockets.WebSocketCommonProtocol.send') as mock_send:
                 mock_cmd.return_value = [{
@@ -409,7 +435,33 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=['ns/ann:lab', 'foo'],
+            tag_groups=[['ns/ann:lab', 'foo']],
+            sort='plugin,sortIndex,id',
+            force=False,
+        )
+        mock_send.assert_called_once()
+        mock_send.assert_called_with(json.dumps({
+            'id': 'testing',
+            'event': 'response/device_summary',
+            'data': mock_cmd.return_value,
+        }))
+
+    @pytest.mark.asyncio
+    async def test_request_scan_data_tags_multiple_groups(self):
+        with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
+            with asynctest.patch('websockets.WebSocketCommonProtocol.send') as mock_send:
+                mock_cmd.return_value = [{
+                    'key': 'value',
+                }]
+
+                p = make_payload(data={'tags': [['ns/ann:lab', 'foo'], ['bar']]})
+                m = websocket.MessageHandler(websockets.WebSocketCommonProtocol())
+                await m.handle_request_scan(p)
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tag_groups=[['ns/ann:lab', 'foo'], ['bar']],
             sort='plugin,sortIndex,id',
             force=False,
         )
@@ -549,7 +601,7 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
         )
         mock_send.assert_called_once()
         mock_send.assert_called_with(json.dumps({
@@ -573,7 +625,7 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='foo',
-            tags=[],
+            tag_groups=[],
         )
         mock_send.assert_called_once()
         mock_send.assert_called_with(json.dumps({
@@ -583,7 +635,31 @@ class TestMessageHandler:
         }))
 
     @pytest.mark.asyncio
-    async def test_request_read_data_tags(self):
+    async def test_request_read_data_tags_one_group(self):
+        with asynctest.patch('synse_server.cmd.read') as mock_cmd:
+            with asynctest.patch('websockets.WebSocketCommonProtocol.send') as mock_send:
+                mock_cmd.return_value = [{
+                    'key': 'value',
+                }]
+
+                p = make_payload(data={'tags': [['foo', 'bar']]})
+                m = websocket.MessageHandler(websockets.WebSocketCommonProtocol())
+                await m.handle_request_read(p)
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tag_groups=[['foo', 'bar']],
+        )
+        mock_send.assert_called_once()
+        mock_send.assert_called_with(json.dumps({
+            'id': 'testing',
+            'event': 'response/reading',
+            'data': mock_cmd.return_value,
+        }))
+
+    @pytest.mark.asyncio
+    async def test_request_read_data_tags_implicit_group(self):
         with asynctest.patch('synse_server.cmd.read') as mock_cmd:
             with asynctest.patch('websockets.WebSocketCommonProtocol.send') as mock_send:
                 mock_cmd.return_value = [{
@@ -597,7 +673,31 @@ class TestMessageHandler:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=['foo', 'bar'],
+            tag_groups=[['foo', 'bar']],
+        )
+        mock_send.assert_called_once()
+        mock_send.assert_called_with(json.dumps({
+            'id': 'testing',
+            'event': 'response/reading',
+            'data': mock_cmd.return_value,
+        }))
+
+    @pytest.mark.asyncio
+    async def test_request_read_data_tags_multiple_groups(self):
+        with asynctest.patch('synse_server.cmd.read') as mock_cmd:
+            with asynctest.patch('websockets.WebSocketCommonProtocol.send') as mock_send:
+                mock_cmd.return_value = [{
+                    'key': 'value',
+                }]
+
+                p = make_payload(data={'tags': [['foo', 'bar'], ['baz']]})
+                m = websocket.MessageHandler(websockets.WebSocketCommonProtocol())
+                await m.handle_request_read(p)
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with(
+            ns='default',
+            tag_groups=[['foo', 'bar'], ['baz']],
         )
         mock_send.assert_called_once()
         mock_send.assert_called_with(json.dumps({
