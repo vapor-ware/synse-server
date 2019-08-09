@@ -252,12 +252,18 @@ class MessageHandler:
         force = payload.data.get('force', False)
         sort_keys = 'plugin,sortIndex,id'
 
+        # If tags are specified and all elements in the tags parameter
+        # are strings, they are part of a single tag group. Nest them
+        # appropriately.
+        if len(tags) != 0 and all(isinstance(t, str) for t in tags):
+            tags = [tags]
+
         await self.ws.send(json.dumps({
             'id': payload.id,
             'event': 'response/device_summary',
             'data': await cmd.scan(
                 ns=ns,
-                tags=tags,
+                tag_groups=tags,
                 sort=sort_keys,
                 force=force,
             ),
@@ -303,12 +309,18 @@ class MessageHandler:
         ns = payload.data.get('ns', 'default')
         tags = payload.data.get('tags', [])
 
+        # If tags are specified and all elements in the tags parameter
+        # are strings, they are part of a single tag group. Nest them
+        # appropriately.
+        if len(tags) != 0 and all(isinstance(t, str) for t in tags):
+            tags = [tags]
+
         await self.ws.send(json.dumps({
             'id': payload.id,
             'event': 'response/reading',
             'data': await cmd.read(
                 ns=ns,
-                tags=tags,
+                tag_groups=tags,
             ),
         }))
 
