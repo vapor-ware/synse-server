@@ -141,7 +141,7 @@ async def plugin_health(request):
 @v3.route('/scan')
 @v3.route('/device')
 async def scan(request):
-    """List the devices that Synse knows about,
+    """List the devices that Synse knows about.
 
     This endpoint provides an aggregated view of all devices exposed to
     Synse Server by each of the registered plugins. By default, the scan
@@ -150,9 +150,12 @@ async def scan(request):
     Query Parameters:
         ns: The default namespace to use for specified tags without explicit namespaces.
             Only one default namespace may be specified. (default: ``default``)
-        tags: The tags to filter devices on. If specifying multiple tags, they can
-            be passed in as a comma-separated list, e.g. ``?tags=tag1,tag2,tag3``,
-            or via multiple ``tags`` parameters, e.g. ``?tags=tag1&tags=tag2&tags=tag3``.
+        tags: The tags to filter devices by. Multiple tag groups may be specified by
+            providing multiple ``tags`` query parameters, e.g. ``?tags=foo&tags=bar``.
+            Each tag group may consist of one or more comma-separated tags. Each tag
+            group only selects devices which match all of the tags in the group. If
+            multiple tag groups are specified, the result is the union of the matches
+            from each individual tag group.
         force: Force a re-scan (rebuild the internal cache). This will take longer than
             a scan which uses the cache. (default: false)
         sort: Specify the fields to sort by. Multiple fields may be specified as a
@@ -176,11 +179,11 @@ async def scan(request):
             )
         namespace = param_ns[0]
 
-    tags = []
+    tag_groups = []
     param_tags = request.args.getlist('tags')
     if param_tags:
-        for tag in param_tags:
-            tags.extend(tag.split(','))
+        for group in param_tags:
+            tag_groups.append(group.split(','))
 
     force = request.args.get('force', 'false').lower() == 'true'
 
@@ -196,7 +199,7 @@ async def scan(request):
     return utils.http_json_response(
         await cmd.scan(
             ns=namespace,
-            tags=tags,
+            tag_groups=tag_groups,
             force=force,
             sort=sort_keys,
         ),
@@ -269,9 +272,12 @@ async def read(request):
     Query Parameters:
         ns: The default namespace to use for specified tags without explicit namespaces.
             Only one default namespace may be specified. (default: ``default``)
-        tags: The tags to filter devices on. If specifying multiple tags, they can
-            be passed in as a comma-separated list, e.g. ``?tags=tag1,tag2,tag3``,
-            or via multiple ``tags`` parameters, e.g. ``?tags=tag1&tags=tag2&tags=tag3``.
+        tags: The tags to filter devices by. Multiple tag groups may be specified by
+            providing multiple ``tags`` query parameters, e.g. ``?tags=foo&tags=bar``.
+            Each tag group may consist of one or more comma-separated tags. Each tag
+            group only selects devices which match all of the tags in the group. If
+            multiple tag groups are specified, the result is the union of the matches
+            from each individual tag group.
 
     HTTP Codes:
         * 200: OK
@@ -289,16 +295,16 @@ async def read(request):
             )
         namespace = param_ns[0]
 
-    tags = []
+    tag_groups = []
     param_tags = request.args.getlist('tags')
     if param_tags:
-        for tag in param_tags:
-            tags.extend(tag.split(','))
+        for group in param_tags:
+            tag_groups.append(group.split(','))
 
     return utils.http_json_response(
         await cmd.read(
             ns=namespace,
-            tags=tags,
+            tag_groups=tag_groups,
         ),
     )
 

@@ -17,7 +17,7 @@ async def test_read_no_plugins(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await cmd.read('default', ['default/foo'])
+    resp = await cmd.read('default', [['default/foo']])
     assert len(resp) == 0
 
     mock_read.assert_not_called()
@@ -40,7 +40,7 @@ async def test_read_fails_read(mocker, simple_plugin):
     simple_plugin.active = True
 
     with pytest.raises(errors.ServerError):
-        await cmd.read('default', ['default/foo'])
+        await cmd.read('default', [['default/foo']])
 
     assert simple_plugin.active is False
 
@@ -84,7 +84,7 @@ async def test_read_fails_read_multiple_one_fail(mocker, simple_plugin, temperat
     error_plugin.active = True
 
     with pytest.raises(errors.ServerError):
-        await cmd.read('default', ['default/foo'])
+        await cmd.read('default', [['default/foo']])
 
     assert simple_plugin.active is True
     assert error_plugin.active is False
@@ -147,7 +147,7 @@ async def test_read_ok_no_tags(mocker, simple_plugin, temperature_reading, humid
     assert simple_plugin.active is True
 
     mock_read.assert_called_once()
-    mock_read.assert_called_with(tags=[])
+    mock_read.assert_called_with()
 
 
 @pytest.mark.asyncio
@@ -169,17 +169,13 @@ async def test_read_ok_tags_with_ns(mocker, simple_plugin, state_reading):
     # Set the simple_plugin to active to start.
     simple_plugin.active = True
 
-    resp = await cmd.read('default', ['foo/bar', 'vapor/ware'])
+    resp = await cmd.read('default', [['foo/bar', 'vapor/ware']])
+
+    # Note: There are two plugins defined, so we should expect each
+    # plugin to return a reading. Since the fixture returns the same reading
+    # at the same timestamp, we take this to be the same reading and deduplicate
+    # it, hence we only get one reading here.
     assert resp == [
-        {  # from state_reading fixture
-            'device': 'ccc',
-            'timestamp': '2019-04-22T13:30:00Z',
-            'type': 'state',
-            'device_type': 'led',
-            'value': 'on',
-            'unit': None,
-            'context': {},
-        },
         {  # from state_reading fixture
             'device': 'ccc',
             'timestamp': '2019-04-22T13:30:00Z',
@@ -219,17 +215,13 @@ async def test_read_ok_tags_without_ns(mocker, simple_plugin, state_reading):
     # Set the simple_plugin to active to start.
     simple_plugin.active = True
 
-    resp = await cmd.read('default', ['foo', 'bar', 'vapor/ware'])
+    resp = await cmd.read('default', [['foo', 'bar', 'vapor/ware']])
+
+    # Note: There are two plugins defined, so we should expect each
+    # plugin to return a reading. Since the fixture returns the same reading
+    # at the same timestamp, we take this to be the same reading and deduplicate
+    # it, hence we only get one reading here.
     assert resp == [
-        {  # from state_reading fixture
-            'device': 'ccc',
-            'timestamp': '2019-04-22T13:30:00Z',
-            'type': 'state',
-            'device_type': 'led',
-            'value': 'on',
-            'unit': None,
-            'context': {},
-        },
         {  # from state_reading fixture
             'device': 'ccc',
             'timestamp': '2019-04-22T13:30:00Z',

@@ -44,42 +44,61 @@ def reading_to_dict(reading):
     }
 
 
-async def read(ns, tags):
+async def read(ns, tag_groups):
     """Generate the readings response data.
 
     Args:
         ns (str): The default namespace to use for tags which do not
             specify one. If all tags specify a namespace, or no tags
             are defined, this is ignored.
-        tags (list[str]): The tags to filter devices on. If no tags are
-            given, no filtering is done.
+        tag_groups (list[iterable[string]]): The tags groups used to filter
+            devices. If no tag groups are given (and thus no tags), no
+            filtering is done.
 
     Returns:
         list[dict]: A list of dictionary representations of device reading
         response(s).
     """
-    logger.debug(_('issuing command'), command='READ', ns=ns, tags=tags)
+    logger.debug(_('issuing command'), command='READ', ns=ns, tag_groups=tag_groups)
 
-    # Apply the default namespace to the tags which do not have any
-    # namespaces, if any are defined.
-    for i, tag in enumerate(tags):
-        if '/' not in tag:
-            tags[i] = f'{ns}/{tag}'
+    # If there are no tags specified, read with no tag filter.
+    if len(tag_groups) == 0:
+        readings = []
+        for p in plugin.manager:
+            try:
+                with p as client:
+                    data = client.read()
+            except Exception as e:
+                raise errors.ServerError(
+                    _('error while issuing gRPC request: read')
+                ) from e
+            for reading in data:
+                readings.append(reading_to_dict(reading))
+        return readings
 
-    readings = []
-    for p in plugin.manager:
-        try:
-            with p as client:
-                data = client.read(tags=tags)
-        except Exception as e:
-            raise errors.ServerError(
-                _('error while issuing gRPC request: read')
-            ) from e
+    # Otherwise, there is at least one tag group. We need to issue a read request
+    # for each group and collect the results of each group.
+    results = {}
+    for group in tag_groups:
+        # Apply the default namespace to the tags in the group which do not
+        # have any namespace defined.
+        for i, tag in enumerate(group):
+            if '/' not in tag:
+                group[i] = f'{ns}/{tag}'
 
-        for reading in data:
-            readings.append(reading_to_dict(reading))
+        for p in plugin.manager:
+            try:
+                with p as client:
+                    data = client.read(tags=group)
+            except Exception as e:
+                raise errors.ServerError(
+                    _('error while issuing gRPC request: read')
+                ) from e
 
-    return readings
+            for r in data:
+                results[f'{r.id}{r.type}{r.timestamp}'] = reading_to_dict(r)
+
+    return list(results.values())
 
 
 async def read_device(device_id):
