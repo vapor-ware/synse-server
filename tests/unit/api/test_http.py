@@ -400,7 +400,7 @@ class TestV3Scan:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -424,7 +424,7 @@ class TestV3Scan:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -500,7 +500,7 @@ class TestV3Scan:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns=expected,
-            tags=[],
+            tag_groups=[],
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -541,7 +541,7 @@ class TestV3Scan:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=False,
             sort=expected,
         )
@@ -591,7 +591,7 @@ class TestV3Scan:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=expected,
             sort='plugin,sortIndex,id',
         )
@@ -599,13 +599,13 @@ class TestV3Scan:
     @pytest.mark.parametrize(
         'qparam,expected', [
             ('?tags=', []),
-            ('?tags=a,b,c', ['a', 'b', 'c']),
-            ('?tags=a&tags=b&tags=c', ['a', 'b', 'c']),
-            ('?tags=default/foo', ['default/foo']),
-            ('?tags=default/foo:bar', ['default/foo:bar']),
-            ('?tags=foo:bar', ['foo:bar']),
-            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),  # noqa: E501
-            ('?tags=default/foo,bar&tags=vapor/test', ['default/foo', 'bar', 'vapor/test']),
+            ('?tags=a,b,c', [['a', 'b', 'c']]),
+            ('?tags=a&tags=b&tags=c', [['a'], ['b'], ['c']]),
+            ('?tags=default/foo', [['default/foo']]),
+            ('?tags=default/foo:bar', [['default/foo:bar']]),
+            ('?tags=foo:bar', [['foo:bar']]),
+            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', [['foo:bar'], ['default/foo:baz'], ['vapor']]),  # noqa: E501
+            ('?tags=default/foo,bar&tags=vapor/test', [['default/foo', 'bar'], ['vapor/test']]),
         ]
     )
     def test_param_tags(self, synse_app, qparam, expected):
@@ -635,7 +635,7 @@ class TestV3Scan:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=expected,
+            tag_groups=expected,
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -894,7 +894,7 @@ class TestV3Read:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
         )
 
     def test_error(self, synse_app):
@@ -916,7 +916,7 @@ class TestV3Read:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
         )
 
     def test_invalid_multiple_ns(self, synse_app):
@@ -939,13 +939,13 @@ class TestV3Read:
     @pytest.mark.parametrize(
         'qparam,expected', [
             ('?tags=', []),
-            ('?tags=a,b,c', ['a', 'b', 'c']),
-            ('?tags=a&tags=b&tags=c', ['a', 'b', 'c']),
-            ('?tags=default/foo', ['default/foo']),
-            ('?tags=default/foo:bar', ['default/foo:bar']),
-            ('?tags=foo:bar', ['foo:bar']),
-            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),  # noqa: E501
-            ('?tags=default/foo,bar&tags=vapor/test', ['default/foo', 'bar', 'vapor/test']),
+            ('?tags=a,b,c', [['a', 'b', 'c']]),
+            ('?tags=a&tags=b&tags=c', [['a'], ['b'], ['c']]),
+            ('?tags=default/foo', [['default/foo']]),
+            ('?tags=default/foo:bar', [['default/foo:bar']]),
+            ('?tags=foo:bar', [['foo:bar']]),
+            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', [['foo:bar'], ['default/foo:baz'], ['vapor']]),  # noqa: E501
+            ('?tags=default/foo,bar&tags=vapor/test', [['default/foo', 'bar'], ['vapor/test']]),
         ]
     )
     def test_param_tags(self, synse_app, qparam, expected):
@@ -970,7 +970,7 @@ class TestV3Read:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=expected,
+            tag_groups=expected,
         )
 
     @pytest.mark.parametrize(
@@ -1005,7 +1005,7 @@ class TestV3Read:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns=expected,
-            tags=[],
+            tag_groups=[],
         )
 
 
@@ -1849,7 +1849,7 @@ class TestV3Device:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -1873,7 +1873,7 @@ class TestV3Device:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -1947,7 +1947,7 @@ class TestV3Device:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns=expected,
-            tags=[],
+            tag_groups=[],
             force=False,
             sort='plugin,sortIndex,id',
         )
@@ -1988,7 +1988,7 @@ class TestV3Device:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=False,
             sort=expected,
         )
@@ -2038,7 +2038,7 @@ class TestV3Device:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=[],
+            tag_groups=[],
             force=expected,
             sort='plugin,sortIndex,id',
         )
@@ -2046,13 +2046,13 @@ class TestV3Device:
     @pytest.mark.parametrize(
         'qparam,expected', [
             ('?tags=', []),
-            ('?tags=a,b,c', ['a', 'b', 'c']),
-            ('?tags=a&tags=b&tags=c', ['a', 'b', 'c']),
-            ('?tags=default/foo', ['default/foo']),
-            ('?tags=default/foo:bar', ['default/foo:bar']),
-            ('?tags=foo:bar', ['foo:bar']),
-            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', ['foo:bar', 'default/foo:baz', 'vapor']),  # noqa: E501
-            ('?tags=default/foo,bar&tags=vapor/test', ['default/foo', 'bar', 'vapor/test']),
+            ('?tags=a,b,c', [['a', 'b', 'c']]),
+            ('?tags=a&tags=b&tags=c', [['a'], ['b'], ['c']]),
+            ('?tags=default/foo', [['default/foo']]),
+            ('?tags=default/foo:bar', [['default/foo:bar']]),
+            ('?tags=foo:bar', [['foo:bar']]),
+            ('?tags=foo:bar&tags=default/foo:baz&tags=vapor', [['foo:bar'], ['default/foo:baz'], ['vapor']]),  # noqa: E501
+            ('?tags=default/foo,bar&tags=vapor/test', [['default/foo', 'bar'], ['vapor/test']]),
         ]
     )
     def test_enumerate_param_tags(self, synse_app, qparam, expected):
@@ -2082,7 +2082,7 @@ class TestV3Device:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
             ns='default',
-            tags=expected,
+            tag_groups=expected,
             force=False,
             sort='plugin,sortIndex,id',
         )

@@ -6,15 +6,16 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def scan(ns, tags, sort, force=False):
+async def scan(ns, tag_groups, sort, force=False):
     """Generate the scan response data.
 
     Args:
         ns (str): The default namespace to use for tags which do not
             specify one. If all tags specify a namespace, or no tags
             are defined, this is ignored.
-        tags (list[str]): The tags to filter devices on. If no tags are
-            given, no filtering is done.
+        tag_groups (list[iterable[string]]): The tags groups used to filter
+            devices. If no tag groups are given (and thus no tags), no
+            filtering is done.
         force (bool): Option to force rebuild the internal device cache.
             (default: False)
         sort (str): The fields to sort by.
@@ -25,7 +26,7 @@ async def scan(ns, tags, sort, force=False):
     """
     logger.debug(
         _('issuing command'), command='SCAN',
-        ns=ns, tags=tags, sort=sort, force=force,
+        ns=ns, tag_groups=tag_groups, sort=sort, force=force,
     )
 
     # If the force flag is set, rebuild the internal device cache. This
@@ -38,17 +39,35 @@ async def scan(ns, tags, sort, force=False):
         except Exception as e:
             raise errors.ServerError(_('failed to rebuild device cache')) from e
 
-    # Apply the default namespace to the tags which do not have any
-    # namespaces, if any are defined.
-    for i, tag in enumerate(tags):
-        if '/' not in tag:
-            tags[i] = f'{ns}/{tag}'
+    if len(tag_groups) == 0:
+        # If no tags are specified, get devices with no tag filter.
+        try:
+            devices = await cache.get_devices()
+        except Exception as e:
+            logger.exception(e)
+            raise errors.ServerError(_('failed to get all devices from cache')) from e
 
-    try:
-        devices = await cache.get_devices(*tags)
-    except Exception as e:
-        logger.exception(e)
-        raise errors.ServerError(_('failed to get devices from cache')) from e
+    else:
+        # Otherwise, there is at least one tag group. We need to get the devices for
+        # each tag group and collect the results of each group.
+        results = {}
+        for group in tag_groups:
+            # Apply the default namespace to the tags in the group which do not
+            # have any namespace defined.
+            for i, tag in enumerate(group):
+                if '/' not in tag:
+                    group[i] = f'{ns}/{tag}'
+
+            try:
+                device_group = await cache.get_devices(*group)
+            except Exception as e:
+                logger.exception(e)
+                raise errors.ServerError(_('failed to get devices from cache')) from e
+
+            for device in device_group:
+                results[device.id] = device
+
+        devices = list(results.values())
 
     # Sort the devices based on the sort string. There may be multiple
     # components in the sort string separated by commas. The order in which
