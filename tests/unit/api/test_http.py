@@ -1058,11 +1058,11 @@ class TestV3ReadCache:
             resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
-            assert resp.headers['Content-Type'] == 'application/json'
+            assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
 
             # The response is streamed, so we cannot simply load it (it will not be
             # a valid single JSON document), so we compare just the body.
-            assert resp.body == b'{"value":1,"type":"temperature"}{"value":2,"type":"temperature"}{"value":3,"type":"temperature"}'  # noqa: E501
+            assert resp.body == b'{"value":1,"type":"temperature"}\n{"value":2,"type":"temperature"}\n{"value":3,"type":"temperature"}\n'  # noqa: E501
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', '')
@@ -1083,11 +1083,11 @@ class TestV3ReadCache:
             resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
-            assert resp.headers['Content-Type'] == 'application/json'
+            assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
 
             # The response is streamed, so we cannot simply load it (it will not be
             # a valid single JSON document), so we compare just the body.
-            assert resp.body == b'{"foo":"bar"}'
+            assert resp.body == b'{"foo":"bar"}\n'
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', '')
@@ -1162,11 +1162,11 @@ class TestV3ReadCache:
             )
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
-            assert resp.headers['Content-Type'] == 'application/json'
+            assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
 
             # The response is streamed, so we cannot simply load it (it will not be
             # a valid single JSON document), so we compare just the body.
-            assert resp.body == b'{"value":1,"type":"temperature"}'
+            assert resp.body == b'{"value":1,"type":"temperature"}\n'
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(expected, '')
@@ -1203,11 +1203,11 @@ class TestV3ReadCache:
             )
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
-            assert resp.headers['Content-Type'] == 'application/json'
+            assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
 
             # The response is streamed, so we cannot simply load it (it will not be
             # a valid single JSON document), so we compare just the body.
-            assert resp.body == b'{"value":1,"type":"temperature"}'
+            assert resp.body == b'{"value":1,"type":"temperature"}\n'
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', expected)
