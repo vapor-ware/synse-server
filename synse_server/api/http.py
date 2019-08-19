@@ -357,12 +357,12 @@ async def read_cache(request):
         # just log it and move on.
         try:
             async for reading in cmd.read_cache(start, end):
-                await response.write(ujson.dumps(reading))
+                await response.write(ujson.dumps(reading) + '\n')
         except Exception as e:
             logger.error('failure when streaming cached readings')
             logger.exception(e)
 
-    return stream(response_streamer, content_type='application/json')
+    return stream(response_streamer, content_type='application/json; charset=utf-8')
 
 
 @v3.route('/read/<device_id>')
