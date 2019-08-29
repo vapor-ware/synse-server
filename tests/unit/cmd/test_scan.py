@@ -95,7 +95,10 @@ async def test_scan_ok():
                     plugin='abc',
                     tags=[
                         api.V3Tag(namespace='default', label='foo')
-                    ]
+                    ],
+                    metadata={
+                        'foo': 'bar',
+                    },
                 ),
                 api.V3Device(
                     id='2',
@@ -120,6 +123,44 @@ async def test_scan_ok():
             assert resp[0]['id'] == '1'
             assert resp[1]['id'] == '3'
             assert resp[2]['id'] == '2'
+
+            assert resp == [
+                {
+                    'id': '1',
+                    'alias': '',
+                    'info': '',
+                    'type': 'foo',
+                    'plugin': 'abc',
+                    'tags': [
+                        'default/foo',
+                    ],
+                    'metadata': {
+                        'foo': 'bar'
+                    }
+                },
+                {
+                    'id': '3',
+                    'alias': '',
+                    'info': '',
+                    'type': 'bar',
+                    'plugin': 'abc',
+                    'tags': [
+                        'default/foo',
+                    ],
+                    'metadata': {}
+                },
+                {
+                    'id': '2',
+                    'alias': '',
+                    'info': '',
+                    'type': 'foo',
+                    'plugin': 'def',
+                    'tags': [
+                        'default/foo',
+                    ],
+                    'metadata': {}
+                },
+            ]
 
     mock_update.assert_called_once()
     mock_get.assert_called_once()

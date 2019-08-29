@@ -14,7 +14,7 @@ coverage==4.5.4           # via pytest-cov
 idna-ssl==1.1.0           # via aiohttp
 idna==2.8                 # via idna-ssl, yarl
 importlib-metadata==0.19  # via pluggy, pytest
-more-itertools==7.2.0     # via pytest
+more-itertools==7.2.0     # via pytest, zipp
 multidict==4.5.2          # via aiohttp, yarl
 packaging==19.1           # via pytest
 pluggy==0.12.0            # via pytest
@@ -23,9 +23,9 @@ pyparsing==2.4.2          # via packaging
 pytest-asyncio==0.10.0
 pytest-cov==2.7.1
 pytest-mock==1.10.4
-pytest==5.1.0
+pytest==5.1.1
 six==1.12.0               # via packaging
 typing-extensions==3.7.4  # via aiohttp
 wcwidth==0.1.7            # via pytest
 yarl==1.3.0               # via aiohttp
-zipp==0.5.2               # via importlib-metadata
+zipp==0.6.0               # via importlib-metadata
