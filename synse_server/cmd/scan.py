@@ -91,5 +91,6 @@ async def scan(ns, tag_groups, sort, force=False):
             'type': device.type,
             'plugin': device.plugin,
             'tags': [utils.tag_string(tag) for tag in device.tags],
+            'metadata': dict(device.metadata),
         })
     return response
