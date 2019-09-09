@@ -27,7 +27,7 @@ async def connect(request, ws):
 class Payload:
     """Payload describes the message that was received on a WebSocket connection."""
 
-    def __init__(self, data):
+    def __init__(self, data) -> None:
         try:
             d = json.loads(data)
         except Exception as e:
@@ -42,6 +42,12 @@ class Payload:
         self.id = d['id']
         self.event = d['event']
         self.data = d.get('data', {})
+
+    def __str__(self) -> str:
+        return f'<Payload id={self.id} event={self.event} data={self.data}>'
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 def error(msg_id=None, message=None, ex=None) -> str:
