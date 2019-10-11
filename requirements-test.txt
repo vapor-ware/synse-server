@@ -4,26 +4,26 @@
 #
 #    pip-compile --output-file=requirements-test.txt test-requirements.in
 #
-aiohttp==3.5.4
+aiohttp==3.6.2
 async-timeout==3.0.1      # via aiohttp
 asynctest==0.13.0
 atomicwrites==1.3.0       # via pytest
-attrs==19.1.0             # via aiohttp, packaging, pytest
+attrs==19.2.0             # via aiohttp, pytest
 chardet==3.0.4            # via aiohttp
 coverage==4.5.4           # via pytest-cov
 idna-ssl==1.1.0           # via aiohttp
 idna==2.8                 # via idna-ssl, yarl
-importlib-metadata==0.19  # via pluggy, pytest
+importlib-metadata==0.23  # via pluggy, pytest
 more-itertools==7.2.0     # via pytest, zipp
 multidict==4.5.2          # via aiohttp, yarl
-packaging==19.1           # via pytest
-pluggy==0.12.0            # via pytest
+packaging==19.2           # via pytest
+pluggy==0.13.0            # via pytest
 py==1.8.0                 # via pytest
 pyparsing==2.4.2          # via packaging
 pytest-asyncio==0.10.0
-pytest-cov==2.7.1
-pytest-mock==1.10.4
-pytest==5.1.1
+pytest-cov==2.8.1
+pytest-mock==1.11.1
+pytest==5.2.1
 six==1.12.0               # via packaging
 typing-extensions==3.7.4  # via aiohttp
 wcwidth==0.1.7            # via pytest
