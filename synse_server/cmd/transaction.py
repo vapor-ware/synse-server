@@ -47,6 +47,8 @@ async def transaction(transaction_id):
 
     status = synse_grpc.utils.to_dict(response)
     status['device'] = device
+    if status.get('context', {}).get('data'):
+        status['context']['data'] = status['context']['data'].decode('utf-8')
     return status
 
 

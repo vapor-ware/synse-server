@@ -29,9 +29,9 @@ async def tags(*namespaces, with_id_tags=False):
         return ns in namespaces
 
     if not with_id_tags:
-        cached_tags = filter(lambda t: not t.startswith('system/id:'), cached_tags)
+        cached_tags = [t for t in cached_tags if not t.startswith('system/id:')]
 
     if namespaces:
-        cached_tags = filter(lambda t: matches_ns(t), cached_tags)
+        cached_tags = [t for t in cached_tags if matches_ns(t)]
 
     return sorted(cached_tags)

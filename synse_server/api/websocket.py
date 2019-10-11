@@ -281,7 +281,7 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        ns = payload.data.get('ns', ['default'])
+        ns = payload.data.get('ns', [])
         ids = payload.data.get('ids', False)
 
         await self.ws.send(json.dumps({

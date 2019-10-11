@@ -6,12 +6,12 @@
 #
 aiocache==0.11.1
 aiofiles==0.4.0           # via sanic
-bison==0.1.1
+bison==0.1.2
 cachetools==3.1.1         # via google-auth
-certifi==2019.6.16        # via httpcore, kubernetes, requests
+certifi==2019.9.11        # via httpcore, kubernetes, requests
 chardet==3.0.4            # via httpcore, requests
 google-auth==1.6.3        # via kubernetes
-grpcio==1.23.0
+grpcio==1.24.1
 h11==0.8.1                # via httpcore
 h2==3.1.1                 # via httpcore
 hpack==3.0.0              # via h2
@@ -23,10 +23,10 @@ kubernetes==10.0.1
 multidict==4.5.2          # via sanic
 oauthlib==3.1.0           # via requests-oauthlib
 prometheus-client==0.5.0  # via sanic-prometheus
-protobuf==3.9.1           # via synse-grpc
+protobuf==3.10.0          # via synse-grpc
 psutil==5.6.3             # via sanic-prometheus
-pyasn1-modules==0.2.6     # via google-auth
-pyasn1==0.4.6             # via pyasn1-modules, rsa
+pyasn1-modules==0.2.7     # via google-auth
+pyasn1==0.4.7             # via pyasn1-modules, rsa
 python-dateutil==2.8.0    # via kubernetes
 pyyaml==5.1.2
 requests-async==0.5.0     # via sanic
@@ -40,10 +40,10 @@ six==1.12.0               # via google-auth, grpcio, kubernetes, protobuf, pytho
 structlog==19.1.0
 synse-grpc==3.0.0a3
 ujson==1.35               # via sanic
-urllib3==1.25.3           # via kubernetes, requests
+urllib3==1.25.6           # via kubernetes, requests
 uvloop==0.13.0            # via sanic
 websocket-client==0.56.0  # via kubernetes
 websockets==7.0           # via sanic
 
 # The following packages are considered to be unsafe in a requirements file:
-# setuptools==41.2.0        # via kubernetes, protobuf
+# setuptools==41.4.0        # via kubernetes, protobuf
