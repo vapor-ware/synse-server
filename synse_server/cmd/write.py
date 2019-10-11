@@ -31,7 +31,10 @@ async def write_async(device_id, payload):
             for txn in client.write_async(device_id=device_id, data=payload):
                 # Add the transaction to the cache
                 await cache.add_transaction(txn.id, txn.device, plugin.id)
-                response.append(utils.to_dict(txn))
+                rsp = utils.to_dict(txn)
+                if rsp.get('context', {}).get('data'):
+                    rsp['context']['data'] = rsp['context']['data'].decode('utf-8')
+                response.append(rsp)
     except Exception as e:
         raise errors.ServerError(
             _('error while issuing gRPC request: async write'),
@@ -67,6 +70,8 @@ async def write_sync(device_id, payload):
                 await cache.add_transaction(status.id, device_id, plugin.id)
                 s = utils.to_dict(status)
                 s['device'] = device_id
+                if s.get('context', {}).get('data'):
+                    s['context']['data'] = s['context']['data'].decode('utf-8')
                 response.append(s)
     except Exception as e:
         raise errors.ServerError(
