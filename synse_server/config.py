@@ -38,7 +38,7 @@ scheme = Scheme(
         Option('key', field_type=str),
     )),
     DictOption('metrics', scheme=Scheme(
-        Option('enabled', default=False, field_type=bool),
+        Option('enabled', default=False, bind_env=True, field_type=bool),
     )),
 )
 
