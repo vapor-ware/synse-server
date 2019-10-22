@@ -116,7 +116,10 @@ class Synse:
         # If application metrics are enabled, configure the application now.
         if config.options.get('metrics.enabled'):
             logger.info(_('application performance metrics enabled'))
-            monitor(self.app).expose_endpoint()
+            monitor(
+                app=self.app,
+                endpoint_type='url',
+            ).expose_endpoint()
 
         # Load the SSL configuration, if defined.
         ssl_context = None
