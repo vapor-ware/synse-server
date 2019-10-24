@@ -31,6 +31,36 @@ class Monitor:
         labelnames=('method', 'endpoint', 'http_code'),
     )
 
+    ws_req_count = Counter(
+        name='sanic_websocket_request_count',
+        documentation='Sanic WebSocket Request Count',
+        labelnames=('event',),
+    )
+
+    ws_req_latency = Histogram(
+        name='sanic_websocket_request_latency_sec',
+        documentation='Sanic WebSocket Request Latency',
+        labelnames=('event',),
+    )
+
+    ws_req_bytes = Counter(
+        name='sanic_websocket_request_bytes',
+        documentation='Sanic WebSocket Request Bytes',
+        labelnames=('event',),
+    )
+
+    ws_resp_bytes = Counter(
+        name='sanic_websocket_response_bytes',
+        documentation='Sanic WebSocket Response Bytes',
+        labelnames=('event',),
+    )
+
+    ws_resp_error_count = Counter(
+        name='sanic_websocket_error_response_count',
+        documentation='Sanic WebSocket Error Response Count',
+        labelnames=('event',)
+    )
+
     def __init__(self, app: sanic.Sanic) -> None:
         self.app = app
 
