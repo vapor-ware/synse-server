@@ -3,10 +3,8 @@
 import os
 import sys
 
-from sanic_prometheus import monitor
-
 import synse_server
-from synse_server import app, config, plugin, tasks
+from synse_server import app, config, metrics, plugin, tasks
 from synse_server.i18n import _
 from synse_server.log import logger, setup_logger
 
@@ -116,10 +114,7 @@ class Synse:
         # If application metrics are enabled, configure the application now.
         if config.options.get('metrics.enabled'):
             logger.info(_('application performance metrics enabled'))
-            monitor(
-                app=self.app,
-                endpoint_type='url',
-            ).expose_endpoint()
+            metrics.Monitor(self.app).register()
 
         # Load the SSL configuration, if defined.
         ssl_context = None
