@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import time
 
 from sanic import Blueprint
 from sanic.websocket import ConnectionClosed
@@ -9,6 +10,7 @@ from sanic.websocket import ConnectionClosed
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
 from synse_server.log import logger
+from synse_server.metrics import Monitor
 
 # Blueprint for the Synse v3 WebSocket API.
 v3 = Blueprint('v3-websocket')
@@ -110,6 +112,7 @@ class MessageHandler:
     async def run(self):
         logger.debug(_('running message handler for websocket'), host=self.ws.host)
         async for message in self.ws:
+            handler_start = time.time()
             try:
                 p = Payload(message)
             except Exception as e:
@@ -124,6 +127,11 @@ class MessageHandler:
                 logger.error(_('error generating websocket response'), err=e)
                 continue
 
+            latency = time.time() - handler_start
+            Monitor.ws_req_latency.labels(p.event).observe(latency)
+            Monitor.ws_req_count.labels(p.event).inc()
+            Monitor.ws_req_bytes.labels(p.event).inc(len(message))
+
     def stop(self, *args, **kwargs):
         """Stop the MessageHandler.
 
@@ -135,6 +143,27 @@ class MessageHandler:
 
         for t in self.tasks:
             t.cancel()
+
+    async def send(self, id, event, data):
+        """Send the response back over the WebSocket.
+
+        This is just a wrapper around the `ws.send` which makes it easier to
+        track metrics around the WebSocket API.
+
+        Args:
+            id: The ID of the response payload.
+            event: The response payload event.
+            data: The data to return in the response JSON.
+        """
+
+        resp = json.dumps({
+            'id': id,
+            'event': event,
+            'data': data,
+        })
+        await self.ws.send(resp)
+
+        Monitor.ws_resp_bytes.labels(event).inc(len(resp))
 
     async def dispatch(self, payload):
         """Generate the response for the Message's request data.
@@ -154,6 +183,7 @@ class MessageHandler:
                 msg_id=payload.id,
                 message=f'unsupported event type: {payload.event}',
             ))
+            Monitor.ws_resp_error_count.labels(payload.event).inc()
             return
 
         try:
@@ -168,6 +198,7 @@ class MessageHandler:
                 msg_id=payload.id,
                 ex=e,
             ))
+            Monitor.ws_resp_error_count.labels(payload.event).inc()
 
     # ---
 
@@ -177,11 +208,11 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/status',
-            'data': await cmd.test(),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/status',
+            data=await cmd.test(),
+        )
 
     async def handle_request_version(self, payload):
         """WebSocket 'version' event message handler.
@@ -189,11 +220,11 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/version',
-            'data': await cmd.version(),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/version',
+            data=await cmd.version(),
+        )
 
     async def handle_request_config(self, payload):
         """WebSocket 'config' event message handler.
@@ -201,11 +232,11 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/config',
-            'data': await cmd.config(),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/config',
+            data=await cmd.config(),
+        )
 
     async def handle_request_plugin(self, payload):
         """WebSocket 'plugin' event message handler.
@@ -217,11 +248,11 @@ class MessageHandler:
         if plugin_id is None:
             raise errors.InvalidUsage('required data "plugin" not specified')
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/plugin_info',
-            'data': await cmd.plugin(plugin_id),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/plugin_info',
+            data=await cmd.plugin(plugin_id),
+        )
 
     async def handle_request_plugins(self, payload):
         """WebSocket 'plugins' event message handler.
@@ -229,11 +260,11 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/plugin_summary',
-            'data': await cmd.plugins(),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/plugin_summary',
+            data=await cmd.plugins(),
+        )
 
     async def handle_request_plugin_health(self, payload):
         """WebSocket 'plugin health' event message handler.
@@ -241,11 +272,11 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/plugin_health',
-            'data': await cmd.plugin_health(),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/plugin_health',
+            data=await cmd.plugin_health(),
+        )
 
     async def handle_request_scan(self, payload):
         """WebSocket 'scan' event message handler.
@@ -264,16 +295,16 @@ class MessageHandler:
         if len(tags) != 0 and all(isinstance(t, str) for t in tags):
             tags = [tags]
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/device_summary',
-            'data': await cmd.scan(
+        await self.send(
+            id=payload.id,
+            event='response/device_summary',
+            data=await cmd.scan(
                 ns=ns,
                 tag_groups=tags,
                 sort=sort_keys,
                 force=force,
             ),
-        }))
+        )
 
     async def handle_request_tags(self, payload):
         """WebSocket 'tags' event message handler.
@@ -284,11 +315,11 @@ class MessageHandler:
         ns = payload.data.get('ns', [])
         ids = payload.data.get('ids', False)
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/tags',
-            'data': await cmd.tags(*ns, with_id_tags=ids),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/tags',
+            data=await cmd.tags(*ns, with_id_tags=ids),
+        )
 
     async def handle_request_info(self, payload):
         """WebSocket 'info' event message handler.
@@ -300,11 +331,11 @@ class MessageHandler:
         if device is None:
             raise errors.InvalidUsage('required data "device" not specified')
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/device_info',
-            'data': await cmd.info(device_id=device),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/device_info',
+            data=await cmd.info(device_id=device),
+        )
 
     async def handle_request_read(self, payload):
         """WebSocket 'read' event message handler.
@@ -321,14 +352,14 @@ class MessageHandler:
         if len(tags) != 0 and all(isinstance(t, str) for t in tags):
             tags = [tags]
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/reading',
-            'data': await cmd.read(
+        await self.send(
+            id=payload.id,
+            event='response/reading',
+            data=await cmd.read(
                 ns=ns,
                 tag_groups=tags,
             ),
-        }))
+        )
 
     async def handle_request_read_device(self, payload):
         """WebSocket 'read device' event message handler.
@@ -340,11 +371,11 @@ class MessageHandler:
         if device is None:
             raise errors.InvalidUsage('required data "device" not specified')
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/reading',
-            'data': await cmd.read_device(device_id=device),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/reading',
+            data=await cmd.read_device(device_id=device),
+        )
 
     async def handle_request_read_cache(self, payload):
         """WebSocket 'read cache' event message handler.
@@ -358,14 +389,14 @@ class MessageHandler:
         # FIXME: should this return the whole list in one message? probably
         #   not.. we probably want to send in multiple messages..
         #   (etd) - this is now doable since we have direct access to the ws instance
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/reading',
-            'data': [x async for x in cmd.read_cache(
+        await self.send(
+            id=payload.id,
+            event='response/reading',
+            data=[x async for x in cmd.read_cache(
                 start=start,
                 end=end,
             )],
-        }))
+        )
 
     async def handle_request_read_stream(self, payload):
         """WebSocket 'read stream' event message handler.
@@ -385,11 +416,11 @@ class MessageHandler:
         async def send_readings():
             async for reading in cmd.read_stream(self.ws, ids, tag_groups):
                 try:
-                    await self.ws.send(json.dumps({
-                        'id': payload.id,
-                        'event': 'response/reading',
-                        'data': reading,
-                    }))
+                    await self.send(
+                        id=payload.id,
+                        event='response/reading',
+                        data=reading,
+                    )
                 except ConnectionClosed:
                     logger.info(_('websocket raised ConnectionClosed - terminating read stream'))
                     return
@@ -411,14 +442,14 @@ class MessageHandler:
         if data is None:
             raise errors.InvalidUsage('required data "payload" not specified')
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/transaction_info',
-            'data': await cmd.write_async(
+        await self.send(
+            id=payload.id,
+            event='response/transaction_info',
+            data=await cmd.write_async(
                 device_id=device,
                 payload=data,
             ),
-        }))
+        )
 
     async def handle_request_write_sync(self, payload):
         """WebSocket 'write sync' event message handler.
@@ -434,14 +465,14 @@ class MessageHandler:
         if data is None:
             raise errors.InvalidUsage('required data "payload" not specified')
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/transaction_status',
-            'data': await cmd.write_sync(
+        await self.send(
+            id=payload.id,
+            event='response/transaction_status',
+            data=await cmd.write_sync(
                 device_id=device,
                 payload=data,
             ),
-        }))
+        )
 
     async def handle_request_transaction(self, payload):
         """WebSocket 'transaction' event message handler.
@@ -453,13 +484,13 @@ class MessageHandler:
         if transaction is None:
             raise errors.InvalidUsage('required data "transaction" not specified')
 
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/transaction_status',
-            'data': await cmd.transaction(
+        await self.send(
+            id=payload.id,
+            event='response/transaction_status',
+            data=await cmd.transaction(
                 transaction,
             ),
-        }))
+        )
 
     async def handle_request_transactions(self, payload):
         """WebSocket 'transactions' event message handler.
@@ -467,8 +498,8 @@ class MessageHandler:
         Args:
             payload (Payload): The message payload received from the WebSocket.
         """
-        await self.ws.send(json.dumps({
-            'id': payload.id,
-            'event': 'response/transaction_list',
-            'data': await cmd.transactions(),
-        }))
+        await self.send(
+            id=payload.id,
+            event='response/transaction_list',
+            data=await cmd.transactions(),
+        )
