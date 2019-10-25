@@ -64,10 +64,10 @@ class TestSynse:
 
         # --- Test case -----------------------------
         synse = server.Synse()
-        assert 'expose_metrics' not in synse.app.router.routes_names.keys()
+        assert 'metrics' not in synse.app.router.routes_names.keys()
 
         synse.run()
-        assert 'expose_metrics' in synse.app.router.routes_names.keys()
+        assert 'metrics' in synse.app.router.routes_names.keys()
 
         mock_write.assert_called_once()
         mock_initialize.assert_called_once()
