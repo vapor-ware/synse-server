@@ -22,7 +22,7 @@ def make_payload(data, id=None, event=None):
 def test_error_no_exception():
     resp = websocket.error()
 
-    assert json.loads(resp) == {
+    assert resp == {
         'id': -1,
         'event': 'response/error',
         'data': {
@@ -39,7 +39,7 @@ def test_error_synse_error():
         ex=errors.InvalidUsage('invalid'),
     )
 
-    assert json.loads(resp) == {
+    assert resp == {
         'id': 1,
         'event': 'response/error',
         'data': {
@@ -59,7 +59,7 @@ def test_error_other_error():
         ex=ValueError('uh oh'),
     )
 
-    assert json.loads(resp) == {
+    assert resp == {
         'id': 3,
         'event': 'response/error',
         'data': {
