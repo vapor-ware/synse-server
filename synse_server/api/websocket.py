@@ -21,9 +21,13 @@ async def connect(request, ws):
     """Connect to the WebSocket API."""
 
     logger.info(_('new websocket connection'), source=request.ip)
+    Monitor.ws_session_count.labels(request.ip).inc()
 
-    handler = MessageHandler(ws)
-    await handler.run()
+    try:
+        handler = MessageHandler(ws)
+        await handler.run()
+    finally:
+        Monitor.ws_session_count.labels(request.ip).dec()
 
 
 class Payload:
@@ -52,7 +56,7 @@ class Payload:
         return self.__str__()
 
 
-def error(msg_id=None, message=None, ex=None) -> str:
+def error(msg_id=None, message=None, ex=None) -> dict:
     """A utility function to generate error response messages for
     errors returned via the WebSocket API.
 
@@ -83,11 +87,12 @@ def error(msg_id=None, message=None, ex=None) -> str:
             'context': str(ex),
         }
 
-    return json.dumps({
+    Monitor.ws_resp_error_count.labels('response/error').inc()
+    return {
         'id': message_id,
         'event': 'response/error',
         'data': data,
-    })
+    }
 
 
 class MessageHandler:
@@ -117,7 +122,7 @@ class MessageHandler:
                 p = Payload(message)
             except Exception as e:
                 logger.error(_('error loading websocket message'), error=e)
-                await self.ws.send(error(ex=e))
+                await self.send(**error(ex=e))
                 continue
 
             logger.debug(_('got message'), payload=p)
@@ -179,11 +184,10 @@ class MessageHandler:
         handler = '_'.join(['handle'] + payload.event.split('/'))
 
         if not hasattr(self, handler):
-            await self.ws.send(error(
+            await self.send(**error(
                 msg_id=payload.id,
                 message=f'unsupported event type: {payload.event}',
             ))
-            Monitor.ws_resp_error_count.labels(payload.event).inc()
             return
 
         try:
@@ -194,11 +198,10 @@ class MessageHandler:
             return
         except Exception as e:
             logger.error(_('error processing request'), err=e)
-            await self.ws.send(error(
+            await self.send(**error(
                 msg_id=payload.id,
                 ex=e,
             ))
-            Monitor.ws_resp_error_count.labels(payload.event).inc()
 
     # ---
 
