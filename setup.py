@@ -28,7 +28,7 @@ setup(
     author=pkg['__author__'],
     author_email=pkg['__author_email__'],
     license=pkg['__license__'],
-    packages=find_packages(),
+    packages=find_packages(exclude=['tests.*', 'tests']),
     include_package_data=True,
     python_requires='>=3.6',
     package_data={
