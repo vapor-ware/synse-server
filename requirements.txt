@@ -41,7 +41,7 @@ ujson==1.35               # via sanic
 urllib3==1.25.6           # via kubernetes, requests
 uvloop==0.13.0            # via sanic
 websocket-client==0.56.0  # via kubernetes
-websockets==8.0.2         # via sanic
+websockets==7.0
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools==41.4.0        # via kubernetes, protobuf
