@@ -36,7 +36,7 @@ rsa==4.0                  # via google-auth
 sanic==19.9.0
 six==1.12.0               # via google-auth, grpcio, kubernetes, protobuf, python-dateutil, structlog, websocket-client
 structlog==19.2.0
-synse-grpc==3.0.0a3
+synse-grpc==3.0.0a4
 ujson==1.35               # via sanic
 urllib3==1.25.6           # via kubernetes, requests
 uvloop==0.13.0            # via sanic

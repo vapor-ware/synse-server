@@ -23,7 +23,7 @@ pyparsing==2.4.2          # via packaging
 pytest-asyncio==0.10.0
 pytest-cov==2.8.1
 pytest-mock==1.11.2
-pytest==5.2.1
+pytest==5.2.2
 six==1.12.0               # via packaging
 typing-extensions==3.7.4  # via aiohttp
 wcwidth==0.1.7            # via pytest

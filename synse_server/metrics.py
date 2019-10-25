@@ -2,8 +2,9 @@
 
 import time
 
+import grpc
 import sanic
-from prometheus_client import Counter, Histogram, Gauge, core
+from prometheus_client import Counter, Gauge, Histogram, core
 from prometheus_client.exposition import CONTENT_TYPE_LATEST, generate_latest
 from sanic.response import raw
 
@@ -79,7 +80,7 @@ class Monitor:
         labelnames=('type', 'service', 'method', 'plugin'),
     )
 
-    grpc_req_latenct = Histogram(
+    grpc_req_latency = Histogram(
         name='synse_grpc_request_latency_sec',
         documentation='The time it takes for a gRPC request to be fulfilled',
         labelnames=('type', 'service', 'method', 'plugin'),
@@ -108,13 +109,14 @@ class Monitor:
             code = response.status if response else 200
             labels = (request.method, request.path, code)
 
-            self.http_req_latency.labels(*labels).observe(latency)
-            self.http_req_count.labels(*labels).inc()
+            if request.path != '/metrics':
+                self.http_req_latency.labels(*labels).observe(latency)
+                self.http_req_count.labels(*labels).inc()
 
-            # We cannot use Content-Length header since that has not yet been
-            # calculated and added to the response headers.
-            if response.body is not None:
-                self.http_resp_bytes.labels(*labels).inc(len(response.body))
+                # We cannot use Content-Length header since that has not yet been
+                # calculated and added to the response headers.
+                if response.body is not None:
+                    self.http_resp_bytes.labels(*labels).inc(len(response.body))
 
         @self.app.route('/metrics', methods=['GET'])
         async def metrics(_):
@@ -122,3 +124,99 @@ class Monitor:
                 generate_latest(core.REGISTRY),
                 content_type=CONTENT_TYPE_LATEST,
             )
+
+
+class MetricsInterceptor(grpc.UnaryUnaryClientInterceptor,
+                         grpc.UnaryStreamClientInterceptor):
+
+    type_unary = "unary"
+    type_server_stream = "server_streaming"
+
+    def __init__(self):
+        # Initialize with no plugin defined. This is because we create the
+        # gRPC client before we know the identity of the plugin.
+        self.plugin = ''
+
+    def intercept_unary_unary(self, continuation, client_call_details, request):
+        service, method = get_metadata(client_call_details)
+
+        Monitor.grpc_msg_sent.labels(
+            self.type_unary,
+            service, method,
+            self.plugin,
+        ).inc()
+
+        start = time.time()
+        resp = continuation(client_call_details, request)
+
+        Monitor.grpc_req_latency.labels(
+            self.type_unary,
+            service,
+            method,
+            self.plugin,
+        ).observe(time.time() - start)
+
+        Monitor.grpc_msg_received.labels(
+            self.type_unary,
+            service,
+            method,
+            self.plugin,
+        ).inc()
+
+        return resp
+
+    def intercept_unary_stream(self, continuation, client_call_details, request):
+        service, method = get_metadata(client_call_details)
+
+        Monitor.grpc_msg_sent.labels(
+            self.type_server_stream,
+            service, method,
+            self.plugin,
+        ).inc()
+
+        start = time.time()
+        resp = continuation(client_call_details, request)
+
+        Monitor.grpc_req_latency.labels(
+            self.type_server_stream,
+            service,
+            method,
+            self.plugin,
+        ).observe(time.time() - start)
+
+        return wrap_stream_resp(
+            response=resp,
+            counter=Monitor.grpc_msg_received,
+            grpc_type=self.type_server_stream,
+            service=service,
+            method=method,
+            plugin=self.plugin,
+        )
+
+
+def get_metadata(call_details):
+    """Get metadata gets the service name and method name from the client
+    call details.
+
+    The method should be structured like "/{service}/{method}". This function
+    will split apart the components and return them individually.
+    """
+
+    items = call_details.method.split('/')
+    if len(items) < 3:
+        return '', ''
+
+    return items[1:3]
+
+
+def wrap_stream_resp(response, counter, grpc_type, service, method, plugin):
+    """Wrap a stream response so the individual returned messages can be counted."""
+
+    for item in response:
+        counter.labels(
+            grpc_type,
+            service,
+            method,
+            plugin,
+        ).inc()
+        yield item
