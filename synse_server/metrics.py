@@ -3,7 +3,7 @@
 import time
 
 import sanic
-from prometheus_client import Counter, Histogram, core
+from prometheus_client import Counter, Histogram, Gauge, core
 from prometheus_client.exposition import CONTENT_TYPE_LATEST, generate_latest
 from sanic.response import raw
 
@@ -14,51 +14,75 @@ class Monitor:
 
     # Counter for the total number of requests received by Sanic.
     http_req_count = Counter(
-        name='sanic_http_request_count',
-        documentation='Sanic HTTP Request Count',
+        name='synse_http_request_count',
+        documentation='The total number of HTTP requests processed',
         labelnames=('method', 'endpoint', 'http_code'),
     )
 
     http_req_latency = Histogram(
-        name='sanic_http_request_latency_sec',
-        documentation='Sanic HTTP Request Latency',
+        name='synse_http_request_latency_sec',
+        documentation='The time it takes for an HTTP request to be fulfilled',
         labelnames=('method', 'endpoint', 'http_code'),
     )
 
     http_resp_bytes = Counter(
-        name='sanic_http_response_bytes',
-        documentation='Sanic HTTP Response Bytes',
+        name='synse_http_response_bytes',
+        documentation='The total number of bytes returned in HTTP API responses',
         labelnames=('method', 'endpoint', 'http_code'),
     )
 
     ws_req_count = Counter(
-        name='sanic_websocket_request_count',
-        documentation='Sanic WebSocket Request Count',
+        name='synse_websocket_request_count',
+        documentation='The total number of WebSocket requests processed',
         labelnames=('event',),
     )
 
     ws_req_latency = Histogram(
-        name='sanic_websocket_request_latency_sec',
-        documentation='Sanic WebSocket Request Latency',
+        name='synse_websocket_request_latency_sec',
+        documentation='The time it takes for a WebSocket request to be fulfilled',
         labelnames=('event',),
     )
 
     ws_req_bytes = Counter(
-        name='sanic_websocket_request_bytes',
-        documentation='Sanic WebSocket Request Bytes',
+        name='synse_websocket_request_bytes',
+        documentation='The total number of bytes received from WebSocket requests',
         labelnames=('event',),
     )
 
     ws_resp_bytes = Counter(
-        name='sanic_websocket_response_bytes',
-        documentation='Sanic WebSocket Response Bytes',
+        name='synse_websocket_response_bytes',
+        documentation='The total number of bytes returned from the WebSocket API',
         labelnames=('event',),
     )
 
     ws_resp_error_count = Counter(
-        name='sanic_websocket_error_response_count',
-        documentation='Sanic WebSocket Error Response Count',
+        name='synse_websocket_error_response_count',
+        documentation='The total number of error responses returned by the WebSocket API',
         labelnames=('event',)
+    )
+
+    ws_session_count = Gauge(
+        name='synse_websocket_session_count',
+        documentation='The total number of active WebSocket sessions connected to Synse Server',
+        labelnames=('source',),
+    )
+
+    grpc_msg_sent = Counter(
+        name='synse_grpc_message_sent',
+        documentation='The total number of gRPC messages sent to plugins',
+        labelnames=('type', 'service', 'method', 'plugin'),
+    )
+
+    grpc_msg_received = Counter(
+        name='synse_grpc_message_received',
+        documentation='The total number of gRPC messages received from plugins',
+        labelnames=('type', 'service', 'method', 'plugin'),
+    )
+
+    grpc_req_latenct = Histogram(
+        name='synse_grpc_request_latency_sec',
+        documentation='The time it takes for a gRPC request to be fulfilled',
+        labelnames=('type', 'service', 'method', 'plugin'),
     )
 
     def __init__(self, app: sanic.Sanic) -> None:
