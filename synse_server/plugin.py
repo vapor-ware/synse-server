@@ -2,7 +2,7 @@
 
 from synse_grpc import client, utils
 
-from synse_server import config, errors
+from synse_server import config
 from synse_server.discovery import kubernetes
 from synse_server.i18n import _
 from synse_server.log import logger
