@@ -5,10 +5,20 @@ services:
     container_name: synse-server
     image: vaporio/synse-server
     ports:
-    - "5000:5000"
+    - '5000:5000'
+    links:
+    - emulator
     environment:
       SYNSE_LOGGING: debug
+      SYNSE_PLUGIN_TCP: emulator:5001
       SYNSE_METRICS_ENABLED: "true"
+
+  emulator:
+    container_name: emulator
+    image: vaporio/emulator-plugin
+    ports:
+    - '5001:5001'
+    command: ['--debug']
 
   prometheus:
     container_name: prometheus
@@ -16,7 +26,7 @@ services:
     volumes:
     - ./prometheus/config.yaml:/etc/prometheus/prometheus.yml
     ports:
-    - "9090:9090"
+    - '9090:9090'
     links:
     - synse-server
 
@@ -24,7 +34,7 @@ services:
     container_name: grafana
     image: grafana/grafana
     ports:
-    - "3000:3000"
+    - '3000:3000'
     volumes:
     - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/default.yaml
     - ./grafana/dashboard.yaml:/etc/grafana/provisioning/dashboards/default.yaml

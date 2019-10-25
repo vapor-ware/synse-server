@@ -6,6 +6,7 @@ from synse_server import config
 from synse_server.discovery import kubernetes
 from synse_server.i18n import _
 from synse_server.log import logger
+from synse_server.metrics import MetricsInterceptor
 
 
 class PluginManager:
@@ -70,6 +71,12 @@ class PluginManager:
         Returns:
             str: The ID of the plugin that was registered.
         """
+
+        interceptors = []
+        if config.options.get('metrics.enabled'):
+            logger.debug(_('metrics enabled, registering gRPC interceptor'))
+            interceptors = [MetricsInterceptor()]
+
         # Prior to registering the plugin, we need to get the plugin metadata
         # and ensure that we can connect to the plugin. These calls may raise
         # an exception - we want to let them propagate up to signal that registration
@@ -79,6 +86,7 @@ class PluginManager:
             protocol=protocol,
             timeout=config.options.get('grpc.timeout'),
             tls=config.options.get('grpc.tls.cert'),
+            interceptors=interceptors,
         )
         meta = c.metadata()
         ver = c.version()
@@ -231,6 +239,12 @@ class Plugin:
         self.id = info.get('id')
         if not self.id:
             raise ValueError('plugin: required field "id" missing')
+
+        # Now that we have the identity of the plugin, we can update the gRPC
+        # interceptor so it includes this information in its labels.
+        if self.client.interceptors:
+            for interceptor in self.client.interceptors:
+                interceptor.plugin = self.id
 
     def __str__(self):
         return f'<Plugin ({self.tag}): {self.id}>'
