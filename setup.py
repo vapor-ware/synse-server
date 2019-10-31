@@ -50,7 +50,7 @@ setup(
         'sanic>=0.8.0',
         'prometheus-client',
         'structlog',
-        'websockets==7.0',  # fixme: temporarily pin
+        'websockets',
         'synse-grpc==3.0.0a4',  # fixme: for alpha v3 testing; update to stable v3 release
     ],
     zip_safe=False,
