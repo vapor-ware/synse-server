@@ -25,7 +25,7 @@ pytest-cov==2.8.1
 pytest-mock==1.11.2
 pytest==5.2.2
 six==1.12.0               # via packaging
-typing-extensions==3.7.4  # via aiohttp
+typing-extensions==3.7.4.1  # via aiohttp
 wcwidth==0.1.7            # via pytest
 yarl==1.3.0               # via aiohttp
 zipp==0.6.0               # via importlib-metadata

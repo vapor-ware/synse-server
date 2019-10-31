@@ -108,10 +108,13 @@ class MessageHandler:
 
         # When the websocket is cancelled or terminates, ensure that the MessageHandler
         # associated with that websocket is stopped and cleaned up.
-        if ws.close_connection_task is not None:
+        #
+        # As of websockets==8.0.0, the `close_connection_task` member will not exit until
+        # the client is connected. Check both that the attribute exists and that it is not
+        # None before attempting to add a done callback to the task.
+        if hasattr(ws, 'close_connection_task') and ws.close_connection_task is not None:
             ws.close_connection_task.add_done_callback(self.stop)
 
-        # todo - if this don't work, just use threads.
         self.tasks = []
 
     async def run(self):
