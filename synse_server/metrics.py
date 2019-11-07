@@ -115,7 +115,10 @@ class Monitor:
 
                 # We cannot use Content-Length header since that has not yet been
                 # calculated and added to the response headers.
-                if response.body is not None:
+                #
+                # Streaming responses do not have a 'body' attribute, so we cannot
+                # collect this data in those cases.
+                if hasattr(response, 'body') and response.body is not None:
                     self.http_resp_bytes.labels(*labels).inc(len(response.body))
 
         @self.app.route('/metrics', methods=['GET'])
