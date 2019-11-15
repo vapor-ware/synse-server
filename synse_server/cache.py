@@ -139,7 +139,7 @@ async def update_device_cache():
          "default/x:bar": [{...}]
          "vaporio/svc:xyz": [{...}, {...}]
     """
-    logger.debug(_('updating the device cache'))
+    logger.info(_('updating the device cache'))
 
     # Get the list of all devices (including their associated tags) from
     # each registered plugin. This device data will be used to generate
@@ -197,6 +197,7 @@ async def get_device(device_id):
     # Every device has a system-generated ID tag in the format 'system/id:<device id>'
     # which we can use here to get the device. If the ID tag is not in the cache,
     # we take that to mean that there is no such device.
+    logger.debug(_('looking up device ID in cache'), id=device_id)
     async with device_cache_lock:
         result = await device_cache.get(f'system/id:{device_id}')
 
@@ -210,6 +211,7 @@ async def get_device(device_id):
     # No device was found from an ID lookup. Try looking up the ID in the
     # alias cache.
     if not device:
+        logger.debug(_('device ID not found in cache - checking for alias'), id=device_id)
         device = await get_alias(device_id)
 
     return device

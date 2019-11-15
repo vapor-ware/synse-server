@@ -128,7 +128,7 @@ class MessageHandler:
                 await self.send(**error(ex=e))
                 continue
 
-            logger.debug(_('got message'), payload=p)
+            logger.debug(_('websocket handler: got message'), payload=p)
             try:
                 await self.dispatch(p)
             except Exception as e:
@@ -187,6 +187,7 @@ class MessageHandler:
         handler = '_'.join(['handle'] + payload.event.split('/'))
 
         if not hasattr(self, handler):
+            logger.info('websocket handler received unsupported event type', type=payload.event)
             await self.send(**error(
                 msg_id=payload.id,
                 message=f'unsupported event type: {payload.event}',
@@ -194,19 +195,22 @@ class MessageHandler:
             return
 
         try:
-            logger.debug(_('processing websocket request'), handler=handler)
+            logger.debug(
+                _('processing websocket request'),
+                handler=handler, type=payload.event, id=payload.id, data=payload.data,
+            )
             await getattr(self, handler)(payload)
         except asyncio.CancelledError:
             logger.info(_('websocket request cancelled'), handler=handler)
             return
         except Exception as e:
-            logger.error(_('error processing request'), err=e)
+            logger.error(_('error processing websocket request'), err=e)
             await self.send(**error(
                 msg_id=payload.id,
                 ex=e,
             ))
 
-    # ---
+    # --- event message handlers
 
     async def handle_request_status(self, payload):
         """WebSocket 'status' event message handler.
@@ -415,6 +419,7 @@ class MessageHandler:
         stop = payload.data.get('stop', False)
 
         if stop:
+            logger.debug(_('read stream stop request received - terminating stream tasks'))
             for t in self.tasks:
                 t.cancel()
             return

@@ -17,7 +17,7 @@ async def plugin(plugin_id):
     Returns:
         dict: A dictionary representation of the plugin response.
     """
-    logger.debug(_('issuing command'), command='PLUGIN', plugin_id=plugin_id)
+    logger.info(_('issuing command'), command='PLUGIN', plugin_id=plugin_id)
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
@@ -57,7 +57,7 @@ async def plugins():
         list[dict]: A list of dictionary representations of the plugin
         summary response(s).
     """
-    logger.debug(_('issuing command'), command='PLUGINS')
+    logger.info(_('issuing command'), command='PLUGINS')
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
@@ -81,7 +81,7 @@ async def plugin_health():
     Returns:
          dict: A dictionary representation of the plugin health.
     """
-    logger.debug(_('issuing command'), command='PLUGIN HEALTH')
+    logger.info(_('issuing command'), command='PLUGIN HEALTH')
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.

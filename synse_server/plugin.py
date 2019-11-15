@@ -1,5 +1,7 @@
 """Management and access logic for configured plugin backends."""
 
+import time
+
 from synse_grpc import client, utils
 
 from synse_server import config
@@ -71,10 +73,11 @@ class PluginManager:
         Returns:
             str: The ID of the plugin that was registered.
         """
+        logger.info(_('registering new plugin'), addr=address, protocol=protocol)
 
         interceptors = []
         if config.options.get('metrics.enabled'):
-            logger.debug(_('metrics enabled, registering gRPC interceptor'))
+            logger.debug(_('application metrics enabled: registering gRPC interceptor'))
             interceptors = [MetricsInterceptor()]
 
         # Prior to registering the plugin, we need to get the plugin metadata
@@ -100,10 +103,10 @@ class PluginManager:
         if plugin.id in self.plugins:
             # The plugin has already been registered. There is nothing left to
             # do here, so just log and move on.
-            logger.debug(_('plugin with id already registered'), id=plugin.id)
+            logger.debug(_('plugin with id already registered - skipping'), id=plugin.id)
         else:
             self.plugins[plugin.id] = plugin
-            logger.debug(_('registered plugin'), id=plugin.id, tag=plugin.tag)
+            logger.info(_('successfully registered plugin'), id=plugin.id, tag=plugin.tag)
 
         plugin.mark_active()
         return plugin.id
@@ -125,13 +128,13 @@ class PluginManager:
         # Get plugin configs for TCP-configured plugins
         cfg_tcp = config.options.get('plugin.tcp', [])
         for address in cfg_tcp:
-            logger.debug(_('plugin from config'), mode='tcp', address=address)
+            logger.debug(_('loading plugin from config'), mode='tcp', address=address)
             configs.append((address, 'tcp'))
 
         # Get plugin configs for Unix socket-configured plugins
         cfg_unix = config.options.get('plugin.unix', [])
         for address in cfg_unix:
-            logger.debug(_('plugin from config'), mode='unix', address=address)
+            logger.debug(_('loading plugin from config'), mode='unix', address=address)
             configs.append((address, 'unix'))
 
         return configs
@@ -151,7 +154,7 @@ class PluginManager:
         try:
             addresses = kubernetes.discover()
         except Exception as e:
-            logger.info(_('failed plugin discovery via kubernetes'), error=e)
+            logger.info(_('failed plugin discovery via Kubernetes'), error=e)
         else:
             for address in addresses:
                 configs.append((address, 'tcp'))
@@ -169,6 +172,7 @@ class PluginManager:
         discovery mechanisms.
         """
         logger.debug(_('refreshing plugin manager'))
+        start = time.time()
 
         for address, protocol in self.load():
             try:
@@ -179,7 +183,7 @@ class PluginManager:
                 # in this case. Log the failure and continue trying to register
                 # any remaining plugins.
                 logger.warning(
-                    _('failed to register configured plugin'),
+                    _('failed to register configured plugin - will attempt re-registering later'),
                     address=address, protocol=protocol, error=e,
                 )
                 continue
@@ -193,12 +197,16 @@ class PluginManager:
                 # in this case. Log the failure and continue trying to register
                 # any remaining plugins.
                 logger.warning(
-                    _('failed to register discovered plugin'),
+                    _('failed to register discovered plugin - will attempt re-registering later'),
                     address=address, protocol=protocol, error=e,
                 )
                 continue
 
-        logger.debug(_('plugin manager refresh complete'), plugin_count=len(self.plugins))
+        logger.debug(
+            _('plugin manager refresh complete'),
+            plugin_count=len(self.plugins),
+            elapsed_time=time.time() - start,
+        )
 
 
 # A module-level instance of the plugin manager. This makes it easier to use
@@ -260,7 +268,7 @@ class Plugin:
             self.mark_active()
         else:
             logger.info(
-                'marking plugin inactive',
+                'error on plugin context exit',
                 exc_type=exc_type,
                 exc_val=exc_val,
                 exc_tb=exc_tb,

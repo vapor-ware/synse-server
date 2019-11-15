@@ -15,7 +15,7 @@ async def info(device_id):
     Returns:
         dict: A dictionary representation of the device info response.
     """
-    logger.debug(_('issuing command'), command='INFO', device_id=device_id)
+    logger.info(_('issuing command'), command='INFO', device_id=device_id)
 
     device = await cache.get_device(device_id)
     if device is None:

@@ -15,7 +15,7 @@ async def transaction(transaction_id):
     Returns:
          dict: A dictionary representation of the transaction status response.
     """
-    logger.debug(_('issuing command'), command='TRANSACTION')
+    logger.info(_('issuing command'), command='TRANSACTION')
 
     txn = await cache.get_transaction(transaction_id)
     if not txn:
@@ -38,6 +38,10 @@ async def transaction(transaction_id):
         )
 
     try:
+        logger.debug(
+            'getting transaction info',
+            command='TRANSACTION', device=device, plugin=plugin_id, txn_id=transaction_id,
+        )
         with p as client:
             response = client.transaction(transaction_id)
     except Exception as e:
@@ -58,6 +62,6 @@ async def transactions():
     Returns:
         list[str]: A list of all currently tracked transaction IDs.
     """
-    logger.debug(_('issuing command'), command='TRANSACTIONS')
+    logger.info(_('issuing command'), command='TRANSACTIONS')
 
     return sorted(cache.get_cached_transaction_ids())
