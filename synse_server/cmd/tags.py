@@ -14,7 +14,7 @@ async def tags(*namespaces, with_id_tags=False):
     Returns:
         list[str]: A list of all tags currently associated with devices.
     """
-    logger.debug(
+    logger.info(
         _('issuing command'), command='TAGS',
         namespaces=namespaces, with_id=with_id_tags,
     )
@@ -29,9 +29,12 @@ async def tags(*namespaces, with_id_tags=False):
         return ns in namespaces
 
     if not with_id_tags:
+        logger.debug(_('filtering ID tags'), command='TAGS')
         cached_tags = [t for t in cached_tags if not t.startswith('system/id:')]
 
     if namespaces:
+        logger.debug(_('filtering tags by namespace'), command='TAGS', namespaces=namespaces)
         cached_tags = [t for t in cached_tags if matches_ns(t)]
 
+    logger.debug(_('got tags'), command='TAGS', count=len(cached_tags))
     return sorted(cached_tags)

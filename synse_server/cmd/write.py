@@ -17,7 +17,10 @@ async def write_async(device_id, payload):
         list[dict]: A list of dictionary representations of asynchronous
         write response(s).
     """
-    logger.debug(_('issuing command'), command='WRITE ASYNC')
+    logger.info(
+        _('issuing command'),
+        command='WRITE ASYNC', device_id=device_id, payload=payload,
+    )
 
     plugin = await cache.get_plugin(device_id)
     if plugin is None:
@@ -54,7 +57,10 @@ async def write_sync(device_id, payload):
         list[dict]: A list of dictionary representations of synchronous
         write response(s).
     """
-    logger.debug(_('issuing command'), command='WRITE SYNC')
+    logger.info(
+        _('issuing command'),
+        command='WRITE SYNC', device_id=device_id, payload=payload,
+    )
 
     plugin = await cache.get_plugin(device_id)
     if plugin is None:

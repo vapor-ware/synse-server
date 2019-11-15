@@ -10,7 +10,7 @@ async def version():
     Returns:
         dict: A dictionary representation of the version response.
     """
-    logger.debug(_('issuing command'), command='VERSION')
+    logger.info(_('issuing command'), command='VERSION')
 
     return {
         'version': synse_server.__version__,
