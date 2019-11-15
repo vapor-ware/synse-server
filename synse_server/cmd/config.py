@@ -10,6 +10,6 @@ async def config():
     Returns:
         dict: A dictionary representation of the config response.
     """
-    logger.debug(_('issuing command'), command='CONFIG')
+    logger.info(_('issuing command'), command='CONFIG')
 
     return {k: v for k, v in options.config.items() if not k.startswith('_')}

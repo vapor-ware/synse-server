@@ -10,7 +10,7 @@ async def test():
     Returns:
         dict: A dictionary representation of the test response.
     """
-    logger.debug(_('issuing command'), command='TEST')
+    logger.info(_('issuing command'), command='TEST')
 
     return {
         'status': 'ok',

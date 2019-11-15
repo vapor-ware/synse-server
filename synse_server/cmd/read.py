@@ -59,10 +59,11 @@ async def read(ns, tag_groups):
         list[dict]: A list of dictionary representations of device reading
         response(s).
     """
-    logger.debug(_('issuing command'), command='READ', ns=ns, tag_groups=tag_groups)
+    logger.info(_('issuing command'), command='READ', ns=ns, tag_groups=tag_groups)
 
     # If there are no tags specified, read with no tag filter.
     if len(tag_groups) == 0:
+        logger.debug(_('no tags specified, reading with no tag filter'), command='READ')
         readings = []
         for p in plugin.manager:
             try:
@@ -74,12 +75,14 @@ async def read(ns, tag_groups):
                 ) from e
             for reading in data:
                 readings.append(reading_to_dict(reading))
+        logger.debug(_('got readings'), count=len(readings), command='READ')
         return readings
 
     # Otherwise, there is at least one tag group. We need to issue a read request
     # for each group and collect the results of each group.
     results = {}
     for group in tag_groups:
+        logger.debug(_('parsing tag groups'), command='READ')
         # Apply the default namespace to the tags in the group which do not
         # have any namespace defined.
         for i, tag in enumerate(group):
@@ -98,7 +101,9 @@ async def read(ns, tag_groups):
             for r in data:
                 results[f'{r.id}{r.type}{r.timestamp}'] = reading_to_dict(r)
 
-    return list(results.values())
+    readings = list(results.values())
+    logger.debug(_('got readings'), count=len(readings), command='READ')
+    return readings
 
 
 async def read_device(device_id):
@@ -111,7 +116,7 @@ async def read_device(device_id):
         list[dict]: A list of dictionary representations of device reading
         response(s).
     """
-    logger.debug(_('issuing command'), command='READ DEVICE', device_id=device_id)
+    logger.info(_('issuing command'), command='READ DEVICE', device_id=device_id)
 
     p = await cache.get_plugin(device_id)
     if p is None:
@@ -131,6 +136,7 @@ async def read_device(device_id):
     for reading in data:
         readings.append(reading_to_dict(reading))
 
+    logger.debug('got readings', count=len(readings), command='READ DEVICE')
     return readings
 
 
@@ -148,11 +154,11 @@ async def read_cache(start=None, end=None):
     Yields:
         dict: A dictionary representation of a device reading response.
     """
-    logger.debug(_('issuing command'), command='READ CACHE', start=start, end=end)
+    logger.info(_('issuing command'), command='READ CACHE', start=start, end=end)
 
     # FIXME: this could benefit from being async
     for p in plugin.manager:
-        logger.debug(_('getting cached readings for plugin'), plugin=p.tag)
+        logger.debug(_('getting cached readings for plugin'), plugin=p.tag, command='READ CACHE')
         try:
             with p as client:
                 for reading in client.read_cache(start=start, end=end):
@@ -192,6 +198,7 @@ class Stream(threading.Thread):
 
     def run(self):
         """Run the thread."""
+        logger.info(_('running Stream thread'), plugin=self.plugin.id)
         try:
             with self.plugin as client:
                 for reading in client.read_stream(devices=self.ids, tag_groups=self.tag_groups):
@@ -237,7 +244,7 @@ async def read_stream(ws, ids=None, tag_groups=None):
         dict: The device reading, formatted as a Python dictionary.
     """
 
-    logger.debug(_('issuing command'), command='READ STREAM', ids=ids, tag_groups=tag_groups)
+    logger.info(_('issuing command'), command='READ STREAM', ids=ids, tag_groups=tag_groups)
 
     q = queue.Queue()
 

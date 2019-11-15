@@ -1,4 +1,8 @@
-""""""
+"""Synse Server wrapper object definition.
+
+The global server state and server initialization and setup functionality
+are defined here.
+"""
 
 import os
 import sys
@@ -96,6 +100,10 @@ class Synse:
         # is present. If not, create the required directories.
         os.makedirs(self._server_config_dir, exist_ok=True)
         os.makedirs(self._socket_dir, exist_ok=True)
+        logger.info(
+            _('created server directories on filesystem'),
+            dirs=(self._server_config_dir, self._socket_dir),
+        )
 
     def run(self):
         """Run Synse Server."""
@@ -109,11 +117,12 @@ class Synse:
 
         # Add background tasks. This needs to be done at run so any tasks
         # that take config options have the loaded config available to them.
+        logger.debug(_('registering tasks with application'))
         tasks.register_with_app(self.app)
 
         # If application metrics are enabled, configure the application now.
         if config.options.get('metrics.enabled'):
-            logger.info(_('application performance metrics enabled'))
+            logger.info(_('application performance metrics enabled (/metrics)'))
             metrics.Monitor(self.app).register()
 
         # Load the SSL configuration, if defined.
@@ -124,11 +133,13 @@ class Synse:
                 'key': config.options.get('ssl.key'),
             }
             logger.info(_('SSL configured for Synse Server'), config=ssl_context)
+        else:
+            logger.info(_('running server without SSL (no key/cert configured)'))
 
         # Load the plugins defined in the configuration.
         plugin.manager.refresh()
 
-        logger.debug(_('starting Sanic application'))
+        logger.debug(_('serving API endpoints'))
         self.app.run(
             host=self.host,
             port=self.port,

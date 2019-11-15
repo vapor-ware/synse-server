@@ -24,7 +24,7 @@ async def scan(ns, tag_groups, sort, force=False):
          list[dict]: A list of dictionary representations of device
          summary response(s).
     """
-    logger.debug(
+    logger.info(
         _('issuing command'), command='SCAN',
         ns=ns, tag_groups=tag_groups, sort=sort, force=force,
     )
@@ -33,14 +33,15 @@ async def scan(ns, tag_groups, sort, force=False):
     # will ensure everything is up to date, but will ultimately make the
     # request take longer to fulfill.
     if force:
-        logger.debug(_('forced scan: rebuilding device cache'))
+        logger.debug(_('forced scan: rebuilding device cache'), command='SCAN')
         try:
             await cache.update_device_cache()
         except Exception as e:
             raise errors.ServerError(_('failed to rebuild device cache')) from e
 
+    # If no tags are specified, get devices with no tag filter.
     if len(tag_groups) == 0:
-        # If no tags are specified, get devices with no tag filter.
+        logger.debug(_('getting devices with no tag filter'), command='SCAN')
         try:
             devices = await cache.get_devices()
         except Exception as e:
@@ -51,6 +52,7 @@ async def scan(ns, tag_groups, sort, force=False):
         # Otherwise, there is at least one tag group. We need to get the devices for
         # each tag group and collect the results of each group.
         results = {}
+        logger.debug(_('parsing tag groups'), command='SCAN')
         for group in tag_groups:
             # Apply the default namespace to the tags in the group which do not
             # have any namespace defined.
@@ -75,6 +77,7 @@ async def scan(ns, tag_groups, sort, force=False):
     sort_keys = sort.split(',')
 
     try:
+        logger.debug(_('sorting devices'), command='SCAN')
         sorted_devices = sorted(
             devices,
             key=lambda dev: tuple(map(lambda key: getattr(dev, key), sort_keys))
@@ -93,4 +96,5 @@ async def scan(ns, tag_groups, sort, force=False):
             'tags': [utils.tag_string(tag) for tag in device.tags],
             'metadata': dict(device.metadata),
         })
+    logger.debug(_('got devices'), count=len(response), command='SCAN')
     return response
