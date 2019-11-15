@@ -25,7 +25,7 @@ async def _rebuild_device_cache():
 
     while True:
         logger.info(
-            _('rebuilding device cache'),
+            _('task: rebuilding device cache'),
             task='periodic cache rebuild', interval=interval,
         )
 
@@ -33,7 +33,7 @@ async def _rebuild_device_cache():
             await update_device_cache()
         except Exception as e:
             logger.error(
-                _('failed to rebuild device cache'),
+                _('task: failed to rebuild device cache'),
                 task='periodic cache rebuild', interval=interval, error=e,
             )
 
