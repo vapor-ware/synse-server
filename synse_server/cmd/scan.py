@@ -1,4 +1,6 @@
 
+from typing import Any, Dict, List
+
 from synse_grpc import utils
 
 from synse_server import cache, errors
@@ -6,23 +8,25 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def scan(ns, tag_groups, sort, force=False):
+async def scan(
+        ns: str,
+        tag_groups: List[List[str]],
+        sort: str,
+        force: bool = False,
+) -> List[Dict[str, Any]]:
     """Generate the scan response data.
 
     Args:
-        ns (str): The default namespace to use for tags which do not
-            specify one. If all tags specify a namespace, or no tags
-            are defined, this is ignored.
-        tag_groups (list[iterable[string]]): The tags groups used to filter
-            devices. If no tag groups are given (and thus no tags), no
-            filtering is done.
-        force (bool): Option to force rebuild the internal device cache.
-            (default: False)
-        sort (str): The fields to sort by.
+        ns: The default namespace to use for tags which do not specify one.
+            If all tags specify a namespace, or no tags are defined, this
+            is ignored.
+        tag_groups: The tags groups used to filter devices. If no tag groups
+            are given (and thus no tags), no filtering is done.
+        force: Option to force rebuild the internal device cache. (default: False)
+        sort: The fields to sort by.
 
     Returns:
-         list[dict]: A list of dictionary representations of device
-         summary response(s).
+        A list of dictionary representations of device summary response(s).
     """
     logger.info(
         _('issuing command'), command='SCAN',

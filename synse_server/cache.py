@@ -1,10 +1,12 @@
 """Synse Server caches and cache utilities."""
 
 import asyncio
+from typing import Iterable, List, Union
 
 import aiocache
 import grpc
 import synse_grpc.utils
+from synse_grpc import api
 
 from synse_server import config, plugin
 from synse_server.i18n import _
@@ -35,22 +37,22 @@ device_cache_lock = asyncio.Lock()
 alias_cache_lock = asyncio.Lock()
 
 
-async def get_transaction(transaction_id):
+async def get_transaction(transaction_id: str) -> dict:
     """Get the cached transaction information with the provided ID.
 
     If the provided transaction ID does not correspond to a known transaction,
     None is returned.
 
     Args:
-        transaction_id (str): The ID of the transaction.
+        transaction_id: The ID of the transaction.
 
     Returns:
-        dict: The information associated with the transaction.
+        The information associated with the transaction.
     """
     return await transaction_cache.get(transaction_id)
 
 
-def get_cached_transaction_ids():
+def get_cached_transaction_ids() -> List[str]:
     """Get a list of all the currently cached transaction IDs.
 
     Note that the list of IDs that this provides is not guaranteed to
@@ -59,31 +61,29 @@ def get_cached_transaction_ids():
     a given point in time.
 
     Returns:
-        list[str]: The IDs of all actively tracked transactions.
+        The IDs of all actively tracked transactions.
     """
     return [k[len(NS_TRANSACTION):] for k in transaction_cache._cache.keys()
             if k.startswith(NS_TRANSACTION)]
 
 
-async def add_transaction(transaction_id, device, plugin_id):
+async def add_transaction(transaction_id: str, device: str, plugin_id: str) -> bool:
     """Add a new transaction to the transaction cache.
 
     This cache tracks transactions and maps them to the plugin from which they
     originated, as well as the context of the transaction.
 
     Args:
-        transaction_id (str): The ID of the transaction.
-        device (str): The ID of the device associated with the transaction.
-        plugin_id (str): The ID of the plugin to associate with the
-            transaction.
+        transaction_id: The ID of the transaction.
+        device: The ID of the device associated with the transaction.
+        plugin_id: The ID of the plugin to associate with the transaction.
 
     Returns:
-        bool: True if successful; False otherwise.
+        True if successful; False otherwise.
     """
     logger.debug(
         _('caching transaction'), plugin=plugin_id, id=transaction_id, device=device,
     )
-
     return await transaction_cache.set(
         transaction_id,
         {
@@ -93,15 +93,15 @@ async def add_transaction(transaction_id, device, plugin_id):
     )
 
 
-async def add_alias(alias, device):
+async def add_alias(alias: str, device: api.V3Device) -> bool:
     """Add a new device alias to the alias cache.
 
     Args:
-        alias (str): The alias of the device.
-        device (V3Device): The device associated with the given alias.
+        alias: The alias of the device.
+        device: The device associated with the given alias.
 
     Returns:
-        bool: True if successful; False otherwise.
+        True if successful; False otherwise.
     """
     logger.debug(
         _('adding alias to cache'), alias=alias, device=device.id,
@@ -111,22 +111,22 @@ async def add_alias(alias, device):
         return await alias_cache.set(alias, device)
 
 
-async def get_alias(alias):
+async def get_alias(alias: str) -> Union[api.V3Device, None]:
     """Get a device by its alias from the alias cache.
 
     Args:
-        alias (str): The alias of the device to look up.
+        alias: The alias of the device to look up.
 
     Returns:
-        V3Device | None: The device with the specified alias. If the
-        alias does not match a device, None is returned.
+        The device with the specified alias. If the alias does
+        not match a device, None is returned.
     """
 
     async with alias_cache_lock:
         return await alias_cache.get(alias)
 
 
-async def update_device_cache():
+async def update_device_cache() -> None:
     """Update the device cache.
 
     The device cache consists of string-ified tags as the keys, and a list
@@ -177,7 +177,7 @@ async def update_device_cache():
                 logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
 
 
-async def get_device(device_id):
+async def get_device(device_id: str) -> Union[api.V3Device, None]:
     """Get a device from the device cache by device ID or alias.
 
     We can not reasonably tell whether the provided device_id is
@@ -186,11 +186,11 @@ async def get_device(device_id):
     alias lookup is performed.
 
     Args:
-        device_id (str): The ID or alias of the device to get.
+        device_id: The ID or alias of the device to get.
 
     Returns:
-        V3Device | None: The device with the corresponding ID. If no device
-        has the specified ID, None is returned.
+        The device with the corresponding ID. If no device has the
+        specified ID, None is returned.
     """
     device = None
 
@@ -217,7 +217,7 @@ async def get_device(device_id):
     return device
 
 
-async def get_devices(*tags):
+async def get_devices(*tags: Iterable[str]) -> List[api.V3Device]:
     """Get the device(s) from the device cache which match the provided tag(s).
 
     Note that if multiple tags are specified, the result set is subtractive. That
@@ -225,10 +225,10 @@ async def get_devices(*tags):
     intersection, not set union).
 
     Args:
-        tags (iterable[str]): The tags to filter devices by.
+        tags: The tags to filter devices by.
 
     Returns:
-        list[V3Device]: The devices which match the specified tags.
+        The devices which match the specified tags.
     """
     # Results are a dict since the V3Device object is not hashable. To ensure
     # we don't include duplicate device records in the response, we will add
@@ -275,7 +275,7 @@ async def get_devices(*tags):
     return list(results.values())
 
 
-def get_cached_device_tags():
+def get_cached_device_tags() -> List[str]:
     """Get a list of all the currently cached device tags.
 
     Note that the list of IDs that this provides is not guaranteed to
@@ -284,22 +284,21 @@ def get_cached_device_tags():
     a given point in time.
 
     Returns:
-        list[str]: The tags of all actively tracked devices.
+        The tags of all actively tracked devices.
     """
     return [k[len(NS_DEVICE):] for k in device_cache._cache.keys() if k.startswith(NS_DEVICE)]
 
 
-async def get_plugin(device_id):
+async def get_plugin(device_id: str) -> Union[plugin.Plugin, None]:
     """Get the Plugin instance associated with the specified device.
 
     Args:
-        device_id (str): The ID of the device to get the associated
-            Plugin instance for.
+        device_id: The ID of the device to get the associated Plugin
+            instance for.
 
     Returns:
-        Plugin | None: The Plugin instance associated with the specified
-        device. If the specified device does not exist, this will return
-        None.
+        The Plugin instance associated with the specified device. If
+        the specified device does not exist, this will return None.
     """
     device = await get_device(device_id)
     if device is None:

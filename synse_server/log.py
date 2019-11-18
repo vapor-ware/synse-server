@@ -51,7 +51,7 @@ structlog.configure(
 logger = structlog.get_logger('synse-server')
 
 
-def setup_logger():
+def setup_logger() -> None:
     """Configure the Synse Server logger."""
     level = logging.getLevelName(config.options.get('logging', 'info').upper())
     logger.setLevel(level)

@@ -22,7 +22,7 @@ import synse_server
 from synse_server.server import Synse
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description='API server for the Synse platform',
     )

@@ -1,4 +1,6 @@
 
+from typing import Any, Dict, List, Union
+
 from synse_grpc import utils
 
 from synse_server import cache, errors
@@ -6,16 +8,15 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def write_async(device_id, payload):
+async def write_async(device_id: str, payload: Union[Dict, List[Dict]]) -> List[Dict[str, Any]]:
     """Generate the asynchronous write response data.
 
     Args:
-        device_id (str): The ID of the device to write to.
-        payload (dict | list[dict]): The data to write to the device.
+        device_id: The ID of the device to write to.
+        payload: The data to write to the device.
 
     Returns:
-        list[dict]: A list of dictionary representations of asynchronous
-        write response(s).
+        A list of dictionary representations of asynchronous write response(s).
     """
     logger.info(
         _('issuing command'),
@@ -46,16 +47,15 @@ async def write_async(device_id, payload):
     return response
 
 
-async def write_sync(device_id, payload):
+async def write_sync(device_id: str, payload: Union[Dict, List[Dict]]) -> List[Dict[str, Any]]:
     """Generate the synchronous write response data.
 
     Args:
-        device_id (str): The ID of the device to write to.
-        payload (dict | list[dict]): The data to write to the device.
+        device_id: The ID of the device to write to.
+        payload: The data to write to the device.
 
     Returns:
-        list[dict]: A list of dictionary representations of synchronous
-        write response(s).
+        A list of dictionary representations of synchronous write response(s).
     """
     logger.info(
         _('issuing command'),

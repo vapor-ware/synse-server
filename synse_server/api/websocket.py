@@ -3,9 +3,11 @@
 import asyncio
 import json
 import time
+from typing import Any, Dict, List, Union
 
 from sanic import Blueprint
-from sanic.websocket import ConnectionClosed
+from sanic.request import Request
+from sanic.websocket import ConnectionClosed, WebSocketCommonProtocol
 
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
@@ -17,7 +19,7 @@ v3 = Blueprint('v3-websocket')
 
 
 @v3.websocket('/v3/connect')
-async def connect(request, ws):
+async def connect(request: Request, ws: WebSocketCommonProtocol) -> None:
     """Connect to the WebSocket API."""
 
     logger.info(_('new websocket connection'), source=request.ip)
@@ -33,7 +35,7 @@ async def connect(request, ws):
 class Payload:
     """Payload describes the message that was received on a WebSocket connection."""
 
-    def __init__(self, data) -> None:
+    def __init__(self, data: str) -> None:
         try:
             d = json.loads(data)
         except Exception as e:
@@ -56,18 +58,18 @@ class Payload:
         return self.__str__()
 
 
-def error(msg_id=None, message=None, ex=None) -> dict:
+def error(msg_id: int = None, message: str = None, ex: Exception = None) -> Dict[str, Any]:
     """A utility function to generate error response messages for
     errors returned via the WebSocket API.
 
     Args:
-        msg_id (int): The ID of the message. If there is no message
+        msg_id: The ID of the message. If there is no message
             ID parsed yet or otherwise known, this will default to -1.
-        message (str): The message to use as the error description.
-        ex (Exception): The exception that caused the return error.
+        message: The message to use as the error description.
+        ex: The exception that caused the return error.
 
     Return:
-        str: Serialized JSON string of the error message.
+        The formatted error data.
     """
     message_id = msg_id or -1
     msg = message or 'An unexpected error occurred.'
@@ -99,11 +101,10 @@ class MessageHandler:
     """A handler to receive and send messages on a WebSocket session.
 
     Args:
-        ws (websockets.WebsocketCommonProtocol): The WebSocket for the request session
-            which the MessageHandler will manage.
+        ws: The WebSocket for the request session which the MessageHandler will manage.
     """
 
-    def __init__(self, ws):
+    def __init__(self, ws: WebSocketCommonProtocol) -> None:
         self.ws = ws
 
         # When the websocket is cancelled or terminates, ensure that the MessageHandler
@@ -117,7 +118,7 @@ class MessageHandler:
 
         self.tasks = []
 
-    async def run(self):
+    async def run(self) -> None:
         logger.debug(_('running message handler for websocket'), host=self.ws.host)
         async for message in self.ws:
             handler_start = time.time()
@@ -140,7 +141,7 @@ class MessageHandler:
             Monitor.ws_req_count.labels(p.event).inc()
             Monitor.ws_req_bytes.labels(p.event).inc(len(message))
 
-    def stop(self, *args, **kwargs):
+    def stop(self, *args, **kwargs) -> None:
         """Stop the MessageHandler.
 
         The MessageHandler will be stopped when the WebSocket connection is closed.
@@ -152,7 +153,7 @@ class MessageHandler:
         for t in self.tasks:
             t.cancel()
 
-    async def send(self, id, event, data):
+    async def send(self, id: int, event: str, data: Union[List, Dict]) -> None:
         """Send the response back over the WebSocket.
 
         This is just a wrapper around the `ws.send` which makes it easier to
@@ -173,14 +174,14 @@ class MessageHandler:
 
         Monitor.ws_resp_bytes.labels(event).inc(len(resp))
 
-    async def dispatch(self, payload):
+    async def dispatch(self, payload: Payload) -> None:
         """Generate the response for the Message's request data.
 
         Messages are passed along to their corresponding handler function, which is
         the function with the same name as the event type, prefixed with 'handle'.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
 
         # Generate the name of the handler function, e.g. "handle_request_status"
@@ -212,11 +213,11 @@ class MessageHandler:
 
     # --- event message handlers
 
-    async def handle_request_status(self, payload):
+    async def handle_request_status(self, payload: Payload) -> None:
         """WebSocket 'status' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         await self.send(
             id=payload.id,
@@ -224,11 +225,11 @@ class MessageHandler:
             data=await cmd.test(),
         )
 
-    async def handle_request_version(self, payload):
+    async def handle_request_version(self, payload: Payload) -> None:
         """WebSocket 'version' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         await self.send(
             id=payload.id,
@@ -236,11 +237,11 @@ class MessageHandler:
             data=await cmd.version(),
         )
 
-    async def handle_request_config(self, payload):
+    async def handle_request_config(self, payload: Payload) -> None:
         """WebSocket 'config' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         await self.send(
             id=payload.id,
@@ -248,11 +249,11 @@ class MessageHandler:
             data=await cmd.config(),
         )
 
-    async def handle_request_plugin(self, payload):
+    async def handle_request_plugin(self, payload: Payload) -> None:
         """WebSocket 'plugin' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         plugin_id = payload.data.get('plugin')
         if plugin_id is None:
@@ -264,11 +265,11 @@ class MessageHandler:
             data=await cmd.plugin(plugin_id),
         )
 
-    async def handle_request_plugins(self, payload):
+    async def handle_request_plugins(self, payload: Payload) -> None:
         """WebSocket 'plugins' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         await self.send(
             id=payload.id,
@@ -276,11 +277,11 @@ class MessageHandler:
             data=await cmd.plugins(),
         )
 
-    async def handle_request_plugin_health(self, payload):
+    async def handle_request_plugin_health(self, payload: Payload) -> None:
         """WebSocket 'plugin health' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         await self.send(
             id=payload.id,
@@ -288,11 +289,11 @@ class MessageHandler:
             data=await cmd.plugin_health(),
         )
 
-    async def handle_request_scan(self, payload):
+    async def handle_request_scan(self, payload: Payload) -> None:
         """WebSocket 'scan' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         ns = payload.data.get('ns', 'default')
         tags = payload.data.get('tags', [])
@@ -316,11 +317,11 @@ class MessageHandler:
             ),
         )
 
-    async def handle_request_tags(self, payload):
+    async def handle_request_tags(self, payload: Payload) -> None:
         """WebSocket 'tags' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         ns = payload.data.get('ns', [])
         ids = payload.data.get('ids', False)
@@ -331,11 +332,11 @@ class MessageHandler:
             data=await cmd.tags(*ns, with_id_tags=ids),
         )
 
-    async def handle_request_info(self, payload):
+    async def handle_request_info(self, payload: Payload) -> None:
         """WebSocket 'info' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         device = payload.data.get('device')
         if device is None:
@@ -347,11 +348,11 @@ class MessageHandler:
             data=await cmd.info(device_id=device),
         )
 
-    async def handle_request_read(self, payload):
+    async def handle_request_read(self, payload: Payload) -> None:
         """WebSocket 'read' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         ns = payload.data.get('ns', 'default')
         tags = payload.data.get('tags', [])
@@ -371,11 +372,11 @@ class MessageHandler:
             ),
         )
 
-    async def handle_request_read_device(self, payload):
+    async def handle_request_read_device(self, payload: Payload) -> None:
         """WebSocket 'read device' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         device = payload.data.get('device')
         if device is None:
@@ -387,11 +388,11 @@ class MessageHandler:
             data=await cmd.read_device(device_id=device),
         )
 
-    async def handle_request_read_cache(self, payload):
+    async def handle_request_read_cache(self, payload: Payload) -> None:
         """WebSocket 'read cache' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         start = payload.data.get('start')
         end = payload.data.get('end')
@@ -408,11 +409,11 @@ class MessageHandler:
             )],
         )
 
-    async def handle_request_read_stream(self, payload):
+    async def handle_request_read_stream(self, payload: Payload) -> None:
         """WebSocket 'read stream' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         ids = payload.data.get('ids')
         tag_groups = payload.data.get('tag_groups')
@@ -439,11 +440,11 @@ class MessageHandler:
         t = asyncio.ensure_future(send_readings())
         self.tasks.append(t)
 
-    async def handle_request_write_async(self, payload):
+    async def handle_request_write_async(self, payload: Payload) -> None:
         """WebSocket 'write async' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         device = payload.data.get('device')
         if device is None:
@@ -462,11 +463,11 @@ class MessageHandler:
             ),
         )
 
-    async def handle_request_write_sync(self, payload):
+    async def handle_request_write_sync(self, payload: Payload) -> None:
         """WebSocket 'write sync' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         device = payload.data.get('device')
         if device is None:
@@ -485,11 +486,11 @@ class MessageHandler:
             ),
         )
 
-    async def handle_request_transaction(self, payload):
+    async def handle_request_transaction(self, payload: Payload) -> None:
         """WebSocket 'transaction' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         transaction = payload.data.get('transaction')
         if transaction is None:
@@ -503,11 +504,11 @@ class MessageHandler:
             ),
         )
 
-    async def handle_request_transactions(self, payload):
+    async def handle_request_transactions(self, payload: Payload) -> None:
         """WebSocket 'transactions' event message handler.
 
         Args:
-            payload (Payload): The message payload received from the WebSocket.
+            payload: The message payload received from the WebSocket.
         """
         await self.send(
             id=payload.id,
