@@ -2,22 +2,25 @@
 import asyncio
 import queue
 import threading
+from typing import Any, AsyncIterable, Dict, List
 
 import synse_grpc.utils
+import websockets
+from synse_grpc import api
 
 from synse_server import cache, errors, plugin
 from synse_server.i18n import _
 from synse_server.log import logger
 
 
-def reading_to_dict(reading):
+def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
     """Convert a V3Reading to its dict representation for the Synse V3 read schema.
 
     Args:
-        reading (V3Reading): The reading value received from a plugin.
+        reading: The reading value received from a plugin.
 
     Returns:
-        dict: The reading converted to its dictionary representation, conforming
+        The reading converted to its dictionary representation, conforming
         to the V3 API read schema.
     """
     # The reading value is stored in a protobuf oneof block - we need to
@@ -44,20 +47,18 @@ def reading_to_dict(reading):
     }
 
 
-async def read(ns, tag_groups):
+async def read(ns: str, tag_groups: List[List[str]]) -> List[Dict[str, Any]]:
     """Generate the readings response data.
 
     Args:
-        ns (str): The default namespace to use for tags which do not
-            specify one. If all tags specify a namespace, or no tags
-            are defined, this is ignored.
-        tag_groups (list[iterable[string]]): The tags groups used to filter
-            devices. If no tag groups are given (and thus no tags), no
-            filtering is done.
+        ns: The default namespace to use for tags which do no specify one.
+            If all tags specify a namespace, or no tags are defined, this
+            is ignored.
+        tag_groups: The tags groups used to filter devices. If no tag
+            groups are given (and thus no tags), no filtering is done.
 
     Returns:
-        list[dict]: A list of dictionary representations of device reading
-        response(s).
+        A list of dictionary representations of device reading response(s).
     """
     logger.info(_('issuing command'), command='READ', ns=ns, tag_groups=tag_groups)
 
@@ -106,15 +107,14 @@ async def read(ns, tag_groups):
     return readings
 
 
-async def read_device(device_id):
+async def read_device(device_id: str) -> List[Dict[str, Any]]:
     """Generate the readings response data for the specified device.
 
     Args:
-        device_id (str): The ID of the device to get readings for.
+        device_id: The ID of the device to get readings for.
 
     Returns:
-        list[dict]: A list of dictionary representations of device reading
-        response(s).
+        A list of dictionary representations of device reading response(s).
     """
     logger.info(_('issuing command'), command='READ DEVICE', device_id=device_id)
 
@@ -140,19 +140,19 @@ async def read_device(device_id):
     return readings
 
 
-async def read_cache(start=None, end=None):
+async def read_cache(start: str = None, end: str = None) -> AsyncIterable:
     """Generate the readings response data for the cached readings.
 
     Args:
-        start (str): An RFC3339 formatted timestamp defining the starting
+        start: An RFC3339 formatted timestamp defining the starting
             bound on the cache data to return. An empty string or None
             designates no starting bound. (default: None)
-        end (str): An RFC3339 formatted timestamp defining the ending
+        end: An RFC3339 formatted timestamp defining the ending
             bound on the cache data to return. An empty string or None
             designates no ending bound. (default: None)
 
     Yields:
-        dict: A dictionary representation of a device reading response.
+        A dictionary representation of a device reading response.
     """
     logger.info(_('issuing command'), command='READ CACHE', start=start, end=end)
 
@@ -176,19 +176,24 @@ class Stream(threading.Thread):
     queue specified on initialization.
 
     Args:
-        plugin (Plugin): The plugin to gather reading data from.
-        ids (list[str]): A list of device IDs which can be used to constrain
-            the devices for which readings should be streamed.
-        tag_groups (Iterable[list[string]]): A collection of tag groups to
-            constrain the devices for which readings should be streamed. The
-            tags within a group are subtractive (e.g. a device must match all
-            tags in the group to match the filter), but each tag group specified
-            is additive (e.g. readings will be streamed for the union of all
-            specified groups).
-        q (queue.Queue): The thread-safe queue to pass collected readings to.
+        plugin: The plugin to gather reading data from.
+        ids: A list of device IDs which can be used to constrain the devices
+            for which readings should be streamed.
+        tag_groups: A collection of tag groups to constrain the devices for
+            which readings should be streamed. The tags within a group are
+            subtractive (e.g. a device must match all tags in the group to
+            match the filter), but each tag group specified is additive (e.g.
+            readings will be streamed for the union of all specified groups).
+        q: The thread-safe queue to pass collected readings to.
     """
 
-    def __init__(self, plugin, ids, tag_groups, q):
+    def __init__(
+            self,
+            plugin: plugin.Plugin,
+            ids: List[str],
+            tag_groups: List[List[str]],
+            q: queue.Queue,
+    ) -> None:
         super(Stream, self).__init__()
         self.plugin = plugin
         self.q = q
@@ -196,7 +201,7 @@ class Stream(threading.Thread):
         self.tag_groups = tag_groups
         self.event = threading.Event()
 
-    def run(self):
+    def run(self) -> None:
         """Run the thread."""
         logger.info(_('running Stream thread'), plugin=self.plugin.id)
         try:
@@ -215,33 +220,36 @@ class Stream(threading.Thread):
                 _('error while issuing gRPC request: read stream'),
             ) from e
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancel the thread."""
         logger.info(_('cancelling reading stream'), plugin=self.plugin.id)
         self.event.set()
 
 
-async def read_stream(ws, ids=None, tag_groups=None):
+async def read_stream(
+        ws: websockets.WebSocketCommonProtocol,
+        ids: List[str] = None,
+        tag_groups: List[List[str]] = None,
+) -> AsyncIterable:
     """Stream reading data from registered plugins for the provided websocket.
 
     Note that this will only work for the Synse WebSocket API as of v3.0.
 
     Args:
-        ws (websockets.WebSocketCommonProtocol): The WebSocket for the request.
-            Note that this command only works with the WebSocket API as of v3.0
-        ids (list[str]): A list of device IDs which can be used to constrain
-            the devices for which readings should be streamed. If no IDs are
-            specified, no filtering by ID is done.
-        tag_groups (Iterable[list[string]]): A collection of tag groups to
-            constrain the devices for which readings should be streamed. The
-            tags within a group are subtractive (e.g. a device must match all
-            tags in the group to match the filter), but each tag group specified
-            is additive (e.g. readings will be streamed for the union of all
-            specified groups). If no tag groups are specified, no filtering by
-            tags is done.
+        ws: The WebSocket for the request. Note that this command only works
+            with the WebSocket API as of v3.0
+        ids: A list of device IDs which can be used to constrain the devices
+            for which readings should be streamed. If no IDs are specified, no
+            filtering by ID is done.
+        tag_groups: A collection of tag groups to constrain the devices for which
+            readings should be streamed. The tags within a group are subtractive
+            (e.g. a device must match all tags in the group to match the filter),
+            but each tag group specified is additive (e.g. readings will be
+            streamed for the union of all specified groups). If no tag groups are
+            specified, no filtering by tags is done.
 
     Yields:
-        dict: The device reading, formatted as a Python dictionary.
+        The device reading, formatted as a Python dictionary.
     """
 
     logger.info(_('issuing command'), command='READ STREAM', ids=ids, tag_groups=tag_groups)

@@ -1,4 +1,6 @@
 
+from typing import Any, Dict
+
 from synse_grpc import utils
 
 from synse_server import cache, errors
@@ -6,14 +8,14 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def info(device_id):
+async def info(device_id: str) -> Dict[str, Any]:
     """Generate the device info response data.
 
     Args:
-        device_id (str): The ID of the device to get information for.
+        device_id: The ID of the device to get information for.
 
     Returns:
-        dict: A dictionary representation of the device info response.
+        A dictionary representation of the device info response.
     """
     logger.info(_('issuing command'), command='INFO', device_id=device_id)
 

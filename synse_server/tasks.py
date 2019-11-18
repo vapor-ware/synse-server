@@ -2,24 +2,26 @@
 
 import asyncio
 
+import sanic
+
 from synse_server import config
 from synse_server.cache import update_device_cache
 from synse_server.i18n import _
 from synse_server.log import logger
 
 
-def register_with_app(app):
+def register_with_app(app: sanic.Sanic) -> None:
     """Register all tasks with a Sanic application instance.
 
     Args:
-        app (sanic.Sanic): The application to register the tasks with.
+        app: The application to register the tasks with.
     """
     # Periodically invalidate caches
     logger.info(_('adding task'), task='periodic device cache rebuild')
     app.add_task(_rebuild_device_cache)
 
 
-async def _rebuild_device_cache():
+async def _rebuild_device_cache() -> None:
     """Periodically rebuild the device cache."""
     interval = config.options.get('cache.device.rebuild_every', 3 * 60)  # 3 minute default
 

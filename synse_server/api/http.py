@@ -2,7 +2,8 @@
 
 import ujson
 from sanic import Blueprint
-from sanic.response import stream
+from sanic.request import Request
+from sanic.response import HTTPResponse, StreamingHTTPResponse, stream
 
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
@@ -32,7 +33,7 @@ def log_request(request, **kwargs):
 
 
 @core.route('/test')
-async def test(request):
+async def test(request: Request) -> HTTPResponse:
     """A dependency and side-effect free check to see whether Synse Server
     is reachable and responsive.
 
@@ -52,7 +53,7 @@ async def test(request):
 
 
 @core.route('/version')
-async def version(request):
+async def version(request: Request) -> HTTPResponse:
     """Get the version information for the Synse Server instance.
 
     The API version provided by this endpoint should be used in subsequent
@@ -70,7 +71,7 @@ async def version(request):
 
 
 @v3.route('/config')
-async def config(request):
+async def config(request: Request) -> HTTPResponse:
     """Get the unified configuration for the Synse Server instance.
 
     This endpoint is provided as a convenient way to determine the settings
@@ -90,7 +91,7 @@ async def config(request):
 
 
 @v3.route('/plugin')
-async def plugins(request):
+async def plugins(request: Request) -> HTTPResponse:
     """Get a summary of all the plugins currently registered with Synse Server.
 
     HTTP Codes:
@@ -105,7 +106,7 @@ async def plugins(request):
 
 
 @v3.route('/plugin/<plugin_id>')
-async def plugin(request, plugin_id):
+async def plugin(request: Request, plugin_id: str) -> HTTPResponse:
     """Get detailed information on the specified plugin.
 
     URI Parameters:
@@ -124,7 +125,7 @@ async def plugin(request, plugin_id):
 
 
 @v3.route('/plugin/health')
-async def plugin_health(request):
+async def plugin_health(request: Request) -> HTTPResponse:
     """Get a summary of the health of registered plugins.
 
     HTTP Codes:
@@ -140,7 +141,7 @@ async def plugin_health(request):
 
 @v3.route('/scan')
 @v3.route('/device')
-async def scan(request):
+async def scan(request: Request) -> HTTPResponse:
     """List the devices that Synse knows about.
 
     This endpoint provides an aggregated view of all devices exposed to
@@ -207,7 +208,7 @@ async def scan(request):
 
 
 @v3.route('/tags')
-async def tags(request):
+async def tags(request: Request) -> HTTPResponse:
     """List all of the tags which are currently associated with devices
     in the system.
 
@@ -244,7 +245,7 @@ async def tags(request):
 
 
 @v3.route('/info/<device_id>')
-async def info(request, device_id):
+async def info(request: Request, device_id: str) -> HTTPResponse:
     """Get detailed information about the specified device.
 
     URI Parameters:
@@ -263,7 +264,7 @@ async def info(request, device_id):
 
 
 @v3.route('/read')
-async def read(request):
+async def read(request: Request) -> HTTPResponse:
     """Read data from devices which match the set of provided tags.
 
     Reading data is returned for only those devices which match all of the
@@ -310,7 +311,7 @@ async def read(request):
 
 
 @v3.route('/readcache')
-async def read_cache(request):
+async def read_cache(request: Request) -> StreamingHTTPResponse:
     """Stream cached reading data from the registered plugins.
 
     Plugins may optionally cache readings for a given time window. This endpoint
@@ -366,7 +367,7 @@ async def read_cache(request):
 
 
 @v3.route('/read/<device_id>')
-async def read_device(request, device_id):
+async def read_device(request: Request, device_id: str) -> HTTPResponse:
     """Read from the specified device.
 
     This endpoint is equivalent to the ``read`` endpoint, specifying the ID tag
@@ -389,7 +390,7 @@ async def read_device(request, device_id):
 
 
 @v3.route('/write/<device_id>', methods=['POST'])
-async def async_write(request, device_id):
+async def async_write(request: Request, device_id: str) -> HTTPResponse:
     """Write data to a device in an asynchronous manner.
 
     The write will generate a transaction ID for each write payload to the
@@ -434,7 +435,7 @@ async def async_write(request, device_id):
 
 
 @v3.route('/write/wait/<device_id>', methods=['POST'])
-async def sync_write(request, device_id):
+async def sync_write(request: Request, device_id: str) -> HTTPResponse:
     """Write data to a device synchronously, waiting for the write to complete.
 
     The length of time it takes for a write to complete depends on both the device
@@ -479,7 +480,7 @@ async def sync_write(request, device_id):
 
 
 @v3.route('/transaction')
-async def transactions(request):
+async def transactions(request: Request) -> HTTPResponse:
     """Get a list of all transactions currently being tracked by Synse Server.
 
     HTTP Codes:
@@ -494,7 +495,7 @@ async def transactions(request):
 
 
 @v3.route('/transaction/<transaction_id>')
-async def transaction(request, transaction_id):
+async def transaction(request: Request, transaction_id: str) -> HTTPResponse:
     """Get the status of a write transaction.
 
     URI Parameters:
@@ -513,7 +514,7 @@ async def transaction(request, transaction_id):
 
 
 @v3.route('/device/<device_id>', methods=['GET', 'POST'])
-async def device(request, device_id):
+async def device(request: Request, device_id: str) -> HTTPResponse:
     """Read or write to the specified device.
 
     This endpoint provides read/write access to all devices via their deterministic
