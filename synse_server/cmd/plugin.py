@@ -1,4 +1,6 @@
 
+from typing import Any, Dict, List
+
 from synse_grpc import api, utils
 
 import synse_server.utils
@@ -8,14 +10,14 @@ from synse_server.log import logger
 from synse_server.plugin import manager
 
 
-async def plugin(plugin_id):
+async def plugin(plugin_id: str) -> Dict[str, Any]:
     """Generate the plugin response data.
 
     Args:
-        plugin_id (str): The ID of the plugin to get information for.
+        plugin_id: The ID of the plugin to get information for.
 
     Returns:
-        dict: A dictionary representation of the plugin response.
+        A dictionary representation of the plugin response.
     """
     logger.info(_('issuing command'), command='PLUGIN', plugin_id=plugin_id)
 
@@ -50,12 +52,11 @@ async def plugin(plugin_id):
     return response
 
 
-async def plugins():
+async def plugins() -> List[Dict[str, Any]]:
     """Generate the plugin summary response data.
 
     Returns:
-        list[dict]: A list of dictionary representations of the plugin
-        summary response(s).
+        A list of dictionary representations of the plugin summary response(s).
     """
     logger.info(_('issuing command'), command='PLUGINS')
 
@@ -75,11 +76,11 @@ async def plugins():
     return summaries
 
 
-async def plugin_health():
+async def plugin_health() -> Dict[str, Any]:
     """Generate the plugin health response data.
 
     Returns:
-         dict: A dictionary representation of the plugin health.
+         A dictionary representation of the plugin health.
     """
     logger.info(_('issuing command'), command='PLUGIN HEALTH')
 

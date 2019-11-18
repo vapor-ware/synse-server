@@ -43,10 +43,10 @@ class Synse:
 
     # Header information that can be logged out for information on
     # the Synse Server instance.
-    _header = f'''
+    _header = fr'''
    __
   / _\_   _ _ __  ___  ___
-  \ \| | | | '_ \/ __|/ _ \\
+  \ \| | | | '_ \/ __|/ _ \
   _\ \ |_| | | | \__ \  __/
   \__/\__, |_| |_|___/\___|
       |___/
@@ -61,7 +61,7 @@ class Synse:
 
 '''
 
-    def __init__(self, host=None, port=5000, log_header=True):
+    def __init__(self, host: str = None, port: int = 5000, log_header: bool = True):
         self.host = host or '0.0.0.0'
         self.port = port
         self.log_header = log_header
@@ -74,7 +74,7 @@ class Synse:
         # With setup complete, we can initialize a new Sanic application.
         self.app = app.new_app()
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         """Setup the Synse Server instance.
 
         This is intended to be run on initialization of the Synse class.
@@ -105,7 +105,7 @@ class Synse:
             dirs=(self._server_config_dir, self._socket_dir),
         )
 
-    def run(self):
+    def run(self) -> None:
         """Run Synse Server."""
         logger.info(_('running synse server'))
 
@@ -147,7 +147,7 @@ class Synse:
             ssl=ssl_context,
         )
 
-    def reload_config(self):
+    def reload_config(self) -> None:
         """(Re)loads the application configuration.
 
         The application configuration can be loaded from two placed:

@@ -6,11 +6,11 @@ from synse_server import errors
 from synse_server.api import http, websocket
 
 
-def new_app():
+def new_app() -> Sanic:
     """Create a new instance of the Synse Server Sanic application.
 
     Returns:
-        Sanic: A Sanic application for Synse Server.
+        A Sanic application for Synse Server.
     """
 
     app = Sanic(

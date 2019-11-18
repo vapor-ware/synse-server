@@ -1,4 +1,6 @@
 
+from typing import Any, Dict, List
+
 import synse_grpc.utils
 
 from synse_server import cache, errors, plugin
@@ -6,14 +8,14 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def transaction(transaction_id):
+async def transaction(transaction_id: str) -> Dict[str, Any]:
     """Generate the transaction response data.
 
     Args:
-        transaction_id (str): The ID of the transaction to get the status of.
+        transaction_id: The ID of the transaction to get the status of.
 
     Returns:
-         dict: A dictionary representation of the transaction status response.
+         A dictionary representation of the transaction status response.
     """
     logger.info(_('issuing command'), command='TRANSACTION')
 
@@ -56,11 +58,11 @@ async def transaction(transaction_id):
     return status
 
 
-async def transactions():
+async def transactions() -> List[str]:
     """Generate the transactions response data.
 
     Returns:
-        list[str]: A list of all currently tracked transaction IDs.
+        A list of all currently tracked transaction IDs.
     """
     logger.info(_('issuing command'), command='TRANSACTIONS')
 
