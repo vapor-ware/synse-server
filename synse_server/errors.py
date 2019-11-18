@@ -2,6 +2,8 @@
 
 from sanic.exceptions import SanicException
 from sanic.handlers import ErrorHandler
+from sanic.request import Request
+from sanic.response import HTTPResponse
 
 from synse_server import utils
 from synse_server.i18n import _
@@ -15,7 +17,7 @@ class SynseErrorHandler(ErrorHandler):
     returned with response JSON.
     """
 
-    def default(self, request, exception):
+    def default(self, request: Request, exception: Exception) -> HTTPResponse:
         """The default error handler for exceptions.
 
         This handles errors which have no error handler assigned. Synse Server
@@ -51,11 +53,11 @@ class SynseError(Exception):
     # override this with their own error-specific description.
     description = _('an unexpected error occurred')
 
-    def make_response(self):
+    def make_response(self) -> dict:
         """Make a JSON error response from the Synse Error.
 
         Returns:
-            dict: A dictionary representation of the error response.
+            A dictionary representation of the error response.
         """
         return {
             'http_code': self.http_code,

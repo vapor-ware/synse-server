@@ -6,7 +6,8 @@ import grpc
 import sanic
 from prometheus_client import Counter, Gauge, Histogram, core
 from prometheus_client.exposition import CONTENT_TYPE_LATEST, generate_latest
-from sanic.response import raw
+from sanic.request import Request
+from sanic.response import HTTPResponse, raw
 
 
 class Monitor:
@@ -97,11 +98,11 @@ class Monitor:
         """
 
         @self.app.middleware('request')
-        async def before_request(request):
+        async def before_request(request: Request) -> None:
             request[self._req_start_time] = time.time()
 
         @self.app.middleware('response')
-        async def before_response(request, response):
+        async def before_response(request: Request, response: HTTPResponse) -> None:
             latency = time.time() - request[self._req_start_time]
 
             # WebSocket handler ignores response logic, so default
@@ -122,7 +123,7 @@ class Monitor:
                     self.http_resp_bytes.labels(*labels).inc(len(response.body))
 
         @self.app.route('/metrics', methods=['GET'])
-        async def metrics(_):
+        async def metrics(_) -> HTTPResponse:
             return raw(
                 generate_latest(core.REGISTRY),
                 content_type=CONTENT_TYPE_LATEST,

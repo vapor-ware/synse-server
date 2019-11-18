@@ -1,5 +1,7 @@
 """Service discovery for plugins using Kubernetes."""
 
+from typing import List
+
 import kubernetes.client
 import kubernetes.config
 
@@ -8,7 +10,7 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-def discover():
+def discover() -> List[str]:
     """Discover plugins for kubernetes based on the kubernetes service
     discovery configuration(s).
 
@@ -51,18 +53,18 @@ def discover():
     return addresses
 
 
-def _register_from_endpoints(ns, cfg):
+def _register_from_endpoints(ns: str, cfg: dict) -> List[str]:
     """Register plugins with Synse Server discovered via kubernetes
     service endpoints.
 
     Args:
-        ns (str): The namespace to get the endpoints from.
-        cfg (dict): The configuration for service discovery via
+        ns: The namespace to get the endpoints from.
+        cfg: The configuration for service discovery via
             kubernetes endpoints.
 
     Returns:
-        list[str]: A list of host:port addresses for the plugin endpoints
-            that matched the config.
+        A list of host:port addresses for the plugin endpoints which
+        match the config.
 
     Raises:
         ValueError: The given namespace is empty.
@@ -90,7 +92,7 @@ def _register_from_endpoints(ns, cfg):
     #   app: synse
     #   component: plugin
     # would become the selector string: 'app=synse,component=plugin'
-    label_selector = ','.join(['{}={}'.format(k, v) for k, v in labels.items()])
+    label_selector = ','.join([f'{k}={v}' for k, v in labels.items()])
 
     # Now, we can create a kubernetes client and search for endpoints with
     # the corresponding config.

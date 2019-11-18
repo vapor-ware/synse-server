@@ -1,18 +1,20 @@
 
+from typing import List
+
 from synse_server import cache
 from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def tags(*namespaces, with_id_tags=False):
+async def tags(*namespaces: str, with_id_tags: bool = False) -> List[str]:
     """Generate the tags response data.
 
     Args:
-        namespaces (str): The namespace(s) of the tags to filter by.
-        with_id_tags (bool): Flag to toggle the inclusion/exclusion of ID tags.
+        namespaces: The namespace(s) of the tags to filter by.
+        with_id_tags: Flag to toggle the inclusion/exclusion of ID tags.
 
     Returns:
-        list[str]: A list of all tags currently associated with devices.
+        A list of all tags currently associated with devices.
     """
     logger.info(
         _('issuing command'), command='TAGS',
@@ -21,7 +23,7 @@ async def tags(*namespaces, with_id_tags=False):
 
     cached_tags = cache.get_cached_device_tags()
 
-    def matches_ns(t):
+    def matches_ns(t: str) -> bool:
         if '/' in t:
             ns = t.split('/')[0]
         else:
