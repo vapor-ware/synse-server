@@ -2,7 +2,7 @@
 import asyncio
 import queue
 import threading
-from typing import Any, AsyncIterable, Dict, List
+from typing import Any, AsyncIterable, Dict, List, Union
 
 import synse_grpc.utils
 import websockets
@@ -47,7 +47,7 @@ def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
     }
 
 
-async def read(ns: str, tag_groups: List[List[str]]) -> List[Dict[str, Any]]:
+async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[Dict[str, Any]]:
     """Generate the readings response data.
 
     Args:
@@ -80,10 +80,15 @@ async def read(ns: str, tag_groups: List[List[str]]) -> List[Dict[str, Any]]:
         return readings
 
     # Otherwise, there is at least one tag group. We need to issue a read request
-    # for each group and collect the results of each group.
+    # for each group and collect the results of each group. The provided tag groups
+    # may take the form of a List[str] in the case of a single tag group, or a
+    # List[List[str]] in the case of multiple tag groups.
+    if all(isinstance(x, str) for x in tag_groups):
+        tag_groups = [tag_groups]
+
     results = {}
     for group in tag_groups:
-        logger.debug(_('parsing tag groups'), command='READ')
+        logger.debug(_('parsing tag groups'), command='READ', group=group)
         # Apply the default namespace to the tags in the group which do not
         # have any namespace defined.
         for i, tag in enumerate(group):

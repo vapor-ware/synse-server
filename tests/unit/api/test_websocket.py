@@ -487,6 +487,7 @@ class TestMessageHandler:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
+            [],
             with_id_tags=False,
         )
         mock_send.assert_called_once()
@@ -511,7 +512,7 @@ class TestMessageHandler:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
-            'a', 'b', 'c',
+            ['a', 'b', 'c'],
             with_id_tags=False,
         )
         mock_send.assert_called_once()
@@ -536,6 +537,7 @@ class TestMessageHandler:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
+            [],
             with_id_tags=True,
         )
         mock_send.assert_called_once()
