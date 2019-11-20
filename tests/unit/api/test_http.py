@@ -677,6 +677,7 @@ class TestV3Tags:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
+            [],
             with_id_tags=False,
         )
 
@@ -698,6 +699,7 @@ class TestV3Tags:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
+            [],
             with_id_tags=False
         )
 
@@ -731,7 +733,7 @@ class TestV3Tags:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
-            *expected,
+            expected,
             with_id_tags=False,
         )
 
@@ -773,6 +775,7 @@ class TestV3Tags:
 
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with(
+            [],
             with_id_tags=expected,
         )
 
