@@ -205,7 +205,7 @@ class MessageHandler:
             logger.info(_('websocket request cancelled'), handler=handler)
             return
         except Exception as e:
-            logger.error(_('error processing websocket request'), err=e)
+            logger.exception(_('error processing websocket request'), err=e)
             await self.send(**error(
                 msg_id=payload.id,
                 ex=e,
@@ -329,7 +329,7 @@ class MessageHandler:
         await self.send(
             id=payload.id,
             event='response/tags',
-            data=await cmd.tags(*ns, with_id_tags=ids),
+            data=await cmd.tags(ns, with_id_tags=ids),
         )
 
     async def handle_request_info(self, payload: Payload) -> None:
