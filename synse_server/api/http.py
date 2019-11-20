@@ -238,7 +238,7 @@ async def tags(request: Request) -> HTTPResponse:
 
     return utils.http_json_response(
         await cmd.tags(
-            *namespaces,
+            namespaces,
             with_id_tags=include_ids,
         ),
     )

@@ -6,7 +6,7 @@ from synse_server.i18n import _
 from synse_server.log import logger
 
 
-async def tags(*namespaces: str, with_id_tags: bool = False) -> List[str]:
+async def tags(namespaces: List[str], with_id_tags: bool = False) -> List[str]:
     """Generate the tags response data.
 
     Args:
