@@ -20,6 +20,14 @@ services:
     - '5001:5001'
     command: ['--debug']
 
+  loadgen:
+    container_name: loadgen
+    image: vaporio/synse-loadgen
+    environment:
+      SLG_SYNSE_HOST: synse-server
+    links:
+      - synse-server
+
   prometheus:
     container_name: prometheus
     image: prom/prometheus

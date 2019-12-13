@@ -18,19 +18,19 @@ class Monitor:
     http_req_count = Counter(
         name='synse_http_request_count',
         documentation='The total number of HTTP requests processed',
-        labelnames=('method', 'endpoint', 'http_code'),
+        labelnames=('method', 'template', 'endpoint', 'http_code', 'ip'),
     )
 
     http_req_latency = Histogram(
         name='synse_http_request_latency_sec',
         documentation='The time it takes for an HTTP request to be fulfilled',
-        labelnames=('method', 'endpoint', 'http_code'),
+        labelnames=('method', 'template', 'endpoint', 'http_code', 'ip'),
     )
 
     http_resp_bytes = Counter(
         name='synse_http_response_bytes',
         documentation='The total number of bytes returned in HTTP API responses',
-        labelnames=('method', 'endpoint', 'http_code'),
+        labelnames=('method', 'template', 'endpoint', 'http_code', 'ip'),
     )
 
     ws_req_count = Counter(
@@ -108,7 +108,7 @@ class Monitor:
             # WebSocket handler ignores response logic, so default
             # to a 200 response in such case.
             code = response.status if response else 200
-            labels = (request.method, request.path, code)
+            labels = (request.method, request.uri_template, request.path, code, request.ip)
 
             if request.path != '/metrics':
                 self.http_req_latency.labels(*labels).observe(latency)
