@@ -146,7 +146,7 @@ async def test_plugins_no_plugin(mocker):
     )
 
     # --- Test case -----------------------------
-    resp = await cmd.plugins()
+    resp = await cmd.plugins(refresh=False)
     assert resp == []
 
     mock_refresh.assert_called_once()
@@ -163,16 +163,39 @@ async def test_plugins_ok(mocker, simple_plugin):
     )
 
     # --- Test case -----------------------------
-    resp = await cmd.plugins()
+    resp = await cmd.plugins(refresh=False)
     assert resp == [
         {  # from simple_plugin fixture
             'id': '123',
             'tag': 'test/foo',
-            'active': False,
+            'active': True,
         },
     ]
 
     mock_refresh.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_plugins_ok_with_refresh(mocker, simple_plugin):
+    # Mock test data
+    mocker.patch.dict('synse_server.plugin.manager.plugins', {
+        '123': simple_plugin,
+    })
+    mock_refresh = mocker.patch(
+        'synse_server.plugin.manager.refresh',
+    )
+
+    # --- Test case -----------------------------
+    resp = await cmd.plugins(refresh=True)
+    assert resp == [
+        {  # from simple_plugin fixture
+            'id': '123',
+            'tag': 'test/foo',
+            'active': True,
+        },
+    ]
+
+    mock_refresh.assert_called()
 
 
 @pytest.mark.asyncio

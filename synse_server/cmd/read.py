@@ -67,6 +67,13 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
         logger.debug(_('no tags specified, reading with no tag filter'), command='READ')
         readings = []
         for p in plugin.manager:
+            if not p.active:
+                logger.debug(
+                    _('plugin not active, will not read its devices'),
+                    plugin=p.tag, plugin_id=p.id,
+                )
+                continue
+
             try:
                 with p as client:
                     data = client.read()
@@ -96,6 +103,13 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
                 group[i] = f'{ns}/{tag}'
 
         for p in plugin.manager:
+            if not p.active:
+                logger.debug(
+                    _('plugin not active, will not read its devices'),
+                    plugin=p.tag, plugin_id=p.id,
+                )
+                continue
+
             try:
                 with p as client:
                     data = client.read(tags=group)
@@ -163,6 +177,13 @@ async def read_cache(start: str = None, end: str = None) -> AsyncIterable:
 
     # FIXME: this could benefit from being async
     for p in plugin.manager:
+        if not p.active:
+            logger.debug(
+                _('plugin not active, will not read its devices'),
+                plugin=p.tag, plugin_id=p.id,
+            )
+            continue
+
         logger.debug(_('getting cached readings for plugin'), plugin=p.tag, command='READ CACHE')
         try:
             with p as client:
@@ -263,6 +284,13 @@ async def read_stream(
 
     threads = []
     for p in plugin.manager:
+        if not p.active:
+            logger.debug(
+                _('plugin not active, will not read its devices'),
+                plugin=p.tag, plugin_id=p.id,
+            )
+            continue
+
         t = Stream(p, ids, tag_groups, q)
         t.start()
         threads.append(t)

@@ -251,7 +251,9 @@ class TestMessageHandler:
                 await m.handle_request_plugins(p)
 
         mock_cmd.assert_called_once()
-        mock_cmd.assert_called_with()
+        mock_cmd.assert_called_with(
+            refresh=False,
+        )
         mock_send.assert_called_once()
         mock_send.assert_called_with(json.dumps({
             'id': 'testing',
