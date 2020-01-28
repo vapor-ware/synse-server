@@ -52,8 +52,11 @@ async def plugin(plugin_id: str) -> Dict[str, Any]:
     return response
 
 
-async def plugins() -> List[Dict[str, Any]]:
+async def plugins(refresh: bool) -> List[Dict[str, Any]]:
     """Generate the plugin summary response data.
+
+    Args:
+        refresh: Force a refresh of the registered plugins.
 
     Returns:
         A list of dictionary representations of the plugin summary response(s).
@@ -62,7 +65,7 @@ async def plugins() -> List[Dict[str, Any]]:
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
-    if not manager.has_plugins():
+    if refresh or not manager.has_plugins():
         manager.refresh()
 
     summaries = []

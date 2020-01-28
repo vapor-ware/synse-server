@@ -476,6 +476,7 @@ class TestPlugin:
         assert str(simple_plugin) == '<Plugin (test/foo): 123>'
 
     def test_context_no_error(self, simple_plugin):
+        simple_plugin.active = False
         assert simple_plugin.active is False
 
         with simple_plugin as cli:
@@ -485,7 +486,7 @@ class TestPlugin:
         assert simple_plugin.active is True
 
     def test_context_unexpected_error(self, simple_plugin):
-        assert simple_plugin.active is False
+        assert simple_plugin.active is True
 
         with pytest.raises(ValueError):
             with simple_plugin:
@@ -494,6 +495,7 @@ class TestPlugin:
         assert simple_plugin.active is False
 
     def test_context_plugin_error(self, simple_plugin):
+        simple_plugin.active = False
         assert simple_plugin.active is False
 
         with pytest.raises(errors.PluginError):

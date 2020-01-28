@@ -2,9 +2,9 @@
 import asynctest
 import grpc
 import pytest
-from synse_grpc import api
+from synse_grpc import api, client
 
-from synse_server import cache
+from synse_server import cache, plugin
 
 
 @pytest.mark.usefixtures('clear_txn_cache')
@@ -189,6 +189,51 @@ class TestDeviceCache:
 
     @pytest.mark.asyncio
     async def test_update_device_cache_devices_rpc_error(self, mocker, simple_plugin):
+        # Need to define a plugin different than simple_plugin so we have different instances.
+        p = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5432', 'tcp'),
+            info={
+                'tag': 'test/bar',
+                'id': '456',
+                'vcs': 'https://github.com/vapor-ware/synse-server',
+            },
+            version={},
+        )
+        p.active = True
+
+        # Mock test data
+        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+            '123': simple_plugin,
+            '456': p,
+        })
+
+        mock_devices = mocker.patch(
+            'synse_grpc.client.PluginClientV3.devices',
+            side_effect=grpc.RpcError(),
+        )
+
+        # --- Test case -----------------------------
+        assert len(cache.device_cache._cache) == 0
+
+        await cache.update_device_cache()
+
+        assert len(cache.device_cache._cache) == 0
+
+        mock_devices.assert_called()
+        mock_devices.assert_has_calls([
+            mocker.call(),
+            mocker.call(),
+        ])
+
+    @pytest.mark.asyncio
+    async def test_update_device_cache_devices_rpc_error_2(self, mocker, simple_plugin):
+        """This test is similar to the one above, but it tests that upon failing via RPCError,
+        the plugin is marked inactive and will not have its devices collected the next time
+        around. This is done in a bit of a tricky manner by using the same object (simple_plugin)
+        for both patched plugins. The update on failure on the first will be reflected in the
+        state of the second iteration (since they are the same object.
+        """
+
         # Mock test data
         mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
             '123': simple_plugin,
@@ -209,8 +254,7 @@ class TestDeviceCache:
 
         mock_devices.assert_called()
         mock_devices.assert_has_calls([
-            mocker.call(),
-            mocker.call(),
+            mocker.call(),  # should only be called once, second is skipped because inactive
         ])
 
     @pytest.mark.asyncio
@@ -427,8 +471,8 @@ class TestDeviceCache:
         with asynctest.patch('synse_server.cache.get_device') as mock_get:
             mock_get.return_value = None
 
-            plugin = await cache.get_plugin('device-1')
-            assert plugin is None
+            p = await cache.get_plugin('device-1')
+            assert p is None
 
         mock_get.assert_called_once()
         mock_get.assert_called_with('device-1')
@@ -438,8 +482,8 @@ class TestDeviceCache:
         with asynctest.patch('synse_server.cache.get_device') as mock_get:
             mock_get.return_value = simple_device
 
-            plugin = await cache.get_plugin('device-1')
-            assert plugin is None
+            p = await cache.get_plugin('device-1')
+            assert p is None
 
         mock_get.assert_called_once()
         mock_get.assert_called_with('device-1')
@@ -455,8 +499,8 @@ class TestDeviceCache:
         with asynctest.patch('synse_server.cache.get_device') as mock_get:
             mock_get.return_value = simple_device
 
-            plugin = await cache.get_plugin('device-1')
-            assert plugin == simple_plugin
+            p = await cache.get_plugin('device-1')
+            assert p == simple_plugin
 
         mock_get.assert_called_once()
         mock_get.assert_called_with('device-1')
