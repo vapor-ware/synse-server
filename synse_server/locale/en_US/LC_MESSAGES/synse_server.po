@@ -1,15 +1,15 @@
 # English (United States) translations for Synse Server.
-# Copyright (C) 2019 Vapor IO
+# Copyright (C) 2020 Vapor IO
 # This file is distributed under the same license as the Synse Server
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Synse Server VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-11-15 14:09-0500\n"
-"PO-Revision-Date: 2019-11-15 14:09-0500\n"
+"POT-Creation-Date: 2020-01-28 11:17-0500\n"
+"PO-Revision-Date: 2020-01-28 11:17-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
 "Language-Team: en_US <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: synse_server/cache.py:84
+#: synse_server/cache.py:85
 msgid "caching transaction"
 msgstr ""
 
@@ -35,91 +35,95 @@ msgstr ""
 msgid "no plugins found when updating device cache"
 msgstr ""
 
-#: synse_server/cache.py:159
+#: synse_server/cache.py:161
+msgid "plugin not active, will not get its devices"
+msgstr ""
+
+#: synse_server/cache.py:165
 msgid "getting devices from plugin"
 msgstr ""
 
-#: synse_server/cache.py:177
+#: synse_server/cache.py:183
 msgid "failed to get device(s)"
 msgstr ""
 
-#: synse_server/cache.py:200
+#: synse_server/cache.py:207
 msgid "looking up device ID in cache"
 msgstr ""
 
-#: synse_server/cache.py:214
+#: synse_server/cache.py:221
 msgid "device ID not found in cache - checking for alias"
 msgstr ""
 
-#: synse_server/errors.py:52
+#: synse_server/errors.py:54
 msgid "an unexpected error occurred"
 msgstr ""
 
-#: synse_server/errors.py:76
+#: synse_server/errors.py:78
 msgid "invalid user input"
 msgstr ""
 
-#: synse_server/errors.py:88
+#: synse_server/errors.py:90
 msgid "resource not found"
 msgstr ""
 
-#: synse_server/errors.py:100
+#: synse_server/errors.py:102
 msgid "device action not supported"
 msgstr ""
 
-#: synse_server/errors.py:112
+#: synse_server/errors.py:114
 msgid "error processing the request"
 msgstr ""
 
-#: synse_server/plugin.py:76
+#: synse_server/plugin.py:77
 msgid "registering new plugin"
 msgstr ""
 
-#: synse_server/plugin.py:80
+#: synse_server/plugin.py:81
 msgid "application metrics enabled: registering gRPC interceptor"
 msgstr ""
 
-#: synse_server/plugin.py:106
+#: synse_server/plugin.py:107
 msgid "plugin with id already registered - skipping"
 msgstr ""
 
-#: synse_server/plugin.py:109
+#: synse_server/plugin.py:110
 msgid "successfully registered plugin"
 msgstr ""
 
-#: synse_server/plugin.py:124
+#: synse_server/plugin.py:125
 msgid "loading plugins from configuration"
 msgstr ""
 
-#: synse_server/plugin.py:131 synse_server/plugin.py:137
+#: synse_server/plugin.py:132 synse_server/plugin.py:138
 msgid "loading plugin from config"
 msgstr ""
 
-#: synse_server/plugin.py:157
+#: synse_server/plugin.py:158
 msgid "failed plugin discovery via Kubernetes"
 msgstr ""
 
-#: synse_server/plugin.py:174
+#: synse_server/plugin.py:175
 msgid "refreshing plugin manager"
 msgstr ""
 
-#: synse_server/plugin.py:186
+#: synse_server/plugin.py:187
 msgid "failed to register configured plugin - will attempt re-registering later"
 msgstr ""
 
-#: synse_server/plugin.py:200
+#: synse_server/plugin.py:201
 msgid "failed to register discovered plugin - will attempt re-registering later"
 msgstr ""
 
-#: synse_server/plugin.py:206
+#: synse_server/plugin.py:207
 msgid "plugin manager refresh complete"
 msgstr ""
 
-#: synse_server/plugin.py:283
+#: synse_server/plugin.py:282
 msgid "marking plugin as active"
 msgstr ""
 
-#: synse_server/plugin.py:290
+#: synse_server/plugin.py:289
 msgid "marking plugin as inactive"
 msgstr ""
 
@@ -163,180 +167,193 @@ msgstr ""
 msgid "serving API endpoints"
 msgstr ""
 
-#: synse_server/tasks.py:18
+#: synse_server/tasks.py:20 synse_server/tasks.py:22
 msgid "adding task"
 msgstr ""
 
-#: synse_server/tasks.py:28
+#: synse_server/tasks.py:32
 msgid "task: rebuilding device cache"
 msgstr ""
 
-#: synse_server/tasks.py:36
+#: synse_server/tasks.py:40
 msgid "task: failed to rebuild device cache"
 msgstr ""
 
-#: synse_server/api/http.py:26
+#: synse_server/tasks.py:53
+msgid "task: refreshing plugins"
+msgstr ""
+
+#: synse_server/tasks.py:61
+msgid "task: failed to refresh plugins"
+msgstr ""
+
+#: synse_server/api/http.py:27
 msgid "processing request"
 msgstr ""
 
-#: synse_server/api/websocket.py:23
+#: synse_server/api/websocket.py:25
 msgid "new websocket connection"
 msgstr ""
 
-#: synse_server/api/websocket.py:40
+#: synse_server/api/websocket.py:42
 msgid "failed to load payload"
 msgstr ""
 
-#: synse_server/api/websocket.py:121
+#: synse_server/api/websocket.py:122
 msgid "running message handler for websocket"
 msgstr ""
 
-#: synse_server/api/websocket.py:127
+#: synse_server/api/websocket.py:128
 msgid "error loading websocket message"
 msgstr ""
 
-#: synse_server/api/websocket.py:131
+#: synse_server/api/websocket.py:132
 msgid "websocket handler: got message"
 msgstr ""
 
-#: synse_server/api/websocket.py:135
+#: synse_server/api/websocket.py:136
 msgid "error generating websocket response"
 msgstr ""
 
-#: synse_server/api/websocket.py:199
+#: synse_server/api/websocket.py:200
 msgid "processing websocket request"
 msgstr ""
 
-#: synse_server/api/websocket.py:204
+#: synse_server/api/websocket.py:205
 msgid "websocket request cancelled"
 msgstr ""
 
-#: synse_server/api/websocket.py:207
+#: synse_server/api/websocket.py:208
 msgid "error processing websocket request"
 msgstr ""
 
-#: synse_server/api/websocket.py:422
+#: synse_server/api/websocket.py:425
 msgid "read stream stop request received - terminating stream tasks"
 msgstr ""
 
-#: synse_server/api/websocket.py:436
+#: synse_server/api/websocket.py:439
 msgid "websocket raised ConnectionClosed - terminating read stream"
 msgstr ""
 
-#: synse_server/cmd/config.py:13 synse_server/cmd/info.py:18
-#: synse_server/cmd/plugin.py:20 synse_server/cmd/plugin.py:60
-#: synse_server/cmd/plugin.py:84 synse_server/cmd/read.py:62
-#: synse_server/cmd/read.py:119 synse_server/cmd/read.py:157
-#: synse_server/cmd/read.py:247 synse_server/cmd/scan.py:28
-#: synse_server/cmd/tags.py:18 synse_server/cmd/test.py:13
-#: synse_server/cmd/transaction.py:18 synse_server/cmd/transaction.py:65
-#: synse_server/cmd/version.py:13 synse_server/cmd/write.py:21
+#: synse_server/cmd/config.py:15 synse_server/cmd/info.py:20
+#: synse_server/cmd/plugin.py:22 synse_server/cmd/plugin.py:64
+#: synse_server/cmd/plugin.py:88 synse_server/cmd/read.py:63
+#: synse_server/cmd/read.py:138 synse_server/cmd/read.py:176
+#: synse_server/cmd/read.py:281 synse_server/cmd/scan.py:32
+#: synse_server/cmd/tags.py:20 synse_server/cmd/test.py:15
+#: synse_server/cmd/transaction.py:20 synse_server/cmd/transaction.py:67
+#: synse_server/cmd/version.py:15 synse_server/cmd/write.py:22
 #: synse_server/cmd/write.py:61
 msgid "issuing command"
 msgstr ""
 
-#: synse_server/cmd/plugin.py:101
+#: synse_server/cmd/plugin.py:105
 msgid "failed to get plugin health"
 msgstr ""
 
-#: synse_server/cmd/read.py:66
+#: synse_server/cmd/read.py:67
 msgid "no tags specified, reading with no tag filter"
 msgstr ""
 
-#: synse_server/cmd/read.py:74 synse_server/cmd/read.py:98
+#: synse_server/cmd/read.py:72 synse_server/cmd/read.py:108
+#: synse_server/cmd/read.py:182 synse_server/cmd/read.py:289
+msgid "plugin not active, will not read its devices"
+msgstr ""
+
+#: synse_server/cmd/read.py:82 synse_server/cmd/read.py:118
 msgid "error while issuing gRPC request: read"
 msgstr ""
 
-#: synse_server/cmd/read.py:78 synse_server/cmd/read.py:105
+#: synse_server/cmd/read.py:86 synse_server/cmd/read.py:125
 msgid "got readings"
 msgstr ""
 
-#: synse_server/cmd/read.py:85 synse_server/cmd/scan.py:55
+#: synse_server/cmd/read.py:98 synse_server/cmd/scan.py:59
 msgid "parsing tag groups"
 msgstr ""
 
-#: synse_server/cmd/read.py:124 synse_server/cmd/write.py:28
+#: synse_server/cmd/read.py:143 synse_server/cmd/write.py:29
 #: synse_server/cmd/write.py:68
 msgid "plugin not found for device {}"
 msgstr ""
 
-#: synse_server/cmd/read.py:133
+#: synse_server/cmd/read.py:152
 msgid "error while issuing gRPC request: read device"
 msgstr ""
 
-#: synse_server/cmd/read.py:161
+#: synse_server/cmd/read.py:187
 msgid "getting cached readings for plugin"
 msgstr ""
 
-#: synse_server/cmd/read.py:168
+#: synse_server/cmd/read.py:194
 msgid "error while issuing gRPC request: read cache"
 msgstr ""
 
-#: synse_server/cmd/read.py:201
+#: synse_server/cmd/read.py:232
 msgid "running Stream thread"
 msgstr ""
 
-#: synse_server/cmd/read.py:210
+#: synse_server/cmd/read.py:241
 msgid "stream thread cancelled"
 msgstr ""
 
-#: synse_server/cmd/read.py:215
+#: synse_server/cmd/read.py:246
 msgid "error while issuing gRPC request: read stream"
 msgstr ""
 
-#: synse_server/cmd/read.py:220
+#: synse_server/cmd/read.py:251
 msgid "cancelling reading stream"
 msgstr ""
 
-#: synse_server/cmd/read.py:258
+#: synse_server/cmd/read.py:299
 msgid "executing callback to cancel read stream threads"
 msgstr ""
 
-#: synse_server/cmd/read.py:270
+#: synse_server/cmd/read.py:311
 msgid "collecting streamed readings..."
 msgstr ""
 
-#: synse_server/cmd/scan.py:36
+#: synse_server/cmd/scan.py:40
 msgid "forced scan: rebuilding device cache"
 msgstr ""
 
-#: synse_server/cmd/scan.py:40
+#: synse_server/cmd/scan.py:44
 msgid "failed to rebuild device cache"
 msgstr ""
 
-#: synse_server/cmd/scan.py:44
+#: synse_server/cmd/scan.py:48
 msgid "getting devices with no tag filter"
 msgstr ""
 
-#: synse_server/cmd/scan.py:49
+#: synse_server/cmd/scan.py:53
 msgid "failed to get all devices from cache"
 msgstr ""
 
-#: synse_server/cmd/scan.py:67
+#: synse_server/cmd/scan.py:71
 msgid "failed to get devices from cache"
 msgstr ""
 
-#: synse_server/cmd/scan.py:80
+#: synse_server/cmd/scan.py:84
 msgid "sorting devices"
 msgstr ""
 
-#: synse_server/cmd/scan.py:99
+#: synse_server/cmd/scan.py:103
 msgid "got devices"
 msgstr ""
 
-#: synse_server/cmd/tags.py:32
+#: synse_server/cmd/tags.py:34
 msgid "filtering ID tags"
 msgstr ""
 
-#: synse_server/cmd/tags.py:36
+#: synse_server/cmd/tags.py:38
 msgid "filtering tags by namespace"
 msgstr ""
 
-#: synse_server/cmd/tags.py:39
+#: synse_server/cmd/tags.py:41
 msgid "got tags"
 msgstr ""
 
-#: synse_server/cmd/write.py:43
+#: synse_server/cmd/write.py:44
 msgid "error while issuing gRPC request: async write"
 msgstr ""
 
@@ -344,95 +361,95 @@ msgstr ""
 msgid "error while issuing gRPC request: sync write"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:23
+#: synse_server/discovery/kubernetes.py:25
 msgid "plugin discovery via Kubernetes is disabled"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:35
+#: synse_server/discovery/kubernetes.py:37
 msgid "plugin discovery via Kubernetes is enabled"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:49
+#: synse_server/discovery/kubernetes.py:51
 msgid "found no configured endpoints for plugin discovery via Kubernetes"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:83
+#: synse_server/discovery/kubernetes.py:85
 msgid "found no configured labels for plugin discovery via Kubernetes Endpoints"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:100
+#: synse_server/discovery/kubernetes.py:102
 msgid "listing Kubernetes endpoint"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:108
+#: synse_server/discovery/kubernetes.py:110
 msgid "discovered matching Endpoint"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:111
+#: synse_server/discovery/kubernetes.py:113
 msgid "parsing EndpointSubset"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:117
+#: synse_server/discovery/kubernetes.py:119
 msgid "no addresses for EndpointSubset - skipping"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:123
+#: synse_server/discovery/kubernetes.py:125
 msgid "collecting available addresses for EndpointSubset"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:127
+#: synse_server/discovery/kubernetes.py:129
 msgid "parsing EndpointAddress"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:133
+#: synse_server/discovery/kubernetes.py:135
 msgid "address has no target_ref - skipping"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:138
+#: synse_server/discovery/kubernetes.py:140
 msgid "address is not a Pod address - skipping"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:147
+#: synse_server/discovery/kubernetes.py:149
 msgid "no IPs found for EndpointSubset - skipping"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:150
+#: synse_server/discovery/kubernetes.py:152
 msgid "found IPs for EndpointSubset"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:156
+#: synse_server/discovery/kubernetes.py:158
 msgid "no ports for EndpointSubset - skipping"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:162
+#: synse_server/discovery/kubernetes.py:164
 msgid "found single port for EndpointSubset"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:167
+#: synse_server/discovery/kubernetes.py:169
 msgid "found multiple ports - search for port named \"http\""
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:169
+#: synse_server/discovery/kubernetes.py:171
 msgid "found port"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:171
+#: synse_server/discovery/kubernetes.py:173
 msgid "skipping port - does not match"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:175
+#: synse_server/discovery/kubernetes.py:177
 msgid "found port name \"http\""
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:185
+#: synse_server/discovery/kubernetes.py:187
 msgid "discovered plugin via Endpoint"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:189
+#: synse_server/discovery/kubernetes.py:191
 msgid "no plugins found via Kubernetes Endpoints"
 msgstr ""
 
-#: synse_server/discovery/kubernetes.py:191
+#: synse_server/discovery/kubernetes.py:193
 msgid "found plugins via Kubernetes Endpoints"
 msgstr ""
 

@@ -96,6 +96,32 @@ async def test_read_fails_read_multiple_one_fail(mocker, simple_plugin, temperat
 
 
 @pytest.mark.asyncio
+async def test_read_ok_inactive_plugin(mocker, simple_plugin, state_reading):
+    # Mock test data
+    mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+        '123': simple_plugin,
+    })
+
+    mock_read = mocker.patch(
+        'synse_grpc.client.PluginClientV3.read',
+        return_value=[
+            state_reading,
+        ],
+    )
+
+    # --- Test case -----------------------------
+    # Set the simple_plugin to inactive to start.
+    simple_plugin.active = False
+
+    resp = await cmd.read('default', [['foo/bar', 'vapor/ware']])
+    # No readings - the one plugin set is inactive so should not be read from.
+    assert resp == []
+    assert simple_plugin.active is False
+
+    mock_read.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_read_ok_no_tags(mocker, simple_plugin, temperature_reading, humidity_reading):
     # Mock test data
     mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
@@ -457,6 +483,30 @@ async def test_read_cache_ok(mocker, simple_plugin, humidity_reading):
 
     mock_read.assert_called_once()
     mock_read.assert_called_with(start='2019-04-22T13:30:00Z', end='2019-04-22T13:35:00Z')
+
+
+@pytest.mark.asyncio
+async def test_read_cache_inactive_plugin(mocker, simple_plugin, humidity_reading):
+    # Mock test data
+    simple_plugin.active = False
+    mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+        '123': simple_plugin,
+    })
+
+    def patchreadcache(*args, **kwargs):
+        yield humidity_reading
+
+    mock_read = mocker.patch(
+        'synse_grpc.client.PluginClientV3.read_cache',
+        side_effect=patchreadcache,
+    )
+
+    # --- Test case -----------------------------
+    resp = [r async for r in cmd.read_cache('2019-04-22T13:30:00Z', '2019-04-22T13:35:00Z')]
+    assert len(resp) == 0  # no readings since plugin not active
+    assert simple_plugin.active is False
+
+    mock_read.assert_not_called()
 
 
 def test_reading_to_dict_1(temperature_reading):

@@ -46,7 +46,6 @@ setup(
         'grpcio',
         'kubernetes',
         'pyyaml>=4.2b1',
-        'requests>=2.20.0',  # used by 'kubernetes'
         'sanic>=0.8.0',
         'prometheus-client',
         'structlog',
