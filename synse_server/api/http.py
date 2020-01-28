@@ -100,8 +100,12 @@ async def plugins(request: Request) -> HTTPResponse:
     """
     log_request(request)
 
+    refresh = request.args.get('refresh', 'false').lower() == 'true'
+
     return utils.http_json_response(
-        await cmd.plugins(),
+        await cmd.plugins(
+            refresh=refresh,
+        ),
     )
 
 

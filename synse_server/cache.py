@@ -156,6 +156,12 @@ async def update_device_cache() -> None:
         await device_cache.clear()
 
         for p in plugin.manager:
+            if not p.active:
+                logger.debug(
+                    _('plugin not active, will not get its devices'),
+                    plugin=p.tag, plugin_id=p.id,
+                )
+                continue
             logger.debug(_('getting devices from plugin'), plugin=p.tag, plugin_id=p.id)
             try:
                 with p as client:
@@ -175,6 +181,7 @@ async def update_device_cache() -> None:
 
             except grpc.RpcError as e:
                 logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
+                continue
 
 
 async def get_device(device_id: str) -> Union[api.V3Device, None]:

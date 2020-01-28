@@ -104,7 +104,7 @@ def simple_plugin():
     configured minimally.
     """
 
-    return plugin.Plugin(
+    p = plugin.Plugin(
         client=client.PluginClientV3('localhost:5432', 'tcp'),
         info={
             'tag': 'test/foo',
@@ -113,6 +113,8 @@ def simple_plugin():
         },
         version={},
     )
+    p.active = True
+    return p
 
 
 @pytest.fixture()

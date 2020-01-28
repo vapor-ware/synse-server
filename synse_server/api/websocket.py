@@ -271,10 +271,12 @@ class MessageHandler:
         Args:
             payload: The message payload received from the WebSocket.
         """
+        refresh = payload.data.get('refresh', False)
+
         await self.send(
             id=payload.id,
             event='response/plugin_summary',
-            data=await cmd.plugins(),
+            data=await cmd.plugins(refresh=refresh),
         )
 
     async def handle_request_plugin_health(self, payload: Payload) -> None:
