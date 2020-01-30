@@ -1,7 +1,7 @@
 """Management and access logic for configured plugin backends."""
 
 import time
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from synse_grpc import client, utils
 
@@ -21,7 +21,7 @@ class PluginManager:
     snapshot of currently registered plugins.
     """
 
-    plugins = {}
+    plugins: Dict[str, 'Plugin'] = {}
 
     def __iter__(self) -> 'PluginManager':
         self._snapshot = list(self.plugins.values())
@@ -109,7 +109,7 @@ class PluginManager:
             self.plugins[plugin.id] = plugin
             logger.info(_('successfully registered plugin'), id=plugin.id, tag=plugin.tag)
 
-        plugin.mark_active()
+        self.plugins[plugin.id].mark_active()
         return plugin.id
 
     @classmethod
