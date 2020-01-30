@@ -152,7 +152,11 @@ class TestPluginManager:
         # --- Test case -----------------------------
         m = plugin.PluginManager()
         m.plugins = {
-            '123': 'placeholder',
+            '123': plugin.Plugin(
+                {'id': 'foo', 'tag': 'foo'},
+                {},
+                client.PluginClientV3('foo', 'tcp'),
+            ),
         }
 
         plugin_id = m.register('localhost:5432', 'tcp')
