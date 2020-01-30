@@ -4,10 +4,12 @@ import ujson
 from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import HTTPResponse, StreamingHTTPResponse, stream
+from structlog import get_logger
 
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 # Blueprint for the Synse core (version-less) routes.
 core = Blueprint('core-http')

@@ -7,10 +7,14 @@ are defined here.
 import os
 import sys
 
+from structlog import get_logger
+
 import synse_server
 from synse_server import app, config, metrics, plugin, tasks
 from synse_server.i18n import _
-from synse_server.log import logger, setup_logger
+from synse_server.log import setup_logger
+
+logger = get_logger()
 
 
 class Synse:
@@ -143,7 +147,6 @@ class Synse:
         self.app.run(
             host=self.host,
             port=self.port,
-            access_log=False,
             ssl=ssl_context,
         )
 

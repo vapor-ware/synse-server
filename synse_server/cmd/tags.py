@@ -1,9 +1,12 @@
 
 from typing import List
 
+from structlog import get_logger
+
 from synse_server import cache
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 async def tags(namespaces: List[str], with_id_tags: bool = False) -> List[str]:

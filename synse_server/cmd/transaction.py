@@ -2,10 +2,12 @@
 from typing import Any, Dict, List
 
 import synse_grpc.utils
+from structlog import get_logger
 
 from synse_server import cache, errors, plugin
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 async def transaction(transaction_id: str) -> Dict[str, Any]:

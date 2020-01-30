@@ -1,9 +1,12 @@
 
 from typing import Dict
 
+from structlog import get_logger
+
 from synse_server import utils
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 async def test() -> Dict[str, str]:
