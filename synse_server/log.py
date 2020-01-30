@@ -6,6 +6,7 @@ import sys
 
 import structlog
 from sanic import app, asgi, handlers, request, server
+from structlog import contextvars
 
 from synse_server import config
 
@@ -55,6 +56,7 @@ logging.config.dictConfig(logging_config)
 
 structlog.configure(
     processors=[
+        contextvars.merge_contextvars,
         structlog.stdlib.filter_by_level,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
