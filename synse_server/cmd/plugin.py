@@ -1,13 +1,15 @@
 
 from typing import Any, Dict, List
 
+from structlog import get_logger
 from synse_grpc import api, utils
 
 import synse_server.utils
 from synse_server import errors
 from synse_server.i18n import _
-from synse_server.log import logger
 from synse_server.plugin import manager
+
+logger = get_logger()
 
 
 async def plugin(plugin_id: str) -> Dict[str, Any]:

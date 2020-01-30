@@ -75,7 +75,6 @@ class TestSynse:
         mock_run.assert_called_with(
             host='0.0.0.0',
             port=5000,
-            access_log=False,
             ssl=None,
         )
 
@@ -105,7 +104,6 @@ class TestSynse:
         mock_run.assert_called_with(
             host='0.0.0.0',
             port=5000,
-            access_log=False,
             ssl={
                 'cert': 'test-cert',
                 'key': 'test-key',
@@ -139,7 +137,6 @@ class TestSynse:
         mock_run.assert_called_with(
             host='0.0.0.0',
             port=5000,
-            access_log=False,
             ssl={
                 'cert': 'test-cert',
                 'key': 'test-key',

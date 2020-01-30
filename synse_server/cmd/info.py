@@ -1,11 +1,13 @@
 
 from typing import Any, Dict
 
+from structlog import get_logger
 from synse_grpc import utils
 
 from synse_server import cache, errors
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 async def info(device_id: str) -> Dict[str, Any]:

@@ -6,11 +6,13 @@ from typing import Any, AsyncIterable, Dict, List, Union
 
 import synse_grpc.utils
 import websockets
+from structlog import get_logger
 from synse_grpc import api
 
 from synse_server import cache, errors, plugin
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
