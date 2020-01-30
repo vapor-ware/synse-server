@@ -6,11 +6,13 @@ from typing import Iterable, List, Union
 import aiocache
 import grpc
 import synse_grpc.utils
+from structlog import get_logger
 from synse_grpc import api
 
 from synse_server import config, plugin
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 # The in-memory cache implementation stores data in a class member variable,
 # so all instance of the in memory cache will reference that data structure.

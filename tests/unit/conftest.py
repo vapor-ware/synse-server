@@ -20,11 +20,13 @@ TEST_DATETIME = datetime.datetime(2019, 4, 19, 2, 1, 53, 680718)
 #   @pytest.mark.usefixtures(<FIXTURE NAME>)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def disable_loggers():
     """Fixture to disable loggers for the tests."""
 
-    logging.getLogger('synse-server').disabled = True
+    logging.getLogger('synse_server').setLevel(logging.CRITICAL)
+
+    logging.getLogger('synse_server').disabled = True
     logging.getLogger('root').disabled = True
     logging.getLogger('sanic.access').disabled = True
     logging.getLogger('sanic.error').disabled = True

@@ -3,11 +3,13 @@
 import asyncio
 
 import sanic
+from structlog import get_logger
 
 from synse_server import config, plugin
 from synse_server.cache import update_device_cache
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 def register_with_app(app: sanic.Sanic) -> None:

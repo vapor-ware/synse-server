@@ -8,11 +8,13 @@ from typing import Any, Dict, List, Union
 from sanic import Blueprint
 from sanic.request import Request
 from sanic.websocket import ConnectionClosed, WebSocketCommonProtocol
+from structlog import get_logger
 
 from synse_server import cmd, errors, utils
 from synse_server.i18n import _
-from synse_server.log import logger
 from synse_server.metrics import Monitor
+
+logger = get_logger()
 
 # Blueprint for the Synse v3 WebSocket API.
 v3 = Blueprint('v3-websocket')
