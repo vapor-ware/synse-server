@@ -4,10 +4,12 @@ from typing import List
 
 import kubernetes.client
 import kubernetes.config
+from structlog import get_logger
 
 from synse_server import config
 from synse_server.i18n import _
-from synse_server.log import logger
+
+logger = get_logger()
 
 
 def discover() -> List[str]:

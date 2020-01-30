@@ -1,14 +1,17 @@
 
 import logging
 
+import structlog
+
 from synse_server import log
 
 
 def test_setup_logger_defaults():
-    log.logger.setLevel(logging.DEBUG)
+    logger = structlog.get_logger('synse_server')
+    logger.setLevel(logging.DEBUG)
 
     log.setup_logger()
-    assert log.logger.getEffectiveLevel() == logging.INFO
+    assert logger.getEffectiveLevel() == logging.INFO
 
 
 def test_setup_logger_configured(mocker):
@@ -17,7 +20,7 @@ def test_setup_logger_configured(mocker):
 
     # --- Test case -----------------------------
     log.setup_logger()
-    assert log.logger.getEffectiveLevel() == logging.ERROR
+    assert structlog.get_logger('synse_server').getEffectiveLevel() == logging.ERROR
 
     mock_get.assert_called_once()
     mock_get.assert_called_with('logging', 'info')
