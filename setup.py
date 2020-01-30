@@ -48,7 +48,8 @@ setup(
         'pyyaml>=4.2b1',
         'sanic>=0.8.0',
         'prometheus-client',
-        'structlog',
+        'shortuuid',
+        'structlog>=20.1.0',
         'websockets',
         'synse-grpc==3.0.0a4',  # fixme: for alpha v3 testing; update to stable v3 release
     ],
