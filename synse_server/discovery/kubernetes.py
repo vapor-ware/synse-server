@@ -168,7 +168,7 @@ def _register_from_endpoints(ns: str, cfg: dict) -> List[str]:
                 )
             else:
                 # Search for a port with name 'http'
-                logger.debug(_('found multiple ports - search for port named "http"'))
+                logger.debug(_('found multiple ports - searching for port named "http"'))
                 for p in ports:
                     logger.debug(_('found port'), subset=i, name=p.name)
                     if p.name != 'http':
