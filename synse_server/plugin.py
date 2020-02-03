@@ -102,6 +102,10 @@ class PluginManager:
             version=utils.to_dict(ver),
             client=c,
         )
+        logger.debug(
+            _('loaded plugin info'),
+            id=plugin.id, version=plugin.version, addr=plugin.address, tag=plugin.tag,
+        )
 
         if plugin.id in self.plugins:
             # The plugin has already been registered. There is nothing left to
@@ -109,7 +113,7 @@ class PluginManager:
             logger.debug(_('plugin with id already registered - skipping'), id=plugin.id)
         else:
             self.plugins[plugin.id] = plugin
-            logger.info(_('successfully registered plugin'), id=plugin.id, tag=plugin.tag)
+            logger.info(_('successfully registered new plugin'), id=plugin.id, tag=plugin.tag)
 
         self.plugins[plugin.id].mark_active()
         return plugin.id
@@ -162,6 +166,7 @@ class PluginManager:
             for address in addresses:
                 configs.append((address, 'tcp'))
 
+        logger.debug(_('found addresses via plugin discovery'), addresses=configs)
         return configs
 
     def refresh(self) -> None:
