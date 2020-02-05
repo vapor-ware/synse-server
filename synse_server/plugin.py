@@ -216,6 +216,15 @@ class PluginManager:
             elapsed_time=time.time() - start,
         )
 
+    def all_active(self) -> bool:
+        """Check to see if all registered plugins are active.
+
+        If a single plugin is inactive, this returns False. If no plugins are
+        registered, this returns True. In such a case, it is up to the caller to
+        perform additional checks for number of registered plugins.
+        """
+        return all(plugin.active for plugin in self)
+
 
 # A module-level instance of the plugin manager. This makes it easier to use
 # the manager in various places, without having to initialize a new instance.
