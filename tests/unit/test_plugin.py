@@ -74,6 +74,46 @@ class TestPluginManager:
         assert result is not None
         assert result == 'placeholder'
 
+    def test_all_active_true_no_plugins(self):
+        m = plugin.PluginManager()
+        assert m.all_active() is True
+
+    def test_all_active_true_has_plugins(self):
+        p1 = plugin.Plugin({'id': '1', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+        p2 = plugin.Plugin({'id': '2', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+        p3 = plugin.Plugin({'id': '3', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+
+        p1.mark_active()
+        p2.mark_active()
+        p3.mark_active()
+
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': p1,
+            '2': p2,
+            '3': p3,
+        }
+
+        assert m.all_active() is True
+
+    def test_all_active_false_has_plugins(self):
+        p1 = plugin.Plugin({'id': '1', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+        p2 = plugin.Plugin({'id': '2', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+        p3 = plugin.Plugin({'id': '3', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+
+        p1.mark_active()
+        p2.mark_inactive()
+        p3.mark_active()
+
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': p1,
+            '2': p2,
+            '3': p3,
+        }
+
+        assert m.all_active() is False
+
     def test_register_fail_metadata_call(self, mocker):
         # Mock test data
         mock_metadata = mocker.patch(
