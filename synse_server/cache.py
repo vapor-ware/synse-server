@@ -147,11 +147,12 @@ async def update_device_cache() -> None:
     # each registered plugin. This device data will be used to generate
     # the cache.
     #
-    # If there are no plugins currently registered, attempt
-    # to re-register. This can be the case when Synse Server is first
-    # starting up, being restarted, or is recovering from a networking error.
-    if len(plugin.manager.plugins) == 0:
-        logger.debug(_('no plugins found when updating device cache'))
+    # If there are no plugins currently registered, or any plugin is currently
+    # marked inactive, attempt to refresh all plugins. This can be the case when
+    # Synse Server is first starting up, being restarted, or is recovering from a
+    # networking error.
+    if not plugin.manager.has_plugins() or not plugin.manager.all_active():
+        logger.debug(_('refreshing plugins prior to updating device cache'))
         plugin.manager.refresh()
 
     async with device_cache_lock:
