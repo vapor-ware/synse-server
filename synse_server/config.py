@@ -21,10 +21,13 @@ scheme = Scheme(
     )),
     DictOption('cache', default=None, scheme=Scheme(
         DictOption('device', scheme=Scheme(
-            Option('rebuild_every', default=180, field_type=int)  # three minutes
+            Option('rebuild_every', default=180, field_type=int),  # three minutes
+        )),
+        DictOption('plugin', scheme=Scheme(
+            Option('refresh_every', default=120, field_type=int),  # two minutes
         )),
         DictOption('transaction', scheme=Scheme(
-            Option('ttl', default=300, field_type=int)  # five minutes
+            Option('ttl', default=300, field_type=int),  # five minutes
         ))
     )),
     DictOption('grpc', scheme=Scheme(

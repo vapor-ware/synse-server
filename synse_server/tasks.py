@@ -48,7 +48,7 @@ async def _rebuild_device_cache() -> None:
 
 async def _refresh_plugins() -> None:
     """Periodically refresh the plugin manager."""
-    interval = 2 * 60  # 2 minutes
+    interval = config.options.get('cache.plugin.refresh_every', 2 * 60)  # 2 minute default
 
     while True:
         logger.info(
