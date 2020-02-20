@@ -4,9 +4,12 @@ from sanic.exceptions import SanicException
 from sanic.handlers import ErrorHandler
 from sanic.request import Request
 from sanic.response import HTTPResponse
+from structlog import get_logger
 
 from synse_server import utils
 from synse_server.i18n import _
+
+logger = get_logger()
 
 
 class SynseErrorHandler(ErrorHandler):
@@ -24,6 +27,7 @@ class SynseErrorHandler(ErrorHandler):
         does not register any other custom error handlers, so all exceptions
         raised by the application will be caught and handled here.
         """
+        logger.info(_('creating error response for request'), error=exception)
 
         if isinstance(exception, SanicException):
             return super(SynseErrorHandler, self).default(request, exception)

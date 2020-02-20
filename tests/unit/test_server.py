@@ -58,7 +58,7 @@ class TestSynse:
             'synse_server.server.Synse._initialize',
         )
         mock_run = mocker.patch(
-            'sanic.Sanic.run'
+            'synse_server.loop.synse_loop.run_forever'
         )
         mock_write = mocker.patch('sys.stdout.write')
 
@@ -72,11 +72,6 @@ class TestSynse:
         mock_write.assert_called_once()
         mock_initialize.assert_called_once()
         mock_run.assert_called_once()
-        mock_run.assert_called_with(
-            host='0.0.0.0',
-            port=5000,
-            ssl=None,
-        )
 
     def test_run_ok_with_ssl(self, mocker):
         # Mock test data
@@ -90,7 +85,7 @@ class TestSynse:
             'synse_server.server.Synse._initialize',
         )
         mock_run = mocker.patch(
-            'sanic.Sanic.run'
+            'synse_server.loop.synse_loop.run_forever'
         )
         mock_write = mocker.patch('sys.stdout.write')
 
@@ -101,14 +96,6 @@ class TestSynse:
         mock_write.assert_not_called()
         mock_initialize.assert_called_once()
         mock_run.assert_called_once()
-        mock_run.assert_called_with(
-            host='0.0.0.0',
-            port=5000,
-            ssl={
-                'cert': 'test-cert',
-                'key': 'test-key',
-            },
-        )
 
     def test_run_error(self, mocker):
         # Mock test data
@@ -122,7 +109,7 @@ class TestSynse:
             'synse_server.server.Synse._initialize',
         )
         mock_run = mocker.patch(
-            'sanic.Sanic.run',
+            'synse_server.loop.synse_loop.run_forever',
             side_effect=ValueError(),
         )
 
@@ -134,14 +121,6 @@ class TestSynse:
 
         mock_initialize.assert_called_once()
         mock_run.assert_called_once()
-        mock_run.assert_called_with(
-            host='0.0.0.0',
-            port=5000,
-            ssl={
-                'cert': 'test-cert',
-                'key': 'test-key',
-            },
-        )
 
     def test_reload_config(self, mocker):
         # Mock test data

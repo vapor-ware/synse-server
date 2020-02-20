@@ -4,13 +4,14 @@ The global server state and server initialization and setup functionality
 are defined here.
 """
 
+import asyncio
 import os
 import sys
 
 from structlog import get_logger
 
 import synse_server
-from synse_server import app, config, metrics, plugin, tasks
+from synse_server import app, config, loop, metrics, plugin, tasks
 from synse_server.i18n import _
 from synse_server.log import setup_logger
 
@@ -78,6 +79,9 @@ class Synse:
         # With setup complete, we can initialize a new Sanic application.
         self.app = app.new_app()
 
+        # The Sanic asyncio server
+        self.server = None
+
     def _initialize(self) -> None:
         """Setup the Synse Server instance.
 
@@ -144,11 +148,14 @@ class Synse:
         plugin.manager.refresh()
 
         logger.debug(_('serving API endpoints'))
-        self.app.run(
+        self.server = self.app.create_server(
             host=self.host,
             port=self.port,
             ssl=ssl_context,
+            return_asyncio_server=True,
         )
+        asyncio.ensure_future(self.server, loop=loop.synse_loop)
+        loop.synse_loop.run_forever()
 
     def reload_config(self) -> None:
         """(Re)loads the application configuration.
