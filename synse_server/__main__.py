@@ -15,14 +15,20 @@ Example usage:
 """
 
 import argparse
+import asyncio
 import os
 import sys
+
+import uvloop
 
 import synse_server
 from synse_server.server import Synse
 
 
 def main() -> None:
+    uvloop.install()
+    asyncio.set_event_loop(uvloop.new_event_loop())
+
     parser = argparse.ArgumentParser(
         description='API server for the Synse platform',
     )
