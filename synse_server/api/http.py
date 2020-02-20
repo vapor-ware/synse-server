@@ -67,9 +67,13 @@ async def version(request: Request) -> HTTPResponse:
     """
     log_request(request)
 
-    return utils.http_json_response(
-        await cmd.version(),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.version(),
+        )
+    except Exception:
+        logger.exception('failed to get version info')
+        raise
 
 
 @v3.route('/config')
@@ -87,9 +91,13 @@ async def config(request: Request) -> HTTPResponse:
     """
     log_request(request)
 
-    return utils.http_json_response(
-        await cmd.config(),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.config(),
+        )
+    except Exception:
+        logger.exception('failed to get server config')
+        raise
 
 
 @v3.route('/plugin')
@@ -104,11 +112,15 @@ async def plugins(request: Request) -> HTTPResponse:
 
     refresh = request.args.get('refresh', 'false').lower() == 'true'
 
-    return utils.http_json_response(
-        await cmd.plugins(
-            refresh=refresh,
-        ),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.plugins(
+                refresh=refresh,
+            ),
+        )
+    except Exception:
+        logger.exception('failed to get plugins')
+        raise
 
 
 @v3.route('/plugin/<plugin_id>')
@@ -125,9 +137,13 @@ async def plugin(request: Request, plugin_id: str) -> HTTPResponse:
     """
     log_request(request, id=plugin_id)
 
-    return utils.http_json_response(
-        await cmd.plugin(plugin_id),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.plugin(plugin_id),
+        )
+    except Exception:
+        logger.exception('failed to get plugin info', id=plugin_id)
+        raise
 
 
 @v3.route('/plugin/health')
@@ -140,9 +156,13 @@ async def plugin_health(request: Request) -> HTTPResponse:
     """
     log_request(request)
 
-    return utils.http_json_response(
-        await cmd.plugin_health(),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.plugin_health(),
+        )
+    except Exception:
+        logger.exception('failed to get plugin health')
+        raise
 
 
 @v3.route('/scan')
@@ -203,14 +223,18 @@ async def scan(request: Request) -> HTTPResponse:
             )
         sort_keys = param_sort[0]
 
-    return utils.http_json_response(
-        await cmd.scan(
-            ns=namespace,
-            tag_groups=tag_groups,
-            force=force,
-            sort=sort_keys,
-        ),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.scan(
+                ns=namespace,
+                tag_groups=tag_groups,
+                force=force,
+                sort=sort_keys,
+            ),
+        )
+    except Exception:
+        logger.exception('failed to get devices (scan)')
+        raise
 
 
 @v3.route('/tags')
@@ -242,12 +266,16 @@ async def tags(request: Request) -> HTTPResponse:
 
     include_ids = request.args.get('ids', 'false').lower() == 'true'
 
-    return utils.http_json_response(
-        await cmd.tags(
-            namespaces,
-            with_id_tags=include_ids,
-        ),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.tags(
+                namespaces,
+                with_id_tags=include_ids,
+            ),
+        )
+    except Exception:
+        logger.exception('failed to get device tags')
+        raise
 
 
 @v3.route('/info/<device_id>')
@@ -264,9 +292,13 @@ async def info(request: Request, device_id: str) -> HTTPResponse:
     """
     log_request(request, id=device_id)
 
-    return utils.http_json_response(
-        await cmd.info(device_id),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.info(device_id),
+        )
+    except Exception:
+        logger.exception('failed to get device info', id=device_id)
+        raise
 
 
 @v3.route('/read')
@@ -308,12 +340,16 @@ async def read(request: Request) -> HTTPResponse:
         for group in param_tags:
             tag_groups.append(group.split(','))
 
-    return utils.http_json_response(
-        await cmd.read(
-            ns=namespace,
-            tag_groups=tag_groups,
-        ),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.read(
+                ns=namespace,
+                tag_groups=tag_groups,
+            ),
+        )
+    except Exception:
+        logger.exception('failed to read device(s)', namespace=namespace, tag_groups=tag_groups)
+        raise
 
 
 @v3.route('/readcache')
@@ -365,9 +401,8 @@ async def read_cache(request: Request) -> StreamingHTTPResponse:
         try:
             async for reading in cmd.read_cache(start, end):
                 await response.write(ujson.dumps(reading) + '\n')
-        except Exception as e:
-            logger.error('failure when streaming cached readings')
-            logger.exception(e)
+        except Exception:
+            logger.exception('failure when streaming cached readings')
 
     return stream(response_streamer, content_type='application/json; charset=utf-8')
 
@@ -390,9 +425,13 @@ async def read_device(request: Request, device_id: str) -> HTTPResponse:
     """
     log_request(request, id=device_id)
 
-    return utils.http_json_response(
-        await cmd.read_device(device_id),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.read_device(device_id),
+        )
+    except Exception:
+        logger.exception('failed to read device', id=device_id)
+        raise
 
 
 @v3.route('/write/<device_id>', methods=['POST'])
@@ -432,12 +471,16 @@ async def async_write(request: Request, device_id: str) -> HTTPResponse:
                 'invalid json: key "action" is required in payload, but not found'
             )
 
-    return utils.http_json_response(
-        await cmd.write_async(
-            device_id=device_id,
-            payload=data,
-        ),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.write_async(
+                device_id=device_id,
+                payload=data,
+            ),
+        )
+    except Exception:
+        logger.exception('failed to write asynchronously', id=device_id, payload=data)
+        raise
 
 
 @v3.route('/write/wait/<device_id>', methods=['POST'])
@@ -477,12 +520,16 @@ async def sync_write(request: Request, device_id: str) -> HTTPResponse:
                 'invalid json: key "action" is required in payload, but not found'
             )
 
-    return utils.http_json_response(
-        await cmd.write_sync(
-            device_id=device_id,
-            payload=data,
-        ),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.write_sync(
+                device_id=device_id,
+                payload=data,
+            ),
+        )
+    except Exception:
+        logger.exception('failed to write synchronously', id=device_id, payload=data)
+        raise
 
 
 @v3.route('/transaction')
@@ -495,9 +542,13 @@ async def transactions(request: Request) -> HTTPResponse:
     """
     log_request(request)
 
-    return utils.http_json_response(
-        await cmd.transactions(),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.transactions(),
+        )
+    except Exception:
+        logger.exception('failed to list transactions')
+        raise
 
 
 @v3.route('/transaction/<transaction_id>')
@@ -514,9 +565,13 @@ async def transaction(request: Request, transaction_id: str) -> HTTPResponse:
     """
     log_request(request, id=transaction_id)
 
-    return utils.http_json_response(
-        await cmd.transaction(transaction_id),
-    )
+    try:
+        return utils.http_json_response(
+            await cmd.transaction(transaction_id),
+        )
+    except Exception:
+        logger.exception('failed to get transaction info', id=transaction_id)
+        raise
 
 
 @v3.route('/device/<device_id>', methods=['GET', 'POST'])
