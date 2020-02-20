@@ -9,7 +9,7 @@ import synse_grpc.utils
 from structlog import get_logger
 from synse_grpc import api
 
-from synse_server import config, plugin
+from synse_server import config, loop, plugin
 from synse_server.i18n import _
 
 logger = get_logger()
@@ -35,8 +35,8 @@ alias_cache = aiocache.SimpleMemoryCache(
     namespace=NS_ALIAS,
 )
 
-device_cache_lock = asyncio.Lock()
-alias_cache_lock = asyncio.Lock()
+device_cache_lock = asyncio.Lock(loop=loop.synse_loop)
+alias_cache_lock = asyncio.Lock(loop=loop.synse_loop)
 
 
 async def get_transaction(transaction_id: str) -> dict:
@@ -216,7 +216,10 @@ async def get_device(device_id: str) -> Union[api.V3Device, None]:
         # empty, return the first element of the list - there should only be
         # one element; otherwise, return None.
         if result:
+            logger.debug(_('got device from cache'))
             device = result[0]
+        else:
+            logger.debug(_('failed to lookup device from cache'), id=device_id)
 
     # No device was found from an ID lookup. Try looking up the ID in the
     # alias cache.
