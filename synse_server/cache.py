@@ -9,7 +9,7 @@ import synse_grpc.utils
 from structlog import get_logger
 from synse_grpc import api
 
-from synse_server import config, loop, plugin
+from synse_server import loop, plugin
 from synse_server.i18n import _
 
 logger = get_logger()
@@ -23,7 +23,6 @@ NS_DEVICE = 'synse.dev.'
 NS_ALIAS = 'synse.alias.'
 
 transaction_cache = aiocache.SimpleMemoryCache(
-    ttl=config.options.get('cache.transaction.ttl', None),
     namespace=NS_TRANSACTION,
 )
 
@@ -156,7 +155,13 @@ async def update_device_cache() -> None:
         plugin.manager.refresh()
 
     async with device_cache_lock:
-        await device_cache.clear()
+        # IMPORTANT (etd): `clear` must be called with the namespace. It seems weird
+        #   to require the namespace since the cache instance has an associated namespace,
+        #   but the implementation of clear will clear out the ENTIRE cache backing (a dict
+        #   shared by all cache instances), so not specifying a namespace clears all caches.
+        #   Opened an issue to track.
+        #   https://github.com/argaen/aiocache/issues/479
+        await device_cache.clear(NS_DEVICE)
 
         for p in plugin.manager:
             if not p.active:
@@ -165,9 +170,9 @@ async def update_device_cache() -> None:
                     plugin=p.tag, plugin_id=p.id,
                 )
                 continue
-            logger.debug(_('getting devices from plugin'), plugin=p.tag, plugin_id=p.id)
             try:
                 with p as client:
+                    device_count = 0
                     for device in client.devices():
                         # Update the alias cache if the device has an alias.
                         if device.alias:
@@ -181,10 +186,19 @@ async def update_device_cache() -> None:
                                 await device_cache.set(key, [device])
                             else:
                                 await device_cache.set(key, val + [device])
+                        device_count += 1
+                    logger.debug(
+                        _('got devices from plugin'),
+                        plugin=p.tag, plugin_id=p.id, device_count=device_count,
+                    )
 
             except grpc.RpcError as e:
                 logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
                 continue
+            except Exception:
+                logger.exception(
+                    _('unexpected error when updating devices for plugin'), plugin_id=p.id)
+                raise
 
 
 async def get_device(device_id: str) -> Union[api.V3Device, None]:
