@@ -11,7 +11,7 @@ import sys
 from structlog import get_logger
 
 import synse_server
-from synse_server import app, config, loop, metrics, plugin, tasks
+from synse_server import app, cache, config, loop, metrics, plugin, tasks
 from synse_server.i18n import _
 from synse_server.log import setup_logger
 
@@ -112,6 +112,9 @@ class Synse:
             _('created server directories on filesystem'),
             dirs=(self._server_config_dir, self._socket_dir),
         )
+
+        # Configure caches
+        cache.transaction_cache.ttl = config.options.get('cache.transaction.ttl', None)
 
     def run(self) -> None:
         """Run Synse Server."""
