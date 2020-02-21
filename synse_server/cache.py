@@ -154,6 +154,55 @@ async def update_device_cache() -> None:
         logger.debug(_('refreshing plugins prior to updating device cache'))
         plugin.manager.refresh()
 
+    # A temporary dicts used to collect the data for rebuilding the device cache.
+    alias_map = {}
+    tags_map = {}
+
+    for p in plugin.manager:
+        if not p.active:
+            logger.debug(
+                _('plugin not active, will not get its devices'),
+                plugin=p.tag, plugin_id=p.id,
+            )
+            continue
+
+        try:
+            with p as client:
+                device_count = 0
+                for device in client.devices():  # all devices
+                    # Get updates for device alias
+                    if device.alias:
+                        if device.alias in alias_map:
+                            logger.error(
+                                'alias already exists... not updating alias map',
+                                alias=device.alias, device=device.id,
+                            )
+                        else:
+                            alias_map[device.alias] = device
+
+                    # Get updates for device tags
+                    for tag in device.tags:
+                        key = synse_grpc.utils.tag_string(tag)
+                        tag_devices = tags_map.get(key)
+                        if tag_devices:
+                            tag_devices.append(device)
+                        else:
+                            tags_map[key] = [device]
+
+                    device_count += 1
+                logger.debug(
+                    _('got devices from plugin'),
+                    plugin=p.tag, plugin_id=p.id, device_count=device_count,
+                )
+
+        except grpc.RpcError as e:
+            logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
+            continue
+        except Exception:
+            logger.exception(
+                _('unexpected error when updating devices for plugin'), plugin_id=p.id)
+            raise
+
     async with device_cache_lock:
         # IMPORTANT (etd): `clear` must be called with the namespace. It seems weird
         #   to require the namespace since the cache instance has an associated namespace,
@@ -162,43 +211,13 @@ async def update_device_cache() -> None:
         #   Opened an issue to track.
         #   https://github.com/argaen/aiocache/issues/479
         await device_cache.clear(NS_DEVICE)
+        await alias_cache.clear(NS_ALIAS)
 
-        for p in plugin.manager:
-            if not p.active:
-                logger.debug(
-                    _('plugin not active, will not get its devices'),
-                    plugin=p.tag, plugin_id=p.id,
-                )
-                continue
-            try:
-                with p as client:
-                    device_count = 0
-                    for device in client.devices():
-                        # Update the alias cache if the device has an alias.
-                        if device.alias:
-                            await add_alias(device.alias, device)
+        for k, v in alias_map.items():
+            await add_alias(k, v)
 
-                        # Update the device cache, mapping each tag to the device.
-                        for tag in device.tags:
-                            key = synse_grpc.utils.tag_string(tag)
-                            val = await device_cache.get(key)
-                            if val is None:
-                                await device_cache.set(key, [device])
-                            else:
-                                await device_cache.set(key, val + [device])
-                        device_count += 1
-                    logger.debug(
-                        _('got devices from plugin'),
-                        plugin=p.tag, plugin_id=p.id, device_count=device_count,
-                    )
-
-            except grpc.RpcError as e:
-                logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
-                continue
-            except Exception:
-                logger.exception(
-                    _('unexpected error when updating devices for plugin'), plugin_id=p.id)
-                raise
+        for k, v in tags_map.items():
+            await device_cache.set(k, v)
 
 
 async def get_device(device_id: str) -> Union[api.V3Device, None]:
