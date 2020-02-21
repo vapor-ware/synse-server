@@ -21,9 +21,18 @@ class PluginManager:
     of the manager should operate on the same plugin state. The PluginManager
     is also iterable, where iterating over the manager will provide the
     snapshot of currently registered plugins.
+
+    Attributes:
+        is_refreshing: A state flag determining whether the manager is
+            currently performing a plugin refresh. Since plugin refresh
+            may be started via async task or API call, this state variable
+            is used to prevent two refreshes from happening simultaneously.
     """
 
     plugins: Dict[str, 'Plugin'] = {}
+
+    def __init__(self):
+        self.is_refreshing = False
 
     def __iter__(self) -> 'PluginManager':
         self._snapshot = list(self.plugins.values())
@@ -179,36 +188,44 @@ class PluginManager:
         initialization. New plugins may only be added at runtime via plugin
         discovery mechanisms.
         """
-        logger.debug(_('refreshing plugin manager'))
-        start = time.time()
+        if self.is_refreshing:
+            logger.debug(_('manager is already refreshing'))
+            return
 
-        for address, protocol in self.load():
-            try:
-                self.register(address=address, protocol=protocol)
-            except Exception as e:
-                # Do not raise. This could happen if we can't communicate with
-                # the configured plugin. Future refreshes will attempt to re-register
-                # in this case. Log the failure and continue trying to register
-                # any remaining plugins.
-                logger.warning(
-                    _('failed to register configured plugin - will attempt re-registering later'),
-                    address=address, protocol=protocol, error=e,
-                )
-                continue
+        try:
+            self.is_refreshing = True
+            logger.debug(_('refreshing plugin manager'))
+            start = time.time()
 
-        for address, protocol in self.discover():
-            try:
-                self.register(address=address, protocol=protocol)
-            except Exception as e:
-                # Do not raise. This could happen if we can't communicate with
-                # the configured plugin. Future refreshes will attempt to re-register
-                # in this case. Log the failure and continue trying to register
-                # any remaining plugins.
-                logger.warning(
-                    _('failed to register discovered plugin - will attempt re-registering later'),
-                    address=address, protocol=protocol, error=e,
-                )
-                continue
+            for address, protocol in self.load():
+                try:
+                    self.register(address=address, protocol=protocol)
+                except Exception as e:
+                    # Do not raise. This could happen if we can't communicate with
+                    # the configured plugin. Future refreshes will attempt to re-register
+                    # in this case. Log the failure and continue trying to register
+                    # any remaining plugins.
+                    logger.warning(
+                        _('failed to register configured plugin - will attempt re-registering later'),  # noqa
+                        address=address, protocol=protocol, error=e,
+                    )
+                    continue
+
+            for address, protocol in self.discover():
+                try:
+                    self.register(address=address, protocol=protocol)
+                except Exception as e:
+                    # Do not raise. This could happen if we can't communicate with
+                    # the configured plugin. Future refreshes will attempt to re-register
+                    # in this case. Log the failure and continue trying to register
+                    # any remaining plugins.
+                    logger.warning(
+                        _('failed to register discovered plugin - will attempt re-registering later'),  # noqa
+                        address=address, protocol=protocol, error=e,
+                    )
+                    continue
+        finally:
+            self.is_refreshing = False
 
         logger.debug(
             _('plugin manager refresh complete'),
