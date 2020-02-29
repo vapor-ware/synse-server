@@ -61,8 +61,7 @@ pipeline {
 
     stage('Draft GitHub Release') {
       when {
-        // example matches: v1.2.3, v1.2.3-dev
-        tag pattern: '^v(0|[1-9]*)\\.(0|[1-9]*)\\.(0|[1-9]*)(-(\\S*))?$', comparator: "REGEXP"
+        buildingTag()
       }
       environment {
         GITHUB_USER = 'vapor-ware'
@@ -84,8 +83,7 @@ pipeline {
 
     stage('Publish Release Images') {
       when {
-        // example matches: v1.2.3, v1.2.3-dev
-        tag pattern: '^v(0|[1-9]*)\\.(0|[1-9]*)\\.(0|[1-9]*)(-(\\S*))?$', comparator: "REGEXP"
+        buildingTag()
       }
       steps {
         withDockerRegistry(registry: [credentialsId: 'vio-docker-hub']) {
