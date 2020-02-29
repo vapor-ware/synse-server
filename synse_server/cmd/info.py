@@ -5,7 +5,6 @@ from structlog import get_logger
 from synse_grpc import utils
 
 from synse_server import cache, errors
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -19,7 +18,7 @@ async def info(device_id: str) -> Dict[str, Any]:
     Returns:
         A dictionary representation of the device info response.
     """
-    logger.info(_('issuing command'), command='INFO', device_id=device_id)
+    logger.info('issuing command', command='INFO', device_id=device_id)
 
     device = await cache.get_device(device_id)
     if device is None:

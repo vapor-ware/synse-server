@@ -7,7 +7,6 @@ from sanic.response import HTTPResponse, StreamingHTTPResponse, stream
 from structlog import get_logger
 
 from synse_server import cmd, errors, utils
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -26,7 +25,7 @@ def log_request(request, **kwargs):
         kwargs: Any additional fields to add to the structured logs.
     """
     logger.debug(
-        _('processing request'),
+        'processing request',
         method=request.method,
         ip=request.ip,
         path=request.path,

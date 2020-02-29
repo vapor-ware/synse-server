@@ -6,7 +6,6 @@ from synse_grpc import api, utils
 
 import synse_server.utils
 from synse_server import errors
-from synse_server.i18n import _
 from synse_server.plugin import manager
 
 logger = get_logger()
@@ -21,7 +20,7 @@ async def plugin(plugin_id: str) -> Dict[str, Any]:
     Returns:
         A dictionary representation of the plugin response.
     """
-    logger.info(_('issuing command'), command='PLUGIN', plugin_id=plugin_id)
+    logger.info('issuing command', command='PLUGIN', plugin_id=plugin_id)
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
@@ -63,7 +62,7 @@ async def plugins(refresh: bool) -> List[Dict[str, Any]]:
     Returns:
         A list of dictionary representations of the plugin summary response(s).
     """
-    logger.info(_('issuing command'), command='PLUGINS')
+    logger.info('issuing command', command='PLUGINS')
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
@@ -87,7 +86,7 @@ async def plugin_health() -> Dict[str, Any]:
     Returns:
          A dictionary representation of the plugin health.
     """
-    logger.info(_('issuing command'), command='PLUGIN HEALTH')
+    logger.info('issuing command', command='PLUGIN HEALTH')
 
     # If there are no plugins registered, re-registering to ensure
     # the most up-to-date plugin state.
@@ -104,7 +103,7 @@ async def plugin_health() -> Dict[str, Any]:
             with p as client:
                 health = client.health()
         except Exception as e:
-            logger.warning(_('failed to get plugin health'), plugin=p.tag, error=e)
+            logger.warning('failed to get plugin health', plugin=p.tag, error=e)
         else:
             if health.status == api.OK:
                 healthy.append(p.id)
