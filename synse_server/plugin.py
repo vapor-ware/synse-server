@@ -8,7 +8,6 @@ from synse_grpc import client, utils
 
 from synse_server import config
 from synse_server.discovery import kubernetes
-from synse_server.i18n import _
 from synse_server.metrics import MetricsInterceptor
 
 logger = get_logger()
@@ -85,11 +84,11 @@ class PluginManager:
         Returns:
             The ID of the plugin that was registered.
         """
-        logger.info(_('registering new plugin'), addr=address, protocol=protocol)
+        logger.info('registering new plugin', addr=address, protocol=protocol)
 
         interceptors = []
         if config.options.get('metrics.enabled'):
-            logger.debug(_('application metrics enabled: registering gRPC interceptor'))
+            logger.debug('application metrics enabled: registering gRPC interceptor')
             interceptors = [MetricsInterceptor()]
 
         # Prior to registering the plugin, we need to get the plugin metadata
@@ -112,17 +111,17 @@ class PluginManager:
             client=c,
         )
         logger.debug(
-            _('loaded plugin info'),
+            'loaded plugin info',
             id=plugin.id, version=plugin.version, addr=plugin.address, tag=plugin.tag,
         )
 
         if plugin.id in self.plugins:
             # The plugin has already been registered. There is nothing left to
             # do here, so just log and move on.
-            logger.debug(_('plugin with id already registered - skipping'), id=plugin.id)
+            logger.debug('plugin with id already registered - skipping', id=plugin.id)
         else:
             self.plugins[plugin.id] = plugin
-            logger.info(_('successfully registered new plugin'), id=plugin.id, tag=plugin.tag)
+            logger.info('successfully registered new plugin', id=plugin.id, tag=plugin.tag)
 
         self.plugins[plugin.id].mark_active()
         return plugin.id
@@ -137,20 +136,20 @@ class PluginManager:
             A list of plugin configuration tuples where the first element is the
             plugin address and the second element is the protocol.
         """
-        logger.info(_('loading plugins from configuration'))
+        logger.info('loading plugins from configuration')
 
         configs = []
 
         # Get plugin configs for TCP-configured plugins
         cfg_tcp = config.options.get('plugin.tcp', [])
         for address in cfg_tcp:
-            logger.debug(_('loading plugin from config'), mode='tcp', address=address)
+            logger.debug('loading plugin from config', mode='tcp', address=address)
             configs.append((address, 'tcp'))
 
         # Get plugin configs for Unix socket-configured plugins
         cfg_unix = config.options.get('plugin.unix', [])
         for address in cfg_unix:
-            logger.debug(_('loading plugin from config'), mode='unix', address=address)
+            logger.debug('loading plugin from config', mode='unix', address=address)
             configs.append((address, 'unix'))
 
         return configs
@@ -170,12 +169,12 @@ class PluginManager:
         try:
             addresses = kubernetes.discover()
         except Exception as e:
-            logger.info(_('failed plugin discovery via Kubernetes'), error=e)
+            logger.info('failed plugin discovery via Kubernetes', error=e)
         else:
             for address in addresses:
                 configs.append((address, 'tcp'))
 
-        logger.debug(_('found addresses via plugin discovery'), addresses=configs)
+        logger.debug('found addresses via plugin discovery', addresses=configs)
         return configs
 
     def refresh(self) -> None:
@@ -189,12 +188,12 @@ class PluginManager:
         discovery mechanisms.
         """
         if self.is_refreshing:
-            logger.debug(_('manager is already refreshing'))
+            logger.debug('manager is already refreshing')
             return
 
         try:
             self.is_refreshing = True
-            logger.debug(_('refreshing plugin manager'))
+            logger.debug('refreshing plugin manager')
             start = time.time()
 
             for address, protocol in self.load():
@@ -206,7 +205,7 @@ class PluginManager:
                     # in this case. Log the failure and continue trying to register
                     # any remaining plugins.
                     logger.warning(
-                        _('failed to register configured plugin - will attempt re-registering later'),  # noqa
+                        'failed to register configured plugin - will attempt re-registering later',
                         address=address, protocol=protocol, error=e,
                     )
                     continue
@@ -220,7 +219,7 @@ class PluginManager:
                     # in this case. Log the failure and continue trying to register
                     # any remaining plugins.
                     logger.warning(
-                        _('failed to register discovered plugin - will attempt re-registering later'),  # noqa
+                        'failed to register discovered plugin - will attempt re-registering later',
                         address=address, protocol=protocol, error=e,
                     )
                     continue
@@ -228,7 +227,7 @@ class PluginManager:
             self.is_refreshing = False
 
         logger.debug(
-            _('plugin manager refresh complete'),
+            'plugin manager refresh complete',
             plugin_count=len(self.plugins),
             elapsed_time=time.time() - start,
         )
@@ -312,12 +311,12 @@ class Plugin:
         """Mark the plugin as active, if it is not already active."""
 
         if not self.active:
-            logger.info(_('marking plugin as active'), id=self.id, tag=self.tag)
+            logger.info('marking plugin as active', id=self.id, tag=self.tag)
             self.active = True
 
     def mark_inactive(self) -> None:
         """Mark the plugin as inactive, if it is not already inactive."""
 
         if self.active:
-            logger.info(_('marking plugin as inactive'), id=self.id, tag=self.tag)
+            logger.info('marking plugin as inactive', id=self.id, tag=self.tag)
             self.active = False

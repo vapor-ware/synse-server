@@ -10,7 +10,6 @@ from structlog import get_logger
 from synse_grpc import api
 
 from synse_server import loop, plugin
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -83,7 +82,7 @@ async def add_transaction(transaction_id: str, device: str, plugin_id: str) -> b
         True if successful; False otherwise.
     """
     logger.debug(
-        _('caching transaction'), plugin=plugin_id, id=transaction_id, device=device,
+        'caching transaction', plugin=plugin_id, id=transaction_id, device=device,
     )
     return await transaction_cache.set(
         transaction_id,
@@ -105,7 +104,7 @@ async def add_alias(alias: str, device: api.V3Device) -> bool:
         True if successful; False otherwise.
     """
     logger.debug(
-        _('adding alias to cache'), alias=alias, device=device.id,
+        'adding alias to cache', alias=alias, device=device.id,
     )
 
     async with alias_cache_lock:
@@ -140,7 +139,7 @@ async def update_device_cache() -> None:
          "default/x:bar": [{...}]
          "vaporio/svc:xyz": [{...}, {...}]
     """
-    logger.info(_('updating the device cache'))
+    logger.info('updating the device cache')
 
     # Get the list of all devices (including their associated tags) from
     # each registered plugin. This device data will be used to generate
@@ -151,7 +150,7 @@ async def update_device_cache() -> None:
     # Synse Server is first starting up, being restarted, or is recovering from a
     # networking error.
     if not plugin.manager.has_plugins() or not plugin.manager.all_active():
-        logger.debug(_('refreshing plugins prior to updating device cache'))
+        logger.debug('refreshing plugins prior to updating device cache')
         plugin.manager.refresh()
 
     # A temporary dicts used to collect the data for rebuilding the device cache.
@@ -161,7 +160,7 @@ async def update_device_cache() -> None:
     for p in plugin.manager:
         if not p.active:
             logger.debug(
-                _('plugin not active, will not get its devices'),
+                'plugin not active, will not get its devices',
                 plugin=p.tag, plugin_id=p.id,
             )
             continue
@@ -191,16 +190,16 @@ async def update_device_cache() -> None:
 
                     device_count += 1
                 logger.debug(
-                    _('got devices from plugin'),
+                    'got devices from plugin',
                     plugin=p.tag, plugin_id=p.id, device_count=device_count,
                 )
 
         except grpc.RpcError as e:
-            logger.warning(_('failed to get device(s)'), plugin=p.tag, plugin_id=p.id, error=e)
+            logger.warning('failed to get device(s)', plugin=p.tag, plugin_id=p.id, error=e)
             continue
         except Exception:
             logger.exception(
-                _('unexpected error when updating devices for plugin'), plugin_id=p.id)
+                'unexpected error when updating devices for plugin', plugin_id=p.id)
             raise
 
     async with device_cache_lock:
@@ -240,7 +239,7 @@ async def get_device(device_id: str) -> Union[api.V3Device, None]:
     # Every device has a system-generated ID tag in the format 'system/id:<device id>'
     # which we can use here to get the device. If the ID tag is not in the cache,
     # we take that to mean that there is no such device.
-    logger.debug(_('looking up device ID in cache'), id=device_id)
+    logger.debug('looking up device ID in cache', id=device_id)
     async with device_cache_lock:
         result = await device_cache.get(f'system/id:{device_id}')
 
@@ -249,15 +248,15 @@ async def get_device(device_id: str) -> Union[api.V3Device, None]:
         # empty, return the first element of the list - there should only be
         # one element; otherwise, return None.
         if result:
-            logger.debug(_('got device from cache'))
+            logger.debug('got device from cache')
             device = result[0]
         else:
-            logger.debug(_('failed to lookup device from cache'), id=device_id)
+            logger.debug('failed to lookup device from cache', id=device_id)
 
     # No device was found from an ID lookup. Try looking up the ID in the
     # alias cache.
     if not device:
-        logger.debug(_('device ID not found in cache - checking for alias'), id=device_id)
+        logger.debug('device ID not found in cache - checking for alias', id=device_id)
         device = await get_alias(device_id)
 
     return device

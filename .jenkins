@@ -24,7 +24,6 @@ pipeline {
         CODECOV_TOKEN = credentials('codecov-token')
       }
       steps {
-        sh 'tox -e i18n'
         sh 'tox tests/unit'
         sh 'codecov'
       }

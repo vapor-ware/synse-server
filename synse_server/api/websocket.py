@@ -11,7 +11,6 @@ from sanic.websocket import ConnectionClosed, WebSocketCommonProtocol
 from structlog import get_logger
 
 from synse_server import cmd, errors, utils
-from synse_server.i18n import _
 from synse_server.metrics import Monitor
 
 logger = get_logger()
@@ -24,7 +23,7 @@ v3 = Blueprint('v3-websocket')
 async def connect(request: Request, ws: WebSocketCommonProtocol) -> None:
     """Connect to the WebSocket API."""
 
-    logger.info(_('new websocket connection'), source=request.ip)
+    logger.info('new websocket connection', source=request.ip)
     Monitor.ws_session_count.labels(request.ip).inc()
 
     try:
@@ -41,7 +40,7 @@ class Payload:
         try:
             d = json.loads(data)
         except Exception as e:
-            logger.error(_('failed to load payload'), err=e)
+            logger.error('failed to load payload', err=e)
             raise
 
         if 'id' not in d:
@@ -121,21 +120,21 @@ class MessageHandler:
         self.tasks = []
 
     async def run(self) -> None:
-        logger.debug(_('running message handler for websocket'), host=self.ws.host)
+        logger.debug('running message handler for websocket', host=self.ws.host)
         async for message in self.ws:
             handler_start = time.time()
             try:
                 p = Payload(message)
             except Exception as e:
-                logger.error(_('error loading websocket message'), error=e)
+                logger.error('error loading websocket message', error=e)
                 await self.send(**error(ex=e))
                 continue
 
-            logger.debug(_('websocket handler: got message'), payload=p)
+            logger.debug('websocket handler: got message', payload=p)
             try:
                 await self.dispatch(p)
             except Exception as e:
-                logger.error(_('error generating websocket response'), err=e)
+                logger.error('error generating websocket response', err=e)
                 continue
 
             latency = time.time() - handler_start
@@ -199,15 +198,15 @@ class MessageHandler:
 
         try:
             logger.debug(
-                _('processing websocket request'),
+                'processing websocket request',
                 handler=handler, type=payload.event, id=payload.id, data=payload.data,
             )
             await getattr(self, handler)(payload)
         except asyncio.CancelledError:
-            logger.info(_('websocket request cancelled'), handler=handler)
+            logger.info('websocket request cancelled', handler=handler)
             return
         except Exception as e:
-            logger.exception(_('error processing websocket request'), err=e)
+            logger.exception('error processing websocket request', err=e)
             await self.send(**error(
                 msg_id=payload.id,
                 ex=e,
@@ -424,7 +423,7 @@ class MessageHandler:
         stop = payload.data.get('stop', False)
 
         if stop:
-            logger.debug(_('read stream stop request received - terminating stream tasks'))
+            logger.debug('read stream stop request received - terminating stream tasks')
             for t in self.tasks:
                 t.cancel()
             return
@@ -438,7 +437,7 @@ class MessageHandler:
                         data=reading,
                     )
                 except ConnectionClosed:
-                    logger.info(_('websocket raised ConnectionClosed - terminating read stream'))
+                    logger.info('websocket raised ConnectionClosed - terminating read stream')
                     return
 
         t = asyncio.ensure_future(send_readings())

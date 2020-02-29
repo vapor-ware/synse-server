@@ -5,7 +5,6 @@ from structlog import get_logger
 from synse_grpc import utils
 
 from synse_server import cache, errors
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -31,7 +30,7 @@ async def scan(
         A list of dictionary representations of device summary response(s).
     """
     logger.info(
-        _('issuing command'), command='SCAN',
+        'issuing command', command='SCAN',
         ns=ns, tag_groups=tag_groups, sort=sort, force=force,
     )
 
@@ -39,26 +38,26 @@ async def scan(
     # will ensure everything is up to date, but will ultimately make the
     # request take longer to fulfill.
     if force:
-        logger.debug(_('forced scan: rebuilding device cache'), command='SCAN')
+        logger.debug('forced scan: rebuilding device cache', command='SCAN')
         try:
             await cache.update_device_cache()
         except Exception as e:
-            raise errors.ServerError(_('failed to rebuild device cache')) from e
+            raise errors.ServerError('failed to rebuild device cache') from e
 
     # If no tags are specified, get devices with no tag filter.
     if len(tag_groups) == 0:
-        logger.debug(_('getting devices with no tag filter'), command='SCAN')
+        logger.debug('getting devices with no tag filter', command='SCAN')
         try:
             devices = await cache.get_devices()
         except Exception as e:
             logger.exception(e)
-            raise errors.ServerError(_('failed to get all devices from cache')) from e
+            raise errors.ServerError('failed to get all devices from cache') from e
 
     else:
         # Otherwise, there is at least one tag group. We need to get the devices for
         # each tag group and collect the results of each group.
         results = {}
-        logger.debug(_('parsing tag groups'), command='SCAN')
+        logger.debug('parsing tag groups', command='SCAN')
         for group in tag_groups:
             # Apply the default namespace to the tags in the group which do not
             # have any namespace defined.
@@ -70,7 +69,7 @@ async def scan(
                 device_group = await cache.get_devices(*group)
             except Exception as e:
                 logger.exception(e)
-                raise errors.ServerError(_('failed to get devices from cache')) from e
+                raise errors.ServerError('failed to get devices from cache') from e
 
             for device in device_group:
                 results[device.id] = device
@@ -83,7 +82,7 @@ async def scan(
     sort_keys = sort.split(',')
 
     try:
-        logger.debug(_('sorting devices'), command='SCAN')
+        logger.debug('sorting devices', command='SCAN')
         sorted_devices = sorted(
             devices,
             key=lambda dev: tuple(map(lambda key: getattr(dev, key), sort_keys))
@@ -102,5 +101,5 @@ async def scan(
             'tags': [utils.tag_string(tag) for tag in device.tags],
             'metadata': dict(device.metadata),
         })
-    logger.debug(_('got devices'), count=len(response), command='SCAN')
+    logger.debug('got devices', count=len(response), command='SCAN')
     return response

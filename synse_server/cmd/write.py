@@ -5,7 +5,6 @@ from structlog import get_logger
 from synse_grpc import utils
 
 from synse_server import cache, errors
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -21,14 +20,14 @@ async def write_async(device_id: str, payload: Union[Dict, List[Dict]]) -> List[
         A list of dictionary representations of asynchronous write response(s).
     """
     logger.info(
-        _('issuing command'),
+        'issuing command',
         command='WRITE ASYNC', device_id=device_id, payload=payload,
     )
 
     plugin = await cache.get_plugin(device_id)
     if plugin is None:
         raise errors.NotFound(
-            _('plugin not found for device {}').format(device_id),
+            f'plugin not found for device {device_id}',
         )
 
     response = []
@@ -43,7 +42,7 @@ async def write_async(device_id: str, payload: Union[Dict, List[Dict]]) -> List[
                 response.append(rsp)
     except Exception as e:
         raise errors.ServerError(
-            _('error while issuing gRPC request: async write'),
+            'error while issuing gRPC request: async write',
         ) from e
 
     return response
@@ -60,14 +59,14 @@ async def write_sync(device_id: str, payload: Union[Dict, List[Dict]]) -> List[D
         A list of dictionary representations of synchronous write response(s).
     """
     logger.info(
-        _('issuing command'),
+        'issuing command',
         command='WRITE SYNC', device_id=device_id, payload=payload,
     )
 
     plugin = await cache.get_plugin(device_id)
     if plugin is None:
         raise errors.NotFound(
-            _('plugin not found for device {}').format(device_id),
+            f'plugin not found for device {device_id}',
         )
 
     response = []
@@ -83,7 +82,7 @@ async def write_sync(device_id: str, payload: Union[Dict, List[Dict]]) -> List[D
                 response.append(s)
     except Exception as e:
         raise errors.ServerError(
-            _('error while issuing gRPC request: sync write'),
+            'error while issuing gRPC request: sync write',
         ) from e
 
     return response
