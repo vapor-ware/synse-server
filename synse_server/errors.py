@@ -7,7 +7,6 @@ from sanic.response import HTTPResponse
 from structlog import get_logger
 
 from synse_server import utils
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -27,7 +26,7 @@ class SynseErrorHandler(ErrorHandler):
         does not register any other custom error handlers, so all exceptions
         raised by the application will be caught and handled here.
         """
-        logger.info(_('creating error response for request'), error=exception)
+        logger.info('creating error response for request', error=exception)
 
         if isinstance(exception, SanicException):
             return super(SynseErrorHandler, self).default(request, exception)
@@ -55,7 +54,7 @@ class SynseError(Exception):
     # The short description for the error. This is returned in the response
     # body JSON under the 'description' field. Each subclassed error should
     # override this with their own error-specific description.
-    description = _('an unexpected error occurred')
+    description = 'an unexpected error occurred'
 
     def make_response(self) -> dict:
         """Make a JSON error response from the Synse Error.
@@ -79,7 +78,7 @@ class InvalidUsage(SynseError):
     """
 
     http_code = 400
-    description = _('invalid user input')
+    description = 'invalid user input'
 
 
 class NotFound(SynseError):
@@ -91,7 +90,7 @@ class NotFound(SynseError):
     """
 
     http_code = 404
-    description = _('resource not found')
+    description = 'resource not found'
 
 
 class UnsupportedAction(SynseError):
@@ -103,7 +102,7 @@ class UnsupportedAction(SynseError):
     """
 
     http_code = 405
-    description = _('device action not supported')
+    description = 'device action not supported'
 
 
 class ServerError(SynseError):
@@ -115,4 +114,4 @@ class ServerError(SynseError):
     """
 
     http_code = 500
-    description = _('error processing the request')
+    description = 'error processing the request'

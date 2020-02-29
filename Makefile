@@ -50,10 +50,6 @@ github-tag:  ## Create and push a tag with the current version
 	git tag -a v${PKG_VERSION} -m "${PKG_NAME} version v${PKG_VERSION}"
 	git push -u origin v${PKG_VERSION}
 
-.PHONY: i18n
-i18n:  ## Update the translations catalog
-	tox -e i18n
-
 .PHONY: lint
 lint:  ## Run linting checks on the project source code (isort, flake8, twine)
 	tox -e lint

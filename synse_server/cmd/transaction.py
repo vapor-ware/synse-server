@@ -5,7 +5,6 @@ import synse_grpc.utils
 from structlog import get_logger
 
 from synse_server import cache, errors, plugin
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -19,7 +18,7 @@ async def transaction(transaction_id: str) -> Dict[str, Any]:
     Returns:
          A dictionary representation of the transaction status response.
     """
-    logger.info(_('issuing command'), command='TRANSACTION')
+    logger.info('issuing command', command='TRANSACTION')
 
     txn = await cache.get_transaction(transaction_id)
     if not txn:
@@ -66,6 +65,6 @@ async def transactions() -> List[str]:
     Returns:
         A list of all currently tracked transaction IDs.
     """
-    logger.info(_('issuing command'), command='TRANSACTIONS')
+    logger.info('issuing command', command='TRANSACTIONS')
 
     return sorted(cache.get_cached_transaction_ids())
