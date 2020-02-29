@@ -1,7 +1,7 @@
 #
 # BUILDER STAGE
 #
-FROM vaporio/python:3.6 as builder
+FROM vaporio/python:3.8 as builder
 
 COPY requirements.txt .
 
@@ -15,7 +15,7 @@ RUN pip install --no-deps --prefix=/build --no-warn-script-location /synse \
 #
 # RELEASE STAGE
 #
-FROM vaporio/python:3.6-slim
+FROM vaporio/python:3.8-slim
 
 LABEL maintainer="Vapor IO" \
       name="vaporio/synse-server" \
