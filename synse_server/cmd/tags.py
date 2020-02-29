@@ -4,7 +4,6 @@ from typing import List
 from structlog import get_logger
 
 from synse_server import cache
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -20,7 +19,7 @@ async def tags(namespaces: List[str], with_id_tags: bool = False) -> List[str]:
         A list of all tags currently associated with devices.
     """
     logger.info(
-        _('issuing command'), command='TAGS',
+        'issuing command', command='TAGS',
         namespaces=namespaces, with_id=with_id_tags,
     )
 
@@ -34,12 +33,12 @@ async def tags(namespaces: List[str], with_id_tags: bool = False) -> List[str]:
         return ns in namespaces
 
     if not with_id_tags:
-        logger.debug(_('filtering ID tags'), command='TAGS')
+        logger.debug('filtering ID tags', command='TAGS')
         cached_tags = [t for t in cached_tags if not t.startswith('system/id:')]
 
     if namespaces:
-        logger.debug(_('filtering tags by namespace'), command='TAGS', namespaces=namespaces)
+        logger.debug('filtering tags by namespace', command='TAGS', namespaces=namespaces)
         cached_tags = [t for t in cached_tags if matches_ns(t)]
 
-    logger.debug(_('got tags'), command='TAGS', count=len(cached_tags))
+    logger.debug('got tags', command='TAGS', count=len(cached_tags))
     return sorted(cached_tags)

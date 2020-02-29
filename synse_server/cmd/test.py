@@ -4,7 +4,6 @@ from typing import Dict
 from structlog import get_logger
 
 from synse_server import utils
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -15,7 +14,7 @@ async def test() -> Dict[str, str]:
     Returns:
         A dictionary representation of the test response.
     """
-    logger.info(_('issuing command'), command='TEST')
+    logger.info('issuing command', command='TEST')
 
     return {
         'status': 'ok',

@@ -6,7 +6,6 @@ from bison import Bison, DictOption, ListOption, Option, Scheme
 scheme = Scheme(
     Option('logging', default='debug', choices=['debug', 'info', 'warning', 'error', 'critical']),
     Option('pretty_json', default=True, field_type=bool),
-    Option('locale', default='en_US', field_type=str),
     DictOption('plugin', default={}, scheme=Scheme(
         ListOption('tcp', default=[], member_type=str, bind_env=True),
         ListOption('unix', default=[], member_type=str, bind_env=True),

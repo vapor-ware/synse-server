@@ -10,7 +10,6 @@ from structlog import get_logger
 from synse_grpc import api
 
 from synse_server import cache, errors, plugin
-from synse_server.i18n import _
 
 logger = get_logger()
 
@@ -62,16 +61,16 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
     Returns:
         A list of dictionary representations of device reading response(s).
     """
-    logger.info(_('issuing command'), command='READ', ns=ns, tag_groups=tag_groups)
+    logger.info('issuing command', command='READ', ns=ns, tag_groups=tag_groups)
 
     # If there are no tags specified, read with no tag filter.
     if len(tag_groups) == 0:
-        logger.debug(_('no tags specified, reading with no tag filter'), command='READ')
+        logger.debug('no tags specified, reading with no tag filter', command='READ')
         readings = []
         for p in plugin.manager:
             if not p.active:
                 logger.debug(
-                    _('plugin not active, will not read its devices'),
+                    'plugin not active, will not read its devices',
                     plugin=p.tag, plugin_id=p.id,
                 )
                 continue
@@ -81,11 +80,11 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
                     data = client.read()
             except Exception as e:
                 raise errors.ServerError(
-                    _('error while issuing gRPC request: read')
+                    'error while issuing gRPC request: read'
                 ) from e
             for reading in data:
                 readings.append(reading_to_dict(reading))
-        logger.debug(_('got readings'), count=len(readings), command='READ')
+        logger.debug('got readings', count=len(readings), command='READ')
         return readings
 
     # Otherwise, there is at least one tag group. We need to issue a read request
@@ -97,7 +96,7 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
 
     results = {}
     for group in tag_groups:
-        logger.debug(_('parsing tag groups'), command='READ', group=group)
+        logger.debug('parsing tag groups', command='READ', group=group)
         # Apply the default namespace to the tags in the group which do not
         # have any namespace defined.
         for i, tag in enumerate(group):
@@ -107,7 +106,7 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
         for p in plugin.manager:
             if not p.active:
                 logger.debug(
-                    _('plugin not active, will not read its devices'),
+                    'plugin not active, will not read its devices',
                     plugin=p.tag, plugin_id=p.id,
                 )
                 continue
@@ -117,14 +116,14 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
                     data = client.read(tags=group)
             except Exception as e:
                 raise errors.ServerError(
-                    _('error while issuing gRPC request: read')
+                    'error while issuing gRPC request: read'
                 ) from e
 
             for r in data:
                 results[f'{r.id}{r.type}{r.timestamp}'] = reading_to_dict(r)
 
     readings = list(results.values())
-    logger.debug(_('got readings'), count=len(readings), command='READ')
+    logger.debug('got readings', count=len(readings), command='READ')
     return readings
 
 
@@ -137,12 +136,12 @@ async def read_device(device_id: str) -> List[Dict[str, Any]]:
     Returns:
         A list of dictionary representations of device reading response(s).
     """
-    logger.info(_('issuing command'), command='READ DEVICE', device_id=device_id)
+    logger.info('issuing command', command='READ DEVICE', device_id=device_id)
 
     p = await cache.get_plugin(device_id)
     if p is None:
         raise errors.NotFound(
-            _('plugin not found for device {}').format(device_id),
+            f'plugin not found for device {device_id}',
         )
 
     readings = []
@@ -151,7 +150,7 @@ async def read_device(device_id: str) -> List[Dict[str, Any]]:
             data = client.read(device_id=device_id)
     except Exception as e:
         raise errors.ServerError(
-            _('error while issuing gRPC request: read device'),
+            'error while issuing gRPC request: read device',
         ) from e
 
     for reading in data:
@@ -175,25 +174,25 @@ async def read_cache(start: str = None, end: str = None) -> AsyncIterable:
     Yields:
         A dictionary representation of a device reading response.
     """
-    logger.info(_('issuing command'), command='READ CACHE', start=start, end=end)
+    logger.info('issuing command', command='READ CACHE', start=start, end=end)
 
     # FIXME: this could benefit from being async
     for p in plugin.manager:
         if not p.active:
             logger.debug(
-                _('plugin not active, will not read its devices'),
+                'plugin not active, will not read its devices',
                 plugin=p.tag, plugin_id=p.id,
             )
             continue
 
-        logger.debug(_('getting cached readings for plugin'), plugin=p.tag, command='READ CACHE')
+        logger.debug('getting cached readings for plugin', plugin=p.tag, command='READ CACHE')
         try:
             with p as client:
                 for reading in client.read_cache(start=start, end=end):
                     yield reading_to_dict(reading)
         except Exception as e:
             raise errors.ServerError(
-                _('error while issuing gRPC request: read cache'),
+                'error while issuing gRPC request: read cache',
             ) from e
 
 
@@ -231,7 +230,7 @@ class Stream(threading.Thread):
 
     def run(self) -> None:
         """Run the thread."""
-        logger.info(_('running Stream thread'), plugin=self.plugin.id)
+        logger.info('running Stream thread', plugin=self.plugin.id)
         try:
             with self.plugin as client:
                 for reading in client.read_stream(devices=self.ids, tag_groups=self.tag_groups):
@@ -240,17 +239,17 @@ class Stream(threading.Thread):
                     # Important: we need to check if the thread event is set -- this
                     # allows the thread to be cancellable.
                     if self.event.is_set():
-                        logger.info(_('stream thread cancelled'), plugin=self.plugin.id)
+                        logger.info('stream thread cancelled', plugin=self.plugin.id)
                         break
 
         except Exception as e:
             raise errors.ServerError(
-                _('error while issuing gRPC request: read stream'),
+                'error while issuing gRPC request: read stream',
             ) from e
 
     def cancel(self) -> None:
         """Cancel the thread."""
-        logger.info(_('cancelling reading stream'), plugin=self.plugin.id)
+        logger.info('cancelling reading stream', plugin=self.plugin.id)
         self.event.set()
 
 
@@ -280,7 +279,7 @@ async def read_stream(
         The device reading, formatted as a Python dictionary.
     """
 
-    logger.info(_('issuing command'), command='READ STREAM', ids=ids, tag_groups=tag_groups)
+    logger.info('issuing command', command='READ STREAM', ids=ids, tag_groups=tag_groups)
 
     q = queue.Queue()
 
@@ -288,7 +287,7 @@ async def read_stream(
     for p in plugin.manager:
         if not p.active:
             logger.debug(
-                _('plugin not active, will not read its devices'),
+                'plugin not active, will not read its devices',
                 plugin=p.tag, plugin_id=p.id,
             )
             continue
@@ -298,7 +297,7 @@ async def read_stream(
         threads.append(t)
 
     def close_callback(*args, **kwargs):
-        logger.debug(_('executing callback to cancel read stream threads'))
+        logger.debug('executing callback to cancel read stream threads')
         for stream in threads:
             stream.cancel()
 
@@ -310,7 +309,7 @@ async def read_stream(
     # client<->synse-server websocket is closed.
     ws.close_connection_task.add_done_callback(close_callback)
 
-    logger.debug(_('collecting streamed readings...'))
+    logger.debug('collecting streamed readings...')
     try:
         while True:
             # Needed as an async break point in the loop, particularly for

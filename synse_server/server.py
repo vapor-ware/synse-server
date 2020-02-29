@@ -12,7 +12,6 @@ from structlog import get_logger
 
 import synse_server
 from synse_server import app, cache, config, loop, metrics, plugin, tasks
-from synse_server.i18n import _
 from synse_server.log import setup_logger
 
 logger = get_logger()
@@ -90,26 +89,26 @@ class Synse:
         the backing Sanic application. Additionally, it lets us set up
         logging early on.
         """
-        logger.info(_('initializing synse server'))
+        logger.info('initializing synse server')
 
         # Load the application configuration(s).
         self.reload_config()
         logger.info(
-            _('loaded config'),
+            'loaded config',
             source_file=config.options.config_file,
             config=config.options.config,
         )
 
         # Configure logging, using the loaded config.
         setup_logger()
-        logger.info(_('configured logger'))
+        logger.info('configured logger')
 
         # Make sure that the filesystem layout needed by Synse Server
         # is present. If not, create the required directories.
         os.makedirs(self._server_config_dir, exist_ok=True)
         os.makedirs(self._socket_dir, exist_ok=True)
         logger.info(
-            _('created server directories on filesystem'),
+            'created server directories on filesystem',
             dirs=(self._server_config_dir, self._socket_dir),
         )
 
@@ -118,7 +117,7 @@ class Synse:
 
     def run(self) -> None:
         """Run Synse Server."""
-        logger.info(_('running synse server'))
+        logger.info('running synse server')
 
         # If we are configured to log the header, write it to stdout instead
         # of using the logger, since the structured logger will not format
@@ -128,12 +127,12 @@ class Synse:
 
         # Add background tasks. This needs to be done at run so any tasks
         # that take config options have the loaded config available to them.
-        logger.debug(_('registering tasks with application'))
+        logger.debug('registering tasks with application')
         tasks.register_with_app(self.app)
 
         # If application metrics are enabled, configure the application now.
         if config.options.get('metrics.enabled'):
-            logger.info(_('application performance metrics enabled (/metrics)'))
+            logger.info('application performance metrics enabled (/metrics)')
             metrics.Monitor(self.app).register()
 
         # Load the SSL configuration, if defined.
@@ -143,14 +142,14 @@ class Synse:
                 'cert': config.options.get('ssl.cert'),
                 'key': config.options.get('ssl.key'),
             }
-            logger.info(_('SSL configured for Synse Server'), config=ssl_context)
+            logger.info('SSL configured for Synse Server', config=ssl_context)
         else:
-            logger.info(_('running server without SSL (no key/cert configured)'))
+            logger.info('running server without SSL (no key/cert configured)')
 
         # Load the plugins defined in the configuration.
         plugin.manager.refresh()
 
-        logger.debug(_('serving API endpoints'))
+        logger.debug('serving API endpoints')
         self.server = self.app.create_server(
             host=self.host,
             port=self.port,

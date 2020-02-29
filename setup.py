@@ -33,7 +33,6 @@ setup(
     python_requires='>=3.6',
     package_data={
         '': ['LICENSE'],
-        'synse_server': ['locale/*/LC_MESSAGES/*.mo'],
     },
     entry_points={
         'console_scripts': [
@@ -59,7 +58,5 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
     ]
 )
