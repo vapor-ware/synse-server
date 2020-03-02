@@ -155,6 +155,7 @@ class Synse:
             port=self.port,
             ssl=ssl_context,
             return_asyncio_server=True,
+            access_log=False,
         )
         asyncio.ensure_future(self.server, loop=loop.synse_loop)
         loop.synse_loop.run_forever()
