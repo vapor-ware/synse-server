@@ -33,12 +33,6 @@ logging_config = {
             'propagate': True,
             'qualname': 'sanic.error',
         },
-        'sanic.access': {
-            'level': 'INFO',
-            'handlers': ['default'],
-            'propagate': True,
-            'qualname': 'sanic.access',
-        },
     },
     'handlers': {
         'default': {
@@ -83,7 +77,6 @@ def override_sanic_loggers():
     # so we are stuck with just replacing those references in their
     # respective modules.
     root = structlog.get_logger('sanic.root')
-    access = structlog.get_logger('sanic.access')
     error = structlog.get_logger('sanic.error')
 
     app.error_logger = error
@@ -93,7 +86,6 @@ def override_sanic_loggers():
     request.logger = root
     request.error_logger = error
     server.logger = root
-    server.access_logger = access
 
 
 override_sanic_loggers()

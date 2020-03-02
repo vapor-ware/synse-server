@@ -57,9 +57,26 @@ def on_request(request: Request) -> None:
         request_id=req_id,
     )
 
+    logger.debug(
+        'processing HTTP request',
+        method=request.method,
+        ip=request.ip,
+        path=request.path,
+        headers=dict(request.headers),
+        args=request.args,
+    )
+
 
 def on_response(request: Request, response: HTTPResponse) -> None:
     """Middleware function that runs prior to returning a response via Sanic."""
+
+    logger.debug(
+        'returning HTTP response',
+        request=f'{request.method} {request.url}',
+        status=response.status,
+        bytes=len(response.body),
+    )
+
     # Unbind the request ID from the logger.
     contextvars.unbind_contextvars(
         'request_id',

@@ -17,22 +17,6 @@ core = Blueprint('core-http')
 v3 = Blueprint('v3-http', version='v3')
 
 
-def log_request(request, **kwargs):
-    """Log information about the incoming request.
-
-    Args:
-        request: The incoming request.
-        kwargs: Any additional fields to add to the structured logs.
-    """
-    logger.debug(
-        'processing request',
-        method=request.method,
-        ip=request.ip,
-        path=request.path,
-        **kwargs,
-    )
-
-
 @core.route('/test')
 async def test(request: Request) -> HTTPResponse:
     """A dependency and side-effect free check to see whether Synse Server
@@ -46,8 +30,6 @@ async def test(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request)
-
     return utils.http_json_response(
         await cmd.test(),
     )
@@ -64,8 +46,6 @@ async def version(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request)
-
     try:
         return utils.http_json_response(
             await cmd.version(),
@@ -88,8 +68,6 @@ async def config(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request)
-
     try:
         return utils.http_json_response(
             await cmd.config(),
@@ -107,8 +85,6 @@ async def plugins(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request)
-
     refresh = request.args.get('refresh', 'false').lower() == 'true'
 
     try:
@@ -134,8 +110,6 @@ async def plugin(request: Request, plugin_id: str) -> HTTPResponse:
         * 404: Plugin not found
         * 500: Catchall processing error
     """
-    log_request(request, id=plugin_id)
-
     try:
         return utils.http_json_response(
             await cmd.plugin(plugin_id),
@@ -153,8 +127,6 @@ async def plugin_health(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request)
-
     try:
         return utils.http_json_response(
             await cmd.plugin_health(),
@@ -194,8 +166,6 @@ async def scan(request: Request) -> HTTPResponse:
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    log_request(request, params=request.args)
-
     namespace = 'default'
     param_ns = request.args.getlist('ns')
     if param_ns:
@@ -255,8 +225,6 @@ async def tags(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request, params=request.args)
-
     namespaces = []
     param_ns = request.args.getlist('ns')
     if param_ns:
@@ -289,8 +257,6 @@ async def info(request: Request, device_id: str) -> HTTPResponse:
         * 404: Device not found
         * 500: Catchall processing error
     """
-    log_request(request, id=device_id)
-
     try:
         return utils.http_json_response(
             await cmd.info(device_id),
@@ -322,8 +288,6 @@ async def read(request: Request) -> HTTPResponse:
         * 400: Invalid parameter(s)
         * 500: Catchall processing error
     """
-    log_request(request, params=request.args)
-
     namespace = 'default'
     param_ns = request.args.getlist('ns')
     if param_ns:
@@ -370,8 +334,6 @@ async def read_cache(request: Request) -> StreamingHTTPResponse:
         * 400: Invalid query parameter(s)
         * 500: Catchall processing error
     """
-    log_request(request, params=request.args)
-
     start = ''
     param_start = request.args.getlist('start')
     if param_start:
@@ -422,8 +384,6 @@ async def read_device(request: Request, device_id: str) -> HTTPResponse:
         * 405: Device does not support reading
         * 500: Catchall processing error
     """
-    log_request(request, id=device_id)
-
     try:
         return utils.http_json_response(
             await cmd.read_device(device_id),
@@ -451,7 +411,7 @@ async def async_write(request: Request, device_id: str) -> HTTPResponse:
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
-    log_request(request, id=device_id, payload=request.body)
+    logger.debug('parsing request body', payload=request.body)
 
     try:
         data = request.json
@@ -500,7 +460,7 @@ async def sync_write(request: Request, device_id: str) -> HTTPResponse:
         * 405: Device does not support writing
         * 500: Catchall processing error
     """
-    log_request(request, id=device_id, payload=request.body)
+    logger.debug('parsing request body', payload=request.body)
 
     try:
         data = request.json
@@ -539,8 +499,6 @@ async def transactions(request: Request) -> HTTPResponse:
         * 200: OK
         * 500: Catchall processing error
     """
-    log_request(request)
-
     try:
         return utils.http_json_response(
             await cmd.transactions(),
@@ -562,8 +520,6 @@ async def transaction(request: Request, transaction_id: str) -> HTTPResponse:
         * 404: Transaction not found
         * 500: Catchall processing error
     """
-    log_request(request, id=transaction_id)
-
     try:
         return utils.http_json_response(
             await cmd.transaction(transaction_id),
@@ -591,8 +547,6 @@ async def device(request: Request, device_id: str) -> HTTPResponse:
         * 405: Device does not support reading/writing
         * 500: Catchall processing error
     """
-    log_request(request, id=device_id)
-
     if request.method == 'GET':
         return await read_device(request, device_id)
 
