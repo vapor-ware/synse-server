@@ -149,7 +149,7 @@ async def update_device_cache() -> None:
     # marked inactive, attempt to refresh all plugins. This can be the case when
     # Synse Server is first starting up, being restarted, or is recovering from a
     # networking error.
-    if not plugin.manager.has_plugins() or not plugin.manager.all_active():
+    if not plugin.manager.has_plugins() or not plugin.manager.all_ready():
         logger.debug('refreshing plugins prior to updating device cache')
         plugin.manager.refresh()
 
