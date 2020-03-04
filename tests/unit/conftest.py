@@ -2,6 +2,7 @@
 import datetime
 import logging
 
+import asynctest
 import pytest
 from synse_grpc import api, client
 
@@ -116,6 +117,7 @@ def simple_plugin():
         version={},
     )
     p.active = True
+    p._reconnect = asynctest.CoroutineMock()
     return p
 
 

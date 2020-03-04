@@ -1,5 +1,6 @@
 aiohttp
 asynctest
+mock
 pytest
 pytest-asyncio
 pytest-cov
