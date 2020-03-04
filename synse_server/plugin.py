@@ -1,12 +1,13 @@
 """Management and access logic for configured plugin backends."""
 
+import asyncio
 import time
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from structlog import get_logger
 from synse_grpc import client, utils
 
-from synse_server import config
+from synse_server import backoff, config, loop
 from synse_server.discovery import kubernetes
 from synse_server.metrics import MetricsInterceptor
 
@@ -109,6 +110,7 @@ class PluginManager:
             info=utils.to_dict(meta),
             version=utils.to_dict(ver),
             client=c,
+            loop=loop.synse_loop,
         )
         logger.debug(
             'loaded plugin info',
@@ -177,11 +179,51 @@ class PluginManager:
         logger.debug('found addresses via plugin discovery', addresses=configs)
         return configs
 
+    def bucket_plugins(
+            self,
+            new_plugins: List[Tuple[str, str]],
+    ) -> Tuple[List['Plugin'], List[Tuple[str, str]], List['Plugin']]:
+        """Bucket the registered plugins and potential new plugins based on a
+        given config for new plugins.
+
+        The config consists of a collection of tuples, where each tuple is the
+        basic config for the plugin. The first element is the plugin address.
+        The second element is the protocol (TCP, unix).
+
+        Three buckets are created:
+          1. Existing plugins: These are the plugins in the given config which
+             have already been registered with the manager.
+          2. New plugins: These are the plugins in the given config which are
+             unknown to the manager as they have not yet been registered.
+          3. Removed plugins: These are the plugins which are currently registered
+             with the manager but did not show up in the given config.
+        """
+
+        existing, new, removed = [], [], []
+        cfgs = []
+
+        for p in self.plugins.values():
+            cfg = (p.address, p.protocol)
+            cfgs.append(cfg)
+
+            if cfg in new_plugins:
+                existing.append(p)
+            else:
+                removed.append(p)
+
+        for cfg in new_plugins:
+            if cfg not in cfgs:
+                new.append(cfg)
+
+        return existing, new, removed
+
     def refresh(self) -> None:
         """Refresh the manager's tracked plugin state.
 
         This refreshes plugin state by checking if any new plugins are available
-        to Synse Server and updating the active state for each plugin.
+        to Synse Server. Note that other than the case for new plugin registration,
+        this does not update the active/inactive state of a plugin. That behavior
+        is tied to the plugin itself.
 
         Refresh does not re-load plugins from configuration. That is done on
         initialization. New plugins may only be added at runtime via plugin
@@ -196,9 +238,17 @@ class PluginManager:
             logger.debug('refreshing plugin manager')
             start = time.time()
 
-            for address, protocol in self.load():
+            plugins = []
+            plugins.extend(self.load())
+            plugins.extend(self.discover())
+
+            existing, new, removed = self.bucket_plugins(plugins)
+            logger.debug('bucketed plugins', existing=existing, new=new, removed=removed)
+
+            # Register all new plugins
+            for plugin in new:
                 try:
-                    self.register(address=address, protocol=protocol)
+                    self.register(address=plugin[0], protocol=plugin[1])
                 except Exception as e:
                     # Do not raise. This could happen if we can't communicate with
                     # the configured plugin. Future refreshes will attempt to re-register
@@ -206,23 +256,29 @@ class PluginManager:
                     # any remaining plugins.
                     logger.warning(
                         'failed to register configured plugin - will attempt re-registering later',
-                        address=address, protocol=protocol, error=e,
+                        address=plugin[0], protocol=plugin[1], error=e,
                     )
                     continue
 
-            for address, protocol in self.discover():
-                try:
-                    self.register(address=address, protocol=protocol)
-                except Exception as e:
-                    # Do not raise. This could happen if we can't communicate with
-                    # the configured plugin. Future refreshes will attempt to re-register
-                    # in this case. Log the failure and continue trying to register
-                    # any remaining plugins.
-                    logger.warning(
-                        'failed to register discovered plugin - will attempt re-registering later',
-                        address=address, protocol=protocol, error=e,
+            # Disable all removed plugins and stop any active tasks they may be running.
+            for plugin in removed:
+                logger.info(
+                    'registered plugin not found during refresh, marking as disabled',
+                    plugin=plugin,
+                )
+                plugin.disabled = True
+                plugin.cancel_tasks()
+
+            # Check if the existing plugin was disabled. If so, re-enable it. Otherwise, there
+            # is nothing to do here.
+            for plugin in existing:
+                if plugin.disabled:
+                    logger.info(
+                        'refresh found previously disable plugin; re-enabling',
+                        plugin=plugin,
                     )
-                    continue
+                    plugin.disabled = False
+
         finally:
             self.is_refreshing = False
 
@@ -232,14 +288,14 @@ class PluginManager:
             elapsed_time=time.time() - start,
         )
 
-    def all_active(self) -> bool:
-        """Check to see if all registered plugins are active.
+    def all_ready(self) -> bool:
+        """Check to see if all registered plugins are ready.
 
-        If a single plugin is inactive, this returns False. If no plugins are
+        If a single plugin is not ready, this returns False. If no plugins are
         registered, this returns True. In such a case, it is up to the caller to
         perform additional checks for number of registered plugins.
         """
-        return all(plugin.active for plugin in self)
+        return all(plugin.is_ready() for plugin in self)
 
 
 # A module-level instance of the plugin manager. This makes it easier to use
@@ -259,11 +315,25 @@ class Plugin:
         version: A dictionary containing the version information for the
             associated plugin .
         client: The Synse v3 gRPC client used to communicate with the plugin.
+        config: The config tuple defining the connection details about the plugin.
+        loop: The event loop to run plugin tasks on.
     """
 
-    def __init__(self, info: dict, version: dict, client: client.PluginClientV3) -> None:
+    def __init__(
+            self,
+            info: dict,
+            version: dict,
+            client: client.PluginClientV3,
+            loop: asyncio.AbstractEventLoop = None,
+    ) -> None:
+
+        self.loop = loop or asyncio.get_event_loop()
         self.active = False
+        self.disabled = False
         self.client = client
+
+        self._disconnects = 0
+        self._connects = 0
 
         self.address = self.client.get_address()
         self.protocol = self.client.protocol
@@ -285,8 +355,13 @@ class Plugin:
             for interceptor in self.client.interceptors:
                 interceptor.plugin = self.id
 
+        self._reconnect_task: Optional[asyncio.Task] = None
+
     def __str__(self) -> str:
         return f'<Plugin ({self.tag}): {self.id}>'
+
+    def __del__(self) -> None:
+        self.cancel_tasks()
 
     def __enter__(self) -> client.PluginClientV3:
         return self.client
@@ -299,13 +374,64 @@ class Plugin:
             self.mark_active()
         else:
             logger.info(
-                'error on plugin context exit',
+                'error on plugin context exit, will attempt reconnect',
                 exc_type=exc_type,
                 exc_val=exc_val,
                 exc_tb=exc_tb,
                 id=self.id,
             )
+            self._reconnect_task = asyncio.create_task(self._reconnect())
             self.mark_inactive()
+
+    async def _reconnect(self):
+        """Reconnect to the plugin instance.
+
+        This method is run as a Task when the plugin is exiting its
+        context manager in a failed state due to error. This is indicative
+        of a failure to connect with the plugin.
+        """
+        start = time.time()
+        _l = logger.bind(plugin=self.id)
+        _l.info('starting plugin reconnect task')
+        bo = backoff.ExponentialBackoff()
+
+        while True:
+            logger.debug('plugin reconnect task: attempting reconnect')
+            try:
+                self.client.test()
+            except Exception as ex:
+                _l.info('plugin reconnect task: failed to reconnect to plugin', error=ex)
+                # The plugin should still be in the inactive state, but we re-set
+                # it here to ensure it is true.
+                self.mark_inactive()
+            else:
+                self.mark_active()
+                _l.info(
+                    'plugin reconnect task: established connection with plugin',
+                    total_time=time.time() - start,
+                )
+                return
+
+            delay = bo.delay()
+            _l.debug('plugin reconnect task: waiting until next retry', delay=delay)
+            await asyncio.sleep(delay)
+
+    def is_ready(self):
+        """Check whether the plugin is ready to communicate with.
+
+        This check ensures that the plugin is not disabled and that it is in the
+        active state.
+        """
+        return self.active and not self.disabled
+
+    def cancel_tasks(self) -> None:
+        """Cancel any tasks associated with the plugin."""
+        if self.loop.is_running():
+            if self._reconnect_task is not None and (
+                not self._reconnect_task.done() or not self._reconnect_task.cancelled()
+            ):
+                logger.debug('cancelling reconnect task', plugin=self.id)
+                self._reconnect_task.cancel()
 
     def mark_active(self) -> None:
         """Mark the plugin as active, if it is not already active."""
@@ -313,6 +439,7 @@ class Plugin:
         if not self.active:
             logger.info('marking plugin as active', id=self.id, tag=self.tag)
             self.active = True
+            self._connects += 1  # TODO (etd): Expose via exported metrics
 
     def mark_inactive(self) -> None:
         """Mark the plugin as inactive, if it is not already inactive."""
@@ -320,3 +447,4 @@ class Plugin:
         if self.active:
             logger.info('marking plugin as inactive', id=self.id, tag=self.tag)
             self.active = False
+            self._disconnects += 1  # TODO (etd): Expose via exported metrics

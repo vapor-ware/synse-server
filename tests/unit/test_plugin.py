@@ -1,6 +1,9 @@
 
+import asyncio
 from collections.abc import Iterable
 
+import asynctest
+import mock
 import pytest
 from grpc import RpcError
 from synse_grpc import client, errors
@@ -74,14 +77,18 @@ class TestPluginManager:
         assert result is not None
         assert result == 'placeholder'
 
-    def test_all_active_true_no_plugins(self):
+    def test_all_ready_true_no_plugins(self):
         m = plugin.PluginManager()
-        assert m.all_active() is True
+        assert m.all_ready() is True
 
-    def test_all_active_true_has_plugins(self):
+    def test_all_ready_true_has_plugins(self):
         p1 = plugin.Plugin({'id': '1', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
         p2 = plugin.Plugin({'id': '2', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
         p3 = plugin.Plugin({'id': '3', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+
+        p1._reconnect = asynctest.CoroutineMock()
+        p2._reconnect = asynctest.CoroutineMock()
+        p3._reconnect = asynctest.CoroutineMock()
 
         p1.mark_active()
         p2.mark_active()
@@ -94,12 +101,16 @@ class TestPluginManager:
             '3': p3,
         }
 
-        assert m.all_active() is True
+        assert m.all_ready() is True
 
-    def test_all_active_false_has_plugins(self):
+    def test_all_ready_false_has_plugins(self):
         p1 = plugin.Plugin({'id': '1', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
         p2 = plugin.Plugin({'id': '2', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
         p3 = plugin.Plugin({'id': '3', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+
+        p1._reconnect = asynctest.CoroutineMock()
+        p2._reconnect = asynctest.CoroutineMock()
+        p3._reconnect = asynctest.CoroutineMock()
 
         p1.mark_active()
         p2.mark_inactive()
@@ -112,7 +123,31 @@ class TestPluginManager:
             '3': p3,
         }
 
-        assert m.all_active() is False
+        assert m.all_ready() is False
+
+    def test_all_ready_false_has_plugins_disabled(self):
+        p1 = plugin.Plugin({'id': '1', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+        p2 = plugin.Plugin({'id': '2', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+        p3 = plugin.Plugin({'id': '3', 'tag': 'foo'}, {}, client.PluginClientV3('foo', 'tcp'))
+
+        p1._reconnect = asynctest.CoroutineMock()
+        p2._reconnect = asynctest.CoroutineMock()
+        p3._reconnect = asynctest.CoroutineMock()
+
+        p1.mark_active()
+        p2.mark_active()
+        p3.mark_active()
+
+        p3.disabled = True
+
+        m = plugin.PluginManager()
+        m.plugins = {
+            '1': p1,
+            '2': p2,
+            '3': p3,
+        }
+
+        assert m.all_ready() is False
 
     def test_register_fail_metadata_call(self, mocker):
         # Mock test data
@@ -389,6 +424,80 @@ class TestPluginManager:
         assert len(found) == 0
         mock_discover.assert_called_once()
 
+    def test_bucket_plugins_no_config(self, simple_plugin):
+        m = plugin.PluginManager()
+        m.plugins[simple_plugin.id] = simple_plugin
+
+        existing, new, removed = m.bucket_plugins([])
+        assert len(existing) == 0
+        assert len(new) == 0
+        assert len(removed) == 1
+
+        assert simple_plugin in removed
+
+    def test_bucket_plugins_no_plugins(self):
+        m = plugin.PluginManager()
+        assert len(m.plugins) == 0
+
+        existing, new, removed = m.bucket_plugins([
+            ('localhost:5001', 'tcp'),
+            ('localhost:5002', 'tcp'),
+            ('localhost:5003', 'tcp'),
+        ])
+        assert len(existing) == 0
+        assert len(removed) == 0
+        assert len(new) == 3
+
+        assert ('localhost:5001', 'tcp') in new
+        assert ('localhost:5002', 'tcp') in new
+        assert ('localhost:5003', 'tcp') in new
+
+    def test_bucket_plugins(self):
+        p1 = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5001', 'tcp'),
+            version={},
+            info={
+                'tag': 'test/foo',
+                'id': '123',
+                'vcs': 'https://github.com/vapor-ware/synse-server',
+            },
+        )
+        p2 = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5002', 'tcp'),
+            version={},
+            info={
+                'tag': 'test/bar',
+                'id': '456',
+                'vcs': 'https://github.com/vapor-ware/synse-server',
+            },
+        )
+        p1._reconnect = asynctest.CoroutineMock
+        p2._reconnect = asynctest.CoroutineMock
+
+        m = plugin.PluginManager()
+        m.plugins[p1.id] = p1
+        m.plugins[p2.id] = p2
+
+        existing, new, removed = m.bucket_plugins([
+            ('localhost:5001', 'tcp'),
+            ('localhost:5003', 'tcp'),
+        ])
+        assert len(existing) == 1
+        assert len(new) == 1
+        assert len(removed) == 1
+
+        assert ('localhost:5003', 'tcp') in new
+        assert p1 in existing
+        assert p2 in removed
+
+    def test_refresh_already_refreshing(self):
+        m = plugin.PluginManager()
+        m.is_refreshing = True
+
+        assert len(m.plugins) == 0
+        m.refresh()
+        assert len(m.plugins) == 0
+
     def test_refresh_no_addresses(self):
         m = plugin.PluginManager()
 
@@ -474,6 +583,40 @@ class TestPluginManager:
         mock_register.assert_called_once()
         mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
 
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
+    @mock.patch('synse_server.plugin.PluginManager.register')
+    def test_refresh_new_plugin(self, register_mock, load_mock):
+        m = plugin.PluginManager()
+
+        m.refresh()
+
+        load_mock.assert_called_once()
+        register_mock.assert_called_once_with(address='localhost:5001', protocol='tcp')
+
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[])
+    def test_refresh_removed_plugin(self, load_mock, simple_plugin):
+        m = plugin.PluginManager()
+        m.plugins[simple_plugin.id] = simple_plugin
+        simple_plugin.cancel_tasks = mock.MagicMock()
+        assert simple_plugin.disabled is False
+
+        m.refresh()
+
+        assert simple_plugin.disabled is True
+        load_mock.assert_called_once()
+        simple_plugin.cancel_tasks.assert_called_once()
+
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5432', 'tcp')])
+    def test_refresh_existing_plugin(self, load_mock, simple_plugin):
+        m = plugin.PluginManager()
+        m.plugins[simple_plugin.id] = simple_plugin
+        simple_plugin.disabled = True
+
+        m.refresh()
+
+        assert simple_plugin.disabled is False
+        load_mock.assert_called_once()
+
 
 class TestPlugin:
     """Test cases for the ``synse_server.plugin.Plugin`` class."""
@@ -529,7 +672,10 @@ class TestPlugin:
 
         assert simple_plugin.active is True
 
-    def test_context_unexpected_error(self, simple_plugin):
+    # Note: this test needs to be async so there is an event loop which the plugin
+    # can schedule the reconnect task on.
+    @pytest.mark.asyncio
+    async def test_context_unexpected_error(self, simple_plugin):
         assert simple_plugin.active is True
 
         with pytest.raises(ValueError):
@@ -567,3 +713,103 @@ class TestPlugin:
         simple_plugin.active = False
         simple_plugin.mark_inactive()
         assert simple_plugin.active is False
+
+    def test_is_ready_false_inactive(self, simple_plugin):
+        simple_plugin.active = False
+        simple_plugin.disabled = False
+        assert simple_plugin.is_ready() is False
+
+    def test_is_ready_false_disabled(self, simple_plugin):
+        simple_plugin.active = True
+        simple_plugin.disabled = True
+        assert simple_plugin.is_ready() is False
+
+    def test_is_ready_true(self, simple_plugin):
+        simple_plugin.active = True
+        simple_plugin.disabled = False
+        assert simple_plugin.is_ready() is True
+
+    @pytest.mark.asyncio
+    async def test_cancel_tasks_cancelled(self, simple_plugin):
+        async def some_task():
+            while True:
+                await asyncio.sleep(0.1)
+
+        simple_plugin.loop = asyncio.get_event_loop()
+        simple_plugin._reconnect_task = asyncio.create_task(some_task())
+
+        assert simple_plugin._reconnect_task.done() is False
+        assert simple_plugin._reconnect_task.cancelled() is False
+
+        # Need to give some time for the task to be scheduled + run, as well
+        # as for the task to be cancelled.
+        await asyncio.sleep(0.1)
+        simple_plugin.cancel_tasks()
+        await asyncio.sleep(0.1)
+
+        assert simple_plugin._reconnect_task.done() is True
+        assert simple_plugin._reconnect_task.cancelled() is True
+
+    @pytest.mark.asyncio
+    async def test_cancel_tasks_done(self, simple_plugin):
+        async def some_task():
+            return
+
+        simple_plugin.loop = asyncio.get_event_loop()
+        simple_plugin._reconnect_task = asyncio.create_task(some_task())
+
+        assert simple_plugin._reconnect_task.done() is False
+        assert simple_plugin._reconnect_task.cancelled() is False
+
+        # Need to give some time for the task to be scheduled + run, as well
+        # as for the task to be cancelled.
+        await asyncio.sleep(0.1)
+        simple_plugin.cancel_tasks()
+        await asyncio.sleep(0.1)
+
+        assert simple_plugin._reconnect_task.done() is True
+        assert simple_plugin._reconnect_task.cancelled() is False
+
+    @pytest.mark.asyncio
+    @mock.patch('synse_server.backoff.ExponentialBackoff.delay', return_value=0)
+    @mock.patch('synse_grpc.client.PluginClientV3.test')
+    async def test_reconnect(self, test_mock, delay_mock):
+        p = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5001', 'tcp'),
+            info={'tag': 'test/foo', 'id': '123', 'vcs': 'example.com'},
+            version={},
+        )
+
+        p.disabled = True  # the disabled value should not be altered via reconnect
+        p.active = False
+
+        await p._reconnect()
+
+        assert p.disabled is True
+        assert p.active is True
+        delay_mock.assert_not_called()
+        test_mock.assert_called_once()
+
+    @pytest.mark.asyncio
+    @mock.patch('synse_server.backoff.ExponentialBackoff.delay', side_effect=[0, 0, 0])
+    @mock.patch('synse_grpc.client.PluginClientV3.test', side_effect=[ValueError, ValueError, ''])
+    async def test_reconnect_with_retries(self, test_mock, delay_mock):
+        p = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5001', 'tcp'),
+            info={'tag': 'test/foo', 'id': '123', 'vcs': 'example.com'},
+            version={},
+        )
+
+        p.disabled = True  # the disabled value should not be altered via reconnect
+        p.active = False
+
+        await p._reconnect()
+
+        assert p.disabled is True
+        assert p.active is True
+        delay_mock.assert_has_calls([
+            mock.call(), mock.call(),
+        ])
+        test_mock.assert_has_calls([
+            mock.call(), mock.call(), mock.call(),
+        ])
