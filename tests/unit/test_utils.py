@@ -54,7 +54,7 @@ def test_http_json_response_from_dict_pretty(mocker):
     actual = utils.http_json_response({'status': 'ok'})
 
     assert isinstance(actual, HTTPResponse)
-    assert actual.body == b'{\n  "status":"ok"\n}\n'
+    assert actual.body == b'{\n  "status": "ok"\n}\n'
     assert actual.status == 200
     assert actual.content_type == 'application/json'
 
