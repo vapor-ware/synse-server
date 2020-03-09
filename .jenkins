@@ -20,12 +20,16 @@ pipeline {
     }
 
     stage('Test') {
+      agent {
+        label 'python-3.8'
+      }
       environment {
         CODECOV_TOKEN = credentials('codecov-token')
       }
       steps {
-        sh 'tox tests/unit'
-        sh 'codecov'
+        container('python') {
+          sh 'tox tests/unit'
+        }
       }
     }
 
