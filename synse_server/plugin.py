@@ -262,7 +262,7 @@ class PluginManager:
 
             # Disable all removed plugins and stop any active tasks they may be running.
             for plugin in removed:
-                logger.info(
+                logger.warn(
                     'registered plugin not found during refresh, marking as disabled',
                     plugin=plugin,
                 )
@@ -274,7 +274,7 @@ class PluginManager:
             for plugin in existing:
                 if plugin.disabled:
                     logger.info(
-                        'refresh found previously disable plugin; re-enabling',
+                        'refresh found previously disabled plugin; re-enabling',
                         plugin=plugin,
                     )
                     plugin.disabled = False
