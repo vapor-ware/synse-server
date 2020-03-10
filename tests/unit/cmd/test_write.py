@@ -154,8 +154,7 @@ async def test_write_async_ok(mocker, simple_plugin):
                     'timeout': '5s',
                     'context': {
                         'action': 'foo',
-                        'data': b'',
-                        'transaction': '',
+                        'data': '',
                     },
                 },
                 {
@@ -164,8 +163,7 @@ async def test_write_async_ok(mocker, simple_plugin):
                     'timeout': '5s',
                     'context': {
                         'action': 'bar',
-                        'data': b'',
-                        'transaction': '',
+                        'data': '',
                     },
                 },
                 {
@@ -174,8 +172,7 @@ async def test_write_async_ok(mocker, simple_plugin):
                     'timeout': '5s',
                     'context': {
                         'action': 'baz',
-                        'data': b'',
-                        'transaction': '',
+                        'data': '',
                     },
                 },
             ]
@@ -354,8 +351,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
                     'status': 'DONE',
                     'context': {
                         'action': 'foo',
-                        'data': b'',
-                        'transaction': '',
+                        'data': '',
                     },
                 },
                 {
@@ -368,8 +364,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
                     'status': 'DONE',
                     'context': {
                         'action': 'bar',
-                        'data': b'',
-                        'transaction': '',
+                        'data': '',
                     },
                 },
                 {
@@ -382,8 +377,7 @@ async def test_write_sync_ok(mocker, simple_plugin):
                     'status': 'DONE',
                     'context': {
                         'action': 'baz',
-                        'data': b'',
-                        'transaction': '',
+                        'data': '',
                     },
                 },
             ]

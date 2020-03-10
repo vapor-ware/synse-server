@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 import synse_grpc.utils
 from structlog import get_logger
 
-from synse_server import cache, errors, plugin
+from synse_server import cache, errors, plugin, utils
 
 logger = get_logger()
 
@@ -54,8 +54,8 @@ async def transaction(transaction_id: str) -> Dict[str, Any]:
 
     status = synse_grpc.utils.to_dict(response)
     status['device'] = device
-    if status.get('context', {}).get('data'):
-        status['context']['data'] = status['context']['data'].decode('utf-8')
+    utils.normalize_write_ctx(status)
+
     return status
 
 

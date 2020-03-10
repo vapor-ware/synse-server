@@ -5,6 +5,26 @@ from sanic.response import HTTPResponse
 from synse_server import utils
 
 
+@pytest.mark.parametrize(
+    'data,expected', [
+        ({}, {}),
+        ({'foo': 'bar'}, {'foo': 'bar'}),
+        ({'context': {'data': 'abc'}}, {'context': {'data': 'abc'}}),
+        ({'context': {'data': b'abc'}}, {'context': {'data': 'abc'}}),
+        ({'context': {'transaction': None}}, {'context': {}}),
+        ({'context': {'transaction': ''}}, {'context': {}}),
+        ({'context': {'transaction': '123'}}, {'context': {'transaction': '123'}}),
+        (
+            {'context': {'data': b'10', 'transaction': '', 'action': 'a'}},
+            {'context': {'data': '10', 'action': 'a'}},
+        ),
+    ],
+)
+def test_normalize_write_ctx(data, expected):
+    utils.normalize_write_ctx(data)
+    assert data == expected
+
+
 @pytest.mark.usefixtures('patch_datetime_utcnow')
 def test_rfc3339now():
     actual = utils.rfc3339now()
