@@ -9,6 +9,30 @@ import ujson
 from synse_server import config
 
 
+def normalize_write_ctx(data: Dict) -> None:
+    """Normalize the given write context for consistent response formatting.
+
+    The write context is the dictionary under the 'context' key which contains
+    the reflected write data (action, data, transaction) which is included as
+    part of the API write and transaction responses.
+
+    The normalization process includes:
+      * Ensuring the "data" field is encoded as utf-8
+      * Ensuring that an empty "transaction" field is omitted from the response.
+    """
+    if 'context' not in data:
+        return
+
+    # Ensure the 'data' field is encoded as utf-8
+    if 'data' in data['context']:
+        if isinstance(data['context']['data'], bytes):
+            data['context']['data'] = data['context']['data'].decode('utf-8')
+
+    # Ensure an empty 'transaction' field is omitted
+    if 'transaction' in data['context'] and not data['context']['transaction']:
+        del data['context']['transaction']
+
+
 def rfc3339now() -> str:
     """Create an RFC3339 formatted timestamp for the current UTC time.
 

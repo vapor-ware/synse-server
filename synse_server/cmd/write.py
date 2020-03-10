@@ -2,9 +2,9 @@
 from typing import Any, Dict, List, Union
 
 from structlog import get_logger
-from synse_grpc import utils
+from synse_grpc import utils as grpc_utils
 
-from synse_server import cache, errors
+from synse_server import cache, errors, utils
 
 logger = get_logger()
 
@@ -36,9 +36,8 @@ async def write_async(device_id: str, payload: Union[Dict, List[Dict]]) -> List[
             for txn in client.write_async(device_id=device_id, data=payload):
                 # Add the transaction to the cache
                 await cache.add_transaction(txn.id, txn.device, plugin.id)
-                rsp = utils.to_dict(txn)
-                if rsp.get('context', {}).get('data'):
-                    rsp['context']['data'] = rsp['context']['data'].decode('utf-8')
+                rsp = grpc_utils.to_dict(txn)
+                utils.normalize_write_ctx(rsp)
                 response.append(rsp)
     except Exception as e:
         raise errors.ServerError(
@@ -75,10 +74,9 @@ async def write_sync(device_id: str, payload: Union[Dict, List[Dict]]) -> List[D
             for status in client.write_sync(device_id=device_id, data=payload):
                 # Add the transaction to the cache
                 await cache.add_transaction(status.id, device_id, plugin.id)
-                s = utils.to_dict(status)
+                s = grpc_utils.to_dict(status)
                 s['device'] = device_id
-                if s.get('context', {}).get('data'):
-                    s['context']['data'] = s['context']['data'].decode('utf-8')
+                utils.normalize_write_ctx(s)
                 response.append(s)
     except Exception as e:
         raise errors.ServerError(
