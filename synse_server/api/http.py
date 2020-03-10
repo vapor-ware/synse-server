@@ -6,7 +6,7 @@ from sanic.request import Request
 from sanic.response import HTTPResponse, StreamingHTTPResponse, stream
 from structlog import get_logger
 
-from synse_server import cmd, errors, utils
+from synse_server import cmd, errors, plugin, utils
 
 logger = get_logger()
 
@@ -99,7 +99,7 @@ async def plugins(request: Request) -> HTTPResponse:
 
 
 @v3.route('/plugin/<plugin_id>')
-async def plugin(request: Request, plugin_id: str) -> HTTPResponse:
+async def plugin_info(request: Request, plugin_id: str) -> HTTPResponse:
     """Get detailed information on the specified plugin.
 
     URI Parameters:
@@ -282,6 +282,8 @@ async def read(request: Request) -> HTTPResponse:
             group only selects devices which match all of the tags in the group. If
             multiple tag groups are specified, the result is the union of the matches
             from each individual tag group.
+        plugin: The ID of the plugin to get device readings from. If not specified,
+            all plugins are considered valid for reading.
 
     HTTP Codes:
         * 200: OK
@@ -303,11 +305,18 @@ async def read(request: Request) -> HTTPResponse:
         for group in param_tags:
             tag_groups.append(group.split(','))
 
+    plugin_id = request.args.get('plugin', None)
+    if plugin_id and plugin_id not in plugin.manager.plugins:
+        raise errors.InvalidUsage(
+            'invalid parameter: specified plugin ID does not correspond with known plugin',
+        )
+
     try:
         return utils.http_json_response(
             await cmd.read(
                 ns=namespace,
                 tag_groups=tag_groups,
+                plugin_id=plugin_id,
             ),
         )
     except Exception:
