@@ -315,6 +315,80 @@ async def test_read_ok_single_tag_group_without_ns(mocker, simple_plugin, state_
 
 
 @pytest.mark.asyncio
+async def test_read_ok_single_tag_group_without_ns_with_plugin(
+        mocker, simple_plugin, state_reading):
+
+    # Mock test data
+    mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+        '123': simple_plugin,
+        '456': simple_plugin,
+    })
+
+    mock_read = mocker.patch(
+        'synse_grpc.client.PluginClientV3.read',
+        return_value=[
+            state_reading,
+        ],
+    )
+
+    # --- Test case -----------------------------
+    # Set the simple_plugin to active to start.
+    simple_plugin.active = True
+
+    resp = await cmd.read('default', ['foo', 'bar', 'vapor/ware'], plugin_id='123')
+
+    # Note: There are two plugins defined, but only one is targeted, so we should expect
+    # only one plugin to return a reading.
+    assert resp == [
+        {  # from state_reading fixture
+            'device': 'ccc',
+            'timestamp': '2019-04-22T13:30:00Z',
+            'type': 'state',
+            'device_type': 'led',
+            'value': 'on',
+            'unit': None,
+            'context': {},
+        },
+    ]
+
+    assert simple_plugin.active is True
+
+    mock_read.assert_called()
+    mock_read.assert_has_calls([
+        mocker.call(tags=['default/foo', 'default/bar', 'vapor/ware']),
+    ])
+
+
+@pytest.mark.asyncio
+async def test_read_ok_with_unknown_plugin(mocker, simple_plugin, state_reading):
+    # Mock test data
+    mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+        '123': simple_plugin,
+        '456': simple_plugin,
+    })
+
+    mock_read = mocker.patch(
+        'synse_grpc.client.PluginClientV3.read',
+        return_value=[
+            state_reading,
+        ],
+    )
+
+    # --- Test case -----------------------------
+    # Set the simple_plugin to active to start.
+    simple_plugin.active = True
+
+    resp = await cmd.read('default', ['foo', 'bar', 'vapor/ware'], plugin_id='666')
+
+    # Note: No plugin matched id 666, so we should not expect to get any data back.
+    assert resp == []
+
+    assert simple_plugin.active is True
+
+    mock_read.assert_not_called()
+
+
+@pytest.mark.asyncio
 async def test_read_device_not_found():
     with asynctest.patch('synse_server.cache.get_plugin') as mock_get:
         mock_get.return_value = None
