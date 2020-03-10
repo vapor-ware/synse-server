@@ -898,6 +898,7 @@ class TestV3Read:
         mock_cmd.assert_called_with(
             ns='default',
             tag_groups=[],
+            plugin_id=None,
         )
 
     def test_error(self, synse_app):
@@ -920,6 +921,7 @@ class TestV3Read:
         mock_cmd.assert_called_with(
             ns='default',
             tag_groups=[],
+            plugin_id=None,
         )
 
     def test_invalid_multiple_ns(self, synse_app):
@@ -974,6 +976,7 @@ class TestV3Read:
         mock_cmd.assert_called_with(
             ns='default',
             tag_groups=expected,
+            plugin_id=None
         )
 
     @pytest.mark.parametrize(
@@ -1009,7 +1012,44 @@ class TestV3Read:
         mock_cmd.assert_called_with(
             ns=expected,
             tag_groups=[],
+            plugin_id=None,
         )
+
+    def test_param_plugin(self, synse_app, mocker):
+        with asynctest.patch('synse_server.cmd.read') as mock_cmd:
+            mock_cmd.return_value = [{'value': 1, 'type': 'temperature'}]
+            mocker.patch.dict('synse_server.plugin.manager.plugins', {
+                '123456': None,
+            })
+
+            resp = synse_app.test_client.get(
+                '/v3/read?plugin=123456',
+                gather_request=False,
+            )
+            assert resp.status == 200
+            assert resp.headers['Content-Type'] == 'application/json'
+
+            body = ujson.loads(resp.body)
+            assert body == mock_cmd.return_value
+
+        mock_cmd.assert_called_once_with(
+            ns='default',
+            tag_groups=[],
+            plugin_id='123456',
+        )
+
+    def test_param_plugin_no_plugin(self, synse_app):
+        with asynctest.patch('synse_server.cmd.read') as mock_cmd:
+            mock_cmd.return_value = [{'value': 1, 'type': 'temperature'}]
+
+            resp = synse_app.test_client.get(
+                '/v3/read?plugin=123456',
+                gather_request=False,
+            )
+            assert resp.status == 400
+            assert resp.headers['Content-Type'] == 'application/json'
+
+        mock_cmd.assert_not_called()
 
 
 @pytest.mark.usefixtures('patch_utils_rfc3339now')
