@@ -2,7 +2,7 @@
 import asyncio
 import queue
 import threading
-from typing import Any, AsyncIterable, Dict, List, Union
+from typing import Any, AsyncIterable, Dict, List, Optional, Union
 
 import synse_grpc.utils
 import websockets
@@ -48,7 +48,11 @@ def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
     }
 
 
-async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[Dict[str, Any]]:
+async def read(
+        ns: str,
+        tag_groups: Union[List[str], List[List[str]]],
+        plugin_id: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     """Generate the readings response data.
 
     Args:
@@ -57,6 +61,8 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
             is ignored.
         tag_groups: The tags groups used to filter devices. If no tag
             groups are given (and thus no tags), no filtering is done.
+        plugin_id: The ID of the plugin to get device readings from. If not specified,
+            all plugins are considered valid for reading.
 
     Returns:
         A list of dictionary representations of device reading response(s).
@@ -68,6 +74,14 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
         logger.debug('no tags specified, reading with no tag filter', command='READ')
         readings = []
         for p in plugin.manager:
+            if plugin_id and p.id != plugin_id:
+                logger.debug(
+                    'skipping plugin for read - plugin filter set',
+                    filter=plugin_id,
+                    skipped=p.id,
+                )
+                continue
+
             if not p.active:
                 logger.debug(
                     'plugin not active, will not read its devices',
@@ -104,6 +118,14 @@ async def read(ns: str, tag_groups: Union[List[str], List[List[str]]]) -> List[D
                 group[i] = f'{ns}/{tag}'
 
         for p in plugin.manager:
+            if plugin_id and p.id != plugin_id:
+                logger.debug(
+                    'skipping plugin for read - plugin filter set',
+                    filter=plugin_id,
+                    skipped=p.id,
+                )
+                continue
+
             if not p.active:
                 logger.debug(
                     'plugin not active, will not read its devices',
