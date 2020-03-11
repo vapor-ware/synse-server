@@ -1,4 +1,4 @@
-"""Test the 'synse_server.discovery.kubernetes' Synse Server module."""
+"""Unit tests for the ``synse_server.discovery.kubernetes`` module."""
 
 import kubernetes as k8s
 import pytest

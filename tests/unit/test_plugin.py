@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.plugin`` module."""
 
 import asyncio
 from collections.abc import Iterable
@@ -149,14 +150,8 @@ class TestPluginManager:
 
         assert m.all_ready() is False
 
-    def test_register_fail_metadata_call(self, mocker):
-        # Mock test data
-        mock_metadata = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.metadata',
-            side_effect=RpcError(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.client.PluginClientV3.metadata', side_effect=RpcError)
+    def test_register_fail_metadata_call(self, mock_metadata):
         m = plugin.PluginManager()
 
         with pytest.raises(RpcError):
@@ -167,18 +162,9 @@ class TestPluginManager:
 
         mock_metadata.assert_called_once()
 
-    def test_register_fail_version_call(self, mocker):
-        # Mock test data
-        mock_metadata = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.metadata',
-            return_value=V3Metadata(),
-        )
-        mock_version = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.version',
-            side_effect=RpcError(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.client.PluginClientV3.metadata', return_value=V3Metadata())
+    @mock.patch('synse_server.plugin.client.PluginClientV3.version', side_effect=RpcError)
+    def test_register_fail_version_call(self, mock_version, mock_metadata):
         m = plugin.PluginManager()
 
         with pytest.raises(RpcError):
@@ -190,18 +176,9 @@ class TestPluginManager:
         mock_metadata.assert_called_once()
         mock_version.assert_called_once()
 
-    def test_register_fail_plugin_init(self, mocker):
-        # Mock test data
-        mock_metadata = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.metadata',
-            return_value=V3Metadata(),
-        )
-        mock_version = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.version',
-            return_value=V3Version(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.client.PluginClientV3.metadata', return_value=V3Metadata())
+    @mock.patch('synse_server.plugin.client.PluginClientV3.version', return_value=V3Version())
+    def test_register_fail_plugin_init(self, mock_version, mock_metadata):
         m = plugin.PluginManager()
 
         with pytest.raises(ValueError):
@@ -213,18 +190,15 @@ class TestPluginManager:
         mock_metadata.assert_called_once()
         mock_version.assert_called_once()
 
-    def test_register_duplicate_plugin_id(self, mocker):
-        # Mock test data
-        mock_metadata = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.metadata',
-            return_value=V3Metadata(id='123', tag='foo'),
-        )
-        mock_version = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.version',
-            return_value=V3Version(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.metadata',
+        return_value=V3Metadata(id='123', tag='foo'),
+    )
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.version',
+        return_value=V3Version(),
+    )
+    def test_register_duplicate_plugin_id(self, mock_version, mock_metadata):
         m = plugin.PluginManager()
         m.plugins = {
             '123': plugin.Plugin(
@@ -242,18 +216,15 @@ class TestPluginManager:
         mock_metadata.assert_called_once()
         mock_version.assert_called_once()
 
-    def test_register_success(self, mocker):
-        # Mock test data
-        mock_metadata = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.metadata',
-            return_value=V3Metadata(id='123', tag='foo'),
-        )
-        mock_version = mocker.patch(
-            'synse_server.plugin.client.PluginClientV3.version',
-            return_value=V3Version(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.metadata',
+        return_value=V3Metadata(id='123', tag='foo'),
+    )
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.version',
+        return_value=V3Version(),
+    )
+    def test_register_success(self, mock_version, mock_metadata):
         m = plugin.PluginManager()
 
         plugin_id = m.register('localhost:5432', 'tcp')
@@ -264,144 +235,83 @@ class TestPluginManager:
         mock_metadata.assert_called_once()
         mock_version.assert_called_once()
 
-    def test_load_no_config(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.config.options._full_config', {
-            'plugin': {},
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict('synse_server.config.options._full_config', {'plugin': {}})
+    def test_load_no_config(self):
         m = plugin.PluginManager()
         loaded = m.load()
         assert len(loaded) == 0
 
-    def test_load_tcp_one(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.config.options._full_config', {
-            'plugin': {
-                'tcp': [
-                    'localhost:5001',
-                ],
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'synse_server.config.options._full_config',
+        {'plugin': {'tcp': ['localhost:5001']}},
+    )
+    def test_load_tcp_one(self):
         m = plugin.PluginManager()
         loaded = m.load()
         assert len(loaded) == 1
 
-    def test_load_tcp_multi(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.config.options._full_config', {
-            'plugin': {
-                'tcp': [
-                    'localhost:5001',
-                    'localhost:5002',
-                    'localhost:5003',
-                ],
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'synse_server.config.options._full_config',
+        {'plugin': {'tcp': ['localhost:5001', 'localhost:5002', 'localhost:5003']}},
+    )
+    def test_load_tcp_multi(self):
         m = plugin.PluginManager()
         loaded = m.load()
         assert len(loaded) == 3
 
-    def test_load_unix_one(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.config.options._full_config', {
-            'plugin': {
-                'unix': [
-                    '/tmp/test/1',
-                ],
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'synse_server.config.options._full_config',
+        {'plugin': {'unix': ['/tmp/test/1']}},
+    )
+    def test_load_unix_one(self):
         m = plugin.PluginManager()
         loaded = m.load()
         assert len(loaded) == 1
 
-    def test_load_unix_multi(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.config.options._full_config', {
-            'plugin': {
-                'unix': [
-                    '/tmp/test/1',
-                    '/tmp/test/2',
-                    '/tmp/test/3',
-                ],
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'synse_server.config.options._full_config',
+        {'plugin': {'unix': ['/tmp/test/1', '/tmp/test/2', '/tmp/test/3']}},
+    )
+    def test_load_unix_multi(self):
         m = plugin.PluginManager()
         loaded = m.load()
         assert len(loaded) == 3
 
-    def test_load_tcp_and_unix(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.config.options._full_config', {
-            'plugin': {
-                'tcp': [
-                    'localhost:5001',
-                    'localhost:5002',
-                    'localhost:5003',
-                ],
-                'unix': [
-                    '/tmp/test/1',
-                    '/tmp/test/2',
-                    '/tmp/test/3',
-                ],
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'synse_server.config.options._full_config',
+        {'plugin': {
+            'tcp': ['localhost:5001', 'localhost:5002', 'localhost:5003'],
+            'unix': ['/tmp/test/1', '/tmp/test/2', '/tmp/test/3'],
+        }},
+    )
+    def test_load_tcp_and_unix(self):
         m = plugin.PluginManager()
         loaded = m.load()
         assert len(loaded) == 6
 
-    def test_discover_no_addresses_found(self, mocker):
-        # Mock test data
-        mock_discover = mocker.patch(
-            'synse_server.plugin.kubernetes.discover',
-            return_value=[],
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.kubernetes.discover', return_value=[])
+    def test_discover_no_addresses_found(self, mock_discover):
         m = plugin.PluginManager()
-
         found = m.discover()
 
         assert len(found) == 0
         mock_discover.assert_called_once()
 
-    def test_discover_one_address_found(self, mocker):
-        # Mock test data
-        mock_discover = mocker.patch(
-            'synse_server.plugin.kubernetes.discover',
-            return_value=['localhost:5001'],
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.kubernetes.discover', return_value=['localhost:5001'])
+    def test_discover_one_address_found(self, mock_discover):
         m = plugin.PluginManager()
-
         found = m.discover()
 
         assert len(found) == 1
         assert ('localhost:5001', 'tcp') in found
         mock_discover.assert_called_once()
 
-    def test_discover_multiple_addresses_found(self, mocker):
-        # Mock test data
-        mock_discover = mocker.patch(
-            'synse_server.plugin.kubernetes.discover',
-            return_value=['localhost:5001', 'localhost:5002'],
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch(
+        'synse_server.plugin.kubernetes.discover',
+        return_value=['localhost:5001', 'localhost:5002'],
+    )
+    def test_discover_multiple_addresses_found(self, mock_discover):
         m = plugin.PluginManager()
-
         found = m.discover()
 
         assert len(found) == 2
@@ -409,16 +319,9 @@ class TestPluginManager:
         assert ('localhost:5002', 'tcp') in found
         mock_discover.assert_called_once()
 
-    def test_discover_fail_kubernetes_discovery(self, mocker):
-        # Mock test data
-        mock_discover = mocker.patch(
-            'synse_server.plugin.kubernetes.discover',
-            side_effect=ValueError(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.kubernetes.discover', side_effect=ValueError)
+    def test_discover_fail_kubernetes_discovery(self, mock_discover):
         m = plugin.PluginManager()
-
         found = m.discover()
 
         assert len(found) == 0
@@ -505,89 +408,52 @@ class TestPluginManager:
         m.refresh()
         assert len(m.plugins) == 0
 
-    def test_refresh_loaded_ok(self, mocker):
-        # Mock test data
-        mock_load = mocker.patch(
-            'synse_server.plugin.PluginManager.load',
-            return_value=[('localhost:5001', 'tcp')],
-        )
-        mock_register = mocker.patch(
-            'synse_server.plugin.PluginManager.register',
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
+    @mock.patch('synse_server.plugin.PluginManager.register')
+    def test_refresh_loaded_ok(self, mock_register, mock_load):
         m = plugin.PluginManager()
-
         m.refresh()
 
         mock_load.assert_called_once()
-        mock_register.assert_called_once()
-        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+        mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
 
-    def test_refresh_loaded_fail(self, mocker):
-        # Mock test data
-        mock_load = mocker.patch(
-            'synse_server.plugin.PluginManager.load',
-            return_value=[('localhost:5001', 'tcp')],
-        )
-        mock_register = mocker.patch(
-            'synse_server.plugin.PluginManager.register',
-            side_effect=ValueError(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
+    @mock.patch('synse_server.plugin.PluginManager.register', side_effect=ValueError)
+    def test_refresh_loaded_fail(self, mock_register, mock_load):
         m = plugin.PluginManager()
-
         m.refresh()
 
         mock_load.assert_called_once()
-        mock_register.assert_called_once()
-        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+        mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
 
-    def test_refresh_discover_ok(self, mocker):
-        # Mock test data
-        mock_discover = mocker.patch(
-            'synse_server.plugin.PluginManager.discover',
-            return_value=[('localhost:5001', 'tcp')],
-        )
-        mock_register = mocker.patch(
-            'synse_server.plugin.PluginManager.register',
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch(
+        'synse_server.plugin.PluginManager.discover',
+        return_value=[('localhost:5001', 'tcp')],
+    )
+    @mock.patch('synse_server.plugin.PluginManager.register')
+    def test_refresh_discover_ok(self, mock_register, mock_discover):
         m = plugin.PluginManager()
-
         m.refresh()
 
         mock_discover.assert_called_once()
-        mock_register.assert_called_once()
-        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+        mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
 
-    def test_refresh_discover_fail(self, mocker):
-        # Mock test data
-        mock_discover = mocker.patch(
-            'synse_server.plugin.PluginManager.discover',
-            return_value=[('localhost:5001', 'tcp')],
-        )
-        mock_register = mocker.patch(
-            'synse_server.plugin.PluginManager.register',
-            side_effect=ValueError(),
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch(
+        'synse_server.plugin.PluginManager.discover',
+        return_value=[('localhost:5001', 'tcp')],
+    )
+    @mock.patch('synse_server.plugin.PluginManager.register', side_effect=ValueError)
+    def test_refresh_discover_fail(self, mock_register, mock_discover):
         m = plugin.PluginManager()
-
         m.refresh()
 
         mock_discover.assert_called_once()
-        mock_register.assert_called_once()
-        mock_register.assert_called_with(address='localhost:5001', protocol='tcp')
+        mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
     @mock.patch('synse_server.plugin.PluginManager.register')
     def test_refresh_new_plugin(self, register_mock, load_mock):
         m = plugin.PluginManager()
-
         m.refresh()
 
         load_mock.assert_called_once()

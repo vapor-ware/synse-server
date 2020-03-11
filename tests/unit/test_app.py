@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.app`` module."""
 
 from synse_server import app, errors
 

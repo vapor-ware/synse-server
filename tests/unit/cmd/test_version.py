@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.cmd.version`` module."""
 
 import pytest
 

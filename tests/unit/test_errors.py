@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.errors`` module."""
 
 import json
 
@@ -12,7 +13,8 @@ class TestSynseErrorHandler:
     """Test cases for the ``synse_server.errors.SynseErrorHandler`` class."""
 
     @pytest.mark.parametrize(
-        'exception,code', [
+        'exception,code',
+        [
             (errors.SynseError, 500),
             (errors.InvalidUsage, 400),
             (errors.NotFound, 404),
