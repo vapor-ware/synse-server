@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.tasks`` module."""
 
 from unittest import mock
 

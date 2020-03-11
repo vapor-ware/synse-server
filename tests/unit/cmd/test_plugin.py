@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.cmd.plugin`` module."""
 
 import pytest
 from synse_grpc import api, client
