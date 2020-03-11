@@ -1,6 +1,8 @@
+"""Unit tests for the ``synse_server.cache`` module."""
 
 import asynctest
 import grpc
+import mock
 import pytest
 from synse_grpc import api, client
 
@@ -29,77 +31,48 @@ class TestTransactionCache:
         }
 
     @pytest.mark.asyncio
-    async def test_get_transaction_not_found(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
-
-        # --- Test case -----------------------------
+    @mock.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+    async def test_get_transaction_not_found(self):
         txn = await cache.get_transaction('txn-1')
         assert txn is None
 
     @pytest.mark.asyncio
-    async def test_get_transaction_needs_ns(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
-            'txn-1': {  # no txn namespace attached to key
-                'plugin': '123',
-                'device': 'abc',
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'aiocache.SimpleMemoryCache._cache',
+        {'txn-1': {  # no txn namespace attached to key
+            'plugin': '123', 'device': 'abc',
+        }},
+    )
+    async def test_get_transaction_needs_ns(self):
         txn = await cache.get_transaction('txn-1')
         assert txn is None
 
-    def test_get_cached_transaction_ids_empty(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
-
-        # --- Test case -----------------------------
+    @mock.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+    def test_get_cached_transaction_ids_empty(self):
         txn_ids = cache.get_cached_transaction_ids()
         assert len(txn_ids) == 0
 
-    def test_get_cached_transaction_ids_one(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
-            f'{cache.NS_TRANSACTION}txn-1': {
-                'plugin': '123',
-                'device': 'abc',
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'aiocache.SimpleMemoryCache._cache',
+        {f'{cache.NS_TRANSACTION}txn-1': {'plugin': '123', 'device': 'abc'}},
+    )
+    def test_get_cached_transaction_ids_one(self):
         txn_ids = cache.get_cached_transaction_ids()
         assert len(txn_ids) == 1
         assert 'txn-1' in txn_ids
 
-    def test_get_cached_transaction_ids_multiple(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {
-            f'{cache.NS_TRANSACTION}txn-1': {
-                'plugin': '123',
-                'device': 'abc',
-            },
-            f'{cache.NS_TRANSACTION}txn-2': {
-                'plugin': '123',
-                'device': 'def',
-            },
-            f'{cache.NS_TRANSACTION}txn-3': {
-                'plugin': '123',
-                'device': 'ghi',
-            },
-            f'{cache.NS_DEVICE}dev-1': {
-                'device': '1',
-            },
-            f'{cache.NS_DEVICE}dev-2': {
-                'device': '2',
-            },
-            f'{cache.NS_DEVICE}dev-3': {
-                'device': '3',
-            },
-        })
-
-        # --- Test case -----------------------------
+    @mock.patch.dict(
+        'aiocache.SimpleMemoryCache._cache',
+        {
+            f'{cache.NS_TRANSACTION}txn-1': {'plugin': '123', 'device': 'abc'},
+            f'{cache.NS_TRANSACTION}txn-2': {'plugin': '123', 'device': 'def'},
+            f'{cache.NS_TRANSACTION}txn-3': {'plugin': '123', 'device': 'ghi'},
+            f'{cache.NS_DEVICE}dev-1': {'device': '1'},
+            f'{cache.NS_DEVICE}dev-2': {'device': '2'},
+            f'{cache.NS_DEVICE}dev-3': {'device': '3'},
+        }
+    )
+    def test_get_cached_transaction_ids_multiple(self):
         txn_ids = cache.get_cached_transaction_ids()
         assert len(txn_ids) == 3
         assert 'txn-1' in txn_ids
@@ -143,22 +116,14 @@ class TestDeviceCache:
     """Tests for the device cache."""
 
     @pytest.mark.asyncio
-    async def test_update_device_cache_no_plugins(self, mocker):
-        # Mock test data
-        mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {})
-
-        mock_devices = mocker.patch(
-            'synse_grpc.client.PluginClientV3.devices',
-            return_value=[],
-        )
-
-        # --- Test case -----------------------------
+    @mock.patch.dict('synse_server.plugin.PluginManager.plugins', {})
+    @mock.patch('synse_grpc.client.PluginClientV3.devices', return_value=[])
+    async def test_update_device_cache_no_plugins(self, mock_devices):
         assert len(cache.device_cache._cache) == 0
 
         await cache.update_device_cache()
 
         assert len(cache.device_cache._cache) == 0
-
         mock_devices.assert_not_called()
 
     @pytest.mark.asyncio
@@ -181,7 +146,6 @@ class TestDeviceCache:
 
         assert len(cache.device_cache._cache) == 0
 
-        mock_devices.assert_called()
         mock_devices.assert_has_calls([
             mocker.call(),
             mocker.call(),
@@ -219,7 +183,6 @@ class TestDeviceCache:
 
         assert len(cache.device_cache._cache) == 0
 
-        mock_devices.assert_called()
         mock_devices.assert_has_calls([
             mocker.call(),
             mocker.call(),
@@ -252,7 +215,6 @@ class TestDeviceCache:
 
         assert len(cache.device_cache._cache) == 0
 
-        mock_devices.assert_called()
         mock_devices.assert_has_calls([
             mocker.call(),  # should only be called once, second is skipped because inactive
         ])
@@ -345,7 +307,6 @@ class TestDeviceCache:
         assert f'{cache.NS_DEVICE}unit:test' in cache.device_cache._cache
         assert f'{cache.NS_DEVICE}integration:test' in cache.device_cache._cache
 
-        mock_devices.assert_called()
         mock_devices.assert_has_calls([
             mocker.call(),
             mocker.call(),
@@ -363,17 +324,16 @@ class TestDeviceCache:
         assert device == simple_device
 
     @pytest.mark.asyncio
-    async def test_get_device_not_found(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
-
-        # --- Test case -----------------------------
+    @mock.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+    async def test_get_device_not_found(self):
         device = await cache.get_device('test-device-1')
         assert device is None
 
     @pytest.mark.asyncio
+    @mock.patch.dict('aiocache.SimpleMemoryCache._cache', {})
     @pytest.mark.parametrize(
-        'tags', [
+        'tags',
+        [
             [],
             ['foo'],
             ['default/foo'],
@@ -384,17 +344,14 @@ class TestDeviceCache:
             ['default/foo', 'something:bar', 'baz'],
         ]
     )
-    async def test_get_devices_no_devices(self, mocker, tags):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
-
-        # --- Test case -----------------------------
+    async def test_get_devices_no_devices(self, tags):
         devices = await cache.get_devices(*tags)
         assert len(devices) == 0
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        'tags,expected', [
+        'tags,expected',
+        [
             ([], 3),
             (['system/id:dev-1'], 1),
             (['system/id:dev-2'], 1),
@@ -432,11 +389,8 @@ class TestDeviceCache:
         devices = await cache.get_devices(*tags)
         assert len(devices) == expected
 
-    def test_get_cached_device_tags_no_tags(self, mocker):
-        # Mock test data
-        mocker.patch.dict('aiocache.SimpleMemoryCache._cache', {})
-
-        # --- Test case -----------------------------
+    @mock.patch.dict('aiocache.SimpleMemoryCache._cache', {})
+    def test_get_cached_device_tags_no_tags(self):
         tags = cache.get_cached_device_tags()
         assert len(tags) == 0
 

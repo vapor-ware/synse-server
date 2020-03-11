@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.cmd.tags`` module."""
 
 import pytest
 
