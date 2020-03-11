@@ -1,4 +1,4 @@
-"""Unit tests for the synse_server.backoff package."""
+"""Unit tests for the ``synse_server.backoff`` module."""
 
 from synse_server import backoff
 

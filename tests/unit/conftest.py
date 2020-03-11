@@ -1,3 +1,4 @@
+"""Fixture definitions for Synse Server unit tests."""
 
 import datetime
 import logging

@@ -1,3 +1,4 @@
+"""Unit tests for the ``synse_server.api.http`` module."""
 
 import asynctest
 import pytest
