@@ -14,7 +14,9 @@ class Monitor:
 
     _req_start_time = '__req_start_time'
 
-    # Counter for the total number of requests received by Sanic.
+    #
+    # Metrics for Synse Server's HTTP API
+    #
     http_req_count = Counter(
         name='synse_http_request_count',
         documentation='The total number of HTTP requests processed',
@@ -33,6 +35,9 @@ class Monitor:
         labelnames=('method', 'template', 'endpoint', 'http_code', 'ip'),
     )
 
+    #
+    # Metrics for Synse Server's WebSocket API
+    #
     ws_req_count = Counter(
         name='synse_websocket_request_count',
         documentation='The total number of WebSocket requests processed',
@@ -69,6 +74,9 @@ class Monitor:
         labelnames=('source',),
     )
 
+    #
+    # Metrics for Synse Server's internal gRPC API
+    #
     grpc_msg_sent = Counter(
         name='synse_grpc_message_sent',
         documentation='The total number of gRPC messages sent to plugins',
@@ -85,6 +93,33 @@ class Monitor:
         name='synse_grpc_request_latency_sec',
         documentation='The time it takes for a gRPC request to be fulfilled',
         labelnames=('type', 'service', 'method', 'plugin'),
+    )
+
+    #
+    # Metrics around Synse Server's plugin state/status
+    #
+    plugin_active = Gauge(
+        name='synse_plugin_active_state',
+        documentation='Whether a plugin is currently in the active (1) or inactive (0) state',
+        labelnames=('plugin',),
+    )
+
+    plugin_connects = Counter(
+        name='synse_plugin_connect_count',
+        documentation='The total number of times a plugin has been successfully connected to',
+        labelnames=('plugin',),
+    )
+
+    plugin_disconnects = Counter(
+        name='synse_plugin_disconnect_count',
+        documentation='The total number of times a plugin has disconnected (become unreachable)',
+        labelnames=('plugin',),
+    )
+
+    plugin_disabled = Gauge(
+        name='synse_plugin_disabled',
+        documentation='The number of plugins which are currently in a "disabled" state',
+        labelnames=('plugin',),
     )
 
     def __init__(self, app: sanic.Sanic) -> None:

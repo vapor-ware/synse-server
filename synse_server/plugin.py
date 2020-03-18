@@ -9,7 +9,7 @@ from synse_grpc import client, utils
 
 from synse_server import backoff, config, loop
 from synse_server.discovery import kubernetes
-from synse_server.metrics import MetricsInterceptor
+from synse_server.metrics import MetricsInterceptor, Monitor
 
 logger = get_logger()
 
@@ -269,6 +269,9 @@ class PluginManager:
                 plugin.disabled = True
                 plugin.cancel_tasks()
 
+                # Update the exported metrics disabled plugins gauge: add a disabled plugin
+                Monitor.plugin_disabled.labels(plugin.id).inc()
+
             # Check if the existing plugin was disabled. If so, re-enable it. Otherwise, there
             # is nothing to do here.
             for plugin in existing:
@@ -278,6 +281,9 @@ class PluginManager:
                         plugin=plugin,
                     )
                     plugin.disabled = False
+
+                    # Update the exported metrics disabled plugins gauge: remove a disabled plugin
+                    Monitor.plugin_disabled.labels(plugin.id).dec()
 
         finally:
             self.is_refreshing = False
@@ -439,7 +445,11 @@ class Plugin:
         if not self.active:
             logger.info('marking plugin as active', id=self.id, tag=self.tag)
             self.active = True
-            self._connects += 1  # TODO (etd): Expose via exported metrics
+            self._connects += 1
+
+            # Update exported metrics
+            Monitor.plugin_active.labels(self.id).inc()
+            Monitor.plugin_connects.labels(self.id).inc()
 
     def mark_inactive(self) -> None:
         """Mark the plugin as inactive, if it is not already inactive."""
@@ -447,4 +457,8 @@ class Plugin:
         if self.active:
             logger.info('marking plugin as inactive', id=self.id, tag=self.tag)
             self.active = False
-            self._disconnects += 1  # TODO (etd): Expose via exported metrics
+            self._disconnects += 1
+
+            # Update exported metrics
+            Monitor.plugin_active.labels(self.id).dec()
+            Monitor.plugin_disconnects.labels(self.id).inc()
