@@ -7,8 +7,9 @@ from typing import Any, Dict, List, Union
 
 from sanic import Blueprint
 from sanic.request import Request
-from sanic.websocket import ConnectionClosed, WebSocketCommonProtocol
+from sanic.websocket import ConnectionClosed
 from structlog import get_logger
+from websockets import WebSocketCommonProtocol
 
 from synse_server import cmd, errors, utils
 from synse_server.metrics import Monitor
@@ -120,7 +121,7 @@ class MessageHandler:
         self.tasks = []
 
     async def run(self) -> None:
-        logger.debug('running message handler for websocket', host=self.ws.host)
+        logger.debug('running message handler for websocket', remote_addr=self.ws.remote_address)
         async for message in self.ws:
             handler_start = time.time()
             try:
@@ -149,7 +150,7 @@ class MessageHandler:
         This will terminate any tasks and threads which are associated with the
         handler.
         """
-        logger.debug('stopping message handler for websocket', host=self.ws.host)
+        logger.debug('stopping message handler for websocket', remote_addr=self.ws.remote_address)
 
         for t in self.tasks:
             t.cancel()

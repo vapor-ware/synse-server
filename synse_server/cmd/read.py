@@ -198,7 +198,8 @@ async def read_cache(start: str = None, end: str = None) -> AsyncIterable:
     """
     logger.info('issuing command', command='READ CACHE', start=start, end=end)
 
-    # FIXME: this could benefit from being async
+    # FIXME: this could benefit from being async. this would require the plugin
+    #   api client to provide async behaviors as well.
     for p in plugin.manager:
         if not p.active:
             logger.debug(

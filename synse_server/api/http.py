@@ -26,9 +26,13 @@ async def test(request: Request) -> HTTPResponse:
     may indicate that Synse Server is not serving (e.g. still starting up
     or experiencing a failure), or that it is not reachable on the network.
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Args:
+        request: The Sanic request object.
+
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     return utils.http_json_response(
         await cmd.test(),
@@ -42,9 +46,13 @@ async def version(request: Request) -> HTTPResponse:
     The API version provided by this endpoint should be used in subsequent
     versioned requests to the instance.
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Args:
+        request: The Sanic request object.
+
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -64,9 +72,13 @@ async def config(request: Request) -> HTTPResponse:
     with default values, values from file, and values from the environment. This
     endpoint provides the final joined configuration of all config sources.
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Args:
+        request: The Sanic request object.
+
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -81,9 +93,13 @@ async def config(request: Request) -> HTTPResponse:
 async def plugins(request: Request) -> HTTPResponse:
     """Get a summary of all the plugins currently registered with Synse Server.
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Args:
+        request: The Sanic request object.
+
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     refresh = request.args.get('refresh', 'false').lower() == 'true'
 
@@ -102,13 +118,15 @@ async def plugins(request: Request) -> HTTPResponse:
 async def plugin_info(request: Request, plugin_id: str) -> HTTPResponse:
     """Get detailed information on the specified plugin.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         plugin_id: The ID of the plugin to get information for.
 
-    HTTP Codes:
-        * 200: OK
-        * 404: Plugin not found
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 404: Plugin not found
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -123,9 +141,13 @@ async def plugin_info(request: Request, plugin_id: str) -> HTTPResponse:
 async def plugin_health(request: Request) -> HTTPResponse:
     """Get a summary of the health of registered plugins.
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Args:
+        request: The Sanic request object.
+
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -145,6 +167,9 @@ async def scan(request: Request) -> HTTPResponse:
     Synse Server by each of the registered plugins. By default, the scan
     results are sorted by a combination key of 'plugin,sortIndex,id'.
 
+    Args:
+        request: The Sanic request object.
+
     Query Parameters:
         ns: The default namespace to use for specified tags without explicit namespaces.
             Only one default namespace may be specified. (default: ``default``)
@@ -161,10 +186,11 @@ async def scan(request: Request) -> HTTPResponse:
             for sorting. (default: "plugin,sortIndex,id", where ``sortIndex`` is an
             internal sort preference which a plugin can optionally specify.)
 
-    HTTP Codes:
-        * 200: OK
-        * 400: Invalid parameter(s)
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 400: Invalid parameter(s)
+          * 500: Catchall processing error
     """
     namespace = 'default'
     param_ns = request.args.getlist('ns')
@@ -213,6 +239,9 @@ async def tags(request: Request) -> HTTPResponse:
 
     By default, all non-ID tags are listed.
 
+    Args:
+        request: The Sanic request object.
+
     Query Parameters:
         ns: The tag namespace(s) to use when searching for tags. If specifying multiple
             namespaces, they can be passed in as a comma-separated list, e.g.
@@ -221,9 +250,10 @@ async def tags(request: Request) -> HTTPResponse:
         ids: A flag which determines whether ``id`` tags are included in the
             response. (default: ``false``)
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     namespaces = []
     param_ns = request.args.getlist('ns')
@@ -249,13 +279,15 @@ async def tags(request: Request) -> HTTPResponse:
 async def info(request: Request, device_id: str) -> HTTPResponse:
     """Get detailed information about the specified device.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         device_id: The ID of the device to get information for.
 
-    HTTP Codes:
-        * 200: OK
-        * 404: Device not found
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 404: Device not found
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -273,6 +305,9 @@ async def read(request: Request) -> HTTPResponse:
     Reading data is returned for only those devices which match all of the
     specified tags.
 
+    Args:
+        request: The Sanic request object.
+
     Query Parameters:
         ns: The default namespace to use for specified tags without explicit namespaces.
             Only one default namespace may be specified. (default: ``default``)
@@ -285,10 +320,11 @@ async def read(request: Request) -> HTTPResponse:
         plugin: The ID of the plugin to get device readings from. If not specified,
             all plugins are considered valid for reading.
 
-    HTTP Codes:
-        * 200: OK
-        * 400: Invalid parameter(s)
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 400: Invalid parameter(s)
+          * 500: Catchall processing error
     """
     namespace = 'default'
     param_ns = request.args.getlist('ns')
@@ -332,16 +368,20 @@ async def read_cache(request: Request) -> StreamingHTTPResponse:
     exposes the data in that cache. If a readings cache is not configured for a
     plugin, a snapshot of its current reading state is streamed back in the response.
 
+    Args:
+        request: The Sanic request object.
+
     Query Parameters:
         start: An RFC3339 formatted timestamp which specifies a starting bound on the
             cache data to return. If left unspecified, there will be no starting bound.
         end: An RFC3339 formatted timestamp which specifies an ending bound on the
             cache data to return. If left unspecified, there will be no ending bound.
 
-    HTTP Codes:
-        * 200: OK
-        * 400: Invalid query parameter(s)
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 400: Invalid query parameter(s)
+          * 500: Catchall processing error
     """
     start = ''
     param_start = request.args.getlist('start')
@@ -384,14 +424,16 @@ async def read_device(request: Request, device_id: str) -> HTTPResponse:
     This endpoint is equivalent to the ``read`` endpoint, specifying the ID tag
     for the device.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         device_id: The ID of the device to read.
 
-    HTTP Codes:
-        * 200: OK
-        * 404: Device not found
-        * 405: Device does not support reading
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 404: Device not found
+          * 405: Device does not support reading
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -410,15 +452,17 @@ async def async_write(request: Request, device_id: str) -> HTTPResponse:
     specified device. The transaction can be checked later via the ``transaction``
     endpoint.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         device_id: The ID of the device that is being written to.
 
-    HTTP Codes:
-        * 200: OK
-        * 400: Invalid JSON provided
-        * 404: Device not found
-        * 405: Device does not support writing
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 400: Invalid JSON provided
+          * 404: Device not found
+          * 405: Device does not support writing
+          * 500: Catchall processing error
     """
     logger.debug('parsing request body', payload=request.body)
 
@@ -459,15 +503,17 @@ async def sync_write(request: Request, device_id: str) -> HTTPResponse:
     and its plugin. It is up to the caller to define a sane request timeout so the
     request does not prematurely terminate.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         device_id: The ID of the device that is being written to.
 
-    HTTP Codes:
-        * 200: OK
-        * 400: Invalid JSON provided
-        * 404: Device not found
-        * 405: Device does not support writing
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 400: Invalid JSON provided
+          * 404: Device not found
+          * 405: Device does not support writing
+          * 500: Catchall processing error
     """
     logger.debug('parsing request body', payload=request.body)
 
@@ -504,9 +550,13 @@ async def sync_write(request: Request, device_id: str) -> HTTPResponse:
 async def transactions(request: Request) -> HTTPResponse:
     """Get a list of all transactions currently being tracked by Synse Server.
 
-    HTTP Codes:
-        * 200: OK
-        * 500: Catchall processing error
+    Args:
+        request: The Sanic request object.
+
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -521,13 +571,15 @@ async def transactions(request: Request) -> HTTPResponse:
 async def transaction(request: Request, transaction_id: str) -> HTTPResponse:
     """Get the status of a write transaction.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         transaction_id: The ID of the write transaction to get the status of.
 
-    HTTP Codes:
-        * 200: OK
-        * 404: Transaction not found
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 404: Transaction not found
+          * 500: Catchall processing error
     """
     try:
         return utils.http_json_response(
@@ -546,15 +598,17 @@ async def device(request: Request, device_id: str) -> HTTPResponse:
     GUID. The underlying implementations for read and write are the same as the
     ``/read/{device}`` and ``/write/wait/{device}`` endpoints, respectively.
 
-    URI Parameters:
+    Args:
+        request: The Sanic request object.
         device_id: The ID of the device that is being read from/written to.
 
-    HTTP Codes:
-        * 200: OK
-        * 400: Invalid JSON provided / Invalid parameter(s)
-        * 404: Device not found
-        * 405: Device does not support reading/writing
-        * 500: Catchall processing error
+    Returns:
+        A JSON-formatted HTTP response with the possible statuses:
+          * 200: OK
+          * 400: Invalid JSON provided / Invalid parameter(s)
+          * 404: Device not found
+          * 405: Device does not support reading/writing
+          * 500: Catchall processing error
     """
     if request.method == 'GET':
         return await read_device(request, device_id)

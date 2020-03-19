@@ -11,7 +11,7 @@ services:
     environment:
       SYNSE_LOGGING: debug
       SYNSE_PLUGIN_TCP: emulator:5001
-      SYNSE_METRICS_ENABLED: "true"
+      SYNSE_METRICS_ENABLED: 'true'
 
   emulator:
     container_name: emulator
@@ -26,7 +26,7 @@ services:
     environment:
       SLG_SYNSE_HOST: synse-server
     links:
-      - synse-server
+    - synse-server
 
   prometheus:
     container_name: prometheus

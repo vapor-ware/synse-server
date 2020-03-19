@@ -6,7 +6,7 @@ deployed with an emulator plugin via [docker-compose][docker-compose].
 To run:
 
 ```
-docker-compose -f compose.yaml up -d
+docker-compose up -d
 ```
 
 For more information and examples, see the [Synse documentation][synse-docs].

@@ -1,6 +1,6 @@
 # Synse Server Application Monitoring
 
-This sample deployment sets up Synse Server, Prometheus, and Grafana to provide a dashboard for
+This docker-compose deployment sets up Synse Server, Prometheus, and Grafana to provide a dashboard for
 application monitoring for Synse Server.
 
 To run, simply:
