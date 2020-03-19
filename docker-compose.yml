@@ -15,11 +15,11 @@ services:
     environment:
       SYNSE_LOGGING: debug
       SYNSE_PLUGIN_TCP: emulator-plugin:5001
-      SYNSE_METRICS_ENABLED: "true"
+      SYNSE_METRICS_ENABLED: 'true'
     links:
     - emulator-plugin
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/test"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:5000/test']
       interval: 1m
       timeout: 5s
       retries: 3
