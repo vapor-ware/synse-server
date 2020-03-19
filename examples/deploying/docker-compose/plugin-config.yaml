@@ -8,7 +8,7 @@ version: 3
 debug: true
 id:
   useCustom:
-  - "plugin-1"
+  - 'plugin-1'
 network:
   type: tcp
-  address: ":5001"
+  address: ':5001'

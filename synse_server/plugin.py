@@ -321,7 +321,6 @@ class Plugin:
         version: A dictionary containing the version information for the
             associated plugin .
         client: The Synse v3 gRPC client used to communicate with the plugin.
-        config: The config tuple defining the connection details about the plugin.
         loop: The event loop to run plugin tasks on.
     """
 

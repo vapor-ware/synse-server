@@ -8,15 +8,15 @@
 #
 # The CI environment should provide the following environment variables:
 #   IMAGE_NAME: The name of the Docker image (without tags)
-#   CIRCLE_TAG: The name of the git tag
+#   TAG_NAME:   The name of the git tag
 #
 # All arguments passed to the script should be tags for the $IMAGE_NAME.
 # If $CIRCLE_TAG exists, it will be parsed to generate the tags for all
 # appropriate versions. For example:
-#   CIRCLE_TAG  ->  IMAGE TAGS
-#   1           ->  1
-#   1.2         ->  1, 1.2
-#   1.2.3       ->  1, 1.2, 1.2.3
+#   TAG_NAME  ->  IMAGE TAGS
+#   1         ->  1
+#   1.2       ->  1, 1.2
+#   1.2.3     ->  1, 1.2, 1.2.3
 #
 
 echo "Building and Publishing Images"
@@ -59,7 +59,7 @@ if [[ "${TAG_NAME}" ]]; then
     fi
 
     if [[ "${tags}" ]]; then
-        echo "Created image tags from TAG_NAME: ${tags[@]}"
+        echo "Created image tags from TAG_NAME: ${tags[*]}"
     else
         echo "No image tags created from TAG_NAME"
     fi
@@ -76,7 +76,7 @@ for arg in "$@"; do
     tags+=("$arg")
 done
 
-echo "All tags for ${IMAGE_NAME}: ${tags[@]}"
+echo "All tags for ${IMAGE_NAME}: ${tags[*]}"
 
 
 #
@@ -101,7 +101,7 @@ echo "Generating Image Tags"
 # Generate the desired tags off of the built latest image
 for tag in "${tags[@]}"; do
     echo "  tag: ${tag}"
-    docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${tag}
+    docker tag "${IMAGE_NAME}:latest" "${IMAGE_NAME}:${tag}"
 done
 
 #
@@ -119,5 +119,5 @@ echo "Pushing Images"
 # For all tags, push the base tag and the slim tag. These should have been
 # built in previous steps and therefore should exist at this point.
 for tag in "${tags[@]}"; do
-    docker push ${IMAGE_NAME}:${tag}
+    docker push "${IMAGE_NAME}:${tag}"
 done

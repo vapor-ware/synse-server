@@ -12,7 +12,6 @@ For this example you will need:
 - access to the Kubernetes cluster
 - [`kubectl`][kubectl], with the cluster set as the current context
 
-
 ## Usage
 
 Deploying to your cluster should be straightforward using standard `kubectl` commands:
@@ -65,6 +64,11 @@ Now, using the Synse Pod IP from before, the API should be accessible:
   "timestamp":"2019-05-17T13:13:48.412790Z"
 }
 ```
+
+> **Note**: In this example deployment, Synse Server and the emulator plugin are being
+> run in the same Pod for simplicity's sake. This works fine as an example use case, but
+> it is generally not recommended to run plugins in the same Pod as Synse Server - they
+> should really be their own deployment.
 
 [kubernetes]: https://kubernetes.io/
 [kubectl]: https://kubernetes.io/docs/tasks/tools/install-kubectl/

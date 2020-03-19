@@ -31,7 +31,9 @@ spec:
         # Enable debug logging via ENV config
         - name: SYNSE_LOGGING
           value: debug
-        # Register the Emulator Plugin via ENV config
+        # Register the Emulator Plugin via ENV config. The address
+        # for the plugin here is localhost because the two containers
+        # are running in the same Pod.
         - name: SYNSE_PLUGIN_TCP
           value: localhost:5001
 
