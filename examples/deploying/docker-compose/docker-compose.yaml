@@ -4,14 +4,14 @@
 # An example deployment of Synse Server and the Emulator Plugin
 # configured to communicate over TCP.
 #
+
 version: '3'
 services:
-
   synse-server:
     container_name: synse-server
     image: vaporio/synse-server:latest
     ports:
-    - "5000:5000"
+    - '5000:5000'
     environment:
       # Run the server in debug mode
       SYNSE_LOGGING: debug
@@ -24,8 +24,8 @@ services:
     container_name: emulator
     image: vaporio/emulator-plugin:latest
     expose:
-    - "5001"
-    command: ["--debug"]
+    - '5001'
+    command: ['--debug']
     volumes:
       # Mount the custom plugin config into the default plugin configuration
       # search path
