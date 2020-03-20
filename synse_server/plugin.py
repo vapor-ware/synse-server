@@ -221,9 +221,8 @@ class PluginManager:
         """Refresh the manager's tracked plugin state.
 
         This refreshes plugin state by checking if any new plugins are available
-        to Synse Server. Note that other than the case for new plugin registration,
-        this does not update the active/inactive state of a plugin. That behavior
-        is tied to the plugin itself.
+        to Synse Server. Once any plugins are added or disabled, it will also
+        update the active/inactive state of each of the enabled plugins.
 
         Refresh does not re-load plugins from configuration. That is done on
         initialization. New plugins may only be added at runtime via plugin
@@ -287,6 +286,10 @@ class PluginManager:
 
         finally:
             self.is_refreshing = False
+
+        # Now, ensure that all enabled plugins have their active/inactive state refreshed.
+        for p in self.plugins.values():
+            p.refresh_state()
 
         logger.debug(
             'plugin manager refresh complete',
@@ -404,7 +407,7 @@ class Plugin:
         bo = backoff.ExponentialBackoff()
 
         while True:
-            logger.debug('plugin reconnect task: attempting reconnect')
+            _l.debug('plugin reconnect task: attempting reconnect')
             try:
                 self.client.test()
             except Exception as ex:
@@ -423,6 +426,39 @@ class Plugin:
             delay = bo.delay()
             _l.debug('plugin reconnect task: waiting until next retry', delay=delay)
             await asyncio.sleep(delay)
+
+    def refresh_state(self):
+        """Refresh the state of the plugin.
+
+        When a plugin becomes inactive, it will start a task to periodically retry
+        establishing a connection to the plugin with exponential backoff. This can be
+        good at automated recovery, especially for quick intermittent errors. It
+        becomes less useful when there is plugin maintenance or some other longer
+        window of downtime, as the exponential backoff will take a while to re-establish
+        a connection.
+
+        To alleviate this potential use case, this function performs the same state
+        refresh for the plugin, but it is executed manually via a call to the
+        `/plugin?refresh=true`. Setting refresh to true for the endpoint will both
+        ensure that Synse Server refreshes the state of known plugins, and that it
+        also refreshes the state of each existing individual plugin to ensure that
+        its active/inactive state is up-to-date.
+        """
+        _l = logger.bind(plugin=self.id)
+        _l.info('refreshing plugin state')
+
+        if self.disabled:
+            _l.info('plugin is disabled, will not refresh')
+            return
+
+        try:
+            self.client.test()
+        except Exception as ex:
+            _l.debug('plugin refresh: failed to connect to plugin', errror=ex)
+            self.mark_inactive()
+        else:
+            _l.debug('plugin refresh: successfully connected to plugin')
+            self.mark_active()
 
     def is_ready(self):
         """Check whether the plugin is ready to communicate with.
