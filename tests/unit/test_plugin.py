@@ -410,57 +410,71 @@ class TestPluginManager:
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
     @mock.patch('synse_server.plugin.PluginManager.register')
-    def test_refresh_loaded_ok(self, mock_register, mock_load):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_loaded_ok(self, mock_refresh, mock_register, mock_load):
         m = plugin.PluginManager()
         m.refresh()
 
         mock_load.assert_called_once()
         mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
+        # empty because register is mocked, so nothing gets added to manager
+        mock_refresh.assert_has_calls([])
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
     @mock.patch('synse_server.plugin.PluginManager.register', side_effect=ValueError)
-    def test_refresh_loaded_fail(self, mock_register, mock_load):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_loaded_fail(self, mock_refresh, mock_register, mock_load):
         m = plugin.PluginManager()
         m.refresh()
 
         mock_load.assert_called_once()
         mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
+        mock_refresh.assert_has_calls([])
 
     @mock.patch(
         'synse_server.plugin.PluginManager.discover',
         return_value=[('localhost:5001', 'tcp')],
     )
     @mock.patch('synse_server.plugin.PluginManager.register')
-    def test_refresh_discover_ok(self, mock_register, mock_discover):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_discover_ok(self, mock_refresh, mock_register, mock_discover):
         m = plugin.PluginManager()
         m.refresh()
 
         mock_discover.assert_called_once()
         mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
+        # empty because register is mocked, so nothing gets added to manager
+        mock_refresh.assert_has_calls([])
 
     @mock.patch(
         'synse_server.plugin.PluginManager.discover',
         return_value=[('localhost:5001', 'tcp')],
     )
     @mock.patch('synse_server.plugin.PluginManager.register', side_effect=ValueError)
-    def test_refresh_discover_fail(self, mock_register, mock_discover):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_discover_fail(self, mock_refresh, mock_register, mock_discover):
         m = plugin.PluginManager()
         m.refresh()
 
         mock_discover.assert_called_once()
         mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
+        mock_refresh.assert_has_calls([])
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
     @mock.patch('synse_server.plugin.PluginManager.register')
-    def test_refresh_new_plugin(self, register_mock, load_mock):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_new_plugin(self, mock_refresh, register_mock, load_mock):
         m = plugin.PluginManager()
         m.refresh()
 
         load_mock.assert_called_once()
         register_mock.assert_called_once_with(address='localhost:5001', protocol='tcp')
+        # empty because register is mocked, so nothing gets added to manager
+        mock_refresh.assert_has_calls([])
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[])
-    def test_refresh_removed_plugin(self, load_mock, simple_plugin):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_removed_plugin(self, mock_refresh, load_mock, simple_plugin):
         m = plugin.PluginManager()
         m.plugins[simple_plugin.id] = simple_plugin
         simple_plugin.cancel_tasks = mock.MagicMock()
@@ -471,9 +485,11 @@ class TestPluginManager:
         assert simple_plugin.disabled is True
         load_mock.assert_called_once()
         simple_plugin.cancel_tasks.assert_called_once()
+        mock_refresh.assert_has_calls([])
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5432', 'tcp')])
-    def test_refresh_existing_plugin(self, load_mock, simple_plugin):
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_existing_plugin(self, mock_refresh, load_mock, simple_plugin):
         m = plugin.PluginManager()
         m.plugins[simple_plugin.id] = simple_plugin
         simple_plugin.disabled = True
@@ -482,6 +498,7 @@ class TestPluginManager:
 
         assert simple_plugin.disabled is False
         load_mock.assert_called_once()
+        mock_refresh.assert_has_calls([])
 
 
 class TestPlugin:
@@ -679,3 +696,54 @@ class TestPlugin:
         test_mock.assert_has_calls([
             mock.call(), mock.call(), mock.call(),
         ])
+
+    @mock.patch('synse_grpc.client.PluginClientV3.test')
+    def test_refresh_state(self, test_mock):
+        p = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5001', 'tcp'),
+            info={'tag': 'test/foo', 'id': '123'},
+            version={},
+        )
+
+        p.disabled = False
+        p.active = False
+
+        p.refresh_state()
+
+        assert p.disabled is False
+        assert p.active is True
+        test_mock.assert_called_once()
+
+    @mock.patch('synse_grpc.client.PluginClientV3.test')
+    def test_refresh_state_plugin_disabled(self, test_mock):
+        p = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5001', 'tcp'),
+            info={'tag': 'test/foo', 'id': '123'},
+            version={},
+        )
+
+        p.disabled = True
+        p.active = False
+
+        p.refresh_state()
+
+        assert p.disabled is True
+        assert p.active is False
+        test_mock.assert_not_called()
+
+    @mock.patch('synse_grpc.client.PluginClientV3.test', side_effect=ValueError())
+    def test_refresh_state_fails_refresh(self, test_mock):
+        p = plugin.Plugin(
+            client=client.PluginClientV3('localhost:5001', 'tcp'),
+            info={'tag': 'test/foo', 'id': '123'},
+            version={},
+        )
+
+        p.disabled = False
+        p.active = True
+
+        p.refresh_state()
+
+        assert p.disabled is False
+        assert p.active is False
+        test_mock.assert_called_once()
