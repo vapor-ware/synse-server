@@ -91,13 +91,13 @@ async def read(
 
             try:
                 with p as client:
-                    data = client.read()
+                    for reading in client.read():
+                        readings.append(reading_to_dict(reading))
             except Exception as e:
                 raise errors.ServerError(
                     'error while issuing gRPC request: read'
                 ) from e
-            for reading in data:
-                readings.append(reading_to_dict(reading))
+
         logger.debug('got readings', count=len(readings), command='READ')
         return readings
 
@@ -135,14 +135,12 @@ async def read(
 
             try:
                 with p as client:
-                    data = client.read(tags=group)
+                    for r in client.read(tags=group):
+                        results[f'{r.id}{r.type}{r.timestamp}'] = reading_to_dict(r)
             except Exception as e:
                 raise errors.ServerError(
                     'error while issuing gRPC request: read'
                 ) from e
-
-            for r in data:
-                results[f'{r.id}{r.type}{r.timestamp}'] = reading_to_dict(r)
 
     readings = list(results.values())
     logger.debug('got readings', count=len(readings), command='READ')
@@ -169,14 +167,13 @@ async def read_device(device_id: str) -> List[Dict[str, Any]]:
     readings = []
     try:
         with p as client:
-            data = client.read(device_id=device_id)
+            for reading in client.read(device_id=device_id):
+                readings.append(reading_to_dict(reading))
+
     except Exception as e:
         raise errors.ServerError(
             'error while issuing gRPC request: read device',
         ) from e
-
-    for reading in data:
-        readings.append(reading_to_dict(reading))
 
     logger.debug('got readings', count=len(readings), command='READ DEVICE')
     return readings
