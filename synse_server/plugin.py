@@ -365,6 +365,9 @@ class Plugin:
     def __str__(self) -> str:
         return f'<Plugin ({self.tag}): {self.id}>'
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __del__(self) -> None:
         self.cancel_tasks()
 

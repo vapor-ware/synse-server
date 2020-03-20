@@ -50,6 +50,38 @@ async def test_read_fails_read(mocker, simple_plugin):
 
 
 @pytest.mark.asyncio
+async def test_read_fails_read_generator(mocker, simple_plugin, temperature_reading):
+    # Mock test data
+    mocker.patch.dict('synse_server.plugin.PluginManager.plugins', {
+        '123': simple_plugin,
+    })
+
+    # Define a generator to return the error - this is because calling client.read()
+    # returns a generator so it may not return a TimeoutError until the generator
+    # is iterated over in production.
+    def gen():
+        yield temperature_reading
+        raise ValueError('test error')
+
+    mock_read = mocker.patch(
+        'synse_grpc.client.PluginClientV3.read',
+        return_value=gen(),
+    )
+
+    # --- Test case -----------------------------
+    # Set the simple_plugin to active to start.
+    simple_plugin.active = True
+
+    with pytest.raises(errors.ServerError):
+        await cmd.read('default', [['default/foo']])
+
+    assert simple_plugin.active is False
+
+    mock_read.assert_called_once()
+    mock_read.assert_called_with(tags=['default/foo'])
+
+
+@pytest.mark.asyncio
 async def test_read_fails_read_multiple_one_fail(mocker, simple_plugin, temperature_reading):
     # Mock test data
     error_plugin = plugin.Plugin(
