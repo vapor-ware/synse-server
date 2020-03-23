@@ -19,16 +19,16 @@ gathering device metrics and issuing device commands easy. Synse is designed for
 operation at edge data center sites, but can run in more traditional data center environments,
 IoT labs, or as a monitoring and control solution for DIY projects.
 
-With Synse's plugin architecture, I²C devices, RS-485 devices, and IPMI devices could all be
-accessed the same way. The uniform HTTP API can with any number of backend protocols. Adding
-functionality to a deployment becomes as simple as configuring an additional plugin.
+With Synse's HTTP API and plugin backend, devices communicating over different protocols
+(I²C, RS-485, or IPMI for example) can all be accessed via the same uniform API. Supporting
+a new protocol or device is as simple as writing a new plugin with the [Synse SDK][sdk].
 
 For more information about Synse Server and other components of the Synse platform,
 see the [project documentation][documentation].
 
 ## Getting Started
 
-Synse components are designed as containerized applications, making them easier
+Synse components are designed to run as containerized applications, making them easier
 to compose, deploy, and manage (e.g. via [Docker Compose][docker-compose] or [Kubernetes][kubernetes]).
 Getting the Synse Server image is as easy as:
 
@@ -63,9 +63,9 @@ Synse's capabilities.
 <p align="center"><img src="assets/arch.svg" width="500" /></p>
 
 Synse Server is a containerized service which provides an HTTP interface for interacting with
-and controlling devices. Synse Server does not directly interface with the devices -- that job is
+and controlling devices. Synse Server does not directly interface with any devices -- that job is
 left to the plugins which are registered with a Synse Server instance. Plugins expose devices, collect
-readings, and provide write access to those devices which support this. How they do this is dependent
+readings, and provide write access to those devices which support it. How they do this is dependent
 on the devices themselves and will differ between those devices and protocols.
 
 Synse Server acts as the "front-end" interface/router for all the different protocols/devices.
@@ -103,6 +103,7 @@ Synse Server is released under the [GPL-3.0](LICENSE) license.
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fvapor-ware%2Fsynse-server?ref=badge_large)
 
 [synse]: https://github.com/vapor-ware/synse
+[sdk]: https://github.com/vapor-ware/synse-sdk
 [documentation]: https://synse.readthedocs.io/en/latest/
 [docker-compose]: https://docs.docker.com/compose/
 [kubernetes]: https://kubernetes.io/
