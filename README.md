@@ -53,7 +53,7 @@ And see all of the devices it exposes via the emulator plugin
 
 ```
 curl http://localhost:5000/v3/scan
-``` 
+```
 
 See the [API Reference][api-ref] for more information on the API endpoints and
 Synse's capabilities.
