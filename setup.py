@@ -50,7 +50,7 @@ setup(
         'shortuuid',
         'structlog>=20.1.0',
         'websockets',
-        'synse-grpc==3.0.0a4',  # fixme: for alpha v3 testing; update to stable v3 release
+        'synse-grpc==3.0.0',
     ],
     zip_safe=False,
     classifiers=[

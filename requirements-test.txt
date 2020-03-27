@@ -23,5 +23,5 @@ pytest-cov==2.8.1         # via -r test-requirements.in
 pytest-mock==2.0.0        # via -r test-requirements.in
 pytest==5.4.1             # via -r test-requirements.in, pytest-asyncio, pytest-cov, pytest-mock
 six==1.14.0               # via packaging
-wcwidth==0.1.8            # via pytest
+wcwidth==0.1.9            # via pytest
 yarl==1.4.2               # via aiohttp
