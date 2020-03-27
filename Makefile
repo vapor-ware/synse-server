@@ -3,17 +3,7 @@
 #
 
 PKG_NAME    := $(shell python setup.py --name)
-# FIXME: python setuptools is apparently not complaint with SemVer:
-#   .../python3.6/site-packages/setuptools/dist.py:472: UserWarning: Normalizing '3.0.0-alpha.1' to '3.0.0a1'
-#      normalized_version,
-#      3.0.0a1
-# https://github.com/pypa/setuptools/issues/308
-#
-# Since we build our tags off of this version, we can't get the version via the commented
-# out line below - instead, we'll just awk it from the file directly. Its fine if the
-# version on pypi is normalized for now.
-#PKG_VERSION  := $(shell python setup.py --version)
-PKG_VERSION := $(shell python -c "import synse_server ; print(synse_server.__version__)")
+PKG_VERSION := $(shell python setup.py --version)
 IMAGE_NAME  := vaporio/synse-server
 
 GIT_COMMIT  ?= $(shell git rev-parse --short HEAD 2> /dev/null || true)
