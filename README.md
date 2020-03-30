@@ -90,7 +90,7 @@ Below is a table describing the compatibility of various Synse Server versions w
 |             | Synse v2 | Synse v3 |
 | ----------- | -------- | -------- |
 | Server v1.x | ✗        | ✗        |
-| Server v2.x | ✗        | ✓        |
+| Server v2.x | ✓        | ✗        |
 | Server v3.x | ✗        | ✓        |
 
 ## Feedback
