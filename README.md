@@ -83,6 +83,16 @@ The general flow through Synse Server for a device read, for example, is:
 - take the data returned from the plugin and format it into the JSON response scheme
 - return the data to the caller
 
+## Compatibility
+
+Below is a table describing the compatibility of various Synse Server versions with Synse platform versions.
+
+|             | Synse v2 | Synse v3 |
+| ----------- | -------- | -------- |
+| Server v1.x | ✗        | ✗        |
+| Server v2.x | ✗        | ✓        |
+| Server v3.x | ✗        | ✓        |
+
 ## Feedback
 
 Feedback for Synse Server or any component of the Synse platform is greatly appreciated!
