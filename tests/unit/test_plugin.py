@@ -10,6 +10,7 @@ from grpc import RpcError
 from synse_grpc import client, errors
 from synse_grpc.api import V3Metadata, V3Version
 
+from synse_server import errors as synse_errors
 from synse_server import plugin
 
 
@@ -149,6 +150,18 @@ class TestPluginManager:
         }
 
         assert m.all_ready() is False
+
+    @mock.patch('synse_server.plugin.client.PluginClientV3.__init__', side_effect=ValueError)
+    def test_register_fail_client_create(self, mock_init):
+        m = plugin.PluginManager()
+
+        with pytest.raises(synse_errors.ClientCreateError):
+            m.register('localhost:5432', 'tcp')
+
+        # Ensure nothing was added to the manager.
+        assert len(m.plugins) == 0
+
+        mock_init.assert_called_once()
 
     @mock.patch('synse_server.plugin.client.PluginClientV3.metadata', side_effect=RpcError)
     def test_register_fail_metadata_call(self, mock_metadata):
@@ -407,6 +420,19 @@ class TestPluginManager:
         assert len(m.plugins) == 0
         m.refresh()
         assert len(m.plugins) == 0
+
+    @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
+    @mock.patch('synse_server.plugin.PluginManager.register', side_effect=synse_errors.ClientCreateError)  # noqa
+    @mock.patch('synse_server.plugin.Plugin.refresh_state')
+    def test_refresh_client_create_error(self, mock_refresh, mock_register, mock_load):
+        m = plugin.PluginManager()
+
+        with pytest.raises(synse_errors.ClientCreateError):
+            m.refresh()
+
+        mock_load.assert_called_once()
+        mock_register.assert_called_once_with(address='localhost:5001', protocol='tcp')
+        mock_refresh.assert_not_called()
 
     @mock.patch('synse_server.plugin.PluginManager.load', return_value=[('localhost:5001', 'tcp')])
     @mock.patch('synse_server.plugin.PluginManager.register')

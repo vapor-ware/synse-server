@@ -11,7 +11,8 @@ import sys
 from structlog import get_logger
 
 import synse_server
-from synse_server import app, cache, config, loop, metrics, plugin, tasks
+from synse_server import (app, cache, config, errors, loop, metrics, plugin,
+                          tasks)
 from synse_server.log import setup_logger
 
 logger = get_logger()
@@ -145,6 +146,18 @@ class Synse:
             logger.info('SSL configured for Synse Server', config=ssl_context)
         else:
             logger.info('running server without SSL (no key/cert configured)')
+
+        # Check if the gRPC cert is configured, and if so, verify that the cert
+        # exists. (https://github.com/vapor-ware/synse-server/issues/388)
+        # This is done here as opposed to waiting to fail on client creation
+        # so the server can hard fail with certs that don't exist.
+        if config.options.get('grpc.tls.cert'):
+            cert = config.options.get('grpc.tls.cert')
+            logger.debug('checking for gRPC cert', cert=cert)
+            if not os.path.exists(cert):
+                raise FileNotFoundError(
+                    f'gRPC cert not found: {cert}'
+                )
 
         # Load the plugins defined in the configuration.
         plugin.manager.refresh()
