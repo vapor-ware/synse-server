@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from structlog import get_logger
 from synse_grpc import client, utils
 
-from synse_server import backoff, config, loop
+from synse_server import backoff, config, errors, loop
 from synse_server.discovery import kubernetes
 from synse_server.metrics import MetricsInterceptor, Monitor
 
@@ -96,13 +96,28 @@ class PluginManager:
         # and ensure that we can connect to the plugin. These calls may raise
         # an exception - we want to let them propagate up to signal that registration
         # for the particular address failed.
-        c = client.PluginClientV3(
-            address=address,
-            protocol=protocol,
-            timeout=config.options.get('grpc.timeout'),
-            tls=config.options.get('grpc.tls.cert'),
-            interceptors=interceptors,
-        )
+        try:
+            c = client.PluginClientV3(
+                address=address,
+                protocol=protocol,
+                timeout=config.options.get('grpc.timeout'),
+                tls=config.options.get('grpc.tls.cert'),
+                interceptors=interceptors,
+            )
+        except Exception as e:
+            logger.error(
+                'failed to create plugin client',
+                address=address,
+                protocol=protocol,
+                timeout=config.options.get('grpc.timeout'),
+                tls=config.options.get('grpc.tls.cert'),
+                interceptors=interceptors,
+            )
+            raise errors.ClientCreateError('error creating plugin client') from e
+
+        # Let any exceptions here raise up. The caller should handle appropriately.
+        # Generally any exceptions raised here should not propagate past the caller,
+        # as a failure to communicate may be intermittent and should be retried later.
         meta = c.metadata()
         ver = c.version()
 
@@ -248,6 +263,12 @@ class PluginManager:
             for plugin in new:
                 try:
                     self.register(address=plugin[0], protocol=plugin[1])
+                except errors.ClientCreateError as e:
+                    logger.error(
+                        'failed client refresh - unable to configure client',
+                        address=plugin[0], protocol=plugin[1], error=e,
+                    )
+                    raise
                 except Exception as e:
                     # Do not raise. This could happen if we can't communicate with
                     # the configured plugin. Future refreshes will attempt to re-register

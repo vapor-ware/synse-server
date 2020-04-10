@@ -115,3 +115,13 @@ class ServerError(SynseError):
 
     http_code = 500
     description = 'error processing the request'
+
+
+class ClientCreateError(ServerError):
+    """Synse Server was unable to create a client (e.g. gRPC).
+
+    This error does not indicate errors with communicating with a connected
+    client. It should only be used in cases where client creation itself fails
+    for any reason, whether it is invalid TLS options, or other invalid
+    configuration.
+    """

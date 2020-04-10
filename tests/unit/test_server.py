@@ -64,6 +64,23 @@ class TestSynse:
         mock_init.assert_called_once()
         mock_run.assert_called_once()
 
+    @mock.patch.dict(
+        'synse_server.config.options._full_config',
+        {'grpc': {'tls': {'cert': 'test-cert'}}},
+    )
+    @mock.patch('synse_server.server.Synse._initialize')
+    @mock.patch('synse_server.loop.synse_loop.run_forever')
+    @mock.patch('sys.stdout.write')
+    def test_run_grpc_cert_error(self, mock_write, mock_run, mock_init):
+        synse = server.Synse(log_header=False)
+
+        with pytest.raises(FileNotFoundError):
+            synse.run()
+
+        mock_write.assert_not_called()
+        mock_init.assert_called_once()
+        mock_run.assert_not_called()
+
     @mock.patch('synse_server.server.Synse._initialize')
     @mock.patch('synse_server.loop.synse_loop.run_forever', side_effect=ValueError)
     def test_run_error(self, mock_run, mock_init):
