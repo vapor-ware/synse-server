@@ -170,7 +170,13 @@ class Synse:
             return_asyncio_server=True,
             access_log=False,
         )
-        asyncio.ensure_future(self.server, loop=loop.synse_loop)
+        t = asyncio.ensure_future(self.server, loop=loop.synse_loop)
+
+        # Wait until the server has been created and run. If there was an error
+        # creating the server, this will raise an exception.
+        loop.synse_loop.run_until_complete(t)
+
+        # The server is now running on the loop, so run the loop forever.
         loop.synse_loop.run_forever()
 
     def reload_config(self) -> None:

@@ -37,8 +37,9 @@ class TestSynse:
     @mock.patch.dict('synse_server.config.options._full_config', {'metrics': {'enabled': True}})
     @mock.patch('synse_server.server.Synse._initialize')
     @mock.patch('synse_server.loop.synse_loop.run_forever')
+    @mock.patch('synse_server.loop.synse_loop.run_until_complete')
     @mock.patch('sys.stdout.write')
-    def test_run_ok_with_metrics(self, mock_write, mock_run, mock_init):
+    def test_run_ok_with_metrics(self, mock_write, mock_ruc, mock_run, mock_init):
         synse = server.Synse()
         assert 'metrics' not in synse.app.router.routes_names.keys()
 
@@ -47,6 +48,7 @@ class TestSynse:
 
         mock_write.assert_called_once()
         mock_init.assert_called_once()
+        mock_ruc.assert_called_once()
         mock_run.assert_called_once()
 
     @mock.patch.dict(
@@ -55,13 +57,15 @@ class TestSynse:
     )
     @mock.patch('synse_server.server.Synse._initialize')
     @mock.patch('synse_server.loop.synse_loop.run_forever')
+    @mock.patch('synse_server.loop.synse_loop.run_until_complete')
     @mock.patch('sys.stdout.write')
-    def test_run_ok_with_ssl(self, mock_write, mock_run, mock_init):
+    def test_run_ok_with_ssl(self, mock_write, mock_ruc, mock_run, mock_init):
         synse = server.Synse(log_header=False)
         synse.run()
 
         mock_write.assert_not_called()
         mock_init.assert_called_once()
+        mock_ruc.assert_called_once()
         mock_run.assert_called_once()
 
     @mock.patch.dict(
@@ -70,8 +74,9 @@ class TestSynse:
     )
     @mock.patch('synse_server.server.Synse._initialize')
     @mock.patch('synse_server.loop.synse_loop.run_forever')
+    @mock.patch('synse_server.loop.synse_loop.run_until_complete')
     @mock.patch('sys.stdout.write')
-    def test_run_grpc_cert_error(self, mock_write, mock_run, mock_init):
+    def test_run_grpc_cert_error(self, mock_write, mock_ruc, mock_run, mock_init):
         synse = server.Synse(log_header=False)
 
         with pytest.raises(FileNotFoundError):
@@ -79,6 +84,7 @@ class TestSynse:
 
         mock_write.assert_not_called()
         mock_init.assert_called_once()
+        mock_ruc.assert_not_called()
         mock_run.assert_not_called()
 
     @mock.patch('synse_server.server.Synse._initialize')
@@ -91,6 +97,19 @@ class TestSynse:
 
         mock_init.assert_called_once()
         mock_run.assert_called_once()
+
+    @mock.patch('synse_server.server.Synse._initialize')
+    @mock.patch('synse_server.loop.synse_loop.run_until_complete', side_effect=ValueError)
+    @mock.patch('synse_server.loop.synse_loop.run_forever')
+    def test_run_error2(self, mock_run, mock_ruc, mock_init):
+        synse = server.Synse(log_header=False)
+
+        with pytest.raises(ValueError):
+            synse.run()
+
+        mock_init.assert_called_once()
+        mock_ruc.assert_called_once()
+        mock_run.assert_not_called()
 
     @mock.patch('bison.Bison.parse')
     @mock.patch('bison.Bison.validate')
