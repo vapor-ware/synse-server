@@ -5,7 +5,9 @@ are defined here.
 """
 
 import asyncio
+import functools
 import os
+import signal
 import sys
 
 from structlog import get_logger
@@ -118,6 +120,15 @@ class Synse:
 
     def run(self) -> None:
         """Run Synse Server."""
+
+        # Register signals for graceful termination
+        for sig in ('SIGINT', 'SIGTERM'):
+            logger.info('adding signal handler to synse loop')
+            loop.synse_loop.add_signal_handler(
+                sig=getattr(signal, sig),
+                callback=functools.partial(_handle_signal, sig, loop.synse_loop),
+            )
+
         logger.info('running synse server')
 
         # If we are configured to log the header, write it to stdout instead
@@ -202,3 +213,12 @@ class Synse:
         # Load and validate the configuration values.
         config.options.parse(requires_cfg=False)
         config.options.validate()
+
+
+def _handle_signal(signame, loop):
+    """Handler function for when the Synse loop receives a registered signal.
+
+    This indicates that the server should shut down gracefully.
+    """
+    logger.info('received termination signal, stopping loop', signal=signame, loop=loop)
+    loop.stop()
