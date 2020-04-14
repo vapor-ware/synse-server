@@ -16,6 +16,7 @@ Example usage:
 
 import argparse
 import asyncio
+import cProfile
 import os
 import sys
 
@@ -44,6 +45,10 @@ def main() -> None:
         '--version', required=False, action='store_true',
         help='print the version',
     )
+    parser.add_argument(
+        '--profile', required=False, action='store_true',
+        help='profile synse server code execution,'
+    )
     args = parser.parse_args()
 
     if args.version:
@@ -54,7 +59,35 @@ def main() -> None:
         host=args.host,
         port=args.port,
     )
-    server.run()
+
+    if args.profile:
+        print("""
+        *************************
+        Running in profiling mode
+        -------------------------
+        Synse Server was run with the --profile flag. This should only be used
+        for development/debug. It should not be used in production.
+
+        After Synse Server terminates, the profiling output will be printed out
+        to console and written to file (synse-server.profile). If running in a
+        container, it is your responsibility to copy the profile data out.
+        *************************
+        """)
+        pr = cProfile.Profile()
+        pr.enable()
+
+        try:
+            server.run()
+        except Exception as e:
+            print(f'Got exception: {e}')
+        finally:
+            pr.disable()
+
+        pr.print_stats('cumulative')
+        pr.dump_stats('synse-server.profile')
+
+    else:
+        server.run()
 
 
 if __name__ == '__main__':

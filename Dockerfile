@@ -27,11 +27,15 @@ RUN groupadd -g 51453 synse \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tini curl \
  && rm -rf /var/lib/apt/lists/* \
+ && mkdir -p /synse \
  && mkdir -p /etc/synse \
+ && chown -R synse:synse /synse \
  && chown -R synse:synse /etc/synse
 
 COPY --from=builder /build /usr/local
 COPY ./assets/favicon.ico /etc/synse/static/favicon.ico
 
 USER synse
+WORKDIR synse
+
 ENTRYPOINT ["/usr/bin/tini", "--", "synse_server"]
