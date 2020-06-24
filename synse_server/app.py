@@ -70,11 +70,18 @@ def on_request(request: Request) -> None:
 def on_response(request: Request, response: HTTPResponse) -> None:
     """Middleware function that runs prior to returning a response via Sanic."""
 
+    # Default bytes. If this is a StreamingHTTPResponse, this value is
+    # used, since there is no response.body for those responses.
+    # (https://github.com/vapor-ware/synse-server/issues/396)
+    byte_count = -1
+    if hasattr(response, 'body') and response.body is not None:
+        byte_count = len(response.body)
+
     logger.debug(
         'returning HTTP response',
         request=f'{request.method} {request.url}',
         status=response.status,
-        bytes=len(response.body),
+        bytes=byte_count,
     )
 
     # Unbind the request ID from the logger.
