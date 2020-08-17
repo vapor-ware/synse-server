@@ -1,0 +1,25 @@
+# .chartreleaser.yaml is the configuration file for chart-releaser, a CI tool
+# to update Helm Charts on application release. See the documentation at
+# https://github.com/edaniszewski/chart-releaser
+
+version: v1
+chart:
+  name: synse-server
+  repo: github.com/vapor-ware/synse-charts
+  path: synse-server
+publish:
+  pr:
+    title_template: '[{{ .Chart.Name }}] bump app version from {{ .Chart.PreviousVersion}} to {{ .Chart.NewVersion }}'
+commit:
+  author:
+    name: vio-bot
+    email: marco+viogh@vapor.io
+extras:
+- path: synse-server/README.md
+  updates:
+  - search: '\| `image\.tag` \| The tag of the image to use\. \| `[0-9a-zA-Z.-]*` \|'
+    replace: '| `image.tag` | The tag of the image to use. | `{{ .App.NewVersion }}` |'
+- path: synse-server`/values.yaml
+  updates:
+  - search: 'tag: "[0-9a-zA-Z.-]*"'
+    replace: 'tag: "{{ .App.NewVersion }}"'
