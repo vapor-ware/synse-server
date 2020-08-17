@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        py-version: ['3.6', '3.7', '3.8']
+        py-version: ['3.7', '3.8']
     name: Python ${{ matrix.py-version }} Test
     steps:
     - name: Checkout
