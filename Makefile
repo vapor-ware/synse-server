@@ -48,3 +48,10 @@ version:  ## Print the version of Synse Server
 
 help:  ## Print Make usage information
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+
+
+# Jenkins CI Targets
+
+.PHONY: unit-test
+
+unit-test: test

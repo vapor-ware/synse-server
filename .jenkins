@@ -1,104 +1,17 @@
-pipeline {
+#!/usr/bin/env groovy
 
-  agent any
+// Include this shared CI repository to load script helpers and libraries.
+library identifier: 'vapor@1.0.0-RC3', retriever: modernSCM([
+  $class: 'GitSCMSource',
+  remote: 'https://github.com/vapor-ware/ci-shared.git',
+  credentialsId: 'vio-bot-gh',
+])
 
-  environment {
-    IMAGE_NAME = 'vaporio/synse-server'
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
-
-    stage('Lint') {
-      agent {
-        label 'python-3.8'
-      }
-      steps {
-        container('python') {
-          sh 'tox -e lint'
-        }
-      }
-    }
-
-    stage('Test') {
-      agent {
-        label 'python-3.8'
-      }
-      environment {
-        CODECOV_TOKEN = credentials('codecov-token')
-      }
-      steps {
-        container('python') {
-          sh 'tox tests/unit'
-        }
-      }
-    }
-
-    stage('Verify Image Build') {
-      steps {
-        sh '''
-          docker build \
-            --label build_date=$(date -u +%Y-%m-%dT%T 2> /dev/null) \
-            --label version=$(python setup.py --version) \
-            --label commit=$(git rev-parse --short HEAD 2> /dev/null || true) \
-             -t ${IMAGE_NAME}:canary .
-        '''
-      }
-    }
-
-    stage('Publish "latest" Image (master)') {
-      when {
-        branch 'master'
-      }
-      steps {
-        withDockerRegistry(registry: [credentialsId: 'vio-docker-hub']) {
-          sh '''
-            docker build \
-              --label build_date=$(date -u +%Y-%m-%dT%T 2> /dev/null) \
-              --label version=$(python setup.py --version) \
-              --label commit=$(git rev-parse --short HEAD 2> /dev/null || true) \
-              -t ${IMAGE_NAME}:latest .
-          '''
-        }
-      }
-    }
-
-    stage('Draft GitHub Release') {
-      when {
-        buildingTag()
-      }
-      environment {
-        GITHUB_USER = 'vapor-ware'
-        GITHUB_TOKEN = credentials('vio-bot-gh-token')
-        GITHUB_REPONAME = 'synse-server'
-      }
-      steps {
-        // Build package distribution
-        sh 'python setup.py sdist --formats=gztar,zip'
-
-        // Auto-generate a changelog for the release
-        sh './bin/ci/generate_changelog.sh'
-
-        // Create the release
-        sh 'docker pull edaniszewski/ghr'
-        sh 'docker run --rm -v $PWD:/repo edaniszewski/ghr -u ${GITHUB_USER} -r ${GITHUB_REPONAME} -t ${GITHUB_TOKEN} -b "$(cat ./CHANGELOG.md)" -replace -draft ${TAG_NAME} dist'
-      }
-    }
-
-    stage('Publish Release Images') {
-      when {
-        buildingTag()
-      }
-      steps {
-        withDockerRegistry(registry: [credentialsId: 'vio-docker-hub']) {
-          sh './bin/ci/build_and_publish.sh latest'
-        }
-      }
-    }
-
-  }
-}
+pythonPipeline([
+  'image': 'vaporio/synse-server',
+  'pythonVersion': '3.8',
+  'mainBranch': 'develop',
+  'skipIntegrationTest': true,
+  'releaseToPypi': false,
+  'publishToGitHub': true,
+])

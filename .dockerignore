@@ -50,9 +50,6 @@ Dockerfile
 **/*.rst
 NOTICE
 
-# Scripts
-bin/ci
-
 # Other
 **/*.png
 **/*.svg
