@@ -30,7 +30,7 @@ setup(
     license=pkg['__license__'],
     packages=find_packages(exclude=['tests.*', 'tests']),
     include_package_data=True,
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     package_data={
         '': ['LICENSE'],
     },
@@ -57,6 +57,7 @@ setup(
         'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ]
 )
