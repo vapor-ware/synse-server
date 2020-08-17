@@ -14,8 +14,13 @@ pipeline {
     }
 
     stage('Lint') {
+      agent {
+        label 'python-3.8'
+      }
       steps {
-        sh 'tox -e lint'
+        container('python') {
+          sh 'tox -e lint'
+        }
       }
     }
 
