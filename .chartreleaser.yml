@@ -19,7 +19,7 @@ extras:
   updates:
   - search: '\| `image\.tag` \| The tag of the image to use\. \| `[0-9a-zA-Z.-]*` \|'
     replace: '| `image.tag` | The tag of the image to use. | `{{ .App.NewVersion }}` |'
-- path: synse-server`/values.yaml
+- path: synse-server/values.yaml
   updates:
   - search: 'tag: "[0-9a-zA-Z.-]*"'
     replace: 'tag: "{{ .App.NewVersion }}"'
