@@ -12,8 +12,6 @@ from sanic.response import HTTPResponse, raw
 
 class Monitor:
 
-    _req_start_time = '__req_start_time'
-
     #
     # Metrics for Synse Server's HTTP API
     #
@@ -134,11 +132,11 @@ class Monitor:
 
         @self.app.middleware('request')
         async def before_request(request: Request) -> None:
-            request[self._req_start_time] = time.time()
+            request.ctx.req_start_time = time.time()
 
         @self.app.middleware('response')
         async def before_response(request: Request, response: HTTPResponse) -> None:
-            latency = time.time() - request[self._req_start_time]
+            latency = time.time() - request.ctx.req_start_time
 
             # WebSocket handler ignores response logic, so default
             # to a 200 response in such case.
