@@ -136,7 +136,15 @@ class Monitor:
 
         @self.app.middleware('response')
         async def before_response(request: Request, response: HTTPResponse) -> None:
-            latency = time.time() - request.ctx.req_start_time
+            # If there is no request start time captured in the request context, we cannot
+            # measure request latency, so do not use it.
+            #
+            # This case is indicative of a 404 or some bad request coming in and the request
+            # immediately resolving to an error response via the Sanic framework.
+            if hasattr(request.ctx, 'req_start_time'):
+                latency = time.time() - request.ctx.req_start_time
+            else:
+                latency = None
 
             # WebSocket handler ignores response logic, so default
             # to a 200 response in such case.
@@ -144,7 +152,8 @@ class Monitor:
             labels = (request.method, request.uri_template, request.path, code, request.ip)
 
             if request.path != '/metrics':
-                self.http_req_latency.labels(*labels).observe(latency)
+                if latency is not None:
+                    self.http_req_latency.labels(*labels).observe(latency)
                 self.http_req_count.labels(*labels).inc()
 
                 # We cannot use Content-Length header since that has not yet been
