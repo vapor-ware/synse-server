@@ -211,20 +211,104 @@ class TestPluginManager:
         'synse_server.plugin.client.PluginClientV3.version',
         return_value=V3Version(),
     )
-    def test_register_duplicate_plugin_id(self, mock_version, mock_metadata):
+    def test_register_duplicate_plugin_id_both_active(self, mock_version, mock_metadata):
+        """Plugins with the same Plugin ID are registered. Both are considered active,
+        so Synse should keep the cached Plugin instance.
+        """
+
         m = plugin.PluginManager()
-        m.plugins = {
-            '123': plugin.Plugin(
-                {'id': 'foo', 'tag': 'foo'},
-                {},
-                client.PluginClientV3('foo', 'tcp'),
-            ),
-        }
+        p = plugin.Plugin(
+            {'id': 'foo', 'tag': 'foo'},
+            {},
+            client.PluginClientV3('foo', 'tcp'),
+        )
+        m.plugins = {'123': p}
 
         plugin_id = m.register('localhost:5432', 'tcp')
         assert plugin_id == '123'
         # Ensure nothing new was added to the manager.
         assert len(m.plugins) == 1
+        assert m.plugins[plugin_id].active is True
+        assert m.plugins[plugin_id].disabled is False
+
+        # Since the plugins are both active, Synse keeps the existing one, so
+        # the object ID of the cached Plugin should not have changed from the
+        # seed value.
+        assert id(m.plugins[plugin_id]) == id(p)
+
+        mock_metadata.assert_called_once()
+        mock_version.assert_called_once()
+
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.metadata',
+        return_value=V3Metadata(id='123', tag='foo'),
+    )
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.version',
+        return_value=V3Version(),
+    )
+    def test_register_duplicate_id_old_disabled_new_active(self, mock_version, mock_metadata):
+        """Plugins with the same Plugin ID are registered. The cached Plugin is disabled, while
+        the new one is active. In this case Synse should replace the cached disabled instance with
+        the new active one.
+        """
+
+        m = plugin.PluginManager()
+        p = plugin.Plugin(
+            {'id': '123', 'tag': 'foo'},
+            {},
+            client.PluginClientV3('localhost:5432', 'tcp'),
+        )
+        p.disabled = True
+        m.plugins = {'123': p}
+
+        plugin_id = m.register('localhost:5432', 'tcp')
+        assert plugin_id == '123'
+        assert len(m.plugins) == 1
+        assert m.plugins[plugin_id].active is True
+        assert m.plugins[plugin_id].disabled is False
+
+        # Since the seed plugin is disabled, the registration process should replace
+        # the old Plugin instance with the newly created one, which should no longer
+        # be disabled. This will be a new instance, so new object ID.
+        assert id(m.plugins[plugin_id]) != id(p)
+
+        mock_metadata.assert_called_once()
+        mock_version.assert_called_once()
+
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.metadata',
+        return_value=V3Metadata(id='123', tag='foo'),
+    )
+    @mock.patch(
+        'synse_server.plugin.client.PluginClientV3.version',
+        return_value=V3Version(),
+    )
+    def test_register_duplicate_id_existing_disabled_new_address_changed(self, mock_version, mock_metadata):  # noqa
+        """Plugins with the same Plugin ID are registered. The cached plugin is disabled and has
+        a different address than the new plugin, which is active. Synse should replace the cached
+        disabled instance with the new active one.
+        """
+
+        m = plugin.PluginManager()
+        p = plugin.Plugin(
+            {'id': '123', 'tag': 'foo'},
+            {},
+            client.PluginClientV3('somewhere:6789', 'tcp'),
+        )
+        p.disabled = True
+        m.plugins = {'123': p}
+
+        plugin_id = m.register('localhost:5432', 'tcp')
+        assert plugin_id == '123'
+        assert len(m.plugins) == 1
+        assert m.plugins[plugin_id].active is True
+        assert m.plugins[plugin_id].disabled is False
+
+        # Since the seed plugin is disabled, the registration process should replace
+        # the old Plugin instance with the newly created one, which should no longer
+        # be disabled. This will be a new instance, so new object ID.
+        assert id(m.plugins[plugin_id]) != id(p)
 
         mock_metadata.assert_called_once()
         mock_version.assert_called_once()
@@ -569,7 +653,7 @@ class TestPlugin:
             )
 
     def test_str(self, simple_plugin):
-        assert str(simple_plugin) == '<Plugin (test/foo): 123>'
+        assert str(simple_plugin) == '<Plugin (test/foo @ localhost:5432): 123>'
 
     def test_context_no_error(self, simple_plugin):
         simple_plugin.active = False

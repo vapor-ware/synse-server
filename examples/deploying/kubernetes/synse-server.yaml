@@ -1,0 +1,69 @@
+#
+# deployment.yaml
+#
+# A simple example Kubernetes deployment for Synse Server and the
+# emulator plugin.
+#
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: synse-server-config
+  labels:
+    app: synse-server
+data:
+  config.yml: "logging: debug\nplugin:\n  discover:\n    kubernetes:\n      endpoints:\n        labels:\n          synse-component: plugin\n      namespace: default\npretty_json: true\n"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: synse-server
+  labels:
+    app: synse-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5000
+    name: http
+  selector:
+    app: synse-server
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: synse-server
+  labels:
+    app: synse-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: synse-server
+  template:
+    metadata:
+      name: synse-server
+      labels:
+        app: synse-server
+    spec:
+      terminationGracePeriodSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: synse-server-config
+      containers:
+      - name: synse-server
+        image: vaporio/synse-server
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5000
+        env:
+        - name: SYNSE_METRICS_ENABLED
+          value: "true"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/synse/server

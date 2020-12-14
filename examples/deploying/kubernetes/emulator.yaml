@@ -1,0 +1,96 @@
+#
+# emulator.yaml
+#
+# A simple example Kubernetes deployment for Synse's emulator plugin,
+# intended to be run in conjunction with a Synse Server deployment.
+#
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emulator-config
+  labels:
+    synse-component: plugin
+    app: emulator
+data:
+  config.yml: "debug: true\nid:\n  useCustom:\n  - emu-1\nnetwork:\n  address: :5001\n  type: tcp\nsettings:\n  cache:\n    enabled: true\n    ttl: 5m\n  mode: parallel\n  read:\n    interval: 1s\n  write:\n    interval: 2s\nversion: 3\n"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: emulator-devices
+  labels:
+    synse-component: plugin
+    app: emulator
+data:
+  config.yml: "devices:\n- context:\n    model: emul8-temp\n  instances:\n  - data:\n      id: 1\n    info: Synse Temperature Sensor 1\n  - data:\n      id: 2\n    info: Synse Temperature Sensor 2\n  - data:\n      id: 3\n    info: Synse Temperature Sensor 3\n  - data:\n      id: 4\n    info: Synse Temperature Sensor 4\n  type: temperature\nversion: 3\n"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: emulator
+  labels:
+    synse-component: plugin
+    app: emulator
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - port: 5001
+    targetPort: http
+    name: http
+  selector:
+    synse-component: plugin
+    app: emulator
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emulator
+  labels:
+    app: emulator
+    synse-component: plugin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      synse-component: plugin
+      app: emulator
+  template:
+    metadata:
+      name: emulator
+      labels:
+        synse-component: plugin
+        app: emulator
+    spec:
+      terminationGracePeriodSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: emulator-config
+      - name: devices
+        configMap:
+          name: emulator-devices
+      containers:
+      - name: emulator-plugin
+        image: vaporio/emulator-plugin
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 5001
+        env:
+        - name: PLUGIN_METRICS_ENABLED
+          value: "true"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/synse/plugin/config/config.yml
+          subPath: config.yml
+        - name: devices
+          mountPath: /etc/synse/plugin/config/device

@@ -133,13 +133,56 @@ class PluginManager:
         )
 
         if plugin.id in self.plugins:
-            # The plugin has already been registered. There is nothing left to
-            # do here, so just log and move on.
-            logger.debug('plugin with id already registered - skipping', id=plugin.id)
+            # A plugin with the given ID has already been registered. This could happen
+            # in a number of cases:
+            #
+            # - During routine refresh of plugins, discovery or some other mechanism will
+            #   find plugins and attempt to re-register them, relying on this block to
+            #   determine whether or not the plugin needs to be re-registered.
+            # - Plugins were mis-configured and are having ID collisions. There is nothing
+            #   that can be done here other than logging the potential collision.
+            # - Plugins were rescheduled and could potentially be given a new IP address.
+            #   In this case, the 'cached' plugin could exist, but have the wrong address.
+            #
+            # In addition to checking whether or not the plugin exists in the manager cache,
+            # we also need to check some general state of the plugin, including whether it is
+            # enabled/disabled, what its address is, etc.
+            cached = self.plugins[plugin.id]
+
+            if cached.disabled:
+                if cached.address != plugin.address:
+                    logger.info(
+                        'address changed for existing plugin',
+                        id=plugin.id, old_addr=cached.address, new_addr=plugin.address,
+                    )
+
+                # Regardless of whether the plugin address changed, it was previously disabled
+                # due to some error. Since we were able to connect to it, we will cancel any pending
+                # reconnect tasks and use the newly connect client instance.
+                cached.cancel_tasks()
+
+                # Update the exported metrics disabled plugins gauge: remove the old disabled plugin
+                Monitor.plugin_disabled.labels(plugin.id).dec()
+
+                self.plugins[plugin.id] = plugin
+                logger.debug('re-registered existing plugin', new=plugin, previous=cached)
+
+            else:
+                if cached.address != plugin.address:
+                    # If we have matching plugin IDs, but differing addresses, and both plugins
+                    # are considered "active", there is a chance that we are communicating with
+                    # different plugins which have the same ID. This is indicative of a plugin ID
+                    # collision due to misconfiguration.
+                    logger.warning(
+                        'potential plugin ID collision: plugins with same ID, different addresses '
+                        'detected. this may also indicate plugin cycling.',
+                        id=plugin.id, old_addr=cached.address, new_addr=plugin.address,
+                    )
         else:
             self.plugins[plugin.id] = plugin
             logger.info('successfully registered new plugin', id=plugin.id, tag=plugin.tag)
 
+        # Since we were able to communicate with the plugin, ensure it is put in the active state.
         self.plugins[plugin.id].mark_active()
         return plugin.id
 
@@ -387,7 +430,7 @@ class Plugin:
         self._reconnect_task: Optional[asyncio.Task] = None
 
     def __str__(self) -> str:
-        return f'<Plugin ({self.tag}): {self.id}>'
+        return f'<Plugin ({self.tag} @ {self.address}): {self.id}>'
 
     def __repr__(self) -> str:
         return str(self)
