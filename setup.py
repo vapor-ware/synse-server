@@ -50,7 +50,7 @@ setup(
         'shortuuid',
         'structlog>=20.1.0',
         'websockets',
-        'synse-grpc==3.0.0',
+        'synse-grpc==3.1.0',
     ],
     zip_safe=False,
     classifiers=[

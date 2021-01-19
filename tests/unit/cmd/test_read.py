@@ -180,6 +180,7 @@ async def test_read_ok_no_tags(mocker, simple_plugin, temperature_reading, humid
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'temperature',
             'device_type': 'temperature',
+            'device_info': 'Example Temperature Device',
             'unit': {
                 'name': 'celsius',
                 'symbol': 'C',
@@ -194,6 +195,7 @@ async def test_read_ok_no_tags(mocker, simple_plugin, temperature_reading, humid
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'humidity',
             'device_type': 'humidity',
+            'device_info': 'Example Humidity Device',
             'unit': {
                 'name': 'percent',
                 'symbol': '%',
@@ -240,6 +242,7 @@ async def test_read_ok_tags_with_ns(mocker, simple_plugin, state_reading):
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'state',
             'device_type': 'led',
+            'device_info': 'Example LED Device',
             'value': 'on',
             'unit': None,
             'context': {},
@@ -286,6 +289,7 @@ async def test_read_ok_tags_without_ns(mocker, simple_plugin, state_reading):
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'state',
             'device_type': 'led',
+            'device_info': 'Example LED Device',
             'value': 'on',
             'unit': None,
             'context': {},
@@ -332,6 +336,7 @@ async def test_read_ok_single_tag_group_without_ns(mocker, simple_plugin, state_
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'state',
             'device_type': 'led',
+            'device_info': 'Example LED Device',
             'value': 'on',
             'unit': None,
             'context': {},
@@ -378,6 +383,7 @@ async def test_read_ok_single_tag_group_without_ns_with_plugin(
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'state',
             'device_type': 'led',
+            'device_info': 'Example LED Device',
             'value': 'on',
             'unit': None,
             'context': {},
@@ -489,6 +495,7 @@ async def test_read_device_ok(mocker, simple_plugin, temperature_reading):
                 'timestamp': '2019-04-22T13:30:00Z',
                 'type': 'temperature',
                 'device_type': 'temperature',
+                'device_info': 'Example Temperature Device',
                 'unit': {
                     'name': 'celsius',
                     'symbol': 'C',
@@ -578,6 +585,7 @@ async def test_read_cache_ok(mocker, simple_plugin, humidity_reading):
             'timestamp': '2019-04-22T13:30:00Z',
             'type': 'humidity',
             'device_type': 'humidity',
+            'device_info': 'Example Humidity Device',
             'unit': {
                 'name': 'percent',
                 'symbol': '%',
@@ -624,6 +632,7 @@ def test_reading_to_dict_1(temperature_reading):
         'timestamp': '2019-04-22T13:30:00Z',
         'type': 'temperature',
         'device_type': 'temperature',
+        'device_info': 'Example Temperature Device',
         'unit': {
             'name': 'celsius',
             'symbol': 'C',
@@ -643,6 +652,7 @@ def test_reading_to_dict_2(humidity_reading):
         'timestamp': '2019-04-22T13:30:00Z',
         'type': 'humidity',
         'device_type': 'humidity',
+        'device_info': 'Example Humidity Device',
         'unit': {
             'name': 'percent',
             'symbol': '%',
@@ -660,6 +670,7 @@ def test_reading_to_dict_3(state_reading):
         'timestamp': '2019-04-22T13:30:00Z',
         'type': 'state',
         'device_type': 'led',
+        'device_info': 'Example LED Device',
         'value': 'on',
         'unit': None,
         'context': {},

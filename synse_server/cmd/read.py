@@ -42,6 +42,7 @@ def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
         'timestamp': reading.timestamp,
         'type': reading.type,
         'device_type': reading.deviceType,
+        'device_info': reading.deviceInfo,
         'unit': unit,
         'value': value,
         'context': dict(reading.context),
