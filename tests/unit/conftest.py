@@ -170,6 +170,7 @@ def temperature_reading():
         timestamp='2019-04-22T13:30:00Z',
         type='temperature',
         deviceType='temperature',
+        deviceInfo='Example Temperature Device',
         context={'zone': '1'},
         unit=api.V3OutputUnit(
             name='celsius',
@@ -188,6 +189,7 @@ def humidity_reading():
         timestamp='2019-04-22T13:30:00Z',
         type='humidity',
         deviceType='humidity',
+        deviceInfo='Example Humidity Device',
         unit=api.V3OutputUnit(
             name='percent',
             symbol='%',
@@ -205,6 +207,7 @@ def state_reading():
         timestamp='2019-04-22T13:30:00Z',
         type='state',
         deviceType='led',
+        deviceInfo='Example LED Device',
         string_value='on',
     )
 
