@@ -4,25 +4,57 @@
 #
 #    pip-compile --output-file=requirements-test.txt test-requirements.in
 #
-aiohttp==3.6.2            # via -r test-requirements.in
-async-timeout==3.0.1      # via aiohttp
-asynctest==0.13.0         # via -r test-requirements.in
-attrs==20.1.0             # via aiohttp, pytest
-chardet==3.0.4            # via aiohttp
-coverage==5.2.1           # via pytest-cov
-idna==2.10                # via yarl
-iniconfig==1.0.1          # via pytest
-mock==4.0.2               # via -r test-requirements.in
-more-itertools==8.4.0     # via pytest
-multidict==4.7.6          # via aiohttp, yarl
-packaging==20.4           # via pytest
-pluggy==0.13.1            # via pytest
-py==1.9.0                 # via pytest
-pyparsing==2.4.7          # via packaging
-pytest-asyncio==0.14.0    # via -r test-requirements.in
-pytest-cov==2.10.1        # via -r test-requirements.in
-pytest-mock==3.3.1        # via -r test-requirements.in
-pytest==6.0.1             # via -r test-requirements.in, pytest-asyncio, pytest-cov, pytest-mock
-six==1.15.0               # via packaging
-toml==0.10.1              # via pytest
-yarl==1.5.1               # via aiohttp
+aiohttp==3.7.4
+    # via -r test-requirements.in
+async-timeout==3.0.1
+    # via aiohttp
+asynctest==0.13.0
+    # via -r test-requirements.in
+attrs==20.1.0
+    # via
+    #   aiohttp
+    #   pytest
+chardet==3.0.4
+    # via aiohttp
+coverage==5.2.1
+    # via pytest-cov
+idna==2.10
+    # via yarl
+iniconfig==1.0.1
+    # via pytest
+mock==4.0.2
+    # via -r test-requirements.in
+more-itertools==8.4.0
+    # via pytest
+multidict==4.7.6
+    # via
+    #   aiohttp
+    #   yarl
+packaging==20.4
+    # via pytest
+pluggy==0.13.1
+    # via pytest
+py==1.9.0
+    # via pytest
+pyparsing==2.4.7
+    # via packaging
+pytest-asyncio==0.14.0
+    # via -r test-requirements.in
+pytest-cov==2.10.1
+    # via -r test-requirements.in
+pytest-mock==3.3.1
+    # via -r test-requirements.in
+pytest==6.0.1
+    # via
+    #   -r test-requirements.in
+    #   pytest-asyncio
+    #   pytest-cov
+    #   pytest-mock
+six==1.15.0
+    # via packaging
+toml==0.10.1
+    # via pytest
+typing-extensions==3.7.4.3
+    # via aiohttp
+yarl==1.5.1
+    # via aiohttp
