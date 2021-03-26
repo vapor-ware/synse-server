@@ -22,7 +22,7 @@ class TestCoreTest:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/test', gather_request=False)
+        _, response = fn('/test', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -32,7 +32,7 @@ class TestCoreTest:
                 'timestamp': '2019-04-22T13:30:00Z',
             }
 
-            resp = synse_app.test_client.get('/test', gather_request=False)
+            _, resp = synse_app.test_client.get('/test', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -57,7 +57,7 @@ class TestCoreVersion:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/version', gather_request=False)
+        _, response = fn('/version', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -67,7 +67,7 @@ class TestCoreVersion:
                 'api_version': 'v3',
             }
 
-            resp = synse_app.test_client.get('/version', gather_request=False)
+            _, resp = synse_app.test_client.get('/version', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -93,7 +93,7 @@ class TestV3Config:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/config', gather_request=False)
+        _, response = fn('/v3/config', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -107,7 +107,7 @@ class TestV3Config:
                 }
             }
 
-            resp = synse_app.test_client.get('/v3/config', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/config', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -120,7 +120,7 @@ class TestV3Config:
         with asynctest.patch('synse_server.cmd.config') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/config', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/config', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -151,7 +151,7 @@ class TestV3Plugins:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/plugin', gather_request=False)
+        _, response = fn('/v3/plugin', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -173,7 +173,7 @@ class TestV3Plugins:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/plugin', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -186,7 +186,7 @@ class TestV3Plugins:
         with asynctest.patch('synse_server.cmd.plugins') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/plugin', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -217,7 +217,7 @@ class TestV3Plugin:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/plugin/123', gather_request=False)
+        _, response = fn('/v3/plugin/123', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -238,7 +238,7 @@ class TestV3Plugin:
                 },
             }
 
-            resp = synse_app.test_client.get('/v3/plugin/12345', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin/12345', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -252,7 +252,7 @@ class TestV3Plugin:
         with asynctest.patch('synse_server.cmd.plugin') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('plugin not found')
 
-            resp = synse_app.test_client.get('/v3/plugin/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin/123', gather_request=False)
             assert resp.status == 404
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -271,7 +271,7 @@ class TestV3Plugin:
         with asynctest.patch('synse_server.cmd.plugin') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/plugin/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin/123', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -303,7 +303,7 @@ class TestV3PluginHealth:
     )
     def test_health_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/plugin/health', gather_request=False)
+        _, response = fn('/v3/plugin/health', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -321,7 +321,7 @@ class TestV3PluginHealth:
                 'inactive': 1,
             }
 
-            resp = synse_app.test_client.get('/v3/plugin/health', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin/health', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -334,7 +334,7 @@ class TestV3PluginHealth:
         with asynctest.patch('synse_server.cmd.plugin_health') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/plugin/health', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/plugin/health', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -365,7 +365,7 @@ class TestV3Scan:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/scan', gather_request=False)
+        _, response = fn('/v3/scan', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -391,7 +391,7 @@ class TestV3Scan:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/scan', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/scan', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -410,7 +410,7 @@ class TestV3Scan:
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/scan', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/scan', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -433,7 +433,7 @@ class TestV3Scan:
     def test_invalid_multiple_ns(self, synse_app):
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
 
-            resp = synse_app.test_client.get('/v3/scan?ns=ns-1&ns=ns-2', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/scan?ns=ns-1&ns=ns-2', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -450,7 +450,7 @@ class TestV3Scan:
     def test_invalid_multiple_sort(self, synse_app):
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
 
-            resp = synse_app.test_client.get('/v3/scan?sort=id&sort=type', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/scan?sort=id&sort=type', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -488,7 +488,7 @@ class TestV3Scan:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/scan' + qparam,
                 gather_request=False,
             )
@@ -529,7 +529,7 @@ class TestV3Scan:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/scan' + qparam,
                 gather_request=False,
             )
@@ -579,7 +579,7 @@ class TestV3Scan:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/scan' + qparam,
                 gather_request=False,
             )
@@ -623,7 +623,7 @@ class TestV3Scan:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/scan' + qparam,
                 gather_request=False,
             )
@@ -658,7 +658,7 @@ class TestV3Tags:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/tags', gather_request=False)
+        _, response = fn('/v3/tags', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -669,7 +669,7 @@ class TestV3Tags:
                 'vapor/unit:test',
             ]
 
-            resp = synse_app.test_client.get('/v3/tags', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/tags', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -686,7 +686,7 @@ class TestV3Tags:
         with asynctest.patch('synse_server.cmd.tags') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/tags', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/tags', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -722,7 +722,7 @@ class TestV3Tags:
                 'vapor/unit:test',
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/tags' + qparam,
                 gather_request=False,
             )
@@ -764,7 +764,7 @@ class TestV3Tags:
                 'vapor/unit:test',
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/tags' + qparam,
                 gather_request=False,
             )
@@ -797,7 +797,7 @@ class TestV3Info:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/info/123', gather_request=False)
+        _, response = fn('/v3/info/123', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -811,7 +811,7 @@ class TestV3Info:
                 ],
             }
 
-            resp = synse_app.test_client.get('/v3/info/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/info/123', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -825,7 +825,7 @@ class TestV3Info:
         with asynctest.patch('synse_server.cmd.info') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/info/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/info/123', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -844,7 +844,7 @@ class TestV3Info:
         with asynctest.patch('synse_server.cmd.info') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('device not found')
 
-            resp = synse_app.test_client.get('/v3/info/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/info/123', gather_request=False)
             assert resp.status == 404
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -876,7 +876,7 @@ class TestV3Read:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/read', gather_request=False)
+        _, response = fn('/v3/read', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -888,7 +888,7 @@ class TestV3Read:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/read', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -906,7 +906,7 @@ class TestV3Read:
         with asynctest.patch('synse_server.cmd.read') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/read', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -928,7 +928,7 @@ class TestV3Read:
     def test_invalid_multiple_ns(self, synse_app):
         with asynctest.patch('synse_server.cmd.read') as mock_cmd:
 
-            resp = synse_app.test_client.get('/v3/read?ns=ns-1&ns=ns-2', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read?ns=ns-1&ns=ns-2', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -963,7 +963,7 @@ class TestV3Read:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/read' + qparam,
                 gather_request=False,
             )
@@ -999,7 +999,7 @@ class TestV3Read:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/read' + qparam,
                 gather_request=False,
             )
@@ -1023,7 +1023,7 @@ class TestV3Read:
                 '123456': None,
             })
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/read?plugin=123456',
                 gather_request=False,
             )
@@ -1043,7 +1043,7 @@ class TestV3Read:
         with asynctest.patch('synse_server.cmd.read') as mock_cmd:
             mock_cmd.return_value = [{'value': 1, 'type': 'temperature'}]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/read?plugin=123456',
                 gather_request=False,
             )
@@ -1069,7 +1069,7 @@ class TestV3ReadCache:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/readcache', gather_request=False)
+        _, response = fn('/v3/readcache', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -1099,7 +1099,7 @@ class TestV3ReadCache:
         with asynctest.patch('synse_server.api.http.cmd.read_cache') as mock_cmd:
             mock_cmd.side_effect = mock_read_cache
 
-            resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
             assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
@@ -1124,7 +1124,7 @@ class TestV3ReadCache:
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
             mock_cmd.side_effect = mock_read_cache
 
-            resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Transfer-Encoding'] == 'chunked'
             assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
@@ -1139,7 +1139,7 @@ class TestV3ReadCache:
     def test_invalid_multiple_start(self, synse_app):
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/readcache?start=123&start=321',
                 gather_request=False,
             )
@@ -1160,7 +1160,7 @@ class TestV3ReadCache:
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
             mock_cmd.side_effect = errors.InvalidUsage('invalid: end')
 
-            resp = synse_app.test_client.get('/v3/readcache?end=123&end=321', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/readcache?end=123&end=321', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1200,7 +1200,7 @@ class TestV3ReadCache:
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
             mock_cmd.side_effect = mock_read_cache
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/readcache' + qparam,
                 gather_request=False,
             )
@@ -1241,7 +1241,7 @@ class TestV3ReadCache:
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
             mock_cmd.side_effect = mock_read_cache
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/readcache' + qparam,
                 gather_request=False,
             )
@@ -1273,7 +1273,7 @@ class TestV3ReadDevice:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/read/123', gather_request=False)
+        _, response = fn('/v3/read/123', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -1289,7 +1289,7 @@ class TestV3ReadDevice:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1303,7 +1303,7 @@ class TestV3ReadDevice:
         with asynctest.patch('synse_server.cmd.read_device') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1322,7 +1322,7 @@ class TestV3ReadDevice:
         with asynctest.patch('synse_server.cmd.read_device') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('device not found')
 
-            resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
             assert resp.status == 404
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1341,7 +1341,7 @@ class TestV3ReadDevice:
         with asynctest.patch('synse_server.cmd.read_device') as mock_cmd:
             mock_cmd.side_effect = errors.UnsupportedAction('not supported')
 
-            resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
             assert resp.status == 405
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1373,7 +1373,7 @@ class TestV3AsyncWrite:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/write/123', gather_request=False)
+        _, response = fn('/v3/write/123', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -1389,7 +1389,7 @@ class TestV3AsyncWrite:
                 },
             ]
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1410,7 +1410,7 @@ class TestV3AsyncWrite:
         with asynctest.patch('synse_server.cmd.write_async') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1435,7 +1435,7 @@ class TestV3AsyncWrite:
     def test_invalid_json(self, synse_app):
         with asynctest.patch('synse_server.cmd.write_async') as mock_cmd:
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/123',
                 data='invalid json data',
                 gather_request=False,
@@ -1456,7 +1456,7 @@ class TestV3AsyncWrite:
     def test_invalid_json_missing_key(self, synse_app):
         with asynctest.patch('synse_server.cmd.write_async') as mock_cmd:
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/123',
                 data=ujson.dumps({'data': 'bar'}),
                 gather_request=False,
@@ -1478,7 +1478,7 @@ class TestV3AsyncWrite:
         with asynctest.patch('synse_server.cmd.write_async') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('device not found')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1504,7 +1504,7 @@ class TestV3AsyncWrite:
         with asynctest.patch('synse_server.cmd.write_async') as mock_cmd:
             mock_cmd.side_effect = errors.UnsupportedAction('not supported')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1543,7 +1543,7 @@ class TestV3SyncWrite:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/write/wait/123', gather_request=False)
+        _, response = fn('/v3/write/wait/123', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -1559,7 +1559,7 @@ class TestV3SyncWrite:
                 },
             ]
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1580,7 +1580,7 @@ class TestV3SyncWrite:
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1605,7 +1605,7 @@ class TestV3SyncWrite:
     def test_invalid_json(self, synse_app):
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data='invalid json data',
                 gather_request=False,
@@ -1626,7 +1626,7 @@ class TestV3SyncWrite:
     def test_invalid_json_missing_key(self, synse_app):
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'data': 'bar'}),
                 gather_request=False,
@@ -1648,7 +1648,7 @@ class TestV3SyncWrite:
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('device not found')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1674,7 +1674,7 @@ class TestV3SyncWrite:
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
             mock_cmd.side_effect = errors.UnsupportedAction('not supported')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -1713,7 +1713,7 @@ class TestV3Transactions:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/transaction', gather_request=False)
+        _, response = fn('/v3/transaction', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -1726,7 +1726,7 @@ class TestV3Transactions:
                 'txn-5',
             ]
 
-            resp = synse_app.test_client.get('/v3/transaction', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/transaction', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1739,7 +1739,7 @@ class TestV3Transactions:
         with asynctest.patch('synse_server.cmd.transactions') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/transaction', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/transaction', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1770,7 +1770,7 @@ class TestV3Transaction:
     )
     def test_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/transaction/123', gather_request=False)
+        _, response = fn('/v3/transaction/123', gather_request=False)
         assert response.status == 405
 
     def test_ok(self, synse_app):
@@ -1784,7 +1784,7 @@ class TestV3Transaction:
                 'timeout': '5s',
             }
 
-            resp = synse_app.test_client.get('/v3/transaction/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/transaction/123', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1798,7 +1798,7 @@ class TestV3Transaction:
         with asynctest.patch('synse_server.cmd.transaction') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/transaction/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/transaction/123', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1817,7 +1817,7 @@ class TestV3Transaction:
         with asynctest.patch('synse_server.cmd.transaction') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('transaction not found')
 
-            resp = synse_app.test_client.get('/v3/transaction/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/transaction/123', gather_request=False)
             assert resp.status == 404
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1857,7 +1857,7 @@ class TestV3Device:
     )
     def test_enumerate_methods_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/device', gather_request=False)
+        _, response = fn('/v3/device', gather_request=False)
         assert response.status == 405
 
     def test_enumerate_ok(self, synse_app):
@@ -1883,7 +1883,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/device', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/device', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1902,7 +1902,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/device', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/device', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1924,7 +1924,7 @@ class TestV3Device:
 
     def test_enumerate_invalid_multiple_ns(self, synse_app):
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
-            resp = synse_app.test_client.get('/v3/device?ns=ns-1&ns=ns-2', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/device?ns=ns-1&ns=ns-2', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1940,7 +1940,7 @@ class TestV3Device:
 
     def test_enumerate_invalid_multiple_sort(self, synse_app):
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
-            resp = synse_app.test_client.get('/v3/device?sort=id&sort=type', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/device?sort=id&sort=type', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1978,7 +1978,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/device' + qparam,
                 gather_request=False,
             )
@@ -2019,7 +2019,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/device' + qparam,
                 gather_request=False,
             )
@@ -2069,7 +2069,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/device' + qparam,
                 gather_request=False,
             )
@@ -2113,7 +2113,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.get(
+            _, resp = synse_app.test_client.get(
                 '/v3/device' + qparam,
                 gather_request=False,
             )
@@ -2146,7 +2146,7 @@ class TestV3Device:
     )
     def test_not_allowed(self, synse_app, method):
         fn = getattr(synse_app.test_client, method)
-        response = fn('/v3/device/123', gather_request=False)
+        _, response = fn('/v3/device/123', gather_request=False)
         assert response.status == 405
 
     def test_read_ok(self, synse_app):
@@ -2162,7 +2162,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.get('/v3/device/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/device/123', gather_request=False)
             assert resp.status == 200
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -2176,7 +2176,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.read_device') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.get('/v3/device/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/device/123', gather_request=False)
             assert resp.status == 500
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -2195,7 +2195,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.read_device') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('device not found')
 
-            resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
             assert resp.status == 404
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -2214,7 +2214,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.read_device') as mock_cmd:
             mock_cmd.side_effect = errors.UnsupportedAction('not supported')
 
-            resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
+            _, resp = synse_app.test_client.get('/v3/read/123', gather_request=False)
             assert resp.status == 405
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -2242,7 +2242,7 @@ class TestV3Device:
                 },
             ]
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/device/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -2263,7 +2263,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
             mock_cmd.side_effect = ValueError('***********')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -2288,7 +2288,7 @@ class TestV3Device:
     def test_write_invalid_json(self, synse_app):
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data='invalid json data',
                 gather_request=False,
@@ -2309,7 +2309,7 @@ class TestV3Device:
     def test_write_invalid_json_missing_key(self, synse_app):
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'data': 'bar'}),
                 gather_request=False,
@@ -2331,7 +2331,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
             mock_cmd.side_effect = errors.NotFound('device not found')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
@@ -2357,7 +2357,7 @@ class TestV3Device:
         with asynctest.patch('synse_server.cmd.write_sync') as mock_cmd:
             mock_cmd.side_effect = errors.UnsupportedAction('not supported')
 
-            resp = synse_app.test_client.post(
+            _, resp = synse_app.test_client.post(
                 '/v3/write/wait/123',
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,

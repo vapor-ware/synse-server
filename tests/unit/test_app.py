@@ -7,7 +7,7 @@ from synse_server import app, errors
 
 
 def test_new_app():
-    synse_app = app.new_app()
+    synse_app = app.app
 
     assert synse_app.name == 'synse-server'
     assert isinstance(synse_app.error_handler, errors.SynseErrorHandler)

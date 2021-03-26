@@ -44,7 +44,7 @@ setup(
         'bison>=0.1.0',
         'grpcio',
         'kubernetes',
-        'pyyaml>=4.2b1',
+        'pyyaml>=5.4',
         'sanic>=0.8.0',
         'prometheus-client',
         'shortuuid',

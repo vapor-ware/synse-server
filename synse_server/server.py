@@ -79,7 +79,7 @@ class Synse:
         self._initialize()
 
         # With setup complete, we can initialize a new Sanic application.
-        self.app = app.new_app()
+        self.app = app.app
 
         # The Sanic asyncio server
         self.server = None
