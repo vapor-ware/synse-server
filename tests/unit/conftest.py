@@ -6,6 +6,7 @@ import logging
 import asynctest
 import pytest
 from synse_grpc import api, client
+from sanic_testing import TestManager
 
 from synse_server import app, cache, plugin, utils
 
@@ -216,4 +217,5 @@ def state_reading():
 def synse_app():
     """Fixture to return an instance of the Synse Sanic application for testing."""
 
-    yield app.new_app()
+    TestManager(app.app)
+    yield app.app
