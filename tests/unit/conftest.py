@@ -1,12 +1,11 @@
 """Fixture definitions for Synse Server unit tests."""
-
 import datetime
 import logging
 
 import asynctest
 import pytest
-from synse_grpc import api, client
 from sanic_testing import TestManager
+from synse_grpc import api, client
 
 from synse_server import app, cache, plugin, utils
 
