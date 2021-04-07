@@ -58,18 +58,6 @@ def on_response(request: Request, response: HTTPResponse) -> None:
     )
 
 
-
-# def new_app(name=None) -> Sanic:
-#     """Create a new instance of the Synse Server Sanic application.
-#
-#     Args:
-#         name: Name of the application. This allows tests to create application
-#             instances with different names.
-#
-#     Returns:
-#         A Sanic application for Synse Server.
-#     """
-
 app = Sanic(
     name='synse-server',
     error_handler=errors.SynseErrorHandler(),
@@ -91,7 +79,3 @@ app.static('/favicon.ico', '/etc/synse/static/favicon.ico')
 # Register middleware with the application.
 app.register_middleware(on_request, 'request')
 app.register_middleware(on_response, 'response')
-
-    # return app
-
-

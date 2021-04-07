@@ -1160,7 +1160,8 @@ class TestV3ReadCache:
         with asynctest.patch('synse_server.cmd.read_cache') as mock_cmd:
             mock_cmd.side_effect = errors.InvalidUsage('invalid: end')
 
-            _, resp = synse_app.test_client.get('/v3/readcache?end=123&end=321', gather_request=False)
+            _, resp = synse_app.test_client.get(
+                '/v3/readcache?end=123&end=321', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -1940,7 +1941,8 @@ class TestV3Device:
 
     def test_enumerate_invalid_multiple_sort(self, synse_app):
         with asynctest.patch('synse_server.cmd.scan') as mock_cmd:
-            _, resp = synse_app.test_client.get('/v3/device?sort=id&sort=type', gather_request=False)
+            _, resp = synse_app.test_client.get(
+                '/v3/device?sort=id&sort=type', gather_request=False)
             assert resp.status == 400
             assert resp.headers['Content-Type'] == 'application/json'
 
@@ -2247,7 +2249,7 @@ class TestV3Device:
                 data=ujson.dumps({'action': 'foo', 'data': 'bar'}),
                 gather_request=False,
             )
-            assert resp.status == 200
+            assert resp.status == 200, resp.body
             assert resp.headers['Content-Type'] == 'application/json'
 
             body = ujson.loads(resp.body)

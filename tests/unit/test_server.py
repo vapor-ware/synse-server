@@ -41,10 +41,12 @@ class TestSynse:
     @mock.patch('sys.stdout.write')
     def test_run_ok_with_metrics(self, mock_write, mock_ruc, mock_run, mock_init):
         synse = server.Synse()
-        assert 'metrics' not in synse.app.router.routes_names.keys()
+
+        assert ('metrics',) not in synse.app.router.routes_all
 
         synse.run()
-        assert 'metrics' in synse.app.router.routes_names.keys()
+
+        assert ('metrics',) in synse.app.router.routes_all
 
         mock_write.assert_called_once()
         mock_init.assert_called_once()

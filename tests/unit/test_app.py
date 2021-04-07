@@ -30,13 +30,13 @@ def test_on_response_normal_http_response():
     contextvars.bind_contextvars(
         request_id='test-request',
     )
-    ctx = contextvars._get_context()
-    assert 'test-request' == ctx.get('request_id')
+    ctx = contextvars._CONTEXT_VARS
+    assert 'test-request' == ctx['structlog_request_id'].get()
 
     app.on_response(req, resp)
 
-    ctx = contextvars._get_context()
-    assert ctx.get('request_id') is None
+    ctx = contextvars._CONTEXT_VARS
+    assert ctx['structlog_request_id'].get() is Ellipsis
 
 
 def test_on_response_streaming_http_response():
@@ -50,10 +50,10 @@ def test_on_response_streaming_http_response():
     contextvars.bind_contextvars(
         request_id='test-request',
     )
-    ctx = contextvars._get_context()
-    assert 'test-request' == ctx.get('request_id')
+    ctx = contextvars._CONTEXT_VARS
+    assert 'test-request' == ctx['structlog_request_id'].get()
 
     app.on_response(req, resp)
 
-    ctx = contextvars._get_context()
-    assert ctx.get('request_id') is None
+    ctx = contextvars._CONTEXT_VARS
+    assert ctx['structlog_request_id'].get() is Ellipsis

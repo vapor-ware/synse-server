@@ -611,7 +611,39 @@ async def device(request: Request, device_id: str) -> HTTPResponse:
           * 500: Catchall processing error
     """
     if request.method == 'GET':
-        return await read_device(request, device_id)
+        try:
+            return utils.http_json_response(
+                await cmd.read_device(device_id),
+            )
+        except Exception:
+            logger.exception('failed to read device', id=device_id)
+            raise
 
     else:
-        return await sync_write(request, device_id)
+        try:
+            data = request.json
+        except Exception as e:
+            raise errors.InvalidUsage(
+                'invalid json: unable to parse POSTed body as JSON'
+            ) from e
+
+        # Validate that the incoming payload has an 'action' field defined. This
+        # field is required. All other fields are optional.
+        if isinstance(data, dict):
+            data = [data]
+        for item in data:
+            if 'action' not in item:
+                raise errors.InvalidUsage(
+                    'invalid json: key "action" is required in payload, but not found'
+                )
+
+        try:
+            return utils.http_json_response(
+                await cmd.write_sync(
+                    device_id=device_id,
+                    payload=data,
+                ),
+            )
+        except Exception:
+            logger.exception('failed to write synchronously', id=device_id, payload=data)
+            raise
