@@ -33,7 +33,7 @@ six==1.15.0               # via google-auth, grpcio, kubernetes, protobuf, pytho
 structlog==21.1.0         # via synse_server (setup.py)
 synse-grpc==3.1.0         # via synse_server (setup.py)
 ujson==4.0.2              # via sanic
-urllib3==1.26.4           # via kubernetes, requests
+urllib3==1.26.5           # via kubernetes, requests
 uvloop==0.15.2            # via sanic
 websocket-client==0.58.0  # via kubernetes
 websockets==8.1           # via sanic, synse_server (setup.py)
