@@ -18,7 +18,10 @@ services:
     image: vaporio/emulator-plugin
     ports:
     - '5001:5001'
+    - '2112:2112'
     command: ['--debug']
+    environment:
+      PLUGIN_METRICS_ENABLED: "true"
 
   loadgen:
     container_name: loadgen
@@ -37,6 +40,7 @@ services:
     - '9090:9090'
     links:
     - synse-server
+    - emulator
 
   grafana:
     container_name: grafana
