@@ -1,9 +1,0 @@
-aiohttp
-asynctest
-mock
-pytest
-pytest-asyncio
-pytest-cov
-pytest-mock
-requests
-sanic-testing
