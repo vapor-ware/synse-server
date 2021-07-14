@@ -1,25 +1,32 @@
 #
 # BUILDER STAGE
 #
-FROM vaporio/python:3.8 as builder
+FROM vaporio/python:3.9 as builder
 
-COPY requirements.txt .
+RUN pip install --disable-pip-version-check poetry
 
-RUN pip install --prefix=/build -r /requirements.txt --no-warn-script-location \
- && rm -rf /root/.cache
+WORKDIR /build
+COPY . .
 
-COPY . /synse
-RUN pip install --no-deps --prefix=/build --no-warn-script-location /synse \
- && rm -rf /root/.cache
+RUN poetry export --without-hashes -f requirements.txt > requirements.txt \
+ && poetry build -f sdist
+
+RUN mkdir packages \
+ && pip download \
+      -r requirements.txt \
+      -d packages \
+      --disable-pip-version-check
 
 #
 # RELEASE STAGE
 #
-FROM vaporio/python:3.8-slim
+FROM vaporio/python:3.9-slim
 
-LABEL maintainer="Vapor IO" \
-      name="vaporio/synse-server" \
-      url="https://github.com/vapor-ware/synse-server"
+LABEL org.opencontainers.image.title="Synse Server" \
+      org.opencontainers.image.source="https://github.com/vapor-ware/synse-server" \
+      org.opencontainers.image.url="https://github.com/vapor-ware/synse-server" \
+      org.opencontainers.image.vendor="Vapor IO" \
+      org.opencontainers.image.authors="erick@vapor.io"
 
 RUN groupadd -g 51453 synse \
  && useradd -u 51453 -g 51453 synse
@@ -32,10 +39,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && chown -R synse:synse /synse \
  && chown -R synse:synse /etc/synse
 
-COPY --from=builder /build /usr/local
+COPY --from=builder /build/dist/synse-server-*.tar.gz /synse/synse-server.tar.gz
+COPY --from=builder /build/packages /pip-packages
 COPY ./assets/favicon.ico /etc/synse/static/favicon.ico
 
-USER synse
 WORKDIR synse
+
+RUN pip install --no-index --find-links=/pip-packages /pip-packages/* \
+ && pip install synse-server.tar.gz \
+ && rm -rf /root/.cache
+
+USER synse
 
 ENTRYPOINT ["/usr/bin/tini", "--", "synse_server"]

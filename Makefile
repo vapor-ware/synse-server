@@ -2,8 +2,8 @@
 # Synse Server
 #
 
-PKG_NAME    := $(shell python setup.py --name)
-PKG_VERSION := $(shell python setup.py --version)
+PKG_NAME    := synse_server
+PKG_VERSION := $(shell poetry version | awk '{print $$2}')
 IMAGE_NAME  := vaporio/synse-server
 
 GIT_COMMIT  ?= $(shell git rev-parse --short HEAD 2> /dev/null || true)

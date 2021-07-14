@@ -9,10 +9,9 @@ library identifier: 'vapor@develop', retriever: modernSCM([
 
 pythonPipeline([
   'image': 'vaporio/synse-server',
-  'pythonVersion': '3.8',
+  'pythonVersion': '3.9',
   'mainBranch': 'develop',
   'skipIntegrationTest': true,
   'releaseToPypi': false,
   'publishToGitHub': true,
-  'skipSetup': true,
 ])
