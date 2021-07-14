@@ -5,7 +5,7 @@ import asyncio
 import mock
 import pytest
 
-from synse_server import loop, server
+from synse_server import server
 
 
 class TestSynse:

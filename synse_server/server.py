@@ -143,11 +143,8 @@ class Synse:
         tasks.register_with_app(self.app)
 
         # If application metrics are enabled, configure the application now.
-        print(f"@@@@ ---> metrics enabled: {config.options.get('metrics.enabled')}")
-
         if config.options.get('metrics.enabled'):
             logger.info('application performance metrics enabled (/metrics)')
-            print("@@@@@@ ---> registering monitor")
             metrics.Monitor(self.app).register()
 
         # Load the SSL configuration, if defined.
