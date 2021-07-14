@@ -1,0 +1,14 @@
+# For configuration reference, see:
+# https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Maintain dependencies for Python via Poetry
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+    labels:
+      - "dependencies"
+    open-pull-requests-limit: 3
