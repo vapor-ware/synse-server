@@ -30,4 +30,3 @@ services:
       # Mount the custom plugin config into the default plugin configuration
       # search path
       - ./plugin-config.yaml:/etc/synse/plugin/config/config.yaml
-

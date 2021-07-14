@@ -4,7 +4,6 @@ import os
 
 from setuptools import find_packages, setup
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 # Load the package's __init__.py file as a dictionary.
