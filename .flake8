@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 100
+exclude = bin/,.tox/,examples/,.github/,dist/,build/,htmlcov/
+ignore = W605,F401

@@ -2,8 +2,8 @@
 # Synse Server
 #
 
-PKG_NAME    := $(shell python setup.py --name)
-PKG_VERSION := $(shell python setup.py --version)
+PKG_NAME    := synse_server
+PKG_VERSION := $(shell poetry version | awk '{print $$2}')
 IMAGE_NAME  := vaporio/synse-server
 
 GIT_COMMIT  ?= $(shell git rev-parse --short HEAD 2> /dev/null || true)
@@ -20,9 +20,6 @@ clean:  ## Clean up build and test artifacts
 cover: test  ## Run unit tests and open the resulting HTML coverage report
 	open ./htmlcov/index.html
 
-deps:  ## Update the frozen pip dependencies (requirements.txt)
-	tox -e deps
-
 docker:  ## Build the docker image
 	docker build \
 		--label build_date=${BUILD_DATE} \
@@ -30,18 +27,19 @@ docker:  ## Build the docker image
 		--label commit=${GIT_COMMIT} \
 		-t ${IMAGE_NAME}:latest .
 
-fmt:  ## Automatic source code formatting (isort, autopep8)
-	tox -e fmt
+fmt:  ## Automatic source code formatting
+	poetry run pre-commit run --all-files
 
 github-tag:  ## Create and push a tag with the current version
 	git tag -a v${PKG_VERSION} -m "${PKG_NAME} version v${PKG_VERSION}"
 	git push -u origin v${PKG_VERSION}
 
 lint:  ## Run linting checks on the project source code (isort, flake8, twine)
-	tox -e lint
+	poetry run flake8
+	poetry check
 
 test:  ## Run the unit tests
-	tox tests/unit
+	poetry run pytest -s -vv --cov-report html --cov-report term-missing --cov synse_server
 
 version:  ## Print the version of Synse Server
 	@echo "${PKG_VERSION}"
@@ -52,6 +50,9 @@ help:  ## Print Make usage information
 
 # Jenkins CI Targets
 
-.PHONY: unit-test
+.PHONY: unit-test setup
 
 unit-test: test
+
+setup:
+	poetry install
