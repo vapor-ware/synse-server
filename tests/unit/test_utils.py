@@ -45,6 +45,11 @@ def test_rfc3339now():
         ([1, 2, 3], '[1,2,3]\n'),
         ([1, 2, [2, 3, 4]], '[1,2,[2,3,4]]\n'),
         ([{'one': 1}, {'two': 2}], '[{"one":1},{"two":2}]\n'),
+
+        # -- Regression tests for https://vaporio.atlassian.net/browse/VIO-1278
+        ({b'foo': 'bar'}, '{"foo":"bar"}\n'),
+        ({'foo': b'bar'}, '{"foo":"bar"}\n'),
+        ({b'foo': b'bar'}, '{"foo":"bar"}\n'),
     ],
 )
 def test_dumps(data, expected):
