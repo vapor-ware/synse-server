@@ -66,7 +66,7 @@ def _dumps(*arg, **kwargs) -> str:
     Returns:
         The given dictionary data dumped to a JSON string.
     """
-    out = ujson.dumps(*arg, **kwargs)
+    out = ujson.dumps(*arg, reject_bytes=False, **kwargs)
     if not out.endswith('\n'):
         out += '\n'
     return out
