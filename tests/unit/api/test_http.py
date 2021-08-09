@@ -1111,6 +1111,51 @@ class TestV3ReadCache:
         mock_cmd.assert_called_once()
         mock_cmd.assert_called_with('', '')
 
+    def test_ok_with_bytes(self, synse_app):
+        """Ensure that streaming responses works when values are provided as bytes instead
+        of as strings.
+
+        Regression test for: https://vaporio.atlassian.net/browse/VIO-1278
+        """
+
+        # Need to define a side-effect function for the test rather than utilizing
+        # asynctest's implicit behavior for iterable side_effects because the function
+        # we are mocking (cmd.read_cache) is an async generator, and the implicit
+        # handling via asynctest does not appear to to handle that case well.
+        async def mock_read_cache(*args, **kwargs):
+            values = [
+                {
+                    'value': 1,
+                    'type': b'temperature',
+                },
+                {
+                    b'value': 2,
+                    'type': 'temperature',
+                },
+                {
+                    b'value': 3,
+                    b'type': b'temperature',
+                },
+            ]
+
+            for v in values:
+                yield v
+
+        with asynctest.patch('synse_server.api.http.cmd.read_cache') as mock_cmd:
+            mock_cmd.side_effect = mock_read_cache
+
+            _, resp = synse_app.test_client.get('/v3/readcache', gather_request=False)
+            assert resp.status == 200
+            assert resp.headers['Transfer-Encoding'] == 'chunked'
+            assert resp.headers['Content-Type'] == 'application/json; charset=utf-8'
+
+            # The response is streamed, so we cannot simply load it (it will not be
+            # a valid single JSON document), so we compare just the body.
+            assert resp.body == b'{"value":1,"type":"temperature"}\n{"value":2,"type":"temperature"}\n{"value":3,"type":"temperature"}\n'  # noqa: E501
+
+        mock_cmd.assert_called_once()
+        mock_cmd.assert_called_with('', '')
+
     def test_error(self, synse_app):
         # Need to define a side-effect function for the test rather than utilizing
         # asynctest's implicit behavior for iterable side_effects because the function
