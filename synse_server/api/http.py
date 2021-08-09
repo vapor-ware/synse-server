@@ -410,7 +410,10 @@ async def read_cache(request: Request) -> StreamingHTTPResponse:
         # just log it and move on.
         try:
             async for reading in cmd.read_cache(start, end):
-                await response.write(ujson.dumps(reading) + '\n')
+                try:
+                    await response.write(ujson.dumps(reading, reject_bytes=False) + '\n')
+                except Exception:
+                    logger.exception('error streaming cached reading response', reading=reading)
         except Exception:
             logger.exception('failure when streaming cached readings')
 
