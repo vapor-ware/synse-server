@@ -32,7 +32,7 @@ pytest-cov = "^2.12.1"
 pytest-mock = "^3.6.1"
 requests = "^2.26.0"
 sanic-testing = "^0.6.0"
-pre-commit = "^2.14.0"
+pre-commit = "^2.14.1"
 flake8-isort = "^4.0.0"
 
 [tool.isort]
