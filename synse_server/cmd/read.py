@@ -1,5 +1,6 @@
 
 import asyncio
+import math
 import queue
 import threading
 from typing import Any, AsyncIterable, Dict, List, Optional, Union
@@ -31,6 +32,17 @@ def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
     field = reading.WhichOneof('value')
     if field is not None:
         value = getattr(reading, field)
+
+        # Ensure the value is not NaN, as NaN is not a part of the
+        # JSON spec and could cause clients to error.
+        try:
+            float(value)
+        except ValueError:
+            # Not a real number, nothing to do.
+            pass
+        else:
+            if math.isnan(value):
+                value = None
 
     if not reading.unit or (reading.unit.symbol == '' and reading.unit.name == ''):
         unit = None

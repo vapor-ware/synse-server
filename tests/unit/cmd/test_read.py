@@ -2,7 +2,7 @@
 
 import asynctest
 import pytest
-from synse_grpc import client
+from synse_grpc import api, client
 
 from synse_server import cmd, errors, plugin
 from synse_server.cmd.read import reading_to_dict
@@ -672,6 +672,35 @@ def test_reading_to_dict_3(state_reading):
         'device_type': 'led',
         'device_info': 'Example LED Device',
         'value': 'on',
+        'unit': None,
+        'context': {},
+    }
+
+
+def test_reading_to_dict_4_nan(state_reading):
+    """Handle NaN when converting the gRPC message to JSON, as NaN is not
+    part of the JSON spec. NaN should be converted to None.
+
+    Regression for: https://vaporio.atlassian.net/browse/VIO-1369
+    """
+
+    msg = api.V3Reading(
+        id='ddd',
+        timestamp='2019-04-22T13:30:00Z',
+        type='temperature',
+        deviceType='temperature',
+        deviceInfo='Example Temperature Device',
+        float64_value=float('nan'),
+    )
+
+    actual = reading_to_dict(msg)
+    assert actual == {
+        'device': 'ddd',
+        'timestamp': '2019-04-22T13:30:00Z',
+        'type': 'temperature',
+        'device_type': 'temperature',
+        'device_info': 'Example Temperature Device',
+        'value': None,
         'unit': None,
         'context': {},
     }
