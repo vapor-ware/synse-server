@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 // Include this shared CI repository to load script helpers and libraries.
-library identifier: 'vapor@develop', retriever: modernSCM([
+library identifier: 'vapor@report_VIO-599-python', retriever: modernSCM([
   $class: 'GitSCMSource',
   remote: 'https://github.com/vapor-ware/ci-shared.git',
   credentialsId: 'vio-bot-gh',
