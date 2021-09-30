@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "synse-server"
-version = "3.4.0"
+version = "3.4.1"
 description = "An API to monitor and control physical and virtual devices."
 authors = ["Erick Daniszewski <erick@vapor.io>"]
 license = "GNU General Public License v3.0"

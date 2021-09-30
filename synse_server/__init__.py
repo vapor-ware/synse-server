@@ -3,7 +3,7 @@ and virtual devices.
 """
 
 __title__ = 'synse_server'
-__version__ = '3.4.0'
+__version__ = '3.4.1'
 __api_version__ = 'v3'
 __description__ = 'An API to monitor and control physical and virtual devices.'
 __author__ = 'Vapor IO'
