@@ -704,3 +704,45 @@ def test_reading_to_dict_4_nan(state_reading):
         'unit': None,
         'context': {},
     }
+
+
+@pytest.mark.parametrize(
+    'reading_value', [
+        "000000",
+        "0",
+        "1",
+        "-1",
+        "ff0033",
+        "fab",
+        "FFAADD",
+        "319a81",
+    ]
+)
+def test_reading_to_dict_5_float_not_nan(state_reading, reading_value: str) -> None:
+    """Convert a reading to a dictionary. Here, the string value is castable to
+    a float, and thus will go through the NaN check, but should fail the check since
+    the float values do not resolve to NaN.
+
+    Regression for: https://vaporio.atlassian.net/browse/VIO-1616
+    """
+
+    msg = api.V3Reading(
+        id='ddd',
+        timestamp='2019-04-22T13:30:00Z',
+        type='color',
+        deviceType='led',
+        deviceInfo='Example LED Device',
+        string_value=reading_value,
+    )
+
+    actual = reading_to_dict(msg)
+    assert actual == {
+        'device': 'ddd',
+        'timestamp': '2019-04-22T13:30:00Z',
+        'type': 'color',
+        'device_type': 'led',
+        'device_info': 'Example LED Device',
+        'value': reading_value,
+        'unit': None,
+        'context': {},
+    }
