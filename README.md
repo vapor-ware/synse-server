@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img alt="Synse Avatar" src="assets/avatar.png" width="200" />
+  <img alt="Synse Avatar" src="assets/avatar.png" width="200" /><br />
   <img alt="Data Driven" src="assets/data-driven.png" width="150" />
   <h3 align="center">Synse Server</h3>
   <p align="center">An API to monitor and control physical and virtual infrastructure.</p>
