@@ -218,3 +218,10 @@ def synse_app():
 
     TestManager(app.app)
     yield app.app
+
+
+@pytest.fixture()
+def const_uuid():
+    """Return a constant UUID."""
+
+    return "cadc0872-9e73-4122-bfa2-377d176374e0"

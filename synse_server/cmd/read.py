@@ -1,5 +1,6 @@
 
 import asyncio
+import json
 import math
 import queue
 import threading
@@ -25,6 +26,7 @@ def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
         The reading converted to its dictionary representation, conforming
         to the V3 API read schema.
     """
+
     # The reading value is stored in a protobuf oneof block - we need to
     # figure out which field it is so we can extract it. If no field is set,
     # take the reading value to be None.
@@ -32,6 +34,25 @@ def reading_to_dict(reading: api.V3Reading) -> Dict[str, Any]:
     field = reading.WhichOneof('value')
     if field is not None:
         value = getattr(reading, field)
+
+        # If the value returned is bytes, perform some additional checks.
+        # Bytes are not JSON-serializable, so we must convert it. We will
+        # default to bytes being converted to a string, but also try to
+        # load the bytes as JSON, in the event that the payload contains
+        # valid JSON.
+        if isinstance(value, bytes):
+            value = value.decode("utf-8")
+            try:
+                # json.loads will take string values (e.g. "1", "0.25", "null")
+                # and convert them to corresponding python types (1, 0.25, None).
+                # we don't want to do this for every byte string that comes through,
+                # as we may be expecting a string value for some bytes responses.
+                # Only capture the JSON if it renders out to a dict or list.
+                tmp = json.loads(value)
+                if isinstance(tmp, (dict, list)):
+                    value = tmp
+            except Exception:  # noqa
+                pass
 
         # Ensure the value is not NaN, as NaN is not a part of the
         # JSON spec and could cause clients to error.
