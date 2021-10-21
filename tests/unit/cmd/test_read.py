@@ -1,5 +1,7 @@
 """Unit tests for the ``synse_server.cmd.read`` module."""
 
+from typing import Any
+
 import asynctest
 import pytest
 from synse_grpc import api, client
@@ -743,6 +745,83 @@ def test_reading_to_dict_5_float_not_nan(state_reading, reading_value: str) -> N
         'device_type': 'led',
         'device_info': 'Example LED Device',
         'value': reading_value,
+        'unit': None,
+        'context': {},
+    }
+
+
+@pytest.mark.parametrize(
+    'raw_value,expected', [
+        (b"", ""),
+        (b"abc", "abc"),
+        (b"1", "1"),
+        (b"0.25", "0.25"),
+        (b"null", "null"),
+    ]
+)
+def test_reading_to_dict_byte_string(raw_value: bytes, expected: Any, const_uuid: str) -> None:
+    """Convert a reading to a dictionary. Here, the reading value is typed as bytes
+    which are not JSON serializable. The method should convert the bytes to a string.
+
+    Regression for: https://vaporio.atlassian.net/browse/VIO-1238
+    """
+
+    msg = api.V3Reading(
+        id=const_uuid,
+        timestamp='2019-04-22T13:30:00Z',
+        type="example",
+        deviceType="example",
+        deviceInfo="An Example Device",
+        bytes_value=raw_value,
+    )
+
+    actual = reading_to_dict(msg)
+    assert actual == {
+        'device': const_uuid,
+        'timestamp': '2019-04-22T13:30:00Z',
+        'type': 'example',
+        'device_type': 'example',
+        'device_info': 'An Example Device',
+        'value': expected,
+        'unit': None,
+        'context': {},
+    }
+
+
+@pytest.mark.parametrize(
+    'raw_value,expected', [
+        (b"[]", []),
+        (b"{}", {}),
+        (b'{"foo": "bar"}', {"foo": "bar"}),
+        (b'{"foo": 1}', {"foo": 1}),
+        (b'{"foo": [true, false]}', {"foo": [True, False]}),
+    ]
+)
+def test_reading_to_dict_byte_json(raw_value: bytes, expected: Any, const_uuid: str) -> None:
+    """Convert a reading to a dictionary. Here, the reading value is typed as bytes
+    which are not JSON serializable. The method should convert the bytes to a string
+    and then load it as a valid JSON payload.
+
+    Regression for: https://vaporio.atlassian.net/browse/VIO-1238
+    """
+
+    msg = api.V3Reading(
+        id=const_uuid,
+        timestamp='2019-04-22T13:30:00Z',
+        type="example",
+        deviceType="example",
+        deviceInfo="An Example Device",
+        bytes_value=raw_value,
+    )
+
+    actual = reading_to_dict(msg)
+    assert actual == {
+        'device': const_uuid,
+        'timestamp': '2019-04-22T13:30:00Z',
+        'type': 'example',
+        'device_type': 'example',
+        'device_info': 'An Example Device',
+        'value': expected,
         'unit': None,
         'context': {},
     }
