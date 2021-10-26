@@ -120,6 +120,14 @@ class Monitor:
         labelnames=('plugin',),
     )
 
+    #
+    # General / other metrics
+    #
+    registered_devices = Gauge(
+        name='synse_registered_devices',
+        documentation='The number of devices currently registered with Synse Server',
+    )
+
     def __init__(self, app: sanic.Sanic) -> None:
         self.app = app
 
