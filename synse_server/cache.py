@@ -10,6 +10,7 @@ from structlog import get_logger
 from synse_grpc import api
 
 from synse_server import loop, plugin
+from synse_server.metrics import Monitor
 
 logger = get_logger()
 
@@ -157,6 +158,7 @@ async def update_device_cache() -> None:
     alias_map = {}
     tags_map = {}
 
+    total_devices = 0
     for p in plugin.manager:
         if not p.active:
             logger.debug(
@@ -189,6 +191,8 @@ async def update_device_cache() -> None:
                             tags_map[key] = [device]
 
                     device_count += 1
+
+                total_devices += device_count
                 logger.debug(
                     'got devices from plugin',
                     plugin=p.tag, plugin_id=p.id, device_count=device_count,
@@ -201,6 +205,8 @@ async def update_device_cache() -> None:
             logger.exception(
                 'unexpected error when updating devices for plugin', plugin_id=p.id)
             raise
+
+    Monitor.registered_devices.set(total_devices)
 
     async with device_cache_lock:
         # IMPORTANT (etd): `clear` must be called with the namespace. It seems weird
