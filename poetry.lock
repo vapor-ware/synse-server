@@ -375,17 +375,17 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "kubernetes"
-version = "17.17.0"
+version = "20.13.0"
 description = "Kubernetes python client"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
 certifi = ">=14.05.14"
 google-auth = ">=1.0.1"
 python-dateutil = ">=2.5.3"
-pyyaml = ">=3.12"
+pyyaml = ">=5.4.1"
 requests = "*"
 requests-oauthlib = "*"
 six = ">=1.9.0"
@@ -933,7 +933,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "d39c7ee3128e9c29b0447f72bebeac3d6d09f61ca886e3a621bcfb709fc89c13"
+content-hash = "5a5430cd292ea4d26b571a5fd806df99c21908a1e6f5688cdca5bb76b1cc3501"
 
 [metadata.files]
 aiocache = [
@@ -1205,8 +1205,8 @@ isort = [
     {file = "isort-5.9.2.tar.gz", hash = "sha256:f65ce5bd4cbc6abdfbe29afc2f0245538ab358c14590912df638033f157d555e"},
 ]
 kubernetes = [
-    {file = "kubernetes-17.17.0-py3-none-any.whl", hash = "sha256:225a95a0aadbd5b645ab389d941a7980db8cdad2a776fde64d1b43fc3299bde9"},
-    {file = "kubernetes-17.17.0.tar.gz", hash = "sha256:c69b318696ba797dcf63eb928a8d4370c52319f4140023c502d7dfdf2080eb79"},
+    {file = "kubernetes-20.13.0-py2.py3-none-any.whl", hash = "sha256:7d32ea7f555813a141a0e912e7695d88f7213bb632a860ba79a963b43f7a6b18"},
+    {file = "kubernetes-20.13.0.tar.gz", hash = "sha256:ce5e881c13dc56f21a243804f90bc3c507af93c380f505c00e392c823968e4de"},
 ]
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
