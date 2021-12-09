@@ -8,7 +8,7 @@ from typing import Any, AsyncIterable, Dict, List, Optional, Union
 
 import synse_grpc.utils
 import websockets
-from structlog import get_logger
+from containerlog import get_logger
 from synse_grpc import api
 
 from synse_server import cache, errors, plugin

@@ -5,10 +5,10 @@ import json
 import time
 from typing import Any, Dict, List, Union
 
+from containerlog import get_logger
 from sanic import Blueprint
 from sanic.request import Request
 from sanic.websocket import ConnectionClosed
-from structlog import get_logger
 from websockets import WebSocketCommonProtocol
 
 from synse_server import cmd, errors, utils

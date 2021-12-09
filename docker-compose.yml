@@ -13,7 +13,6 @@ services:
     ports:
     - '5000:5000'
     environment:
-      SYNSE_LOGGING: debug
       SYNSE_PLUGIN_TCP: emulator-plugin:5001
       SYNSE_METRICS_ENABLED: 'true'
     links:

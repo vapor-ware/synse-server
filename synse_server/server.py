@@ -9,13 +9,17 @@ import functools
 import os
 import signal
 import sys
+import warnings
 
-from structlog import get_logger
+import containerlog.proxy.std
+from containerlog import get_logger
 
 import synse_server
-from synse_server import (app, cache, config, errors, loop, metrics, plugin,
-                          tasks)
-from synse_server.log import setup_logger
+from synse_server import app, cache, config, loop, metrics, plugin, tasks
+
+# Patch the sanic loggers to use the containerlog proxy.
+containerlog.proxy.std.patch("sanic*")
+containerlog.enable_contextvars()
 
 logger = get_logger()
 
@@ -102,10 +106,6 @@ class Synse:
             config=config.options.config,
         )
 
-        # Configure logging, using the loaded config.
-        setup_logger()
-        logger.info('configured logger')
-
         # Make sure that the filesystem layout needed by Synse Server
         # is present. If not, create the required directories.
         os.makedirs(self._server_config_dir, exist_ok=True)
@@ -120,6 +120,19 @@ class Synse:
 
     def run(self) -> None:
         """Run Synse Server."""
+
+        # Set up application logging. Default is debug mode enabled. Set the level
+        # to INFO if debug disabled.
+        # FIXME (also checking the historical "logging" configuration option, which
+        #  is now deprecated. This will be removed in an upcoming release.)
+        _log_opt_debug = config.options.get('logging') != 'debug'
+        if not config.options.get('debug') or _log_opt_debug:
+            if _log_opt_debug:
+                warnings.warn(
+                    'You are using a deprecated configuration option (logging). '
+                    'Instead, use "debug" (debug=True / debug=False)'
+                )
+            containerlog.set_level(containerlog.INFO)  # pragma: nocover
 
         # Register signals for graceful termination
         for sig in ('SIGINT', 'SIGTERM'):

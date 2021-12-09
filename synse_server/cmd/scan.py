@@ -1,7 +1,7 @@
 
 from typing import Any, Dict, List
 
-from structlog import get_logger
+from containerlog import get_logger
 from synse_grpc import utils
 
 from synse_server import cache, errors
@@ -68,7 +68,7 @@ async def scan(
             try:
                 device_group = await cache.get_devices(*group)
             except Exception as e:
-                logger.exception(e)
+                logger.exception(str(e))
                 raise errors.ServerError('failed to get devices from cache') from e
 
             for device in device_group:

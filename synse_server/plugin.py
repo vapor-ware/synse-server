@@ -4,7 +4,7 @@ import asyncio
 import time
 from typing import Dict, List, Optional, Tuple, Union
 
-from structlog import get_logger
+from containerlog import contextvars, get_logger
 from synse_grpc import client, utils
 
 from synse_server import backoff, config, errors, loop
@@ -466,30 +466,32 @@ class Plugin:
         of a failure to connect with the plugin.
         """
         start = time.time()
-        _l = logger.bind(plugin=self.id)
-        _l.info('starting plugin reconnect task')
+        contextvars.bind(plugin=self.id)
+        logger.info('starting plugin reconnect task')
         bo = backoff.ExponentialBackoff()
+        try:
+            while True:
+                logger.debug('plugin reconnect task: attempting reconnect')
+                try:
+                    self.client.test()
+                except Exception as ex:
+                    logger.info('plugin reconnect task: failed to reconnect to plugin', error=ex)
+                    # The plugin should still be in the inactive state, but we re-set
+                    # it here to ensure it is true.
+                    self.mark_inactive()
+                else:
+                    self.mark_active()
+                    logger.info(
+                        'plugin reconnect task: established connection with plugin',
+                        total_time=time.time() - start,
+                    )
+                    return
 
-        while True:
-            _l.debug('plugin reconnect task: attempting reconnect')
-            try:
-                self.client.test()
-            except Exception as ex:
-                _l.info('plugin reconnect task: failed to reconnect to plugin', error=ex)
-                # The plugin should still be in the inactive state, but we re-set
-                # it here to ensure it is true.
-                self.mark_inactive()
-            else:
-                self.mark_active()
-                _l.info(
-                    'plugin reconnect task: established connection with plugin',
-                    total_time=time.time() - start,
-                )
-                return
-
-            delay = bo.delay()
-            _l.debug('plugin reconnect task: waiting until next retry', delay=delay)
-            await asyncio.sleep(delay)
+                delay = bo.delay()
+                logger.debug('plugin reconnect task: waiting until next retry', delay=delay)
+                await asyncio.sleep(delay)
+        finally:
+            contextvars.unbind('plugin_id')
 
     def refresh_state(self):
         """Refresh the state of the plugin.
@@ -508,21 +510,24 @@ class Plugin:
         also refreshes the state of each existing individual plugin to ensure that
         its active/inactive state is up-to-date.
         """
-        _l = logger.bind(plugin=self.id)
-        _l.info('refreshing plugin state')
-
-        if self.disabled:
-            _l.info('plugin is disabled, will not refresh')
-            return
+        contextvars.bind(plugin=self.id)
+        logger.info('refreshing plugin state')
 
         try:
-            self.client.test()
-        except Exception as ex:
-            _l.debug('plugin refresh: failed to connect to plugin', errror=ex)
-            self.mark_inactive()
-        else:
-            _l.debug('plugin refresh: successfully connected to plugin')
-            self.mark_active()
+            if self.disabled:
+                logger.info('plugin is disabled, will not refresh')
+                return
+
+            try:
+                self.client.test()
+            except Exception as ex:
+                logger.debug('plugin refresh: failed to connect to plugin', errror=ex)
+                self.mark_inactive()
+            else:
+                logger.debug('plugin refresh: successfully connected to plugin')
+                self.mark_active()
+        finally:
+            contextvars.unbind('plugin')
 
     def is_ready(self):
         """Check whether the plugin is ready to communicate with.

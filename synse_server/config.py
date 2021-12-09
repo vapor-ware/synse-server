@@ -4,7 +4,11 @@ from bison import Bison, DictOption, ListOption, Option, Scheme
 
 # The Synse Server configuration scheme
 scheme = Scheme(
+    # DEPRECATED: no longer supporting logging in this format. This will
+    # be removed by upcoming release.
     Option('logging', default='debug', choices=['debug', 'info', 'warning', 'error', 'critical']),
+
+    Option('debug', default=True, field_type=bool),
     Option('pretty_json', default=True, field_type=bool),
     DictOption('plugin', default={}, scheme=Scheme(
         ListOption('tcp', default=[], member_type=str, bind_env=True),

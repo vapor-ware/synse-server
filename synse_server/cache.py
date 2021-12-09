@@ -6,7 +6,7 @@ from typing import Iterable, List, Union
 import aiocache
 import grpc
 import synse_grpc.utils
-from structlog import get_logger
+from containerlog import get_logger
 from synse_grpc import api
 
 from synse_server import loop, plugin

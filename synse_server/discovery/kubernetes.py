@@ -4,7 +4,7 @@ from typing import List
 
 import kubernetes.client
 import kubernetes.config
-from structlog import get_logger
+from containerlog import get_logger
 
 from synse_server import config
 

@@ -1,10 +1,10 @@
 """Synse Server HTTP API."""
 
 import ujson
+from containerlog import get_logger
 from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import HTTPResponse, StreamingHTTPResponse, stream
-from structlog import get_logger
 
 from synse_server import cmd, errors, plugin, utils
 

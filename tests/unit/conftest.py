@@ -1,8 +1,8 @@
 """Fixture definitions for Synse Server unit tests."""
 import datetime
-import logging
 
 import asynctest
+import containerlog
 import pytest
 from sanic_testing import TestManager
 from synse_grpc import api, client
@@ -22,17 +22,14 @@ TEST_DATETIME = datetime.datetime(2019, 4, 19, 2, 1, 53, 680718)
 #   @pytest.mark.usefixtures(<FIXTURE NAME>)
 
 
-@pytest.fixture(scope='module', autouse=True)
-def disable_loggers():
-    """Fixture to disable loggers for the tests."""
+@pytest.fixture(autouse=True)
+def disable_logger():
+    """Disable the application logger for unit tests.
 
-    logging.getLogger('synse_server').setLevel(logging.CRITICAL)
-
-    logging.getLogger('synse_server').disabled = True
-    logging.getLogger('root').disabled = True
-    logging.getLogger('sanic.access').disabled = True
-    logging.getLogger('sanic.error').disabled = True
-    logging.getLogger('sanic.root').disabled = True
+    This helps to keep the test output cleaner and more easily readable. If there are
+    cases where having the extra logging would be helpful, simply disable this fixture.
+    """
+    containerlog.disable()
 
 
 @pytest.fixture()

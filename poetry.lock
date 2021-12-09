@@ -173,6 +173,14 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "containerlog"
+version = "0.4.2"
+description = "Optimized, opinionated structured logging for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6.1,<4.0.0"
+
+[[package]]
 name = "coverage"
 version = "5.5"
 description = "Code coverage measurement for Python"
@@ -779,22 +787,6 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "structlog"
-version = "21.1.0"
-description = "Structured Logging for Python"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
-
-[package.extras]
-dev = ["coverage", "freezegun (>=0.2.8)", "pretend", "pytest-asyncio", "pytest-randomly", "pytest (>=6.0)", "simplejson", "furo", "sphinx", "sphinx-toolbox", "twisted", "pre-commit"]
-docs = ["furo", "sphinx", "sphinx-toolbox", "twisted"]
-tests = ["coverage", "freezegun (>=0.2.8)", "pretend", "pytest-asyncio", "pytest-randomly", "pytest (>=6.0)", "simplejson"]
-
-[[package]]
 name = "synse-grpc"
 version = "3.1.0"
 description = "The Synse gRPC API for plugin communication."
@@ -831,7 +823,7 @@ python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 name = "typing-extensions"
 version = "3.10.0.0"
 description = "Backported and Experimental Type Hints for Python 3.5+"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -933,7 +925,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "d39c7ee3128e9c29b0447f72bebeac3d6d09f61ca886e3a621bcfb709fc89c13"
+content-hash = "d19cfdac1b34fa744f05a944172a78f5d9ef7dcef848e41c09253eba2de849aa"
 
 [metadata.files]
 aiocache = [
@@ -1034,6 +1026,10 @@ charset-normalizer = [
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+]
+containerlog = [
+    {file = "containerlog-0.4.2-py3-none-any.whl", hash = "sha256:71f3b29aff051bbf290aba10e1d19e08587b659ebef6581a709a66cc4322aa9a"},
+    {file = "containerlog-0.4.2.tar.gz", hash = "sha256:bb18dbb6b7dd4dad6a51c307071d881f5dfc2470f1742e79fb18d749a325d671"},
 ]
 coverage = [
     {file = "coverage-5.5-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:b6d534e4b2ab35c9f93f46229363e17f63c53ad01330df9f2d6bd1187e5eaacf"},
@@ -1449,10 +1445,6 @@ six = [
 sniffio = [
     {file = "sniffio-1.2.0-py3-none-any.whl", hash = "sha256:471b71698eac1c2112a40ce2752bb2f4a4814c22a54a3eed3676bc0f5ca9f663"},
     {file = "sniffio-1.2.0.tar.gz", hash = "sha256:c4666eecec1d3f50960c6bdf61ab7bc350648da6c126e3cf6898d8cd4ddcd3de"},
-]
-structlog = [
-    {file = "structlog-21.1.0-py2.py3-none-any.whl", hash = "sha256:62f06fc0ee32fb8580f0715eea66cb87271eb7efb0eaf9af6b639cba8981de47"},
-    {file = "structlog-21.1.0.tar.gz", hash = "sha256:d9d2d890532e8db83c6977a2a676fb1889922ff0c26ad4dc0ecac26f9fafbc57"},
 ]
 synse-grpc = [
     {file = "synse_grpc-3.1.0-py2.py3-none-any.whl", hash = "sha256:9c63b425722d66d1b53a84dda0d45fac5c4b07e98eea93fd18583b1f347623ef"},

@@ -39,7 +39,7 @@ lint:  ## Run linting checks on the project source code (isort, flake8, twine)
 	poetry check
 
 test:  ## Run the unit tests
-	poetry run pytest -s -vv --cov-report html --cov-report term-missing --cov synse_server
+	poetry run pytest --disable-warnings -s -vv --cov-report html --cov-report term-missing --cov synse_server
 
 version:  ## Print the version of Synse Server
 	@echo "${PKG_VERSION}"

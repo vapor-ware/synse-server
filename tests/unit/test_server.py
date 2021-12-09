@@ -24,12 +24,10 @@ class TestSynse:
         mock_init.assert_called_once()
 
     @mock.patch('os.makedirs')
-    @mock.patch('synse_server.server.setup_logger')
     @mock.patch('synse_server.server.Synse.reload_config')
-    def test_initialize(self, mock_reload, mock_logger, mock_mkdirs):
+    def test_initialize(self, mock_reload, mock_mkdirs):
         synse = server.Synse()
 
-        mock_logger.assert_called_once()
         mock_reload.assert_called_once()
         mock_mkdirs.assert_has_calls([
             mock.call(synse._server_config_dir, exist_ok=True),

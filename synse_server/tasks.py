@@ -3,7 +3,7 @@
 import asyncio
 
 import sanic
-from structlog import get_logger
+from containerlog import get_logger
 
 from synse_server import config, plugin
 from synse_server.cache import update_device_cache

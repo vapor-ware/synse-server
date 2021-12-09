@@ -1,7 +1,7 @@
 
 from typing import Any, Dict, List, Union
 
-from structlog import get_logger
+from containerlog import get_logger
 from synse_grpc import utils as grpc_utils
 
 from synse_server import cache, errors, utils

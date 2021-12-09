@@ -1,7 +1,7 @@
 
 from typing import Any, Dict, List
 
-from structlog import get_logger
+from containerlog import get_logger
 from synse_grpc import api, utils
 
 import synse_server.utils

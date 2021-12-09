@@ -1,10 +1,10 @@
 """Error definitions for Synse Server."""
 
+from containerlog import get_logger
 from sanic.exceptions import SanicException
 from sanic.handlers import ErrorHandler
 from sanic.request import Request
 from sanic.response import HTTPResponse
-from structlog import get_logger
 
 from synse_server import utils
 

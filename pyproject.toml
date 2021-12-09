@@ -18,9 +18,9 @@ PyYAML = "^5.4.1"
 sanic = "^21.6.2"
 prometheus-client = "^0.11.0"
 shortuuid = "^1.0.1"
-structlog = "^21.1.0"
 websockets = "^9.1"
 synse-grpc = "3.1.0"
+containerlog = "^0.4.2"
 
 [tool.poetry.dev-dependencies]
 aiohttp = "^3.7.4"

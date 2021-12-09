@@ -20,7 +20,7 @@ RUN mkdir packages \
 #
 # RELEASE STAGE
 #
-FROM vaporio/python:3.9-slim
+FROM vaporio/python:3.9
 
 LABEL org.opencontainers.image.title="Synse Server" \
       org.opencontainers.image.source="https://github.com/vapor-ware/synse-server" \
@@ -32,12 +32,16 @@ RUN groupadd -g 51453 synse \
  && useradd -u 51453 -g 51453 synse
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    tini curl \
+    curl \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir -p /synse \
  && mkdir -p /etc/synse \
- && chown -R synse:synse /synse \
- && chown -R synse:synse /etc/synse
+ && chown -R synse:synse /synse /etc/synse
+
+# PYTHONUNBUFFERED: allow stdin, stdout, and stderr to be totally unbuffered.
+#   This is required so that the container logs are rendered as they are logged into
+#   `docker logs`.
+ENV PYTHONUNBUFFERED=1
 
 COPY --from=builder /build/dist/synse-server-*.tar.gz /synse/synse-server.tar.gz
 COPY --from=builder /build/packages /pip-packages
@@ -51,4 +55,4 @@ RUN pip install --no-index --find-links=/pip-packages /pip-packages/* \
 
 USER synse
 
-ENTRYPOINT ["/usr/bin/tini", "--", "synse_server"]
+ENTRYPOINT ["synse_server"]

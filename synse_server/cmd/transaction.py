@@ -2,7 +2,7 @@
 from typing import Any, Dict, List
 
 import synse_grpc.utils
-from structlog import get_logger
+from containerlog import get_logger
 
 from synse_server import cache, errors, plugin, utils
 

@@ -1,7 +1,7 @@
 """Unit tests for the ``synse_server.app`` module."""
 
+from containerlog import contextvars
 from sanic.response import HTTPResponse, StreamingHTTPResponse
-from structlog import contextvars
 
 from synse_server import app, errors
 
@@ -27,16 +27,16 @@ def test_on_response_normal_http_response():
     req = MockRequest()
     resp = HTTPResponse()
 
-    contextvars.bind_contextvars(
+    contextvars.bind(
         request_id='test-request',
     )
-    ctx = contextvars._CONTEXT_VARS
-    assert 'test-request' == ctx['structlog_request_id'].get()
+    ctx = contextvars._CTXVARS
+    assert 'test-request' == ctx['containerlog_request_id'].get()
 
     app.on_response(req, resp)
 
-    ctx = contextvars._CONTEXT_VARS
-    assert ctx['structlog_request_id'].get() is Ellipsis
+    ctx = contextvars._CTXVARS
+    assert ctx['containerlog_request_id'].get() is Ellipsis
 
 
 def test_on_response_streaming_http_response():
@@ -47,13 +47,13 @@ def test_on_response_streaming_http_response():
     req = MockRequest()
     resp = StreamingHTTPResponse(None)
 
-    contextvars.bind_contextvars(
+    contextvars.bind(
         request_id='test-request',
     )
-    ctx = contextvars._CONTEXT_VARS
-    assert 'test-request' == ctx['structlog_request_id'].get()
+    ctx = contextvars._CTXVARS
+    assert 'test-request' == ctx['containerlog_request_id'].get()
 
     app.on_response(req, resp)
 
-    ctx = contextvars._CONTEXT_VARS
-    assert ctx['structlog_request_id'].get() is Ellipsis
+    ctx = contextvars._CTXVARS
+    assert ctx['containerlog_request_id'].get() is Ellipsis
