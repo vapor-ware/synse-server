@@ -31,7 +31,7 @@ pytest-asyncio = "^0.15.1"
 pytest-cov = "^2.12.1"
 pytest-mock = "^3.6.1"
 requests = "^2.26.0"
-sanic-testing = "^0.6.0"
+sanic-testing = "^22.9.0"
 pre-commit = "^2.15.0"
 flake8-isort = "^4.0.0"
 
