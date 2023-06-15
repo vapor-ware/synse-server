@@ -39,14 +39,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && chown -R synse:synse /synse \
  && chown -R synse:synse /etc/synse
 
-COPY --from=builder /build/dist/synse-server-*.tar.gz /synse/synse-server.tar.gz
+COPY --from=builder /build/dist/synse_server-*.tar.gz /synse/synse_server.tar.gz
 COPY --from=builder /build/packages /pip-packages
 COPY ./assets/favicon.ico /etc/synse/static/favicon.ico
 
 WORKDIR synse
 
 RUN pip install --no-index --find-links=/pip-packages /pip-packages/* \
- && pip install synse-server.tar.gz \
+ && pip install synse_server.tar.gz \
  && rm -rf /root/.cache
 
 USER synse
