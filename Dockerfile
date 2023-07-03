@@ -1,7 +1,7 @@
 #
 # BUILDER STAGE
 #
-FROM docker.io/vaporio/python:3.9 as builder
+FROM docker.io/library/python:3.9 as builder
 
 RUN pip install --disable-pip-version-check poetry
 
@@ -20,7 +20,7 @@ RUN mkdir packages \
 #
 # RELEASE STAGE
 #
-FROM docker.io/vaporio/python:3.9-slim
+FROM docker.io/library/python:3.9-slim
 
 LABEL org.opencontainers.image.title="Synse Server" \
       org.opencontainers.image.source="https://github.com/vapor-ware/synse-server" \
