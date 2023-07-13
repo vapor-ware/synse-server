@@ -11,14 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # - name: Checkout vapor-ware workflows
-      #   uses: actions/checkout@v3
-      #   with:
-      #     repository: vapor-ware/workflows
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     ref: main
-      #     path: vapor-ware-workflows
-
       - uses: ./.github/actions/build-pr-image
         id: build-env
         with:
