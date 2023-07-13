@@ -1,0 +1,37 @@
+name: scan image
+description: scan a container image for vulnerabilities
+inputs:
+  image:
+    required: true
+    description: container image to scan
+
+outputs:
+  sarif:
+    value: ${{ steps.output-sarif.outputs.sarif }}
+    description: results of the container scan in SARIF format
+
+runs:
+  using: composite
+  steps:
+    - name: scan container image
+      uses: anchore/scan-action@v3
+      id: scan
+      with:
+        image: ${{ inputs.image }}
+        acs-report-enable: true
+        fail-build: false
+        severity-cutoff: high
+
+    - id: output-sarif
+      run: echo "sarif=${{ steps.scan.outputs.sarif }}" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: inspect action SARIF report
+      run: cat ${{ steps.scan.outputs.sarif }}
+      shell: bash
+
+    # TODO: submit sarif report to an API endpoint
+    # PAT auth to an API that stores sarif reports.
+    - name: submit SARIF report
+      run: echo "submitting SARIF report"
+      shell: bash

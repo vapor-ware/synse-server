@@ -9,15 +9,15 @@ jobs:
   image_build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
 
-    #   - name: Checkout vapor-ware workflows
-    #     uses: actions/checkout@v3
-    #     with:
-    #       repository: vapor-ware/workflows
-    #       token: ${{ secrets.GITHUB_TOKEN }}
-    #       ref: main
-    #       path: vapor-ware-workflows
+      # - name: Checkout vapor-ware workflows
+      #   uses: actions/checkout@v3
+      #   with:
+      #     repository: vapor-ware/workflows
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     ref: main
+      #     path: vapor-ware-workflows
 
       - uses: ./.github/actions/build-pr-image
         id: build-env
@@ -28,11 +28,11 @@ jobs:
           DOCKERFILE: Dockerfile
           USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
-          IMAGENAME: synse-server
+          IMAGENAME: edge-events
 
-    #   - uses: ./vapor-ware-workflows/.github/actions/scan-image
-    #     id: scan-image
-    #     with:
-    #       image: ${{ steps.build-env.outputs.image-archive }}
-    #       fail-build: false
-    #       severity-cutoff: high
+      - uses: ./.github/actions/scan-image
+        id: scan-image
+        with:
+          image: ${{ steps.build-env.outputs.image-archive }}
+          fail-build: false
+          severity-cutoff: high
