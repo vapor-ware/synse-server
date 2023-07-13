@@ -28,7 +28,7 @@ jobs:
           DOCKERFILE: Dockerfile
           USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
-          IMAGENAME: edge-events
+          IMAGENAME: synse-server
 
       - uses: ./.github/actions/scan-image
         id: scan-image
