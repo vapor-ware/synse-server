@@ -5,8 +5,10 @@ on:
     types:
       - completed
   push:
-    tags:
-      - 'v*'
+    branches:
+    - vio-3010-github-actions
+    # tags:
+    #   - 'v*'
 
 jobs:
   release:
