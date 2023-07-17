@@ -1,0 +1,99 @@
+name: build pr image
+description: build an image for current pr
+inputs:
+  REGISTRY:
+    required: true
+    default: "docker.io"
+    description: registry to use, defaults to docker.io
+  ORGANIZATION:
+    required: true
+    default: "vaporio"
+    description: organization name used in image
+  USERNAME:
+    required: true
+  PASSWORD:
+    required: true
+  BUILDERIMAGE:
+    required: true
+  SLIMIMAGE:
+    required: false
+  DOCKERFILE:
+    required: true
+  IMAGENAME:
+    required: true
+  IMAGETAG:
+    required: false
+
+outputs:
+  timestamp:
+    value: ${{ steps.generate-timestamp.outputs.current-timestamp }}
+    description: timestamp for use in other actions
+  tag:
+    value: ${{ steps.generate-tag.outputs.tag }}
+    description: image tag for use in other actions, defaults to github.event.number
+  image-archive:
+    value: ${{ steps.image-archive.outputs.image-archive }}
+    description: docker image archive of built image
+  image:
+    value: ${{ steps.generate-image.outputs.image }}
+    description: full base image name
+
+runs:
+  using: composite
+  steps:
+    - name: Log in to docker.io
+      uses: redhat-actions/podman-login@v1.5
+      with:
+        registry: ${{ inputs.REGISTRY }}
+        username: ${{ inputs.USERNAME }}
+        password: ${{ inputs.PASSWORD }}
+
+    - id: generate-image
+      run: echo "image=$(echo ${{ inputs.REGISTRY }}/${{ inputs.ORGANIZATION }}/${{ inputs.IMAGENAME }})" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - id: generate-timestamp
+      run: echo "current-timestamp=$(date +%Y-%m-%dT%H:%M:%S)" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - id: generate-tag
+      run: echo "tag=$(echo pr.${{ inputs.IMAGETAG || github.event.number }})" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Pull builder image
+      run: podman pull ${{ inputs.BUILDERIMAGE }}
+      shell: bash
+
+    - name: Pull slim image
+      run: podman pull ${{ inputs.SLIMIMAGE }}
+      if: ${{ inputs.SLIMIMAGE }}
+      shell: bash
+
+    - name: build image
+      run: |
+        podman build . \
+          -f ${{ inputs.DOCKERFILE }} \
+          --format docker \
+          --label org.opencontainers.image.created=${{ steps.generate-timestamp.outputs.timestamp }} \
+          --label org.opencontainers.image.revision=${{ github.sha }} \
+          --label org.opencontainers.image.version=${{ github.ref_name }} \
+          --label io.vapor.image.build.number=${{ github.run_id }} \
+          --label io.vapor.image.build.ref=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} \
+          --label io.vapor.image.build.id=${{ github.base_ref }} \
+          --label io.vapor.image.build.branch=${{ github.event.pull_request.head.ref }} \
+          -t ${{ steps.generate-image.outputs.image }}:${{ steps.generate-tag.outputs.tag }}
+      shell: bash
+
+    - name: save image
+      run: |
+        podman save --quiet -o ${{ inputs.IMAGENAME }}.tar ${{ steps.generate-image.outputs.image }}:${{ steps.generate-tag.outputs.tag }}
+      shell: bash
+
+    - id: image-archive
+      run: echo "image-archive=$(echo docker-archive:${{ inputs.IMAGENAME }}.tar)" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: push image
+      run: |
+        podman push ${{ steps.generate-image.outputs.image }}:${{ steps.generate-tag.outputs.tag }}
+      shell: bash

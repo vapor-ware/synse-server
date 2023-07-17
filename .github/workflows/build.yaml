@@ -1,0 +1,30 @@
+name: build
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  image_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: ./.github/actions/build-pr-image
+        id: build-env
+        with:
+          REGISTRY: docker.io
+          BUILDERIMAGE: docker.io/library/python:3.9
+          SLIMIMAGE: docker.io/library/python:3.9-slim
+          DOCKERFILE: Dockerfile
+          USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+          IMAGENAME: synse-server
+
+      - uses: ./.github/actions/scan-image
+        id: scan-image
+        with:
+          image: ${{ steps.build-env.outputs.image-archive }}
+          fail-build: false
+          severity-cutoff: high

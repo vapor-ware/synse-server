@@ -1,0 +1,24 @@
+name: release
+on:
+  workflow_run:
+    workflows: [build]
+    types:
+      - completed
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      -
+        name: Update Helm Chart
+        uses: vapor-ware/chart-releaser-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.VIO_PUBLIC_REPO }}
+        with:
+          args: update --diff --debug
