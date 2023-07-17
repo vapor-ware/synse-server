@@ -5,10 +5,8 @@ on:
     types:
       - completed
   push:
-    branches:
-    - vio-3010-github-actions
-    # tags:
-    #   - 'v*'
+    tags:
+      - 'v*'
 
 jobs:
   release:
@@ -23,4 +21,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.VIO_PUBLIC_REPO }}
         with:
-          args: update --diff --debug --dry-run
+          args: update --diff --debug
